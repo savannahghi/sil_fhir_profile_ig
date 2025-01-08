@@ -5,6 +5,7 @@ Description: "SGHI's profile of the Patient resource."
 
 * identifier 1..*
   * type from SGHIIdentifierTypes (extensible)
+  * value 1..1
 
 * active 1..1
 
