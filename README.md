@@ -99,7 +99,7 @@ This will generate output in the following directory:
 ```bash
 ./fsh-generated
 ```
-and generates the necessary FHIR artifacts in the `output` directory.
+as well as the necessary FHIR artifacts in the `output` directory.
 
 ## Contributing
 
