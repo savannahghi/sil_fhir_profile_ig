@@ -4,9 +4,9 @@
 # │  see: https://fshschool.org/docs/sushi/configuration/.                                         │
 # ╰────────────────────────────────────────────────────────────────────────────────────────────────╯
 id: sil_fhir_profile_ig
-canonical: https://www.savannahghi.org/
-name: SGHIFHIRProfileIG
-# title: Example Title
+canonical: https://www.savannahghi.org
+name: SGHIFHIRProfileImplementationGuide
+title: SGHI FHIR Profile Implementation Guide
 # description: Example Implementation Guide for getting started with SUSHI
 status: draft # draft | active | retired | unknown
 version: 0.1.0
@@ -87,12 +87,17 @@ menu:
 # contact directly and follow the format outlined in the ImplementationGuide resource and
 # ContactDetail.
 #
-# contact:
-#   - name: Bob Smith
-#     telecom:
-#       - system: email # phone | fax | email | pager | url | sms | other
-#         value: bobsmith@example.org
-#         use: work
+contact:
+  - name: Oscar John
+    telecom:
+      - system: email # phone | fax | email | pager | url | sms | other
+        value: oscarjohnotieno@gmail.com
+        use: work
+  - name: Kennedy Omondi
+    telecom:
+      - system: email # phone | fax | email | pager | url | sms | other
+        value: kennankole@gmail.com
+        use: work
 #
 #
 # The global property corresponds to the IG.global property, but it
