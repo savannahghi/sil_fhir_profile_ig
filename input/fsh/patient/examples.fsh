@@ -1,7 +1,7 @@
 Instance: PatientExample
 InstanceOf: SGHIPatient
 Description: "An example of a patient profile."
-* identifier[0].system = "https://savannahinformatics.com/identifiers/patient"
+* identifier[0].system = "https://build.fhir.org/ig/savannahghi/sil_fhir_profile_ig/identifiers/patient"
 * identifier[0].value = "12345"
 * identifier[0].type = #MR "Medical Record Number"
 * active = true
