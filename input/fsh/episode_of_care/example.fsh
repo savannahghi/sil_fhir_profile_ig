@@ -6,7 +6,7 @@ Description: "An example of an episode of care conforming to the SGHIEpisodeOfCa
 * identifier[0].system = "http://sghi-hospital.org/episodes"
 * identifier[0].value = "EOC1234567890"
 * status = #active
-* patient.reference = "Patient/example"
+* patient = Reference(SGHIPatient/example-patient)
 * period.start = "2025-01-01"
 * period.end = "2025-01-31"
-* managingOrganization.reference = "Organization/example"
+// * managingOrganization.reference = "Organization/example"
