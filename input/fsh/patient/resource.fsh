@@ -26,4 +26,4 @@ Description: "SGHI's profile of the Patient resource."
   * name 1..1
   * telecom 1..1
 
-* managingOrganization 1..1
+// * managingOrganization 1..1
