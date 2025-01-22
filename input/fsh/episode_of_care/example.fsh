@@ -9,4 +9,4 @@ Description: "An example of an episode of care conforming to the SGHIEpisodeOfCa
 * patient = Reference(SGHIPatient/example-patient)
 * period.start = "2025-01-01"
 * period.end = "2025-01-31"
-// * managingOrganization.reference = "Organization/example"
+* managingOrganization.reference = "Organization/example"
