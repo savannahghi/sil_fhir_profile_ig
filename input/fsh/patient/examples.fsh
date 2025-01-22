@@ -1,4 +1,4 @@
-Instance: PatientExample
+Instance: ExampleSGHIPatient
 InstanceOf: SGHIPatient
 Description: "An example of a patient profile."
 * identifier[0].system = "https://savannahinformatics.com/identifiers/patient"
@@ -17,4 +17,4 @@ Description: "An example of a patient profile."
 * contact[0].name.family = "Pond"
 * contact[0].telecom[0].system = #phone
 * contact[0].telecom[0].value = "+254-733-987654"
-// * managingOrganization = Reference(Organization/SGHospital)
+* managingOrganization = Reference(ExampleSGHIOrganization)
