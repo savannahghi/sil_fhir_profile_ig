@@ -5,10 +5,10 @@ Description: "An interaction between a patient and the healthcare provider."
   * type from SGHIEpisodeOfCareTypeIndentifierType (extensible)
   * use from SGHIEpisodeOfCareUseIndentifierType (required)
   * value 1..1
-* reason 0..*
-  * use from SGHIEpisodeOfCareReasonCode (required)
-* diagnosis 0..*
-  * condition from SGHIEpisodeOfCareDiagnosisCondition (required)
+* reason 1..*
+  * value only CodeableReference(SGHICondition) // This could be also an Observation to be added in the future
+* diagnosis 1..*
+  * condition only CodeableReference(SGHICondition)
 * period 1..1
 * patient only Reference(SGHIPatient)
-* managingOrganization 1..1
+* managingOrganization only Reference(SGHIOrganization)

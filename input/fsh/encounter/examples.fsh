@@ -1,12 +1,15 @@
-// Example of a consultation encounter
-Instance: Consultation
+Instance: ExampleSGHIEncounter
 InstanceOf: SGHIEncounter
-Title: "Consultation Encounter"
-Description: "Example of a consultation encounter for SGHI."
+Description: "An example of an Encounter resource conforming to the SGHI Encounter profile."
+* identifier[0].use = #official
+* identifier[0].type = #VN "Visit Number"
+* identifier[0].value = "VN123456789"
+* identifier[0].assigner = Reference(ExampleSGHIOrganization)
 * status = #in-progress
-* class = http://terminology.hl7.org/CodeSystem/v3-ActCode#AMB
-* subject = Reference(SGHIPatient/example-patient)
-* episodeOfCare = Reference(SGHIEpisodeOfCare/example-episode)
-* serviceProvider = Reference(SGHIOrganization/example-organization)
-* identifier.system = "http://example.org/identifiers/encounter"
-* identifier.value = "12345"
+* class[0] = #AMB "Ambulatory"
+* subject = Reference(ExampleSGHIPatient)
+* episodeOfCare = Reference(ExampleSGHIEpisodeOfCare)
+* serviceProvider = Reference(ExampleSGHIOrganization)
+* priority = #A "ASAP"
+* diagnosis[0].condition = Reference(ExampleSGHICondition)
+* participant[0].actor = Reference(ExampleSGHIPatient)
