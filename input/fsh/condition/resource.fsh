@@ -2,7 +2,7 @@ Profile: SGHICondition
 Parent: Condition
 Id: sghi-condition
 Title: "SGHI Condition"
-Description: "SGHI's profile for FHIR Condition resource"
+Description: "SGHI's profile for Condition"
 
 * identifier 1..*
   * use from http://hl7.org/fhir/ValueSet/identifier-use (required)

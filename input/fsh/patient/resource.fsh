@@ -1,7 +1,8 @@
 Profile: SGHIPatient
 Parent: Patient
 Id: sghi-patient
-Description: "SGHI's profile of the Patient resource."
+Title: "SGHI Patient profile"
+Description: "SGHI's profile of the Patient"
 
 * identifier 1..*
   * type from SGHIIdentifierTypes (extensible)

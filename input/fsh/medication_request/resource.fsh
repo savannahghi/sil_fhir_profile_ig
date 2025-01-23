@@ -2,7 +2,7 @@ Profile: SGHIMedicationRequest
 Parent: MedicationRequest
 Id: sghi-medication-request
 Title: "SGHI MedicationRequest profile"
-Description: "SGHI's profile for FHIR MedicationRequest"
+Description: "SGHI's profile for MedicationRequest"
 
 * identifier 1..*
   * use from http://hl7.org/fhir/ValueSet/identifier-use (required)
