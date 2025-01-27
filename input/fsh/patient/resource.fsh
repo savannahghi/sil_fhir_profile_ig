@@ -1,7 +1,7 @@
 Profile: SGHIPatient
 Parent: Patient
 Id: sghi-patient
-Title: "SGHI Patient profile"
+Title: "SGHI Patient"
 Description: "SGHI's profile of the Patient"
 
 * identifier 1..*

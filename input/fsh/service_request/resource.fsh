@@ -1,7 +1,7 @@
 Profile: SGHIServiceRequest
 Parent: ServiceRequest
 Id: sghi-service-request
-Title: "SGHI ServiceRequest profile"
+Title: "SGHI ServiceRequest"
 Description: "SGHI's profile for ServiceRequest"
 
 * identifier 1..*

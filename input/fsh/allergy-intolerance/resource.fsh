@@ -1,8 +1,8 @@
 Profile: SGHIAllergyIntolerance
 Parent: AllergyIntolerance
 Id: sghi-allergy-intolerance
-Title: "SGHI AllergyIntolerance profile"
-Description: "SGHI's profie for AllergyIntolerance"
+Title: "SGHI AllergyIntolerance"
+Description: "SGHI's profile for AllergyIntolerance"
 
 * identifier 1..*
   * use from http://hl7.org/fhir/ValueSet/identifier-use (required)
