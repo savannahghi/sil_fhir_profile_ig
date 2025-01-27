@@ -1,7 +1,7 @@
 Profile: SGHITask
 Parent: Task
 Id: sghi-task
-Title: "SGHI Task Profile"
+Title: "SGHI Task"
 Description: "SGHI's profile for Task"
 
 * identifier 1..*

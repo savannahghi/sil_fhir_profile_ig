@@ -1,7 +1,7 @@
 Profile: SGHIObservation
 Parent: Observation
 Id: sghi-observation
-Title: "SGHI Observation profile"
+Title: "SGHI Observation"
 Description: "SGHI's profile for Observation"
 
 * identifier 1..*

@@ -1,7 +1,7 @@
 Profile: SGHIDiagnosticReport
 Parent: DiagnosticReport
 Id: sghi-diagnostic-report
-Title: "SGHI DiagnosticReport profile"
+Title: "SGHI DiagnosticReport"
 Description: "SGHI's profile for DiagnosticReport"
 
 * identifier 1..*

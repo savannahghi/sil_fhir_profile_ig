@@ -1,7 +1,7 @@
 Profile: SGHIMedicationRequest
 Parent: MedicationRequest
 Id: sghi-medication-request
-Title: "SGHI MedicationRequest profile"
+Title: "SGHI MedicationRequest"
 Description: "SGHI's profile for MedicationRequest"
 
 * identifier 1..*
