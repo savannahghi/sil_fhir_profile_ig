@@ -2,7 +2,7 @@ Profile: SGHIEncounter
 Parent: Encounter
 Id: sghi-encounter
 Title: "SGHI Encounter"
-Description: "SGHI profile for Encounter resource"
+Description: "SGHI profile for Encounter"
 
 * identifier 1..*
   * type from http://hl7.org/fhir/ValueSet/identifier-type (extensible)

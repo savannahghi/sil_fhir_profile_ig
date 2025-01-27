@@ -1,5 +1,6 @@
 Profile: SGHIEpisodeOfCare
 Parent:  EpisodeOfCare
+Title: "SGHI's profie for EpisodeOfCare"
 Description: "An interaction between a patient and the healthcare provider."
 * identifier 1..*
   * type from SGHIEpisodeOfCareTypeIndentifierType (extensible)

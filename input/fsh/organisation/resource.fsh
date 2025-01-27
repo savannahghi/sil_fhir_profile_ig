@@ -2,7 +2,7 @@ Profile: SGHIOrganization
 Parent: Organization
 Id: sghi-organization
 Title: "SGHI Organization"
-Description: "A formally or informally recognized grouping of people or organizations formed for the purpose of achieving some form of collective action. Includes companies, institutions, corporations, departments, community groups, healthcare practice groups, payer/insurer, etc."
+Description: "SGHI's profile for Organization"
 * identifier 1..*
   * type from http://hl7.org/fhir/ValueSet/identifier-type (extensible)
   * use from http://hl7.org/fhir/ValueSet/identifier-use (required)
