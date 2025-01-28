@@ -19,10 +19,12 @@ Description: "SGHI's profile for AllergyIntolerance"
 * verificationStatus 1..1
 * code 1..1
 * patient only Reference(SGHIPatient)
+* encounter 1..1
 * encounter only Reference(SGHIEncounter)
 * recordedDate 1..1
-* reaction 1..1
+* reaction 1..*
   * substance from http://hl7.org/fhir/ValueSet/substance-code (preferred)
   * description 1..1
   * severity 1..1
   * exposureRoute	from http://hl7.org/fhir/ValueSet/route-codes (preferred)
+  * manifestation only CodeableReference(SGHIObservation)
