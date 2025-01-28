@@ -8,6 +8,7 @@ Description: "An example of SGHI Medication resource Example"
   * use = #official
   * type = #SNO "Serial Number"
   * value = "example-medication-id"
+  * system = "http://terminology.hl7.org/CodeSystem/v2-0203"
 * status = #active
 * code
   * coding

@@ -4,7 +4,7 @@
 # │  see: https://fshschool.org/docs/sushi/configuration/.                                         │
 # ╰────────────────────────────────────────────────────────────────────────────────────────────────╯
 id: silfhirprofileig
-canonical: https://www.savannahghi.org
+canonical: 	https://fhir.test.slade360edi.com/fhir
 name: SGHIFHIRProfileImplementationGuide
 title: SGHI FHIR Profile Implementation Guide
 # description: Example Implementation Guide for getting started with SUSHI
