@@ -10,6 +10,7 @@ Description: "An example of a Task resource conforming to the SGHI Task profile.
 
 * status = #in-progress
 * intent = #order
+* priority = #routine 
 * businessStatus.coding[0] = http://terminology.hl7.org/CodeSystem/task-status#in-progress "In Progress"
 
 * authoredOn = "2023-11-20T09:00:00Z"
@@ -24,3 +25,6 @@ Description: "An example of a Task resource conforming to the SGHI Task profile.
 
 * output[0].type = http://terminology.hl7.org/CodeSystem/task-output-type#result "Result"
 * output[0].valueString = "Blood test completed successfully"
+
+* requestedPerformer.reference = Reference(ExampleSGHIOrganization)
+* encounter = Reference(ExampleSGHIEncounter)

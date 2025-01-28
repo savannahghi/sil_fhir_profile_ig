@@ -20,4 +20,4 @@ Description: "An example of an AllergyIntolerance resource conforming to the SGH
 * reaction[0].description = "Severe rash and difficulty breathing"
 * reaction[0].severity = #severe "Severe"
 * reaction[0].exposureRoute = #oral "Oral"
-* reaction[0].manifestation = #404684003 "Clinical finding (finding)"
+* reaction[0].manifestation.reference = Reference(ExampleSGHIObservation)

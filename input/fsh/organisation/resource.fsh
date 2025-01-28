@@ -10,4 +10,4 @@ Description: "SGHI's profile for Organization"
 * active 1..1
 * type 1..*
 * name 1..1
-* contact 1..1
+* contact 1..*

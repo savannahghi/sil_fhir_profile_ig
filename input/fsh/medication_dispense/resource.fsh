@@ -21,6 +21,7 @@ Description: "SGHI's profile for Medication Dispense resource"
 * subject only Reference(SGHIPatient)
 
 * performer 1..1
+  * actor only Reference(SGHIOrganization)
 * authorizingPrescription 1..* 
 * authorizingPrescription only Reference(SGHIMedicationRequest)
 

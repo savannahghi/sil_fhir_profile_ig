@@ -12,6 +12,7 @@ Description: "SGHI's profile for Condition"
 * category 1..*
 * severity 1..1
 * subject only Reference(SGHIPatient)
+* encounter 1..1 
 * encounter only Reference(SGHIEncounter)
 * code 1..1
 * bodySite 1..*
