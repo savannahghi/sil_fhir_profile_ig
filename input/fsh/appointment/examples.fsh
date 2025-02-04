@@ -5,7 +5,7 @@ Usage: #example
 
 * identifier[0]
   * use = #official
-  * system = "http://sghi.example.org/appointment-identifiers"
+  * system = "http://terminology.hl7.org/CodeSystem/v2-0203"
   * type = #ACSN "Accession ID"
   * value = "APT123456"
   * assigner = Reference(ExampleSGHIOrganization)

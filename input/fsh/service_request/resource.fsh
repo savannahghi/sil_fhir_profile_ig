@@ -10,6 +10,7 @@ Description: "SGHI's profile for ServiceRequest"
   * value 1..1
   * assigner 1..1
   * assigner only Reference(SGHIOrganization)
+
 * basedOn only Reference(SGHIMedicationRequest or SGHIServiceRequest)
 * category 1..*
 * priority 1..1

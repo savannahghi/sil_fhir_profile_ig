@@ -3,7 +3,8 @@ InstanceOf: SGHIEpisodeOfCare
 Title: "Example SGHI Episode of Care"
 Description: "An example of an episode of care conforming to the SGHIEpisodeOfCare profile."
 * identifier[0].use = #official
-* identifier[0].system = "http://sghi-hospital.org/episodes"
+* identifier[0].type = #VN "Visit Number"
+* identifier[0].system = "http://terminology.hl7.org/CodeSystem/v2-0203"
 * identifier[0].value = "EOC1234567890"
 * status = #active
 * patient = Reference(ExampleSGHIPatient)

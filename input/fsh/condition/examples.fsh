@@ -4,6 +4,7 @@ Description: "An example of a Condition resource conforming to the SGHI Conditio
 * identifier[0].use = #official
 * identifier[0].type = #ACSN "Accession ID" 
 * identifier[0].value = "AC123456789"
+* identifier[0].system = "http://terminology.hl7.org/CodeSystem/v2-0203"
 * clinicalStatus = #active "Active"
 * verificationStatus = #confirmed "Confirmed"
 * category[0] = #problem-list-item "Problem List Item"

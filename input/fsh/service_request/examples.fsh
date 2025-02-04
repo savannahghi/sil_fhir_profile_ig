@@ -5,6 +5,7 @@ Description: "An example of a ServiceRequest resource conforming to the SGHI Ser
 * identifier[0].type = #VN "Visit Number"
 * identifier[0].use = #official
 * identifier[0].value = "QwErTy102938"
+* identifier[0].system = "http://terminology.hl7.org/CodeSystem/v2-0203"
 * identifier[0].assigner = Reference(ExampleSGHIOrganization)
 * basedOn = Reference(ExampleSGHIMedicationRequest)
 * category = #108252007 "Laboratory procedure"

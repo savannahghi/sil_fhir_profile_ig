@@ -8,7 +8,6 @@ Description: "SGHI's profile for Medication Dispense resource"
   * use from $identifier-use (required)
   * type from $identifier-type (extensible)
   * value 1..1
-
 * status 1..1
 
 * medication 1..1
