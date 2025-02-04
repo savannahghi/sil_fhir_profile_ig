@@ -5,8 +5,8 @@ Title: "SGHI Observation"
 Description: "SGHI's profile for Observation"
 
 * identifier 1..*
-  * type from http://hl7.org/fhir/ValueSet/identifier-type (extensible)
-  * use from http://hl7.org/fhir/ValueSet/identifier-use (required)
+  * type from SGHIObservationIdentifierTypes (extensible)
+  * use from $identifier-use (required)
   * value 1..1
   * assigner only Reference(SGHIOrganization)
 * category 1..1

@@ -6,8 +6,24 @@ Description: "Identifier types used in SGHI systems"
 * include #SC "Slade Code" from system SGHIIdentifierCodeSystem
 * include #CR "CR Number" from system SGHIIdentifierCodeSystem
 * include #HI "Health ID" from system SGHIIdentifierCodeSystem
-* include #ACSN "Accession ID" from system $v2-0203
+* include #CI "Customer ID" from system SGHIIdentifierCodeSystem
+* include #GHI  "Global Health ID" from system SGHIIdentifierCodeSystem
+* include #FN "File Number" from system SGHIIdentifierCodeSystem
+* include #ID "National ID" from system SGHIIdentifierCodeSystem
+* include #MID "Military ID" from system SGHIIdentifierCodeSystem
+* include #AID "Alien ID" from system SGHIIdentifierCodeSystem
+* include #NHIFID "NHIF ID" from system SGHIIdentifierCodeSystem
+* include #PN "Patient Number" from system SGHIIdentifierCodeSystem
+* include #PYO "Payer Member Number" from system SGHIIdentifierCodeSystem
+* include #SMN "Smart Memeber Number" from system SGHIIdentifierCodeSystem
+* include #FHIID "FHIR Patient ID" from system SGHIIdentifierCodeSystem
+* include #ERPID "ERP Customer ID" from system SGHIIdentifierCodeSystem
+* include #CN "CCC Number" from system SGHIIdentifierCodeSystem
+* include #RFID "Refugee ID" from system SGHIIdentifierCodeSystem
+* include #BID "Birth Certificate Number" from system SGHIIdentifierCodeSystem
+* include #MN "Mandate Number" from system SGHIIdentifierCodeSystem
 * include #PPN "Passport Number" from system $v2-0203
+
 
 ValueSet: SGHIAdministrativeGender
 Id: sghi-administrative-gender

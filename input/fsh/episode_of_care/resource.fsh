@@ -3,8 +3,8 @@ Parent:  EpisodeOfCare
 Title: "SGHI EpisodeOfCare"
 Description: "An interaction between a patient and the healthcare provider."
 * identifier 1..*
-  * type from SGHIEpisodeOfCareTypeIndentifierType (extensible)
-  * use from SGHIEpisodeOfCareUseIndentifierType (required)
+  * type from SGHIEncounterIdentifierTypes (required)
+  * use from $identifier-use (required)
   * value 1..1
 * reason 1..*
   * value only CodeableReference(SGHICondition) // This could be also an Observation to be added in the future
