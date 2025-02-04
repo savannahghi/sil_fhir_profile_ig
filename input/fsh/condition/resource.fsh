@@ -5,8 +5,8 @@ Title: "SGHI Condition"
 Description: "SGHI's profile for Condition"
 
 * identifier 1..*
-  * use from http://hl7.org/fhir/ValueSet/identifier-use (required)
-  * type from http://hl7.org/fhir/ValueSet/identifier-type (extensible)
+  * type from $identifier-type (required)
+  * use from $identifier-use (required)
   * value 1..1
 * verificationStatus 1..1
 * category 1..*

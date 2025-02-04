@@ -5,7 +5,8 @@ Title: "SGHI Patient"
 Description: "SGHI's profile of the Patient"
 
 * identifier 1..*
-  * type from SGHIIdentifierTypes (extensible)
+  * type from SGHIPatientIdentifierTypes (required)
+  * use from $identifier-use (required)
   * value 1..1
 * text 0..1
 * active 1..1

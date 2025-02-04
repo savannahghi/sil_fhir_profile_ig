@@ -3,8 +3,8 @@ Parent:  Consent
 Title: "SGHI Consent"
 Description: "An interaction between a patient and the healthcare provider."
 * identifier 1..*
-  * type from http://hl7.org/fhir/ValueSet/identifier-type (extensible)
-  * use from http://hl7.org/fhir/ValueSet/identifier-use (required)
+  * type from $identifier-type (required)
+  * use from $identifier-use (required)
   * value 1..1
 * status 1..1
 * category 1..*
