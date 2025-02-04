@@ -7,8 +7,8 @@ Description: "SGHI's profile for Appointment"
 * identifier 1..*
   * system 1..1
   * value 1..1
-  * type from http://hl7.org/fhir/ValueSet/identifier-type (extensible)
-  * use from http://hl7.org/fhir/ValueSet/identifier-use (required)
+  * type from SGHIAppointmentIdentifierTypes (required)
+  * use from $identifier-use (required)
 * status 1..1
 * specialty 1..*
 * appointmentType 1..1

@@ -5,8 +5,8 @@ Title: "SGHI Encounter"
 Description: "SGHI profile for Encounter"
 
 * identifier 1..*
-  * type from http://hl7.org/fhir/ValueSet/identifier-type (extensible)
-  * use from http://hl7.org/fhir/ValueSet/identifier-use (required)
+  * type from SGHIEncounterIdentifierTypes (required)
+  * use from $identifier-use (required)
   * value 1..1
   * assigner 1..1
   * assigner only Reference(SGHIOrganization)
