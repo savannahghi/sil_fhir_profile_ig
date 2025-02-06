@@ -76,7 +76,12 @@ publisher:
 # ╰────────────────────────────────────────────────────────────────────────────────────────────────╯
 menu:
   Home: index.html
-  Artifacts: artifacts.html
+  FHIR Artifacts:
+    Profiles: artifacts.html#1
+    Value Sets: artifacts.html#2
+    CodeSystems: artifacts.html#3
+    Examples: artifacts.html#4
+    Downloads IG: full-ig.zip
 
 # ╭───────────────────────────Less Common Implementation Guide Properties──────────────────────────╮
 # │  Uncomment the properties below to configure additional properties on the ImplementationGuide  │

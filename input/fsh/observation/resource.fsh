@@ -7,8 +7,8 @@ Description: "SGHI's profile for Observation"
 * meta.profile = "http://fhir.slade360.co.ke/StructureDefinition/sghi-observation" (exactly)
 
 * identifier 1..*
-  * type from http://hl7.org/fhir/ValueSet/identifier-type (extensible)
-  * use from http://hl7.org/fhir/ValueSet/identifier-use (required)
+  * type from $identifier-type (required)
+  * use from $identifier-use (required)
   * value 1..1
   * assigner only Reference(SGHIOrganization)
 * category 1..1

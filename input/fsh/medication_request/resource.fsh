@@ -5,8 +5,8 @@ Title: "SGHI MedicationRequest"
 Description: "SGHI's profile for MedicationRequest"
 
 * identifier 1..*
-  * use from http://hl7.org/fhir/ValueSet/identifier-use (required)
-  * type from http://hl7.org/fhir/ValueSet/identifier-type (extensible)
+  * type from $identifier-type (required)
+  * use from $identifier-use (required)
   * value 1..1
 * category 1..*
 * priority 1..1

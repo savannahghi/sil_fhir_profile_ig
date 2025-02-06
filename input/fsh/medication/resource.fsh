@@ -6,7 +6,7 @@ Description: "SGHI's Medication profile for Medication resource"
 
 * identifier 1..*
   * use from $identifier-use (required)
-  * type from $identifier-type (extensible)
+  * type from $identifier-type (required)
   * value 1..1
 * code 1..1
 * status 1..1
