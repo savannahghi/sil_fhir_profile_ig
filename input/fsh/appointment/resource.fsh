@@ -5,10 +5,7 @@ Title: "SGHI Appointment Profile"
 Description: "SGHI's profile for Appointment"
 
 * identifier 1..*
-  * system 1..1
-  * value 1..1
-  * type from $identifier-type (required)
-  * use from $identifier-use (required)
+  * insert CommonIdentifierRules
 * status 1..1
 * specialty 1..*
 * appointmentType 1..1

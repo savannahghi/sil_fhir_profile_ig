@@ -1,14 +1,3 @@
-ValueSet: SGHIIdentifierTypes
-Id: sghi-identifier-types
-Title: "SGHI Identifier Types"
-Description: "Identifier types used in SGHI systems"
-* ^experimental = false
-* include #SC "Slade Code" from system SGHIIdentifierCodeSystem
-* include #CR "CR Number" from system SGHIIdentifierCodeSystem
-* include #HI "Health ID" from system SGHIIdentifierCodeSystem
-* include #ACSN "Accession ID" from system $v2-0203
-* include #PPN "Passport Number" from system $v2-0203
-
 ValueSet: SGHIAdministrativeGender
 Id: sghi-administrative-gender
 Title: "SGHI Administrative Gender"

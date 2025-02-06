@@ -5,10 +5,7 @@ Title: "SGHI Task"
 Description: "SGHI's profile for Task"
 
 * identifier 1..*
-  * system 1..1
-  * value 1..1
-  * type from $identifier-type (required)
-  * use from $identifier-use (required)
+  * insert CommonIdentifierRules
   * assigner 1..1
   * assigner only Reference(SGHIOrganization)
 

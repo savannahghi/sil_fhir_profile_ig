@@ -5,9 +5,7 @@ Title: "SGHI Medication Dispense"
 Description: "SGHI's profile for Medication Dispense resource"
 
 * identifier 1..*
-  * use from $identifier-use (required)
-  * type from $identifier-type (required)
-  * value 1..1
+  * insert CommonIdentifierRules
 * status 1..1
 
 * medication 1..1

@@ -5,9 +5,7 @@ Title: "SGHI MedicationRequest"
 Description: "SGHI's profile for MedicationRequest"
 
 * identifier 1..*
-  * type from $identifier-type (required)
-  * use from $identifier-use (required)
-  * value 1..1
+  * insert CommonIdentifierRules
 * category 1..*
 * priority 1..1
 * subject only Reference(SGHIPatient)

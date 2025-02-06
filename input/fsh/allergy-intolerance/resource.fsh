@@ -5,9 +5,7 @@ Title: "SGHI AllergyIntolerance"
 Description: "SGHI's profile for AllergyIntolerance"
 
 * identifier 1..*
-  * use from $identifier-use (required)
-  * type from $identifier-type (required)
-  * value 1..1
+  * insert CommonIdentifierRules
 * type from http://hl7.org/fhir/ValueSet/allergy-intolerance-type (preferred)
 * category from http://hl7.org/fhir/ValueSet/allergy-intolerance-category (required)
 * criticality from http://hl7.org/fhir/ValueSet/allergy-intolerance-criticality (required)
