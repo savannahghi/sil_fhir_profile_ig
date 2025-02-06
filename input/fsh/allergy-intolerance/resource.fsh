@@ -16,13 +16,16 @@ Description: "SGHI's profile for AllergyIntolerance"
 * clinicalStatus 1..1
 * verificationStatus 1..1
 * code 1..1
+* code from SGHITerminologyVS (preferred)
 * patient only Reference(SGHIPatient)
 * encounter 1..1
 * encounter only Reference(SGHIEncounter)
 * recordedDate 1..1
 * reaction 1..*
-  * substance from http://hl7.org/fhir/ValueSet/substance-code (preferred)
+  * substance from $icd-11-codeable-concept (required)
   * description 1..1
   * severity 1..1
-  * exposureRoute	from http://hl7.org/fhir/ValueSet/route-codes (preferred)
+  * exposureRoute	from SGHITerminologyVS (required)
   * manifestation only CodeableReference(SGHIObservation)
+* onset[x] only dateTime
+* onsetDateTime 1..1

@@ -4,3 +4,4 @@ Alias: $v2-0131 = http://hl7.org/fhir/ValueSet/patient-contactrelationship
 Alias: $identifier-type = http://hl7.org/fhir/ValueSet/identifier-type
 Alias: $identifier-use = http://hl7.org/fhir/ValueSet/identifier-use
 Alias: $organization-type = http://hl7.org/fhir/ValueSet/organization-type
+Alias: $icd-11-codeable-concept = https://icd.who.int/browse/2024-01/mms/en
