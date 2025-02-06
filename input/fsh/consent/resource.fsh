@@ -3,9 +3,7 @@ Parent:  Consent
 Title: "SGHI Consent"
 Description: "An interaction between a patient and the healthcare provider."
 * identifier 1..*
-  * type from $identifier-type (required)
-  * use from $identifier-use (required)
-  * value 1..1
+  * insert CommonIdentifierRules
 * status 1..1
 * category 1..*
 * subject 1..1

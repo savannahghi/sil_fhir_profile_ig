@@ -8,6 +8,7 @@ Description: "SGHI's profile of the Patient"
   * type from SGHIPatientIdentifierTypes (required)
   * use from $identifier-use (required)
   * value 1..1
+  * system 1..1
 * text 0..1
 * active 1..1
 * name 1..1

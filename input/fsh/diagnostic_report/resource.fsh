@@ -5,9 +5,7 @@ Title: "SGHI DiagnosticReport"
 Description: "SGHI's profile for DiagnosticReport"
 
 * identifier 1..*
-  * type from $identifier-type (required)
-  * use from $identifier-use (required)
-  * value 1..1
+  * insert CommonIdentifierRules
   * assigner only Reference(SGHIOrganization)
 * basedOn only Reference(SGHIMedicationRequest or SGHIServiceRequest)
 * category 1..*

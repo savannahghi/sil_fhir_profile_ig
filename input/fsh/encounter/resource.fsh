@@ -5,9 +5,7 @@ Title: "SGHI Encounter"
 Description: "SGHI profile for Encounter"
 
 * identifier 1..*
-  * type from $identifier-type (required)
-  * use from $identifier-use (required)
-  * value 1..1
+  * insert CommonIdentifierRules
   * assigner 1..1
   * assigner only Reference(SGHIOrganization)
 * priority 1..1
