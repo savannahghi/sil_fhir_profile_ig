@@ -3,6 +3,8 @@ Parent: Organization
 Id: sghi-organization
 Title: "SGHI Organization"
 Description: "SGHI's profile for Organization"
+* meta.profile = "https://fhir.slade360.co.ke/StructureDefinition/sghi-organization" (exactly)
+
 * identifier 1..*
   * type from SGHIOrganizationIdentifierTypes (required)
   * use from $identifier-use (required)

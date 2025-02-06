@@ -4,6 +4,8 @@ Id: sghi-encounter
 Title: "SGHI Encounter"
 Description: "SGHI profile for Encounter"
 
+* meta.profile = "https://fhir.slade360.co.ke/StructureDefinition/sghi-encounter" (exactly)
+
 * identifier 1..*
   * insert CommonIdentifierRules
   * assigner 1..1

@@ -4,7 +4,7 @@ Id: sghi-observation
 Title: "SGHI Observation"
 Description: "SGHI's profile for Observation"
 
-* meta.profile = "http://fhir.slade360.co.ke/StructureDefinition/sghi-observation" (exactly)
+* meta.profile = "https://fhir.slade360.co.ke/StructureDefinition/sghi-observation" (exactly)
 
 * identifier 1..*
   * insert CommonIdentifierRules

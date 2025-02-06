@@ -3,6 +3,7 @@ Parent: Patient
 Id: sghi-patient
 Title: "SGHI Patient"
 Description: "SGHI's profile of the Patient"
+* meta.profile = "https://fhir.slade360.co.ke/StructureDefinition/sghi-patient" (exactly)
 
 * identifier 1..*
   * type from SGHIPatientIdentifierTypes (required)
