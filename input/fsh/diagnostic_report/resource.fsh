@@ -4,6 +4,8 @@ Id: sghi-diagnostic-report
 Title: "SGHI DiagnosticReport"
 Description: "SGHI's profile for DiagnosticReport"
 
+* meta.profile = "https://fhir.slade360.co.ke/StructureDefinition/sghi-diagnostic-report" (exactly)
+
 * identifier 1..*
   * insert CommonIdentifierRules
   * assigner only Reference(SGHIOrganization)

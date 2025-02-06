@@ -3,6 +3,7 @@ Parent: Task
 Id: sghi-task
 Title: "SGHI Task"
 Description: "SGHI's profile for Task"
+* meta.profile = "https://fhir.slade360.co.ke/StructureDefinition/sghi-task" (exactly)
 
 * identifier 1..*
   * insert CommonIdentifierRules

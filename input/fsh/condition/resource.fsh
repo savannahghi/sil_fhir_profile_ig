@@ -4,6 +4,8 @@ Id: sghi-condition
 Title: "SGHI Condition"
 Description: "SGHI's profile for Condition"
 
+* meta.profile = "https://fhir.slade360.co.ke/StructureDefinition/sghi-condition" (exactly)
+
 * identifier 1..*
   * insert CommonIdentifierRules
 * verificationStatus 1..1

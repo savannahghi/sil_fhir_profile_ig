@@ -1,7 +1,11 @@
 Profile: SGHIEpisodeOfCare
 Parent:  EpisodeOfCare
+Id: sghi-episode-of-care
 Title: "SGHI EpisodeOfCare"
 Description: "An interaction between a patient and the healthcare provider."
+
+* meta.profile = "https://fhir.slade360.co.ke/StructureDefinition/sghi-episode-of-care" (exactly)
+
 * identifier 1..*
   * insert CommonIdentifierRules
 * reason 1..*

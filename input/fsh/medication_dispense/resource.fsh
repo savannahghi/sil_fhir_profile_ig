@@ -3,6 +3,7 @@ Parent: MedicationDispense
 Id: sghi-medication-dispense
 Title: "SGHI Medication Dispense"
 Description: "SGHI's profile for Medication Dispense resource"
+* meta.profile = "https://fhir.slade360.co.ke/StructureDefinition/sghi-medication-dispense" (exactly)
 
 * identifier 1..*
   * insert CommonIdentifierRules

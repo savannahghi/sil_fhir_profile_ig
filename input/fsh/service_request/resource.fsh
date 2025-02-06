@@ -3,6 +3,7 @@ Parent: ServiceRequest
 Id: sghi-service-request
 Title: "SGHI ServiceRequest"
 Description: "SGHI's profile for ServiceRequest"
+* meta.profile = "https://fhir.slade360.co.ke/StructureDefinition/sghi-service-request" (exactly)
 
 * identifier 1..*
   * insert CommonIdentifierRules

@@ -4,6 +4,8 @@ Id: sghi-appointment
 Title: "SGHI Appointment Profile"
 Description: "SGHI's profile for Appointment"
 
+* meta.profile = "https://fhir.slade360.co.ke/StructureDefinition/sghi-appointment" (exactly)
+
 * identifier 1..*
   * insert CommonIdentifierRules
 * status 1..1

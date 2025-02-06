@@ -1,7 +1,11 @@
 Profile: SGHIConsent
 Parent:  Consent
+Id: sghi-consent
 Title: "SGHI Consent"
 Description: "An interaction between a patient and the healthcare provider."
+
+* meta.profile = "https://fhir.slade360.co.ke/StructureDefinition/sghi-consent" (exactly)
+
 * identifier 1..*
   * insert CommonIdentifierRules
 * status 1..1

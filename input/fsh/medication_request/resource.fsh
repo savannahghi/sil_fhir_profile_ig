@@ -3,6 +3,7 @@ Parent: MedicationRequest
 Id: sghi-medication-request
 Title: "SGHI MedicationRequest"
 Description: "SGHI's profile for MedicationRequest"
+* meta.profile = "https://fhir.slade360.co.ke/StructureDefinition/sghi-medication-request" (exactly)
 
 * identifier 1..*
   * insert CommonIdentifierRules

@@ -4,6 +4,8 @@ Id: sghi-allergy-intolerance
 Title: "SGHI AllergyIntolerance"
 Description: "SGHI's profile for AllergyIntolerance"
 
+* meta.profile = "https://fhir.slade360.co.ke/StructureDefinition/sghi-allergy-intolerance" (exactly)
+
 * identifier 1..*
   * insert CommonIdentifierRules
 * type from http://hl7.org/fhir/ValueSet/allergy-intolerance-type (preferred)
