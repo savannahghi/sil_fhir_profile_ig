@@ -17,14 +17,17 @@ Description: "SGHI's profile for AllergyIntolerance"
   * actor only Reference(SGHIPatient)
 * clinicalStatus 1..1
 * verificationStatus 1..1
-* code 1..1
+* code 1..1 MS
+  * insert CommonLOINCTerminologyBindingRules
 * patient only Reference(SGHIPatient)
 * encounter 1..1
 * encounter only Reference(SGHIEncounter)
 * recordedDate 1..1
 * reaction 1..*
-  * substance from http://hl7.org/fhir/ValueSet/substance-code (preferred)
+  * substance
+    * insert CommonLOINCTerminologyBindingRules
   * description 1..1
   * severity 1..1
-  * exposureRoute	from http://hl7.org/fhir/ValueSet/route-codes (preferred)
   * manifestation only CodeableReference(SGHIObservation)
+* onset[x] only dateTime
+* onsetDateTime 1..1
