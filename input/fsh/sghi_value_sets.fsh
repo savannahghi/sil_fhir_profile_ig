@@ -46,3 +46,21 @@ Description: "Contact relationship types used in SGHI systems"
 * include #S "Spouse" from system $v2-0131
 * include #E "Employer" from system $v2-0131
 * include #CP "Contact Person" from system $v2-0131
+
+ValueSet: SGHIActPriority
+Id: sghi-encounter-act-priority
+Title: "SGHI Encounter Priority"
+Description: "Urgency of an encounter"
+* include #STAT "STAT" from system SGHIIdentifierCodeSystem
+* include #ASAP "ASAP" from system SGHIIdentifierCodeSystem
+* include #NORMAL "Routine" from system SGHIIdentifierCodeSystem
+* include #PREOP "ASAP" from system SGHIIdentifierCodeSystem
+* include #EL "Routine" from system SGHIIdentifierCodeSystem
+
+ValueSet: SGHIEncounterClass
+Id: sghi-encounter-class
+Title: "SGHI Encounter Class"
+Description: "Codes that can be used to indicate the class of encounter: a specific code indicating class of service provided"
+* include #IP "In Patient" from system SGHIIdentifierCodeSystem
+* include #AMB "Ambulatory (Out Patient)" from system SGHIIdentifierCodeSystem
+* include #EMR "Emergency" from system SGHIIdentifierCodeSystem

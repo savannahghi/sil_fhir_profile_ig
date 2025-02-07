@@ -10,7 +10,10 @@ Description: "SGHI profile for Encounter"
   * insert CommonIdentifierRules
   * assigner 1..1
   * assigner only Reference(SGHIOrganization)
+* class 1..* MS
+* class from SGHIEncounterClass (required)
 * priority 1..1
+* priority from SGHIActPriority (required)
 * status 1..1
 * class 1..*
 * appointment 0..*
