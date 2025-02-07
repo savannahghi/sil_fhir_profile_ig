@@ -13,3 +13,10 @@ Description: "An example of consent conforming to the SGHIConsent profile."
 * grantee = Reference(ExampleSGHIOrganization)
 * grantor = Reference(ExampleSGHIOrganization)
 * provision[0].actor[0].reference = Reference(ExampleSGHIOrganization)
+* controller = Reference(ExampleSGHIOrganization)
+* manager = Reference(ExampleSGHIOrganization)
+* verification[0].verifiedBy = Reference(ExampleSGHIOrganization)
+* verification[0].verified = true
+* verification[0].verifiedWith = Reference(ExampleSGHIPatient)
+* verification[0].verificationDate = "2025-01-27"
+* decision = #permit
