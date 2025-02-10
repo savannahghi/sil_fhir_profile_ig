@@ -13,3 +13,7 @@ Description: "An example of an episode of care conforming to the SGHIEpisodeOfCa
 * managingOrganization = Reference(ExampleSGHIOrganization)
 * reason[0].value.reference = Reference(ExampleSGHICondition)
 * diagnosis[0].condition.reference = Reference(ExampleSGHICondition)
+* statusHistory.status = #planned "Planned"
+* statusHistory.period.start = "2025-01-01"
+* statusHistory.period.end = "2025-01-31"
+* referralRequest = Reference(ExampleSGHIServiceRequest)
