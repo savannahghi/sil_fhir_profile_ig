@@ -70,3 +70,48 @@ Id: sghi-diagnostic-conclusion-icd11
 Title: "SGHI Diagnostic Conclusion ICD-11"
 Description: "ICD-11 codes used for diagnostic conclusions in SGHI"
 * include codes from system http://id.who.int/icd/release/11/mms
+
+ValueSet: SGHIBedStatus
+Id: sghi-bed-status
+Title: "SGHI Bed Status"
+Description: "Codes that can be used to indicate the operating status of an organization's location"
+* include #CLOSED "Closed" from system SGHIIdentifierCodeSystem
+* include #HOUSEKEEPING "Housekeeping" from system SGHIIdentifierCodeSystem
+* include #OCCUPIED "Occupied" from system SGHIIdentifierCodeSystem
+* include #UNOCCUPIED "Unoccupied" from system SGHIIdentifierCodeSystem
+* include #CONTAMINATED "Contaminated" from system SGHIIdentifierCodeSystem
+* include #ISOLATED "Isolated" from system SGHIIdentifierCodeSystem
+
+ValueSet: SGHILocationMode
+Id: sghi-location-mode
+Title: "SGHI Location Mode"
+Description: "Codes that can be used to indicate the mode of a location"
+* include #instance "Instance" from system SGHIIdentifierCodeSystem
+* include #kind "Instance" from system SGHIIdentifierCodeSystem
+
+ValueSet: SGHIContactPointUse
+Id: sghi-contact-point-use
+Title: "SGHI Contact Point Use"
+Description: "Code used to indicate contact use"
+* include #work "Work" from system SGHIIdentifierCodeSystem
+* include #mobile "Mobile" from system SGHIIdentifierCodeSystem
+
+ValueSet: SGHIContactSystem
+Id: sghi-contact-system
+Title: "SGHI Contact System"
+Description: "Code used to indicate what communications system is required to make use of the contact."
+* include #phone "Phone" from system SGHIIdentifierCodeSystem
+* include #email "Email" from system SGHIIdentifierCodeSystem
+
+ValueSet: SGHILocationForm
+Id: sghi-location-form
+Title: "SGHI Location Form"
+Description: "Physical form of the location, e.g. building, room, vehicle, road, virtual."
+* include #bu "Building" from system SGHIIdentifierCodeSystem
+* include #wi "Wing" from system SGHIIdentifierCodeSystem 
+* include #wa "Ward" from system SGHIIdentifierCodeSystem
+* include #ro "Room" from system SGHIIdentifierCodeSystem 
+* include #bd "Bed" from system SGHIIdentifierCodeSystem
+* include #ve "Vehicle" from system SGHIIdentifierCodeSystem 
+* include #area "Area" from system SGHIIdentifierCodeSystem 
+* include #vi "Virtual" from system SGHIIdentifierCodeSystem
