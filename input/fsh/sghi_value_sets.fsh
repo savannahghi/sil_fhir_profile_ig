@@ -64,3 +64,9 @@ Description: "Codes that can be used to indicate the class of encounter: a speci
 * include #IP "In Patient" from system SGHIIdentifierCodeSystem
 * include #AMB "Ambulatory (Out Patient)" from system SGHIIdentifierCodeSystem
 * include #EMR "Emergency" from system SGHIIdentifierCodeSystem
+
+ValueSet: SGHIDiagnosticConclusionICD11
+Id: sghi-diagnostic-conclusion-icd11
+Title: "SGHI Diagnostic Conclusion ICD-11"
+Description: "ICD-11 codes used for diagnostic conclusions in SGHI"
+* include codes from system http://id.who.int/icd/release/11/mms
