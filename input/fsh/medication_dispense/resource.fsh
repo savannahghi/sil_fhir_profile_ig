@@ -21,7 +21,7 @@ Description: "SGHI's profile for Medication Dispense resource"
 * subject only Reference(SGHIPatient)
 
 * location 1..1
-* location only Reference(Location)
+* location only Reference(SGHILocation)
 
 * performer 1..1
   * actor only Reference(SGHIOrganization)
@@ -32,7 +32,7 @@ Description: "SGHI's profile for Medication Dispense resource"
 * type 1..1
 
 * destination 1..1
-* destination only Reference(Location)
+* destination only Reference(SGHILocation)
 
 * receiver 1..1
 * receiver only Reference(SGHIPatient)
