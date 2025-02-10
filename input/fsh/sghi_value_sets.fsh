@@ -115,3 +115,18 @@ Description: "Physical form of the location, e.g. building, room, vehicle, road,
 * include #ve "Vehicle" from system SGHIIdentifierCodeSystem 
 * include #area "Area" from system SGHIIdentifierCodeSystem 
 * include #vi "Virtual" from system SGHIIdentifierCodeSystem
+
+ValueSet: SGHIServiceRequestCategory
+Id: sghi-service-request-category
+Title: "SGHI Service Request Category"
+Description: "Set of concepts that can classify a requested service."
+* include #26436-6 "Laboratory studies (set)" from system SGHIIdentifierCodeSystem 
+* include #18748-4 "Diagnostic imaging study" from system SGHIIdentifierCodeSystem 
+* include #21938-6 "Surgical approach" from system SGHIIdentifierCodeSystem
+* include codes from system http://loinc.org/
+
+ValueSet: SGHIServiceRequestOrder
+Id: sghi-service-request-order
+Title: "SGHI Service Request Order "
+Description: "LOIC codes used for order requests in SGHI"
+* include codes from system http://loinc.org/
