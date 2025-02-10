@@ -15,9 +15,15 @@ Description: "SGHI's profile for DiagnosticReport"
 * subject only Reference(SGHIPatient)
 * encounter 1..1
 * encounter only Reference(SGHIEncounter)
+* effective[x] only dateTime
+* effectiveDateTime 1..1
+* issued 1..1
 * performer 1..*
 * performer only Reference(SGHIOrganization)
+* resultsInterpreter 1..*
+* resultsInterpreter only Reference(SGHIOrganization)
 * result 0..*
+* result only Reference(SGHIObservation)
 * supportingInfo 0..*
   * reference only Reference(SGHIObservation or SGHIDiagnosticReport)
-
+* conclusionCode from SGHIDiagnosticConclusionICD11 (extensible)

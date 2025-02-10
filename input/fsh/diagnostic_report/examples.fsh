@@ -14,3 +14,6 @@ Description: "An example of an DiagnosticReport resource conforming to the SGHI 
 * subject = Reference(ExampleSGHIPatient)
 * encounter = Reference(ExampleSGHIEncounter)
 * performer = Reference(ExampleSGHIOrganization)
+* resultsInterpreter = Reference(ExampleSGHIOrganization)
+* issued = "2025-02-10T08:00:00Z"
+* effectiveDateTime = "2025-02-10T08:00:00Z"
