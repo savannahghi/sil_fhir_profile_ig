@@ -22,8 +22,8 @@ Description: "An example of a Medication Dispense resource adhering to SGHI's Me
 * medication.reference = Reference(ExampleSGHIMedication)
 * medication.concept = http://www.nlm.nih.gov/research/umls/rxnorm#123456 "Medication Name"
 
-* location = Reference(ExampleLocation) "Pharmacy Location"
-* destination = Reference(ExampleLocation) "Patient's Home"
+* location = Reference(ExampleSGHILocation) "Pharmacy Location"
+* destination = Reference(ExampleSGHILocation) "Patient's Home"
 * quantity = 30 'tablet' "tablets"
 * whenPrepared = "2023-10-20T10:00:00Z"
 * whenHandedOver = "2023-10-20T11:00:00Z"
