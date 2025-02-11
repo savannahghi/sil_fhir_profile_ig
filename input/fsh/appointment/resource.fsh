@@ -2,26 +2,36 @@ Profile: SGHIAppointment
 Parent: Appointment
 Id: sghi-appointment
 Title: "SGHI Appointment Profile"
-Description: "SGHI's profile for Appointment"
+Description: "A booking of a healthcare event among patient(s), practitioner(s), related person(s) and/or device(s) for a specific date/time. This may result in one or more Encounter(s)."
 
 * meta.profile = "https://fhir.slade360.co.ke/StructureDefinition/sghi-appointment" (exactly)
 
 * identifier 1..*
   * insert CommonIdentifierRules
-* status 1..1
 * specialty 1..*
+* cancellationReason only SGHICodeableConcept
+* class only SGHICodeableConcept
+* serviceCategory only SGHICodeableConcept
+* specialty only SGHICodeableConcept
+* appointmentType only SGHICodeableConcept
+* priority only SGHICodeableConcept
 * appointmentType 1..1
 * reason 1..*
 * reason only CodeableReference(SGHICondition or SGHIObservation)
+* replaces only Reference(SGHIAppointment)
+* previousAppointment only Reference(SGHIAppointment)
+* originatingAppointment only Reference(SGHIAppointment)
 * priority 1..1
 * start 1..1
-* end 1..1
+* end 0..1
 * created 1..1
 * subject 1..1
 * subject only Reference(SGHIPatient)
 * participant 1..*
   * actor 1..1
-  * actor only Reference(SGHIPatient)
+  * actor only Reference(SGHIPatient or SGHILocation)
   * status 1..1
   * type 1..1
-* note 1..*
+  * type only SGHICodeableConcept
+* note 0..*
+* basedOn only Reference(SGHIServiceRequest or SGHIMedicationRequest)
