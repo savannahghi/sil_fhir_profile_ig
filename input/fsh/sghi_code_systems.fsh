@@ -53,3 +53,8 @@ Description: "A single code system enumerating the many local identifier types u
 * #ho "House" "A residential dwelling. Usually used to reference a location that a person/patient may reside."
 * #area "Area" "A defined physical boundary of something, such as a flood risk zone, region, postcode"
 * #vi "Virtual" "A location that is virtual in nature, such as a conference call or virtual meeting space"
+
+// Service Request Categories
+* #26436-6 "Laboratory studies (set)" "Laboratory studies (set)"
+* #18748-4 "Diagnostic imaging study" "Diagnostic imaging study"
+* #21938-6 "Surgical approach" "Surgical approach"
