@@ -7,16 +7,15 @@ Description: "SGHI's profile for Task"
 
 * identifier 1..*
   * insert CommonIdentifierRules
-  * assigner 1..1
-  * assigner only Reference(SGHIOrganization)
-
 * businessStatus 1..1
 * priority 1..1
 
 * authoredOn 1..1
 * lastModified 1..1
+
 * for 1..1
 * for only Reference(SGHIPatient)
+
 * owner 1..1
 * owner only Reference(SGHIOrganization)
 
@@ -26,6 +25,7 @@ Description: "SGHI's profile for Task"
 
 * requester 1..1
 * requester only Reference(SGHIPatient or SGHIOrganization)
+
 * requestedPerformer 1..
 * requestedPerformer only CodeableReference(SGHIOrganization)
 
@@ -39,10 +39,11 @@ Description: "SGHI's profile for Task"
 * output 1..*
   * type 1..1
   * value[x] 1..1
-
 * obeys task-lastModified
+
 * encounter 1..1
 * encounter only Reference(SGHIEncounter)
+* partOf only Reference(SGHITask)
 
 Invariant: task-lastModified
 Description: "Last modified date must be greater than or equal to authored-on date"

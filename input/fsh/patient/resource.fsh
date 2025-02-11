@@ -10,24 +10,33 @@ Description: "Demographics and other administrative information about an individ
   * use from $identifier-use (required)
   * value 1..1
   * system 1..1
+  * assigner 1..1
   * assigner only Reference(SGHIOrganization)
+
 * text 0..1
 * active 1..1
+
 * name 1..1
 * name only SGHIHumanName
+
 * telecom 1..*
 * telecom only SGHIContactPoint
+
 * gender 1..1 
-* gender from http://hl7.org/fhir/ValueSet/administrative-gender (required)
+* gender from SGHIAdministrativeGender (required)
 * birthDate 1..1 
+
 * contact 0..*
   * relationship 1..* 
-  * relationship from http://hl7.org/fhir/ValueSet/patient-contactrelationship (extensible)
+  * relationship from SGHIContactRelationship (required)
   * name 1..1
   * name only SGHIHumanName
   * telecom 1..1
   * telecom only SGHIContactPoint
   * organization only Reference(SGHIOrganization)
+
 * managingOrganization 1..1
 * managingOrganization only Reference(SGHIOrganization)
+
 * generalPractitioner only Reference(SGHIOrganization)
+* link.other only Reference(SGHIPatient)

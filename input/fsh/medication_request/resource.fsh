@@ -7,8 +7,6 @@ Description: "An order or request for both supply of the medication and the inst
 
 * identifier 1..*
   * insert CommonIdentifierRules
-  * assigner 1..1
-  * assigner only Reference(SGHIOrganization)
 * basedOn only Reference(SGHIServiceRequest or SGHIMedicationRequest)
 * priorPrescription only Reference(SGHIMedicationRequest)
 * medication only CodeableReference(SGHIMedication)
@@ -29,6 +27,7 @@ Description: "An order or request for both supply of the medication and the inst
 * effectiveDosePeriod 1..1
 * dosageInstruction 1..*
 * dosageInstruction only SGHIDosage
+* performer only Reference(SGHIPatient or SGHIOrganization)
 
 Profile: SGHIDosage
 Parent: Dosage
@@ -38,6 +37,7 @@ Description: "A comprehensive Dosage profile for SGHI prescriptions, ensuring st
 
 * timing 1..1
 * timing.repeat 1..1
+
 // We can require that either frequency or dayOfWeek is provided:
 * timing.repeat.frequency 0..1
 * timing.repeat.dayOfWeek 0..*
@@ -47,8 +47,10 @@ Description: "A comprehensive Dosage profile for SGHI prescriptions, ensuring st
 * doseAndRate.doseRange.low.system = "http://unitsofmeasure.org" (exactly)
 * doseAndRate.doseRange.high.system = "http://unitsofmeasure.org" (exactly)
 * doseAndRate.rate[x] only Ratio or Range
+
 // Force UCUM for numeric values
 * doseAndRate.rateRatio.numerator.system = "http://unitsofmeasure.org" (exactly)
 * doseAndRate.rateRatio.denominator.system = "http://unitsofmeasure.org" (exactly)
 * doseAndRate.rateRange.low.system = "http://unitsofmeasure.org" (exactly)
 * doseAndRate.rateRange.high.system = "http://unitsofmeasure.org" (exactly)
+

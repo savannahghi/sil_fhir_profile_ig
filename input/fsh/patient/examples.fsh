@@ -4,6 +4,7 @@ Description: "An example of a patient profile."
 * identifier[0].system = "http://terminology.hl7.org/CodeSystem/v2-0203"
 * identifier[0].value = "12345"
 * identifier[0].type = #MR "Medical Record Number"
+* identifier[0].assigner = Reference(ExampleSGHIOrganization)
 * active = true
 * meta[0].profile = "https://fhir.slade360.co.ke/StructureDefinition/sghi-patient"
 * name[0].given[0] = "James"
