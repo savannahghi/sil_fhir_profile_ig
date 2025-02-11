@@ -13,6 +13,10 @@ Description: "An example of an Observation resource conforming to the SGHI Obser
 * encounter = Reference(ExampleSGHIEncounter)
 * performer = Reference(ExampleSGHIOrganization)
 * effectiveDateTime = "2025-02-10T08:00:00Z"
+* issued = "2025-02-10T08:00:00Z"
 * interpretation[0].coding[0].system = "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation"
 * interpretation[0].coding[0].code = #N
 * interpretation[0].coding[0].display = "Normal"
+* code.coding.system = "http://loinc.org"
+* code.coding.code = #N
+* code.coding.display = "Normal"

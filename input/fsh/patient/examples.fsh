@@ -8,6 +8,8 @@ Description: "An example of a patient profile."
 * meta[0].profile = "https://fhir.slade360.co.ke/StructureDefinition/sghi-patient"
 * name[0].given[0] = "James"
 * name[0].family = "Pond"
+* name[0].use = #official
+* name[0].text = "James Pond"
 * telecom[0].system = #phone
 * telecom[0].value = "+254-722-123456"
 * gender = #male
@@ -16,6 +18,8 @@ Description: "An example of a patient profile."
 * contact[0].relationship[0].coding[0].code = #N
 * contact[0].name.given[0] = "Mary"
 * contact[0].name.family = "Pond"
+* contact[0].name.use = #official
+* contact[0].name.text = "Mary Pond"
 * contact[0].telecom[0].system = #phone
 * contact[0].telecom[0].value = "+254-733-987654"
 * managingOrganization = Reference(ExampleSGHIOrganization)
