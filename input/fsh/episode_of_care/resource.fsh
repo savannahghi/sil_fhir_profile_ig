@@ -8,10 +8,14 @@ Description: "An association between a patient and an organization / healthcare 
 
 * identifier 1..*
   * insert CommonIdentifierRules
+
 * statusHistory 1..
+
 * period 1..1
 * patient 1..1
+
 * patient only Reference(SGHIPatient)
 * referralRequest only Reference(SGHIServiceRequest)
+
 * managingOrganization 1..1
 * managingOrganization only Reference(SGHIOrganization)

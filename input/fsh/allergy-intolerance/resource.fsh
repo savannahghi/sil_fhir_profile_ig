@@ -8,23 +8,32 @@ Description: "Risk of harmful or undesirable physiological response which is spe
 
 * identifier 1..*
   * insert CommonIdentifierRules
+
 * participant 1..*
   * actor only Reference(SGHIPatient or SGHIOrganization)
+
 * clinicalStatus 1..1
 * clinicalStatus only SGHICodeableConcept
+
 * verificationStatus 1..1
 * verificationStatus only SGHICodeableConcept
+
 * code only SGHICodeableConcept
 * code 1..1
 * code.coding from https://loinc.org/ (required)
+
 * encounter 1..1
 * recordedDate 1..1
+
 * reaction 1..*
   * substance only SGHICodeableConcept
     * coding from https://loinc.org/ (required)
   * description 1..1
   * severity 1..1
   * manifestation only CodeableReference(SGHIObservation)
-* onset[x] 1..1
+  * manifestation from http://loinc.org
+  * exposureRoute only SGHICodeableConcept
+    * coding.system from https://loinc.org/ (required)
+
 * onset[x] only dateTime
 * onsetDateTime 1..1

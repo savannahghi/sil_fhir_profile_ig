@@ -7,30 +7,40 @@ Description: "ServiceRequest represents an order or proposal or plan, as disting
 * meta.profile = "https://fhir.slade360.co.ke/StructureDefinition/sghi-service-request" (exactly)
 * identifier 1..*
   * insert CommonIdentifierRules
-  * assigner 1..1
-  * assigner only Reference(SGHIOrganization)
+
 * basedOn only Reference(SGHIMedicationRequest or SGHIServiceRequest)
+* replaces only Reference(SGHIServiceRequest)
+
 * category 1..*
 * category from SGHIServiceRequestCategory
+
 * priority 1..1
 * code 1..1
 * code only SGHICodeableReference
 * code from SGHIServiceRequestOrder
+
 * orderDetail 1..*
   * parameterFocus 1..1
   * parameterFocus only SGHICodeableReference
-  * parameterFocus only CodeableReference(SGHIMedicationRequest)
   * parameter 1..1
     * code only SGHICodeableConcept
     * value[x] 1..1
+
 * subject 1..1
 * subject only Reference(SGHIPatient)
+
 * encounter 1..1
 * encounter only Reference(SGHIEncounter)
+
 * authoredOn 1..1
+
 * requester 1..1
 * requester only Reference(SGHIOrganization or SGHIPatient)
+
 * reason 1..*
 * reason only CodeableReference(SGHICondition or SGHIObservation or SGHIDiagnosticReport)
+
 * performer 1..*
 * performer only Reference(SGHIOrganization)
+
+* location only CodeableReference(SGHILocation)

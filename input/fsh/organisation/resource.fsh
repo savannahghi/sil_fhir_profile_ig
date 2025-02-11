@@ -10,7 +10,14 @@ Description: "SGHI's profile for Organization"
   * use from $identifier-use (required)
   * value 1..1
   * system 1..1
+  * assigner 1..1
+  * assigner only Reference(SGHIOrganization)
+
 * active 1..1
 * type 1..*
+
 * name 1..1
+* partOf only Reference(SGHIOrganization)
+
 * contact 1..*
+* qualification.issuer only Reference(SGHIOrganization)

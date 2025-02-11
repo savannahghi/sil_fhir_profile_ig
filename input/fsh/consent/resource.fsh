@@ -8,23 +8,50 @@ Description: "A record of a healthcare consumer’s choices or choices made on t
 
 * identifier 1..*
   * insert CommonIdentifierRules
+
 * status 1..1
 * category 1..*
+
 * subject 1..1
 * subject only Reference(SGHIPatient)
+
 * date 1..1
+
 * grantee 1..1
+* grantee only Reference(SGHIPatient or SGHIOrganization)
+
 * grantor 1..1
+* grantor only Reference(SGHIOrganization or SGHIPatient)
+
 * controller 1..1
 * controller only Reference(SGHIOrganization or SGHIPatient)
+
 * manager 1..*
+* manager only Reference(SGHIOrganization or SGHIPatient)
+
 * verification 1..*
   * verifiedWith 1..1
   * verifiedWith only Reference(SGHIPatient)
   * verifiedBy 1..1
   * verifiedBy only Reference(SGHIOrganization)
   * verificationDate 1..1
+
 * decision 1..1
 * provision 0..*
   * actor 0..*
     * reference only Reference(SGHIPatient or SGHIOrganization)
+
+* sourceAttachment MS
+* sourceAttachment only SGHIAttachment
+* sourceReference only Reference(SGHIConsent)
+
+
+Profile: SGHIAttachment
+Parent: Attachment
+Id: sghi-Attachment
+Title: "SGHI Attachment"
+Description: "A custom document used for capturing the source of consent"
+* contentType 1..1
+* contentType = #application/json
+* url 1..1
+* creation 1..1

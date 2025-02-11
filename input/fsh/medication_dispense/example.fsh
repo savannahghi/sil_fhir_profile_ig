@@ -9,6 +9,7 @@ Description: "An example of a Medication Dispense resource adhering to SGHI's Me
   * type = #MR "Medical record number"
   * value = "example-medication-dispense-id"
   * system = "http://terminology.hl7.org/CodeSystem/v2-0203"
+  * assigner = Reference(ExampleSGHIOrganization)
 * status = #completed
 * encounter = Reference(ExampleSGHIEncounter)
 * subject = Reference(ExampleSGHIPatient)

@@ -6,6 +6,7 @@ Description: "An example of an AllergyIntolerance resource conforming to the SGH
 * identifier[0].type = #MR "Medical Record Number"
 * identifier[0].value = "ALL123456789"
 * identifier[0].system = "http://terminology.hl7.org/CodeSystem/v2-0203"
+* identifier[0].assigner = Reference(ExampleSGHIOrganization)
 * clinicalStatus = #active "Active"
 * verificationStatus = #confirmed "Confirmed"
 * code = #227493005 "Meat Allergy"
@@ -26,3 +27,4 @@ Description: "An example of an AllergyIntolerance resource conforming to the SGH
 * code.coding.system = "http://loinc.org"
 * code.coding.code = #N
 * code.coding.display = "Normal"
+* reaction.exposureRoute.coding.system = "http://loinc.org"
