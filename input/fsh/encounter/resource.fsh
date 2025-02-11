@@ -2,7 +2,7 @@ Profile: SGHIEncounter
 Parent: Encounter
 Id: sghi-encounter
 Title: "SGHI Encounter"
-Description: "SGHI profile for Encounter"
+Description: "An interaction between a patient and healthcare provider(s) for the purpose of providing healthcare service(s) or assessing the health status of a patient. Encounter is primarily used to record information about the actual activities that occurred, where Appointment is used to record planned activities."
 
 * meta.profile = "https://fhir.slade360.co.ke/StructureDefinition/sghi-encounter" (exactly)
 
@@ -14,11 +14,14 @@ Description: "SGHI profile for Encounter"
 * class from SGHIEncounterClass (required)
 * priority 1..1
 * priority from SGHIActPriority (required)
+* priority only SGHICodeableConcept
+* type only SGHICodeableConcept
+* subjectStatus only SGHICodeableConcept
 * status 1..1
 * class 1..*
+* class only SGHICodeableConcept
 * appointment 0..*
 * appointment only Reference(SGHIAppointment)
-* class only CodeableConcept
 * subject 1..1
 * subject only Reference(SGHIPatient) 
 * episodeOfCare 1..*
@@ -31,5 +34,7 @@ Description: "SGHI profile for Encounter"
 * diagnosis 1..*
   * condition 1..
   * condition only CodeableReference(SGHICondition)
+* basedOn only Reference(SGHIMedicationRequest or SGHIServiceRequest)
+* partOf only Reference(SGHIEncounter)
 
 
