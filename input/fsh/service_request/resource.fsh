@@ -17,15 +17,7 @@ Description: "ServiceRequest represents an order or proposal or plan, as disting
 * priority 1..1
 * code 1..1
 * code only SGHICodeableReference
-* code from SGHIServiceRequestOrder
-
-* orderDetail 1..*
-  * parameterFocus 1..1
-  * parameterFocus only SGHICodeableReference
-  * parameter 1..1
-    * code only SGHICodeableConcept
-    * value[x] 1..1
-
+* code from http://loinc.org (required)
 * subject 1..1
 * subject only Reference(SGHIPatient)
 
