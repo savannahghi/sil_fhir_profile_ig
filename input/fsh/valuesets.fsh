@@ -215,3 +215,9 @@ Description: "Custom practioner specialty value set"
 * include #421661004 "Blood banking and transfusion medicine"  from system SGHIIdentifierCodeSystem
 * include #408462000 "Burns care"  from system SGHIIdentifierCodeSystem
 * include codes from system http://snomed.info/sct
+
+ValueSet: SGHIIdentifierTypes
+Id: sghi-identifier-types
+Title: "SGHI Standard Identifier Types"
+Description: "Standard identifier types used in SGHI's systems"
+* include #SLADEID "Universal System Identifier" from system SGHIIdentifierCodeSystem

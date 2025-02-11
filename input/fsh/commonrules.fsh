@@ -1,6 +1,6 @@
 RuleSet: CommonIdentifierRules
 * type only SGHICodeableConcept
-* type from $identifier-type (required)
+* type from SGHIIdentifierTypes (required)
 * use from $identifier-use (required)
 * value 1..1
 * system 1..1
