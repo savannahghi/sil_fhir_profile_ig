@@ -4,11 +4,11 @@ Usage: #example
 Title: "SGHI Medication Dispense"
 Description: "An example of a Medication Dispense resource adhering to SGHI's Medication Dispense"
 
-* identifier
+* identifier[0]
   * use = #official
-  * type = #MR "Medical record number"
+  * type.coding[0] = $identifier-type-cs#MR "Medical record number"
   * value = "example-medication-dispense-id"
-  * system = "http://terminology.hl7.org/CodeSystem/v2-0203"
+  * system = $identifier-type-cs
   * assigner = Reference(ExampleSGHIOrganization)
 * status = #completed
 * encounter = Reference(ExampleSGHIEncounter)

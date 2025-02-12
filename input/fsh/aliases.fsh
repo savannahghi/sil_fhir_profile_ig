@@ -6,3 +6,7 @@ Alias: $identifier-use = http://hl7.org/fhir/ValueSet/identifier-use
 Alias: $organization-type = http://hl7.org/fhir/ValueSet/organization-type
 Alias: $contact-point-system = http://hl7.org/fhir/ValueSet/contact-point-system
 Alias: $contact-point-use = http://hl7.org/fhir/ValueSet/contact-point-use
+Alias: $v2-0276 = http://terminology.hl7.org/CodeSystem/v2-0276
+Alias: $v3-ActPriority = http://terminology.hl7.org/CodeSystem/v3-ActPriority
+Alias: $v3-ParticipationType = http://terminology.hl7.org/CodeSystem/v3-ParticipationType
+Alias: $identifier-type-cs = http://terminology.hl7.org/CodeSystem/v2-0203

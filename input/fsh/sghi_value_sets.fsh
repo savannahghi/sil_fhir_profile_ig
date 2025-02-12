@@ -172,3 +172,26 @@ Description:    "Custom follow up procedure codes"
 * include #274441001 "Suction drainage" from system SGHIIdentifierCodeSystem
 * include #394725008 "Diabetes medication review (procedure)" from system SGHIIdentifierCodeSystem
 * include #359825008 "Cytopathology, review of bronchioalveolar lavage specimen" from system SGHIIdentifierCodeSystem
+* include codes from system http://loinc.org/
+
+ValueSet: SGHIServiceRequestOrder
+Id: sghi-service-request-order
+Title: "SGHI Service Request Order "
+Description: "LOIC codes used for order requests in SGHI"
+* include codes from system http://loinc.org/
+
+ValueSet: SGHIMedicationCodes
+Id: sghi-medication-codes
+Title: "SGHI Medication Codes"
+Description: "ValueSet containing SGHI medication codes including dm+d concepts"
+* ^status = #active
+* include codes from system http://fhir.nts.dha.go.ke/fhir/CodeSystem/sghi-medication-codes
+* include codes from system http://hl7.org/fhir/ValueSet/medication-codes
+
+ValueSet: SGHISubstanceCodes
+Id: sghi-substance-codes
+Title: "SGHI Substance Codes"
+Description: "ValueSet containing SGHI substance codes including dm+d concepts"
+* ^status = #active
+* include codes from system http://fhir.nts.dha.go.ke/fhir/CodeSystem/sghi-substance-codes
+* include codes from system http://hl7.org/fhir/ValueSet/substance-codes
