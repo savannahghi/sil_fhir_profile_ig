@@ -31,14 +31,6 @@ Description: "A CodeableConcept represents a value that is usually supplied by p
   * display 1..1
 * text 0..1
 
-Profile: SGHICodeableReference
-Parent: CodeableReference
-Id: sghi-codeable-reference
-Title: "SGHI CodeableReference"
-Description: "SGHI CodeableReference"
-* concept only SGHICodeableConcept
-* reference only SGHIReference
-
 Profile: SGHIReference
 Parent: Reference
 Id: sghi-reference
@@ -57,3 +49,11 @@ Description: "A text note which also contains information about who made the sta
 * authorReference only Reference(Practitioner or PractitionerRole)
 * time 1..1
 * text 1..1
+
+Profile: SGHICodeableReference
+Parent: CodeableReference
+Id: sghi-codeable-reference
+Title: "SGHI CodeableReference"
+Description: "A reusable CodeableReference within SGHI systems"
+* concept only SGHICodeableConcept
+* reference only SGHIReference
