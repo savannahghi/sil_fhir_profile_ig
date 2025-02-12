@@ -58,3 +58,29 @@ Description: "A single code system enumerating the many local identifier types u
 * #26436-6 "Laboratory studies (set)" "Laboratory studies (set)"
 * #18748-4 "Diagnostic imaging study" "Diagnostic imaging study"
 * #21938-6 "Surgical approach" "Surgical approach"
+
+// Procedure categories (Custom)
+* #24642003 "Psychiatry procedure or service" "Psychiatry procedure or service"
+* #409063005 "Counseling" "Counseling"
+* #409073007 "Education" "Education"
+* #387713003 "Surgical procedure (procedure)" "Surgical procedure (procedure)"
+* #103693007 "Diagnostic procedure"	"Diagnostic procedure"
+* #46947000 "Chiropractic manipulation"	"Chiropractic manipulation"
+* #410606002 "Social service procedure (procedure)"	"Social service procedure (procedure)"
+
+// Procedure Outcome codes (Custom)
+* #385669000 "Successful" "Successful"
+* #385671000 "Unsuccessful" "Unsuccessful"
+* #385670004 "Partially successful" "Partially successful"
+
+// Procedure follow up codes (Custom)
+* #18949003 "Change of dressing" "The process of replacing or altering a wound dressing."
+* #30549001 "Removal of suture" "The process of removing sutures (stitches) from a wound."
+* #241031001 "Removal of drain" "The process of removing a drainage device from a body cavity or wound."
+* #35963001 "Removal of staples" "The process of removing surgical staples from a wound."
+* #225164002 "Removal of ligature" "The process of removing a ligature (tie) used to bind tissue or vessels."
+* #447346005 "Cardiopulmonary exercise test (procedure)" "A test to assess the performance of the heart and lungs during physical exertion."
+* #229506003 "Scar tissue massage" "Therapeutic massage applied to scar tissue to improve mobility and reduce discomfort."
+* #274441001 "Suction drainage" "The process of removing fluid or debris from a body cavity using suction."
+* #394725008 "Diabetes medication review (procedure)" "A review of medications prescribed for diabetes management."
+* #359825008 "Cytopathology, review of bronchioalveolar lavage specimen" "The examination of cells obtained from a bronchioalveolar lavage specimen for diagnostic purposes."
