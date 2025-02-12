@@ -5,6 +5,7 @@ RuleSet: CommonIdentifierRules
 * value 1..1
 * system 1..1
 * assigner 1..1
+* assigner only SGHIReference
 * assigner only Reference(SGHIOrganization)
 
 RuleSet: CommonContactRules
