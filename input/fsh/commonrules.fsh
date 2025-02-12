@@ -7,3 +7,11 @@ RuleSet: CommonIdentifierRules
 * assigner 1..1
 * assigner only Reference(SGHIOrganization)
 
+RuleSet: CommonContactRules
+* relationship 1..* 
+  * relationship from SGHIContactRelationship (required)
+  * name 1..1
+  * name only SGHIHumanName
+  * telecom 1..1
+  * telecom only SGHIContactPoint
+  * organization only Reference(SGHIOrganization)
