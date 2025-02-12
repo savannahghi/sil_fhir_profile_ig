@@ -124,3 +124,51 @@ Description: "Set of concepts that can classify a requested service."
 * include #18748-4 "Diagnostic imaging study" from system SGHIIdentifierCodeSystem 
 * include #21938-6 "Surgical approach" from system SGHIIdentifierCodeSystem
 * include codes from system http://loinc.org
+
+ValueSet:       SGHIProcedureStatus
+Id:             procedure-status
+Title:          "SGHI Procedure status value set"
+Description:    "A value set for the status of a procedure, based on the FHIR ProcedureStatus codes."
+* include codes from system http://hl7.org/fhir/event-status
+
+ValueSet:       SGHIProcedureCategory
+Id:             sghi-procedure-category
+Title:          "Procedure Category value set"
+Description:    "A value set for categorizing procedures, using LOINC codes where applicable."
+* include #24642003 "Psychiatry procedure or service" from system SGHIIdentifierCodeSystem
+* include #409063005 "Counseling" from system SGHIIdentifierCodeSystem 
+* include #409073007 "Education" from system SGHIIdentifierCodeSystem
+* include #387713003 "Surgical procedure (procedure)" from system SGHIIdentifierCodeSystem 
+* include #103693007 "Diagnostic procedure" from system SGHIIdentifierCodeSystem
+* include #46947000 "Chiropractic manipulation" from system SGHIIdentifierCodeSystem 
+* include #410606002 "Social service procedure (procedure)" from system SGHIIdentifierCodeSystem 
+* include codes from system http://loinc.org
+
+ValueSet:       SGHIProcedureOutcome
+Id:             sghi-procedure-outcome
+Title:          "Procedure outcome value set"
+Description:    "The outcome of the procedure - did it resolve the reasons for the procedure being performed?"
+* include #385669000 "Successful" from system SGHIIdentifierCodeSystem
+* include #385671000 "Unsuccessful" from system SGHIIdentifierCodeSystem
+* include #385670004 "Partially successful" from system SGHIIdentifierCodeSystem
+
+ValueSet:       SGHIProcedureComplication
+Id:             sghi-procedure-complication
+Title:          "ProcedureComplication value set"
+Description:    "A value set for procedure complications, using LOINC codes."
+* include codes from system http://loinc.org where concept is-a #42216-2
+
+ValueSet:       SGHIProcedureFollowUpCodes
+Id:             sghi-procedure-follow-up-codes
+Title:          "SGHI Procedure follow up codes"
+Description:    "Custom follow up procedure codes"
+* include #18949003 "Change of dressing" from system SGHIIdentifierCodeSystem
+* include #30549001 "Removal of suture" from system SGHIIdentifierCodeSystem
+* include #241031001 "Removal of drain" from system SGHIIdentifierCodeSystem
+* include #35963001 "Removal of staples" from system SGHIIdentifierCodeSystem
+* include #225164002 "Removal of ligature" from system SGHIIdentifierCodeSystem
+* include #447346005 "Cardiopulmonary exercise test (procedure)" from system SGHIIdentifierCodeSystem
+* include #229506003 "Scar tissue massage" from system SGHIIdentifierCodeSystem
+* include #274441001 "Suction drainage" from system SGHIIdentifierCodeSystem
+* include #394725008 "Diabetes medication review (procedure)" from system SGHIIdentifierCodeSystem
+* include #359825008 "Cytopathology, review of bronchioalveolar lavage specimen" from system SGHIIdentifierCodeSystem

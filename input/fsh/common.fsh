@@ -47,3 +47,13 @@ Description: "SGHI Reference"
 * reference 1..1
 * type 0..1
 * display 1..1
+
+Profile: SGHIAnnotation
+Parent: Annotation
+Id: sghi-annotation
+Title: "SGHI Annotation"
+Description: "A text note which also contains information about who made the statement and when."
+* authorReference only SGHIReference
+* authorReference only Reference(Practitioner or PractitionerRole)
+* time 1..1
+* text 1..1
