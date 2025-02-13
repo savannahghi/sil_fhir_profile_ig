@@ -4,20 +4,32 @@ Usage: #example
 Title: "SGHI Medication resource example"
 Description: "An example of SGHI Medication resource Example"
 
-* identifier
+* meta.profile = "https://fhir.slade360.co.ke/StructureDefinition/sghi-medication"
+
+* identifier[0]
   * use = #official
-  * type = #SNO "Serial Number"
+  * type.coding[0] = $identifier-type-cs#SNO "Serial Number"
   * value = "example-medication-id"
-  * system = "http://terminology.hl7.org/CodeSystem/v2-0203"
+  * system = $identifier-type-cs
   * assigner = Reference(ExampleSGHIOrganization)
+
 * status = #active
-* code
-  * coding
-    * code = #763158003 "Medicinal product (product)"
-* ingredient
-  * item = Reference(ExampleFHIRSubstance)
+
+* code = #AMP "Panadol 500mg tablets"
+
+* marketingAuthorizationHolder = Reference(ExampleSGHIOrganization)
+
+* ingredient[0]
+  * item = Reference(ExampleSGHISubstance)
   * isActive = true
-  * strengthRatio.numerator
-    * value = 250
-    * unit = "mg"
-    * system = "http://unitsofmeasure.org"
+  * strengthRatio
+    * numerator
+      * value = 250
+      * unit = "mg"
+      * system = "http://unitsofmeasure.org"
+      * code = #mg
+    * denominator
+      * value = 1
+      * unit = "tablet"
+      * system = "http://terminology.hl7.org/CodeSystem/v3-orderableDrugForm"
+      * code = #TAB

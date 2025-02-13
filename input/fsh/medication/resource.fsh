@@ -9,12 +9,13 @@ Description: "SGHI's Medication profile for Medication resource"
   * insert CommonIdentifierRules
 
 * code 1..1
+* code only SGHICodeableConcept
+* code from SGHIMedicationCodes (required)
 * status 1..1
-
+* marketingAuthorizationHolder only Reference(SGHIOrganization)
 * ingredient 1..*
   * item 1..1
-  * item only CodeableReference(SGHIMedication or Substance)
+  * item only CodeableReference(SGHIMedication or SGHISubstance)
+  * item from SGHIMedicationCodes (required)
   * isActive 1..1
   * strength[x] 1..1
-
-* marketingAuthorizationHolder only Reference(SGHIOrganization)

@@ -1,11 +1,13 @@
 Instance: ExampleSGHIMedicationRequest
 InstanceOf: SGHIMedicationRequest
 Description: "An example of a MedicationRequest resource conforming to the SGHI MedicationRequest profile."
-* identifier[0].use = #official
-* identifier[0].type = #RX "Prescription Number"
-* identifier[0].assigner = Reference(ExampleSGHIOrganization)
-* identifier[0].value = "RX123456789"
-* identifier[0].system = "http://terminology.hl7.org/CodeSystem/v2-0203"
+
+* identifier[0]
+  * use = #official
+  * type.coding[0] = $identifier-type-cs#RX "Prescription Number"
+  * value = "RX123456789"
+  * system = $identifier-type-cs
+  * assigner = Reference(ExampleSGHIOrganization)
 * category[0] = #inpatient "Inpatient"
 * priority = #routine
 * subject = Reference(ExampleSGHIPatient)

@@ -2,11 +2,12 @@ Instance: ExampleSGHIServiceRequest
 InstanceOf: SGHIServiceRequest
 Description: "An example of a ServiceRequest resource conforming to the SGHI ServiceRequest profile."
 
-* identifier[0].type = #VN "Visit Number"
-* identifier[0].use = #official
-* identifier[0].value = "QwErTy102938"
-* identifier[0].system = "http://terminology.hl7.org/CodeSystem/v2-0203"
-* identifier[0].assigner = Reference(ExampleSGHIOrganization)
+* identifier[0]
+  * use = #official
+  * type.coding[0] = $identifier-type-cs#VN "Visit Number"
+  * value = "APT123456"
+  * system = $identifier-type-cs
+  * assigner = Reference(ExampleSGHIOrganization)
 * basedOn = Reference(ExampleSGHIMedicationRequest)
 * authoredOn = "2025-02-01T10:30:00Z"
 * category = #108252007 "Laboratory procedure"

@@ -2,10 +2,12 @@ Instance: ExampleSGHIObservation
 InstanceOf: SGHIObservation
 Description: "An example of an Observation resource conforming to the SGHI Observation profile"
 
-* identifier[0].type = #MR "Medical Record Number"
-* identifier[0].value = "3456789QWERTY"
-* identifier[0].system = "http://terminology.hl7.org/CodeSystem/v2-0203"
-* identifier[0].assigner = Reference(ExampleSGHIOrganization)
+* identifier[0]
+  * use = #official
+  * type.coding[0] = $identifier-type-cs#MR "Medical Record Number"
+  * value = "3456789QWERTY"
+  * system = $identifier-type-cs
+  * assigner = Reference(ExampleSGHIOrganization)
 * status = #final "Final"
 * code = #100018-1 "Hospice care Note"
 * category = #laboratory "Laboratory"
