@@ -72,6 +72,8 @@ Description:    "This resource is used to record the details of current and hist
 * report only Reference(SGHIDiagnosticReport or DocumentReference)
 
 * complication only SGHICodeableReference
+* complication only CodeableReference(SGHICondition)
+
 * complication from SGHIProcedureComplication
 
 * followUp 1..1 MS

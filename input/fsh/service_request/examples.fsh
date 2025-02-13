@@ -21,6 +21,7 @@ Description: "An example of a ServiceRequest resource conforming to the SGHI Ser
 * orderDetail[0].parameter.code.coding[0].system = "http://loinc.org"
 * orderDetail[0].parameter.code.coding[0].code = #26436-6
 * orderDetail[0].parameter.code.coding[0].display = "Laboratory studies (set)"
+* orderDetail[0].parameterFocus.reference.display = "Medication Request"
 * orderDetail[0].parameter.code.text = "Laboratory studies (set)"
 * intent = #plan "Plan"
 * status = #active "Active"
