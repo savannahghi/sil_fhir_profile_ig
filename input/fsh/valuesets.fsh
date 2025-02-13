@@ -195,3 +195,23 @@ Description: "ValueSet containing SGHI substance codes including dm+d concepts"
 * ^status = #active
 * include codes from system http://fhir.nts.dha.go.ke/fhir/CodeSystem/sghi-substance-codes
 * include codes from system http://hl7.org/fhir/ValueSet/substance-codes
+
+ValueSet: SGHIPractitionerRoleValueSet
+Id: sghi-practitioner-role-value-set
+Title: "SGHI Practitioner Value Set"
+Description: "Custom practioner role value set"
+* include #doctor "Doctor"  from system SGHIIdentifierCodeSystem
+* include #nurse "Nurse"  from system SGHIIdentifierCodeSystem
+* include #pharmacist "Pharmacist"  from system SGHIIdentifierCodeSystem
+* include #researcher "Researcher"  from system SGHIIdentifierCodeSystem
+
+ValueSet: SGHIPractitionerSpecialtyValueSet
+Id: sghi-practitioner-specialty-value-set
+Title: "SGHI Practitioner Value Set"
+Description: "Custom practioner specialty value set"
+* include #408467006 "Adult mental illness"  from system SGHIIdentifierCodeSystem
+* include #394577000 "Anesthetics"  from system SGHIIdentifierCodeSystem
+* include #394578005 "Audiological medicine"  from system SGHIIdentifierCodeSystem
+* include #421661004 "Blood banking and transfusion medicine"  from system SGHIIdentifierCodeSystem
+* include #408462000 "Burns care"  from system SGHIIdentifierCodeSystem
+* include codes from system http://snomed.info/sct

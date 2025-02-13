@@ -84,3 +84,16 @@ Description: "A single code system enumerating the many local identifier types u
 * #274441001 "Suction drainage" "The process of removing fluid or debris from a body cavity using suction."
 * #394725008 "Diabetes medication review (procedure)" "A review of medications prescribed for diabetes management."
 * #359825008 "Cytopathology, review of bronchioalveolar lavage specimen" "The examination of cells obtained from a bronchioalveolar lavage specimen for diagnostic purposes."
+
+// Practitioner Roles
+* #doctor "Doctor" "A qualified/registered medical practitioner."
+* #nurse "Nurse" "A practitioner with nursing experience that may be qualified/registered."
+* #pharmacist "Pharmacist" "A qualified/registered/licensed pharmacist."
+* #researcher "Researcher" "A practitioner that may perform research."
+
+// Specific specialty of the Practitioner 
+* #408467006 "Adult mental illness" "Specialty focused on the diagnosis and treatment of mental illnesses in adults."
+* #394577000 "Anesthetics" "Specialty focused on administering anesthesia and managing pain during surgical procedures."
+* #394578005 "Audiological medicine" "Specialty focused on the diagnosis and treatment of hearing and balance disorders."
+* #421661004 "Blood banking and transfusion medicine" "Specialty focused on the collection, storage, and transfusion of blood and blood products."
+* #408462000 "Burns care" "Specialty focused on the treatment and management of burn injuries."
