@@ -18,7 +18,7 @@ Description: "An example of SGHI Medication resource Example"
 * code = #AMP "Panadol 500mg tablets"
 
 * marketingAuthorizationHolder = Reference(ExampleSGHIOrganization)
-
+* marketingAuthorizationHolder.display = "Organization"
 * ingredient[0]
   * item = Reference(ExampleSGHISubstance)
   * isActive = true

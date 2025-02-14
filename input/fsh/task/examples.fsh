@@ -28,4 +28,5 @@ Description: "An example of a Task resource conforming to the SGHI Task profile.
 * output[0].valueString = "Blood test completed successfully"
 
 * requestedPerformer.reference = Reference(ExampleSGHIOrganization)
+* requestedPerformer.reference.display = "Organzation"
 * encounter = Reference(ExampleSGHIEncounter)

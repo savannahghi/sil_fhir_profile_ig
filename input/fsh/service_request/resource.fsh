@@ -8,10 +8,14 @@ Description: "ServiceRequest represents an order or proposal or plan, as disting
 * identifier 1..*
   * insert CommonIdentifierRules
 
+* basedOn only SGHIReference
 * basedOn only Reference(SGHIMedicationRequest or SGHIServiceRequest)
+
+* replaces only SGHIReference
 * replaces only Reference(SGHIServiceRequest)
 
 * category 1..*
+* category only SGHICodeableConcept
 * category from SGHIServiceRequestCategory
 
 * priority 1..1
@@ -25,21 +29,28 @@ Description: "ServiceRequest represents an order or proposal or plan, as disting
   * parameter 1..1
     * code only SGHICodeableConcept
     * value[x] 1..1
+    * valueCodeableConcept only SGHICodeableConcept
 * subject 1..1
+* subject only SGHIReference
 * subject only Reference(SGHIPatient)
 
 * encounter 1..1
+* encounter only SGHIReference
 * encounter only Reference(SGHIEncounter)
 
 * authoredOn 1..1
 
 * requester 1..1
+* requester only SGHIReference
 * requester only Reference(SGHIOrganization or SGHIPatient)
 
 * reason 1..*
+* reason only SGHICodeableReference
 * reason only CodeableReference(SGHICondition or SGHIObservation or SGHIDiagnosticReport)
 
 * performer 1..*
+* performer only SGHIReference
 * performer only Reference(SGHIOrganization)
 
+* location only SGHICodeableReference
 * location only CodeableReference(SGHILocation)

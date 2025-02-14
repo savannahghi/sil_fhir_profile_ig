@@ -7,26 +7,49 @@ Description: "An order or request for both supply of the medication and the inst
 
 * identifier 1..*
   * insert CommonIdentifierRules
+
+* basedOn only SGHIReference
 * basedOn only Reference(SGHIServiceRequest or SGHIMedicationRequest)
+
+* priorPrescription only SGHIReference
 * priorPrescription only Reference(SGHIMedicationRequest)
+
+* medication only SGHICodeableReference
 * medication only CodeableReference(SGHIMedication)
+
+* informationSource only SGHIReference
 * informationSource only Reference(SGHIPatient or SGHIOrganization)
+
 * category 1..*
 * category only SGHICodeableConcept
+
 * priority 1..1
+
+* subject only SGHIReference
 * subject only Reference(SGHIPatient)
+
 * encounter 1..1
-* dispenseRequest.dispenser only Reference(SGHIOrganization)
+* encounter only SGHIReference
 * encounter only Reference(SGHIEncounter)
+
+* dispenseRequest.dispenser only SGHIReference
+* dispenseRequest.dispenser only Reference(SGHIOrganization)
+
 * authoredOn 1..1
 * requester 1..1
+* requester only SGHIReference
 * requester only Reference(SGHIPatient or SGHIOrganization)
+
 * recorder 1..1
 * reason 1..1
+* reason only SGHICodeableReference
 * reason only CodeableReference(SGHICondition or SGHIObservation)
+
 * effectiveDosePeriod 1..1
 * dosageInstruction 1..*
 * dosageInstruction only SGHIDosage
+
+* performer only SGHIReference
 * performer only Reference(SGHIPatient or SGHIOrganization)
 
 Profile: SGHIDosage

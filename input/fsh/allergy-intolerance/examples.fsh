@@ -48,3 +48,4 @@ Description: "An example of an AllergyIntolerance resource conforming to the SGH
     * code = #oral
     * display = "Oral"
   * manifestation.reference = Reference(ExampleSGHIObservation)
+  * manifestation.reference.display = "Observation"

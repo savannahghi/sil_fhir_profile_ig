@@ -17,9 +17,8 @@ Usage: #example
 
 * appointmentType.coding[0] = $v2-0276#ROUTINE "Routine appointment"
 
-* reason[0].reference = Reference(ExampleSGHICondition)
-* reason[1].reference = Reference(ExampleSGHIObservation)
-
+* reason.reference = Reference(ExampleSGHICondition)
+* reason.reference.display = "Observation"
 * priority.coding[0] = $v3-ActPriority#R "Routine"
 
 * start = "2023-11-25T09:00:00Z"

@@ -7,10 +7,7 @@ Description: "Profile for representing substances in the SGHI context"
 * meta.profile = "https://fhir.slade360.co.ke/StructureDefinition/sghi-substance" (exactly)
 
 * identifier 1..*
-  * system 1..1
-  * value 1..1
-  * type from http://hl7.org/fhir/ValueSet/identifier-type (required)
-
+  * insert CommonIdentifierRules
 * instance 1..1
 * status 1..1
 * status from http://hl7.org/fhir/ValueSet/substance-status (required)

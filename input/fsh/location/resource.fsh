@@ -8,9 +8,6 @@ Description: "SGHI profile for location"
 
 * identifier 1..*
   * insert CommonIdentifierRules
-  * assigner 1..1
-  * assigner only Reference(SGHIOrganization)
-
 * status 1..1 MS
 
 * operationalStatus 1..1 MS
@@ -32,8 +29,15 @@ Description: "SGHI profile for location"
 * form from SGHILocationForm (required)
 
 * managingOrganization 1..1 MS
+* managingOrganization only SGHIReference
 * managingOrganization only Reference(SGHIOrganization)
 
 * hoursOfOperation 1..1 MS
+
+* partOf only SGHIReference
 * partOf only Reference(SGHILocation)
+
+* contact.organization only SGHIReference
 * contact.organization only Reference(SGHIOrganization)
+
+* contact.telecom only SGHIContactPoint
