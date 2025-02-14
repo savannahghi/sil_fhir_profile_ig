@@ -23,9 +23,11 @@ Description:    "This resource is used to record the details of current and hist
   * coding from http://loinc.org (required)
 
 * category 1..1 MS
+* category only SGHICodeableConcept
 * category from SGHIProcedureCategory (extensible)
 
 * code 1..1 MS
+* code only SGHICodeableConcept
 * code
   * coding from http://loinc.org (required)
 
@@ -37,6 +39,7 @@ Description:    "This resource is used to record the details of current and hist
 * focus only Reference(SGHIPatient or Practitioner or PractitionerRole)
 
 * encounter 1..1 MS
+* encounter only SGHIReference
 * encounter only Reference(SGHIEncounter)
 
 * occurrenceDateTime 1..1
@@ -81,3 +84,4 @@ Description:    "This resource is used to record the details of current and hist
 * followUp from SGHIProcedureFollowUpCodes
 
 * note only SGHIAnnotation
+* category only SGHICodeableConcept

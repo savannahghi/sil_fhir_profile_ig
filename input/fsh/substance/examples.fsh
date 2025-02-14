@@ -7,7 +7,7 @@ Description: "An example of a substance profile"
 * identifier[0].system = "http://example.org/substances"
 * identifier[0].value = "SUBST001"
 * identifier[0].type = http://terminology.hl7.org/CodeSystem/v2-0203#NDC "National Drug Code"
-
+* identifier[0].assigner = Reference(ExampleSGHIOrganization)
 * instance = true
 * status = #active
 

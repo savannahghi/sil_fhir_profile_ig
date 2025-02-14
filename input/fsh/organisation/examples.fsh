@@ -9,6 +9,8 @@ Description: "An example Organization resource conforming to the SGHIOrganizatio
 * identifier[0].value = "123456789"
 * identifier[0].system = "http://terminology.hl7.org/CodeSystem/v2-0203"
 * identifier[0].assigner = Reference(ExampleSGHIOrganization)
+* identifier[0].type[0].coding.code = #PPN
+* identifier[0].type[0].coding.system = "http://terminology.hl7.org/CodeSystem/v2-0203"
 * active = true
 * type = #prov "Healthcare Provider"
 * name = "SGHI Healthcare Organization"

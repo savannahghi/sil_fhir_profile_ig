@@ -22,7 +22,7 @@ Description: "An example of a Medication Dispense resource adhering to SGHI's Me
 * receiver = Reference(ExampleSGHIPatient)
 * medication.reference = Reference(ExampleSGHIMedication)
 * medication.concept = http://www.nlm.nih.gov/research/umls/rxnorm#123456 "Medication Name"
-
+* medication.reference.display = "Panadol"
 * location = Reference(ExampleSGHILocation) "Pharmacy Location"
 * destination = Reference(ExampleSGHILocation) "Patient's Home"
 * quantity = 30 'tablet' "tablets"

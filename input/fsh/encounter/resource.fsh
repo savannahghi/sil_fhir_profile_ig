@@ -8,8 +8,6 @@ Description: "An interaction between a patient and healthcare provider(s) for th
 
 * identifier 1..*
   * insert CommonIdentifierRules
-  * assigner 1..1
-  * assigner only Reference(SGHIOrganization)
 
 * class 1..* MS
 * class from SGHIEncounterClass (required)
@@ -26,31 +24,46 @@ Description: "An interaction between a patient and healthcare provider(s) for th
 * class only SGHICodeableConcept
 
 * appointment 0..*
+* appointment only SGHIReference
 * appointment only Reference(SGHIAppointment)
 
 * subject 1..1
+* subject only SGHIReference
 * subject only Reference(SGHIPatient) 
 
 * episodeOfCare 1..*
+* episodeOfCare only SGHIReference
 * episodeOfCare only Reference(SGHIEpisodeOfCare)
 
 * serviceProvider 1..1
+* serviceProvider only SGHIReference
 * serviceProvider only Reference(SGHIOrganization)
 
 * participant 1..*
   * actor 1..1
+  * actor only SGHIReference
   * actor only Reference(SGHIPatient)
+  * type only SGHICodeableConcept
 
 * diagnosis 1..*
   * condition 1..
+  * condition only SGHICodeableReference
   * condition only CodeableReference(SGHICondition)
 
+* basedOn only SGHIReference
 * basedOn only Reference(SGHIMedicationRequest or SGHIServiceRequest)
+
+* partOf only SGHIReference
 * partOf only Reference(SGHIEncounter)
 
+* reason.value only SGHICodeableReference
 * reason.value only CodeableReference(SGHICondition or SGHIObservation or SGHIDiagnosticReport)
 
+* admission.origin only SGHIReference
 * admission.origin only Reference(SGHILocation or SGHIOrganization)
+
+* admission.destination only SGHIReference
 * admission.destination only Reference(SGHILocation or SGHIOrganization)
 
+* location.location only SGHIReference
 * location.location only Reference(SGHILocation)

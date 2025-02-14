@@ -29,4 +29,5 @@ Description: "An example of a ServiceRequest resource conforming to the SGHI Ser
 * subject = Reference(ExampleSGHIPatient)
 * requester = Reference(ExampleSGHIOrganization)
 * reason.reference = Reference(ExampleSGHICondition)
+* reason.reference.display = "Condition"
 * performer = Reference(ExampleSGHIOrganization)

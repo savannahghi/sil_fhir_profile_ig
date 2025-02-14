@@ -18,11 +18,15 @@ Description: "A clinical condition, problem, diagnosis, or other event, situatio
 * severity 1..1
 * severity only SGHICodeableConcept
 
+* subject only SGHIReference
 * subject only Reference(SGHIPatient)
+
 * encounter 1..1 
+* encounter only SGHIReference
 * encounter only Reference(SGHIEncounter)
 
 * code 1..1
+* code only SGHICodeableConcept
 * code from https://icd.who.int/browse/2024-01/mms/en (required)
 
 * bodySite only SGHICodeableConcept
@@ -32,8 +36,11 @@ Description: "A clinical condition, problem, diagnosis, or other event, situatio
 * onset[x] only dateTime
 * abatement[x] only dateTime
 
+* stage.assessment only SGHIReference
 * stage.assessment only Reference(SGHIDiagnosticReport or SGHIObservation)
 
 * participant 1..*
+  * actor only SGHIReference
   * actor only Reference(SGHIPatient or SGHIOrganization)
+
 * bodySite only SGHICodeableConcept

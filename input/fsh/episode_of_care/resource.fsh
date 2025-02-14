@@ -14,8 +14,12 @@ Description: "An association between a patient and an organization / healthcare 
 * period 1..1
 * patient 1..1
 
+* patient only SGHIReference
 * patient only Reference(SGHIPatient)
+
+* referralRequest only SGHIReference
 * referralRequest only Reference(SGHIServiceRequest)
 
 * managingOrganization 1..1
+* managingOrganization only SGHIReference
 * managingOrganization only Reference(SGHIOrganization)

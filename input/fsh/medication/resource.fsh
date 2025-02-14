@@ -12,10 +12,15 @@ Description: "SGHI's Medication profile for Medication resource"
 * code only SGHICodeableConcept
 * code from SGHIMedicationCodes (required)
 * status 1..1
+
+* marketingAuthorizationHolder only SGHIReference
 * marketingAuthorizationHolder only Reference(SGHIOrganization)
+
 * ingredient 1..*
   * item 1..1
+  * item only SGHICodeableReference
   * item only CodeableReference(SGHIMedication or SGHISubstance)
   * item from SGHIMedicationCodes (required)
   * isActive 1..1
   * strength[x] 1..1
+  * strengthCodeableConcept only SGHICodeableConcept
