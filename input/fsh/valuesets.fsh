@@ -54,7 +54,7 @@ Description: "Urgency of an encounter"
 * include #STAT "STAT" from system SGHIIdentifierCodeSystem
 * include #ASAP "ASAP" from system SGHIIdentifierCodeSystem
 * include #NORMAL "Routine" from system SGHIIdentifierCodeSystem
-* include #PREOP "ASAP" from system SGHIIdentifierCodeSystem
+* include #PREOP "PREOP" from system SGHIIdentifierCodeSystem
 * include #EL "Routine" from system SGHIIdentifierCodeSystem
 
 ValueSet: SGHIEncounterClass
