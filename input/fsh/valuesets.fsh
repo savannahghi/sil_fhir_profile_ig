@@ -133,7 +133,7 @@ Description:    "A value set for the status of a procedure, based on the FHIR Pr
 
 ValueSet:       SGHIProcedureCategory
 Id:             sghi-procedure-category
-Title:          "Procedure Category value set"
+Title:          "SGHI Procedure Category value set"
 Description:    "A value set for categorizing procedures, using LOINC codes where applicable."
 * include #24642003 "Psychiatry procedure or service" from system SGHIIdentifierCodeSystem
 * include #409063005 "Counseling" from system SGHIIdentifierCodeSystem 
@@ -146,7 +146,7 @@ Description:    "A value set for categorizing procedures, using LOINC codes wher
 
 ValueSet:       SGHIProcedureOutcome
 Id:             sghi-procedure-outcome
-Title:          "Procedure outcome value set"
+Title:          "SGHI Procedure outcome value set"
 Description:    "The outcome of the procedure - did it resolve the reasons for the procedure being performed?"
 * include #385669000 "Successful" from system SGHIIdentifierCodeSystem
 * include #385671000 "Unsuccessful" from system SGHIIdentifierCodeSystem
@@ -154,7 +154,7 @@ Description:    "The outcome of the procedure - did it resolve the reasons for t
 
 ValueSet:       SGHIProcedureComplication
 Id:             sghi-procedure-complication
-Title:          "ProcedureComplication value set"
+Title:          "SGHI ProcedureComplication value set"
 Description:    "A value set for procedure complications, using LOINC codes."
 * include codes from system http://loinc.org where concept is-a #42216-2
 
