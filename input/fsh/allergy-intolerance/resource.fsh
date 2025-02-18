@@ -21,7 +21,8 @@ Description: "Risk of harmful or undesirable physiological response which is spe
 
 * code only SGHICodeableConcept
 * code 1..1
-* code.coding from https://loinc.org/ (required)
+* code from AllLoincCodes (required)
+* code.coding from AllLoincCodes (required)
 
 * encounter 1..1
 * encounter only SGHIReference
@@ -35,14 +36,16 @@ Description: "Risk of harmful or undesirable physiological response which is spe
 
 * reaction 1..*
   * substance only SGHICodeableConcept
-    * coding from https://loinc.org/ (required)
+  * substance from AllLoincCodes (required)
+    * coding from AllLoincCodes (required)
   * description 1..1
   * severity 1..1
   * manifestation only SGHICodeableReference
   * manifestation only CodeableReference(SGHIObservation)
-  * manifestation from http://loinc.org
+  * manifestation from AllLoincCodes
   * exposureRoute only SGHICodeableConcept
-    * coding.system from https://loinc.org/ (required)
+  * exposureRoute from AllLoincCodes
+    * coding from AllLoincCodes (required)
 
 * onset[x] only dateTime
 * onsetDateTime 1..1

@@ -20,7 +20,7 @@ Description:    "This resource is used to record the details of current and hist
 * status from SGHIProcedureStatus (required)
 
 * statusReason only SGHICodeableConcept
-  * coding from http://loinc.org (required)
+* statusReason from ICHICodes (required)
 
 * category 1..1 MS
 * category only SGHICodeableConcept
@@ -28,8 +28,8 @@ Description:    "This resource is used to record the details of current and hist
 
 * code 1..1 MS
 * code only SGHICodeableConcept
-* code
-  * coding from http://loinc.org (required)
+* code from ICHICodes (required)
+* code.coding from ICHICodes (required)
 
 * subject MS
 * subject only SGHIReference
@@ -64,7 +64,7 @@ Description:    "This resource is used to record the details of current and hist
 
 * bodySite 1..1 MS
 * bodySite only SGHICodeableConcept
-* bodySite from https://icd.who.int/browse/2024-01/mms/en (required)
+* bodySite from ICHICodes (required)
 
 * outcome 1..1 MS
 * outcome only SGHICodeableConcept
