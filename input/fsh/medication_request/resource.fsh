@@ -65,6 +65,7 @@ Description: "A comprehensive Dosage profile for SGHI prescriptions, ensuring st
 * timing.repeat.frequency 0..1
 * timing.repeat.dayOfWeek 0..*
 * route 1..1
+* route from RouteOfAdministration (required)
 * doseAndRate 1..*
 * doseAndRate.doseQuantity.system = "http://unitsofmeasure.org" (exactly)
 * doseAndRate.doseRange.low.system = "http://unitsofmeasure.org" (exactly)

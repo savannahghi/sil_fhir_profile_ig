@@ -27,10 +27,11 @@ Description: "A clinical condition, problem, diagnosis, or other event, situatio
 
 * code 1..1
 * code only SGHICodeableConcept
-* code from https://icd.who.int/browse/2024-01/mms/en (required)
+* code from ICD11Codes (required)
 
 * bodySite only SGHICodeableConcept
-  * coding.system from https://loinc.org/
+* bodySite from ICD11Codes (required)
+* bodySite.coding from ICD11Codes (required)
 
 * recordedDate 1..1
 * onset[x] only dateTime

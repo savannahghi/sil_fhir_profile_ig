@@ -221,3 +221,39 @@ Id: sghi-identifier-types
 Title: "SGHI Standard Identifier Types"
 Description: "Standard identifier types used in SGHI's systems"
 * include #SLADEID "Universal System Identifier" from system SGHIIdentifierCodeSystem
+
+ValueSet: RouteOfAdministration
+Id: route-of-administration
+Title: "Route Of Administration"
+Description: "A ValueSet defining the possible routes of drug administration."
+* ^url = "https://ocl-testing-api.savannahghi.org/orgs/SIL/ValueSet/RouteOfAdministration"
+* ^version = "1.0.0"
+* ^status = #active
+* ^experimental = false
+
+* include codes from system https://ocl-testing-api.savannahghi.org/orgs/SIL/CodeSystem/KNC4Drugs where conceptclass = "ROUTE"
+
+ValueSet: SGHIServiceRequestCodeVS
+Id: sghi-service-request-code-vs
+Title: "SGHI ServiceRequest Code ValueSet"
+Description: "ValueSet for ServiceRequest.code, including concepts from LOINC and ICHI."
+* include codes from system https://loinc.org
+* include codes from system https://id.who.int/ichi
+
+ValueSet: AllLoincCodes
+Id: all-loinc
+Title: "All LOINC Codes"
+Description: "All codes from LOINC"
+* include codes from system http://loinc.org
+
+ValueSet: ICD11Codes
+Id: ICD11Codes
+Title: "All ICD-11 codes"
+Description: "All codes from ICD-11"
+* include codes from system http://id.who.int/icd/release/11/mms
+
+ValueSet: ICHICodes
+Id: ICHICodes
+Title: "All ICHI codes"
+Description: "All codes from ICHI"
+* include codes from system http://id.who.int/ichi

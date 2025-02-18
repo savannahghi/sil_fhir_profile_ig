@@ -15,7 +15,6 @@ Description: "Measurements and simple assertions made about a patient, device or
 
 * code 1..1
 * code only SGHICodeableConcept
-* code.coding from https://loinc.org/ (required)
 
 * subject 1..1
 * subject only SGHIReference
@@ -38,7 +37,7 @@ Description: "Measurements and simple assertions made about a patient, device or
 * basedOn only SGHIReference
 * basedOn only Reference(SGHIServiceRequest or SGHIMedicationRequest)
 
-* bodySite from https://icd.who.int/browse/2024-01/mms/en (required)
+* bodySite from ICD11Codes (required)
 * bodySite only SGHICodeableConcept
 
 * triggeredBy.observation only SGHIReference

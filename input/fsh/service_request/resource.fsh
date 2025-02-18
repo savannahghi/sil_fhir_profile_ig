@@ -20,7 +20,7 @@ Description: "ServiceRequest represents an order or proposal or plan, as disting
 
 * priority 1..1
 * code 1..1
-* code from http://loinc.org (required)
+* code from SGHIServiceRequestCodeVS (required)
 * code only SGHICodeableReference
 * orderDetail 1..*
   * parameterFocus 1..1

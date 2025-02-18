@@ -13,7 +13,7 @@ and any other resources referenced from Composition must be included as subseque
 
 * category only SGHICodeableConcept
 * category 0..*
-* category from http://loinc.org (required)
+* category from AllLoincCodes (required)
 * subject 0..1
 
 * encounter 1..1
