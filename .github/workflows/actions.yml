@@ -1,0 +1,48 @@
+name: Upload SGHI FHIR Implentation Guide(IG) Resources To HAPI FHIR server
+
+on: [push]
+
+env:
+  HAPI_FHIR_BASE_URL: ${{ secrets.HAPI_FHIR_BASE_URL }}
+
+jobs:
+  upload:
+    name: "Build & Push profile"
+    if: ${{ github.ref == 'refs/heads/main'}}
+    strategy:
+      matrix:
+        environment: [prod, testing, staging]
+    
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ matrix.environment }}
+      
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: Install sushi
+        run: npm install -g fsh-sushi
+
+      - name: Install jq to extract IDs from JSON files
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+
+      - name: Set execute permissions for upload script
+        run: chmod +x _upload.sh
+
+      - name: Substitute canonical in config.yaml
+        run: |
+          sed -i "s|REPLACE_CANONICAL|${{ env.HAPI_FHIR_BASE_URL }}|g" sushi-config.yaml
+          cat sushi-config.yaml
+      - name: Run SGHI FHIR IG upload script
+        shell: bash
+        run: |
+          echo "Base URL $HAPI_FHIR_BASE_URL"
+          ./_upload.sh
