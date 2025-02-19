@@ -1,0 +1,1680 @@
+{
+  "id": "ICD-11-WHO",
+  "meta": {
+    "lastUpdated": "2025-01-12T09:54:36.744662Z"
+  },
+  "language": "eng",
+  "identifier": [
+    {
+      "type": {
+        "coding": [
+          {
+            "system": "http://hl7.org/fhir/v2/0203",
+            "code": "ACSN",
+            "display": "Accession ID"
+          }
+        ],
+        "text": "Accession ID"
+      },
+      "system": "https://ocl-testing-api.savannahghi.org",
+      "value": "/orgs/WHO/CodeSystem/ICD-11-WHO/"
+    }
+  ],
+  "version": "ICD112025",
+  "name": "ICD 11",
+  "title": "International Classification for Diseases version 11, WHO",
+  "status": "draft",
+  "publisher": "World Health Organization",
+  "description": "This version contains the latest version of ICD-11 (2024)",
+  "versionNeeded": true,
+  "count": 26,
+  "property": [
+    {
+      "code": "conceptclass",
+      "uri": "https://ocl-testing-api.savannahghi.org/orgs/OCL/sources/Classes/concepts",
+      "description": "Standard list of concept classes.",
+      "type": "string"
+    },
+    {
+      "code": "datatype",
+      "uri": "https://ocl-testing-api.savannahghi.org/orgs/OCL/sources/Datatypes/concepts",
+      "description": "Standard list of concept datatypes.",
+      "type": "string"
+    },
+    {
+      "code": "inactive",
+      "uri": "http://hl7.org/fhir/concept-properties",
+      "description": "True if the concept is not considered active.",
+      "type": "Coding"
+    }
+  ],
+  "concept": [
+    {
+      "code": "01",
+      "display": "Certain infectious or parasitic diseases",
+      "definition": "This chapter includes certain conditions caused by pathogenic organisms or microorganisms, such as bacteria, viruses, parasites or fungi.",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "FULLY_SPECIFIED"
+          },
+          "value": "Certain infectious or parasitic diseases"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Chapter",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "01",
+      "display": "Certain infectious or parasitic diseases",
+      "definition": "This chapter includes certain conditions caused by pathogenic organisms or microorganisms, such as bacteria, viruses, parasites or fungi.",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "FULLY_SPECIFIED"
+          },
+          "value": "Certain infectious or parasitic diseases"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Chapter",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "1A00-1A40.Z",
+      "display": "Gastroenteritis or colitis of infectious origin",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "FULLY_SPECIFIED"
+          },
+          "value": "Gastroenteritis or colitis of infectious origin"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Group",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "1A00-1A40.Z",
+      "display": "Gastroenteritis or colitis of infectious origin",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "FULLY_SPECIFIED"
+          },
+          "value": "Gastroenteritis or colitis of infectious origin"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Group",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "1A00-1A0Z",
+      "display": "Bacterial intestinal infections",
+      "definition": "Any condition of the intestines, caused by an infection with a bacterial source.",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "FULLY_SPECIFIED"
+          },
+          "value": "Bacterial intestinal infections"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Group",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "1A00-1A0Z",
+      "display": "Bacterial intestinal infections",
+      "definition": "Any condition of the intestines, caused by an infection with a bacterial source.",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "FULLY_SPECIFIED"
+          },
+          "value": "Bacterial intestinal infections"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Group",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "1A00",
+      "display": "Cholera due to Vibrio cholerae O139",
+      "definition": "Cholera is a potentially epidemic and life-threatening infection of the intestine, characterised by extreme watery (secretory) diarrhoea often accompanied by vomiting, with rapid depletion of body fluids and salt that may result in hypovolemic shock and acidosis. Cholera outbreaks are caused by toxigenic strains of Vibrio cholerae serogroups O1 and O139. Serogroup O1 has two biovars; classical and eltor. Vibrio cholerae O1, biovar cholerae is classical type. Vibrio cholerae O1, biovar eltor is eltor type.",
+      "designation": [
+        {
+          "language": "en",
+          "value": "Cholera"
+        },
+        {
+          "language": "en",
+          "value": "cholera syndrome"
+        },
+        {
+          "language": "en",
+          "value": "asiatic cholera"
+        },
+        {
+          "language": "en",
+          "value": "epidemic cholera"
+        },
+        {
+          "language": "en",
+          "value": "Intestinal infection due to Vibrio cholerae"
+        },
+        {
+          "language": "en",
+          "value": "Enteritis due to cholera due to Vibrio cholerae, non-O1 strains"
+        },
+        {
+          "language": "en",
+          "value": "Cholera due to Vibrio cholerae O1, biovar cholerae"
+        },
+        {
+          "language": "en",
+          "value": "classical cholera"
+        },
+        {
+          "language": "en",
+          "value": "Enteritis due to Cholera due to Vibrio cholerae O1, biovar cholerae"
+        },
+        {
+          "language": "en",
+          "value": "Enteritis due to classical cholera"
+        },
+        {
+          "language": "en",
+          "value": "Cholera due to Vibrio cholerae O1, biovar eltor"
+        },
+        {
+          "language": "en",
+          "value": "cholera - vibrio cholerae 01 eltor biotype"
+        },
+        {
+          "language": "en",
+          "value": "cholera due to Vibrio cholerae 01, Cholera eltor"
+        },
+        {
+          "language": "en",
+          "value": "cholera due to Cholera eltor"
+        },
+        {
+          "language": "en",
+          "value": "Enteritis due to cholera due to Vibrio cholerae O1, biovar eltor"
+        },
+        {
+          "language": "en",
+          "value": "Enteritis due to cholera due to Cholera eltor"
+        },
+        {
+          "language": "en",
+          "value": "eltor enteritis"
+        },
+        {
+          "language": "en",
+          "value": "infectious enteritis due to vibrio cholerae 01, biovar eltor"
+        },
+        {
+          "language": "en",
+          "value": "Cholera due to Vibrio cholerae O139"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Category",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "1A00",
+      "display": "Cholera due to Vibrio cholerae O139",
+      "definition": "Cholera is a potentially epidemic and life-threatening infection of the intestine, characterised by extreme watery (secretory) diarrhoea often accompanied by vomiting, with rapid depletion of body fluids and salt that may result in hypovolemic shock and acidosis. Cholera outbreaks are caused by toxigenic strains of Vibrio cholerae serogroups O1 and O139. Serogroup O1 has two biovars; classical and eltor. Vibrio cholerae O1, biovar cholerae is classical type. Vibrio cholerae O1, biovar eltor is eltor type.",
+      "designation": [
+        {
+          "language": "en",
+          "value": "Cholera"
+        },
+        {
+          "language": "en",
+          "value": "cholera syndrome"
+        },
+        {
+          "language": "en",
+          "value": "asiatic cholera"
+        },
+        {
+          "language": "en",
+          "value": "epidemic cholera"
+        },
+        {
+          "language": "en",
+          "value": "Intestinal infection due to Vibrio cholerae"
+        },
+        {
+          "language": "en",
+          "value": "Enteritis due to cholera due to Vibrio cholerae, non-O1 strains"
+        },
+        {
+          "language": "en",
+          "value": "Cholera due to Vibrio cholerae O1, biovar cholerae"
+        },
+        {
+          "language": "en",
+          "value": "classical cholera"
+        },
+        {
+          "language": "en",
+          "value": "Enteritis due to Cholera due to Vibrio cholerae O1, biovar cholerae"
+        },
+        {
+          "language": "en",
+          "value": "Enteritis due to classical cholera"
+        },
+        {
+          "language": "en",
+          "value": "Cholera due to Vibrio cholerae O1, biovar eltor"
+        },
+        {
+          "language": "en",
+          "value": "cholera - vibrio cholerae 01 eltor biotype"
+        },
+        {
+          "language": "en",
+          "value": "cholera due to Vibrio cholerae 01, Cholera eltor"
+        },
+        {
+          "language": "en",
+          "value": "cholera due to Cholera eltor"
+        },
+        {
+          "language": "en",
+          "value": "Enteritis due to cholera due to Vibrio cholerae O1, biovar eltor"
+        },
+        {
+          "language": "en",
+          "value": "Enteritis due to cholera due to Cholera eltor"
+        },
+        {
+          "language": "en",
+          "value": "eltor enteritis"
+        },
+        {
+          "language": "en",
+          "value": "infectious enteritis due to vibrio cholerae 01, biovar eltor"
+        },
+        {
+          "language": "en",
+          "value": "Cholera due to Vibrio cholerae O139"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Category",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "1A01",
+      "display": "Infections due to Vibrio vulnificus",
+      "designation": [
+        {
+          "language": "en",
+          "value": "Intestinal infection due to other Vibrio"
+        },
+        {
+          "language": "en",
+          "value": "Infections due to Vibrio parahaemolyticus"
+        },
+        {
+          "language": "en",
+          "value": "Infections due to Vibrio vulnificus"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Category",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "1A01",
+      "display": "Infections due to Vibrio vulnificus",
+      "designation": [
+        {
+          "language": "en",
+          "value": "Intestinal infection due to other Vibrio"
+        },
+        {
+          "language": "en",
+          "value": "Infections due to Vibrio parahaemolyticus"
+        },
+        {
+          "language": "en",
+          "value": "Infections due to Vibrio vulnificus"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Category",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "1A02",
+      "display": "Sepsis due to shigella NOS",
+      "definition": "A disease caused by an infection with the gram-negative bacteria genus Shigella. This disease is characterised by an acute onset of small volume diarrhoea, accompanied by fever and nausea. This disease may also present with toxaemia, vomiting, cramps, and tenesmus. Transmission is by ingestion of contaminated food, or direct contact. Confirmation is by identification of Shigella in a faecal sample.",
+      "designation": [
+        {
+          "language": "en",
+          "value": "Intestinal infections due to Shigella"
+        },
+        {
+          "language": "en",
+          "value": "shigellosis"
+        },
+        {
+          "language": "en",
+          "value": "bacillary dysentery NOS"
+        },
+        {
+          "language": "en",
+          "value": "bacillary colitis"
+        },
+        {
+          "language": "en",
+          "value": "shigella enteritis"
+        },
+        {
+          "language": "en",
+          "value": "Shigellosis due to Shigella dysenteriae"
+        },
+        {
+          "language": "en",
+          "value": "bacillary dysentery due to shigella dysenteriae"
+        },
+        {
+          "language": "en",
+          "value": "bacillary dysentery due to shigella group A"
+        },
+        {
+          "language": "en",
+          "value": "infection due to shigella dysenteriae"
+        },
+        {
+          "language": "en",
+          "value": "infection due to shigella group A"
+        },
+        {
+          "language": "en",
+          "value": "Shiga-Kruse dysentery"
+        },
+        {
+          "language": "en",
+          "value": "shiga dysentery"
+        },
+        {
+          "language": "en",
+          "value": "infection due to shigella schmitzii"
+        },
+        {
+          "language": "en",
+          "value": "infection due to bacillus shiga-kruse"
+        },
+        {
+          "language": "en",
+          "value": "dysentery due to bacillus shiga-kruse"
+        },
+        {
+          "language": "en",
+          "value": "infection due to bacillus shiga"
+        },
+        {
+          "language": "en",
+          "value": "dysentery due to bacillus schmitz"
+        },
+        {
+          "language": "en",
+          "value": "dysentery due to bacillus schmitz-stutzer"
+        },
+        {
+          "language": "en",
+          "value": "dysentery due to bacillus shiga"
+        },
+        {
+          "language": "en",
+          "value": "Group A shigellosis"
+        },
+        {
+          "language": "en",
+          "value": "Schmitz dysentery"
+        },
+        {
+          "language": "en",
+          "value": "Enteritis in shigellosis due to Shigella dysenteriae"
+        },
+        {
+          "language": "en",
+          "value": "Enteritis in Shigellosis due to Shiga-Kruse dysentery"
+        },
+        {
+          "language": "en",
+          "value": "Enteritis in Shigellosis due to Group A shigellosis"
+        },
+        {
+          "language": "en",
+          "value": "Colitis in shigellosis due to Shigella dysenteriae"
+        },
+        {
+          "language": "en",
+          "value": "Shigellosis due to Shigella flexneri"
+        },
+        {
+          "language": "en",
+          "value": "dysentery due to bacillus flexneri"
+        },
+        {
+          "language": "en",
+          "value": "infection due to group B shigella"
+        },
+        {
+          "language": "en",
+          "value": "bacillary dysentery due to shigella flexneri"
+        },
+        {
+          "language": "en",
+          "value": "bacillary dysentery due to shigella group B"
+        },
+        {
+          "language": "en",
+          "value": "bacillus flexner infection (deprecated)"
+        },
+        {
+          "language": "en",
+          "value": "shigella flexneri infection"
+        },
+        {
+          "language": "en",
+          "value": "Hiss-Russell dysentery"
+        },
+        {
+          "language": "en",
+          "value": "Group B shigellosis"
+        },
+        {
+          "language": "en",
+          "value": "Flexner dysentery"
+        },
+        {
+          "language": "en",
+          "value": "Enteritis in shigellosis due to Shigella flexneri"
+        },
+        {
+          "language": "en",
+          "value": "Group B shigellosis resulting in enteritis"
+        },
+        {
+          "language": "en",
+          "value": "Colitis in shigellosis due to Shigella flexneri"
+        },
+        {
+          "language": "en",
+          "value": "Shigellosis due to Shigella boydii"
+        },
+        {
+          "language": "en",
+          "value": "infection due to group C shigella"
+        },
+        {
+          "language": "en",
+          "value": "infection due to shigella boydii"
+        },
+        {
+          "language": "en",
+          "value": "bacillary dysentery due to shigella boydii"
+        },
+        {
+          "language": "en",
+          "value": "bacillary dysentery due to shigella group C"
+        },
+        {
+          "language": "en",
+          "value": "Boyd dysentery"
+        },
+        {
+          "language": "en",
+          "value": "Group C shigellosis"
+        },
+        {
+          "language": "en",
+          "value": "Enteritis in shigellosis due to Shigella boydii"
+        },
+        {
+          "language": "en",
+          "value": "Group C shigellosis resulting in enteritis"
+        },
+        {
+          "language": "en",
+          "value": "Colitis in shigellosis due to Shigella boydii"
+        },
+        {
+          "language": "en",
+          "value": "Shigellosis due to Shigella sonnei"
+        },
+        {
+          "language": "en",
+          "value": "bacillary dysentery due to shigella sonnei"
+        },
+        {
+          "language": "en",
+          "value": "bacillary dysentery due to shigella group D"
+        },
+        {
+          "language": "en",
+          "value": "infection due to group D shigella"
+        },
+        {
+          "language": "en",
+          "value": "infection due to shigella sonnei"
+        },
+        {
+          "language": "en",
+          "value": "Group D shigellosis"
+        },
+        {
+          "language": "en",
+          "value": "Sonne dysentery"
+        },
+        {
+          "language": "en",
+          "value": "Enteritis in shigellosis due to Shigella sonnei"
+        },
+        {
+          "language": "en",
+          "value": "Group D shigellosis resulting in enteritis"
+        },
+        {
+          "language": "en",
+          "value": "Colitis in shigellosis due to Shigella sonnei"
+        },
+        {
+          "language": "en",
+          "value": "Bacterial colitis due to Shigella"
+        },
+        {
+          "language": "en",
+          "value": "Bacterial enteritis due to Shigella"
+        },
+        {
+          "language": "en",
+          "value": "Sepsis due to shigella without mention of septic shock"
+        },
+        {
+          "language": "en",
+          "value": "Sepsis due to shigella NOS"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Category",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "1A02",
+      "display": "Sepsis due to shigella NOS",
+      "definition": "A disease caused by an infection with the gram-negative bacteria genus Shigella. This disease is characterised by an acute onset of small volume diarrhoea, accompanied by fever and nausea. This disease may also present with toxaemia, vomiting, cramps, and tenesmus. Transmission is by ingestion of contaminated food, or direct contact. Confirmation is by identification of Shigella in a faecal sample.",
+      "designation": [
+        {
+          "language": "en",
+          "value": "Intestinal infections due to Shigella"
+        },
+        {
+          "language": "en",
+          "value": "shigellosis"
+        },
+        {
+          "language": "en",
+          "value": "bacillary dysentery NOS"
+        },
+        {
+          "language": "en",
+          "value": "bacillary colitis"
+        },
+        {
+          "language": "en",
+          "value": "shigella enteritis"
+        },
+        {
+          "language": "en",
+          "value": "Shigellosis due to Shigella dysenteriae"
+        },
+        {
+          "language": "en",
+          "value": "bacillary dysentery due to shigella dysenteriae"
+        },
+        {
+          "language": "en",
+          "value": "bacillary dysentery due to shigella group A"
+        },
+        {
+          "language": "en",
+          "value": "infection due to shigella dysenteriae"
+        },
+        {
+          "language": "en",
+          "value": "infection due to shigella group A"
+        },
+        {
+          "language": "en",
+          "value": "Shiga-Kruse dysentery"
+        },
+        {
+          "language": "en",
+          "value": "shiga dysentery"
+        },
+        {
+          "language": "en",
+          "value": "infection due to shigella schmitzii"
+        },
+        {
+          "language": "en",
+          "value": "infection due to bacillus shiga-kruse"
+        },
+        {
+          "language": "en",
+          "value": "dysentery due to bacillus shiga-kruse"
+        },
+        {
+          "language": "en",
+          "value": "infection due to bacillus shiga"
+        },
+        {
+          "language": "en",
+          "value": "dysentery due to bacillus schmitz"
+        },
+        {
+          "language": "en",
+          "value": "dysentery due to bacillus schmitz-stutzer"
+        },
+        {
+          "language": "en",
+          "value": "dysentery due to bacillus shiga"
+        },
+        {
+          "language": "en",
+          "value": "Group A shigellosis"
+        },
+        {
+          "language": "en",
+          "value": "Schmitz dysentery"
+        },
+        {
+          "language": "en",
+          "value": "Enteritis in shigellosis due to Shigella dysenteriae"
+        },
+        {
+          "language": "en",
+          "value": "Enteritis in Shigellosis due to Shiga-Kruse dysentery"
+        },
+        {
+          "language": "en",
+          "value": "Enteritis in Shigellosis due to Group A shigellosis"
+        },
+        {
+          "language": "en",
+          "value": "Colitis in shigellosis due to Shigella dysenteriae"
+        },
+        {
+          "language": "en",
+          "value": "Shigellosis due to Shigella flexneri"
+        },
+        {
+          "language": "en",
+          "value": "dysentery due to bacillus flexneri"
+        },
+        {
+          "language": "en",
+          "value": "infection due to group B shigella"
+        },
+        {
+          "language": "en",
+          "value": "bacillary dysentery due to shigella flexneri"
+        },
+        {
+          "language": "en",
+          "value": "bacillary dysentery due to shigella group B"
+        },
+        {
+          "language": "en",
+          "value": "bacillus flexner infection (deprecated)"
+        },
+        {
+          "language": "en",
+          "value": "shigella flexneri infection"
+        },
+        {
+          "language": "en",
+          "value": "Hiss-Russell dysentery"
+        },
+        {
+          "language": "en",
+          "value": "Group B shigellosis"
+        },
+        {
+          "language": "en",
+          "value": "Flexner dysentery"
+        },
+        {
+          "language": "en",
+          "value": "Enteritis in shigellosis due to Shigella flexneri"
+        },
+        {
+          "language": "en",
+          "value": "Group B shigellosis resulting in enteritis"
+        },
+        {
+          "language": "en",
+          "value": "Colitis in shigellosis due to Shigella flexneri"
+        },
+        {
+          "language": "en",
+          "value": "Shigellosis due to Shigella boydii"
+        },
+        {
+          "language": "en",
+          "value": "infection due to group C shigella"
+        },
+        {
+          "language": "en",
+          "value": "infection due to shigella boydii"
+        },
+        {
+          "language": "en",
+          "value": "bacillary dysentery due to shigella boydii"
+        },
+        {
+          "language": "en",
+          "value": "bacillary dysentery due to shigella group C"
+        },
+        {
+          "language": "en",
+          "value": "Boyd dysentery"
+        },
+        {
+          "language": "en",
+          "value": "Group C shigellosis"
+        },
+        {
+          "language": "en",
+          "value": "Enteritis in shigellosis due to Shigella boydii"
+        },
+        {
+          "language": "en",
+          "value": "Group C shigellosis resulting in enteritis"
+        },
+        {
+          "language": "en",
+          "value": "Colitis in shigellosis due to Shigella boydii"
+        },
+        {
+          "language": "en",
+          "value": "Shigellosis due to Shigella sonnei"
+        },
+        {
+          "language": "en",
+          "value": "bacillary dysentery due to shigella sonnei"
+        },
+        {
+          "language": "en",
+          "value": "bacillary dysentery due to shigella group D"
+        },
+        {
+          "language": "en",
+          "value": "infection due to group D shigella"
+        },
+        {
+          "language": "en",
+          "value": "infection due to shigella sonnei"
+        },
+        {
+          "language": "en",
+          "value": "Group D shigellosis"
+        },
+        {
+          "language": "en",
+          "value": "Sonne dysentery"
+        },
+        {
+          "language": "en",
+          "value": "Enteritis in shigellosis due to Shigella sonnei"
+        },
+        {
+          "language": "en",
+          "value": "Group D shigellosis resulting in enteritis"
+        },
+        {
+          "language": "en",
+          "value": "Colitis in shigellosis due to Shigella sonnei"
+        },
+        {
+          "language": "en",
+          "value": "Bacterial colitis due to Shigella"
+        },
+        {
+          "language": "en",
+          "value": "Bacterial enteritis due to Shigella"
+        },
+        {
+          "language": "en",
+          "value": "Sepsis due to shigella without mention of septic shock"
+        },
+        {
+          "language": "en",
+          "value": "Sepsis due to shigella NOS"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Category",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "1A03",
+      "display": "Intestinal infections due to Escherichia coli",
+      "definition": "Any condition of the gastrointestinal system, caused by an infection with the gram-negative bacteria Escherichia coli.",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "FULLY_SPECIFIED"
+          },
+          "value": "Intestinal infections due to Escherichia coli"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Category",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "1A03",
+      "display": "Intestinal infections due to Escherichia coli",
+      "definition": "Any condition of the gastrointestinal system, caused by an infection with the gram-negative bacteria Escherichia coli.",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "FULLY_SPECIFIED"
+          },
+          "value": "Intestinal infections due to Escherichia coli"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Category",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "1A03.0",
+      "display": "Colitis in enteropathogenic Escherichia coli infection",
+      "definition": "An infection of the gastrointestinal system, caused by the gram-negative bacteria Escherichia coli. It is characterised by acute, profuse, watery diarrhoea. Transmission is by the faecal-oral route from contaminated food, water, or fomites. Confirmation is by identification of enteropathogenic Escherichia coli (EPEC) in a faecal sample.",
+      "designation": [
+        {
+          "language": "en",
+          "value": "Enteropathogenic Escherichia coli infection"
+        },
+        {
+          "language": "en",
+          "value": "EPEC - [Enteropathogenic Escherichia coli] infection"
+        },
+        {
+          "language": "en",
+          "value": "Enteritis in enteropathogenic Escherichia coli infection"
+        },
+        {
+          "language": "en",
+          "value": "Colitis in enteropathogenic Escherichia coli infection"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Category",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "1A03.0",
+      "display": "Colitis in enteropathogenic Escherichia coli infection",
+      "definition": "An infection of the gastrointestinal system, caused by the gram-negative bacteria Escherichia coli. It is characterised by acute, profuse, watery diarrhoea. Transmission is by the faecal-oral route from contaminated food, water, or fomites. Confirmation is by identification of enteropathogenic Escherichia coli (EPEC) in a faecal sample.",
+      "designation": [
+        {
+          "language": "en",
+          "value": "Enteropathogenic Escherichia coli infection"
+        },
+        {
+          "language": "en",
+          "value": "EPEC - [Enteropathogenic Escherichia coli] infection"
+        },
+        {
+          "language": "en",
+          "value": "Enteritis in enteropathogenic Escherichia coli infection"
+        },
+        {
+          "language": "en",
+          "value": "Colitis in enteropathogenic Escherichia coli infection"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Category",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "1A03.1",
+      "display": "Colitis in enterotoxigenic Escherichia coli infection",
+      "definition": "A condition of the gastrointestinal system, caused by an infection with the gram-negative bacteria Escherichia coli. This condition is characterised by acute, watery diarrhoea due to toxins released from the bacteria. Transmission is by the faecal-oral route from ingestion of contaminated food, water, or fomites. Confirmation is by identification of the Escherichia coli in faecal sample.",
+      "designation": [
+        {
+          "language": "en",
+          "value": "Enterotoxigenic Escherichia coli infection"
+        },
+        {
+          "language": "en",
+          "value": "ETEC - [Enterotoxigenic Escherichia coli] infection"
+        },
+        {
+          "language": "en",
+          "value": "enterotoxic Escherichia coli infection"
+        },
+        {
+          "language": "en",
+          "value": "Enteritis in enterotoxigenic Escherichia coli infection"
+        },
+        {
+          "language": "en",
+          "value": "Colitis in enterotoxigenic Escherichia coli infection"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Category",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "1A03.1",
+      "display": "Colitis in enterotoxigenic Escherichia coli infection",
+      "definition": "A condition of the gastrointestinal system, caused by an infection with the gram-negative bacteria Escherichia coli. This condition is characterised by acute, watery diarrhoea due to toxins released from the bacteria. Transmission is by the faecal-oral route from ingestion of contaminated food, water, or fomites. Confirmation is by identification of the Escherichia coli in faecal sample.",
+      "designation": [
+        {
+          "language": "en",
+          "value": "Enterotoxigenic Escherichia coli infection"
+        },
+        {
+          "language": "en",
+          "value": "ETEC - [Enterotoxigenic Escherichia coli] infection"
+        },
+        {
+          "language": "en",
+          "value": "enterotoxic Escherichia coli infection"
+        },
+        {
+          "language": "en",
+          "value": "Enteritis in enterotoxigenic Escherichia coli infection"
+        },
+        {
+          "language": "en",
+          "value": "Colitis in enterotoxigenic Escherichia coli infection"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Category",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "1A03.2",
+      "display": "Colitis in enteroinvasive Escherichia coli infection",
+      "definition": "A condition of the gastrointestinal system, caused by an infection with the gram-negative bacteria Escherichia coli. This condition is characterised by acute and profuse diarrhoea (that may be haemorrhagic), fever, and abdominal cramps. Transmission is by the faecal-oral route from ingestion of contaminated food or water. Confirmation is by identification of the Escherichia coli in a faecal sample.",
+      "designation": [
+        {
+          "language": "en",
+          "value": "Enteroinvasive Escherichia coli infection"
+        },
+        {
+          "language": "en",
+          "value": "EIEC - [Enteroinvasive Escherichia coli] infection"
+        },
+        {
+          "language": "en",
+          "value": "Enteritis in enteroinvasive Escherichia coli infection"
+        },
+        {
+          "language": "en",
+          "value": "Colitis in enteroinvasive Escherichia coli infection"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Category",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "1A03.2",
+      "display": "Colitis in enteroinvasive Escherichia coli infection",
+      "definition": "A condition of the gastrointestinal system, caused by an infection with the gram-negative bacteria Escherichia coli. This condition is characterised by acute and profuse diarrhoea (that may be haemorrhagic), fever, and abdominal cramps. Transmission is by the faecal-oral route from ingestion of contaminated food or water. Confirmation is by identification of the Escherichia coli in a faecal sample.",
+      "designation": [
+        {
+          "language": "en",
+          "value": "Enteroinvasive Escherichia coli infection"
+        },
+        {
+          "language": "en",
+          "value": "EIEC - [Enteroinvasive Escherichia coli] infection"
+        },
+        {
+          "language": "en",
+          "value": "Enteritis in enteroinvasive Escherichia coli infection"
+        },
+        {
+          "language": "en",
+          "value": "Colitis in enteroinvasive Escherichia coli infection"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Category",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "1A03.3",
+      "display": "Colitis in enterohaemorrhagic Escherichia coli infection",
+      "definition": "Escherichia coli infection caused by Enterohaemorrhagic E coli (EHEC) strains which produces toxins, known as verotoxins or Shiga-like toxins because of their similarity to the toxins produced by Shigella dysenteriae. Symptoms of the diseases caused by EHEC include abdominal cramps and diarrhoea that may in some cases progress to bloody diarrhoea (haemorrhagic colitis). Fever and vomiting may also occur.",
+      "designation": [
+        {
+          "language": "en",
+          "value": "Enterohaemorrhagic Escherichia coli infection"
+        },
+        {
+          "language": "en",
+          "value": "EHEC - [Enterohaemorrhagic Escherichia coli] infection"
+        },
+        {
+          "language": "en",
+          "value": "Enteritis in enterohaemorrhagic Escherichia coli infection"
+        },
+        {
+          "language": "en",
+          "value": "Colitis in enterohaemorrhagic Escherichia coli infection"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Category",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "1A03.3",
+      "display": "Colitis in enterohaemorrhagic Escherichia coli infection",
+      "definition": "Escherichia coli infection caused by Enterohaemorrhagic E coli (EHEC) strains which produces toxins, known as verotoxins or Shiga-like toxins because of their similarity to the toxins produced by Shigella dysenteriae. Symptoms of the diseases caused by EHEC include abdominal cramps and diarrhoea that may in some cases progress to bloody diarrhoea (haemorrhagic colitis). Fever and vomiting may also occur.",
+      "designation": [
+        {
+          "language": "en",
+          "value": "Enterohaemorrhagic Escherichia coli infection"
+        },
+        {
+          "language": "en",
+          "value": "EHEC - [Enterohaemorrhagic Escherichia coli] infection"
+        },
+        {
+          "language": "en",
+          "value": "Enteritis in enterohaemorrhagic Escherichia coli infection"
+        },
+        {
+          "language": "en",
+          "value": "Colitis in enterohaemorrhagic Escherichia coli infection"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Category",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "1A03.Y",
+      "display": "EAEC - [Enteroaggregative Escherichia coli] infection",
+      "designation": [
+        {
+          "language": "en",
+          "value": "Intestinal infections due to other specified Escherichia coli"
+        },
+        {
+          "language": "en",
+          "value": "Enteroaggregative Escherichia coli infection"
+        },
+        {
+          "language": "en",
+          "value": "EAEC - [Enteroaggregative Escherichia coli] infection"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Category",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "1A03.Y",
+      "display": "EAEC - [Enteroaggregative Escherichia coli] infection",
+      "designation": [
+        {
+          "language": "en",
+          "value": "Intestinal infections due to other specified Escherichia coli"
+        },
+        {
+          "language": "en",
+          "value": "Enteroaggregative Escherichia coli infection"
+        },
+        {
+          "language": "en",
+          "value": "EAEC - [Enteroaggregative Escherichia coli] infection"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Category",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "1A03.Z",
+      "display": "Escherichia coli enteritis, not otherwise specified",
+      "designation": [
+        {
+          "language": "en",
+          "value": "Intestinal infections due to Escherichia coli, unspecified"
+        },
+        {
+          "language": "en",
+          "value": "Intestinal infections due to Escherichia coli"
+        },
+        {
+          "language": "en",
+          "value": "Bacterial colitis due to Escherichia coli"
+        },
+        {
+          "language": "en",
+          "value": "Bacterial enteritis due to Escherichia coli"
+        },
+        {
+          "language": "en",
+          "value": "Escherichia coli enteritis, not otherwise specified"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Category",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    }
+  ],
+  "resourceType": "CodeSystem"
+}

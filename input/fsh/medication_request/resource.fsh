@@ -16,6 +16,7 @@ Description: "An order or request for both supply of the medication and the inst
 
 * medication only SGHICodeableReference
 * medication only CodeableReference(SGHIMedication)
+* medication from https://ocl-testing-api.savannahghi.org/fhir/CodeSystem/KNC4Drugs
 
 * informationSource only SGHIReference
 * informationSource only Reference(SGHIPatient or SGHIOrganization)
@@ -65,7 +66,7 @@ Description: "A comprehensive Dosage profile for SGHI prescriptions, ensuring st
 * timing.repeat.frequency 0..1
 * timing.repeat.dayOfWeek 0..*
 * route 1..1
-* route from RouteOfAdministration (required)
+* route from https://ocl-testing-api.savannahghi.org/fhir/ValueSet/RouteOfAdministration (required)
 * doseAndRate 1..*
 * doseAndRate.doseQuantity.system = "http://unitsofmeasure.org" (exactly)
 * doseAndRate.doseRange.low.system = "http://unitsofmeasure.org" (exactly)

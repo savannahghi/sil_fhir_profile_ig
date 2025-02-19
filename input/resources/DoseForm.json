@@ -1,0 +1,42 @@
+{
+  "id": "DoseForm",
+  "meta": {
+    "lastUpdated": "2025-02-19T06:43:07.250141Z"
+  },
+  "identifier": [
+    {
+      "type": {
+        "coding": [
+          {
+            "system": "http://hl7.org/fhir/v2/0203",
+            "code": "ACSN",
+            "display": "Accession ID"
+          }
+        ],
+        "text": "Accession ID"
+      },
+      "system": "https://ocl-testing-api.savannahghi.org",
+      "value": "/orgs/SIL/ValueSet/DoseForm/"
+    }
+  ],
+  "version": "1.0.0",
+  "name": "DoseForm",
+  "title": "Dose Form",
+  "status": "active",
+  "description": "Version 1",
+  "compose": {
+    "include": [
+      {
+        "system": "/orgs/SIL/ValueSet/KNC4Drugs/",
+        "filter": [
+          {
+            "property": "concept_class",
+            "op": "=",
+            "value": "DOSE_FORM"
+          }
+        ]
+      }
+    ]
+  },
+  "resourceType": "ValueSet"
+}
