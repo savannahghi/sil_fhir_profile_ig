@@ -1,0 +1,927 @@
+{
+  "id": "KNC4Drugs",
+  "meta": {
+    "lastUpdated": "2025-02-18T15:54:23.122274Z"
+  },
+  "language": "en",
+  "identifier": [
+    {
+      "type": {
+        "coding": [
+          {
+            "system": "http://hl7.org/fhir/v2/0203",
+            "code": "ACSN",
+            "display": "Accession ID"
+          }
+        ],
+        "text": "Accession ID"
+      },
+      "system": "https://ocl-testing-api.savannahghi.org",
+      "value": "/orgs/SIL/CodeSystem/KNC4Drugs/"
+    }
+  ],
+  "version": "1.0.0",
+  "name": "KNC4Drugs",
+  "title": "KNC4Drugs",
+  "status": "active",
+  "description": "Version one",
+  "count": 574,
+  "property": [
+    {
+      "code": "conceptclass",
+      "uri": "https://ocl-testing-api.savannahghi.org/orgs/OCL/sources/Classes/concepts",
+      "description": "Standard list of concept classes.",
+      "type": "string"
+    },
+    {
+      "code": "datatype",
+      "uri": "https://ocl-testing-api.savannahghi.org/orgs/OCL/sources/Datatypes/concepts",
+      "description": "Standard list of concept datatypes.",
+      "type": "string"
+    },
+    {
+      "code": "inactive",
+      "uri": "http://hl7.org/fhir/concept-properties",
+      "description": "True if the concept is not considered active.",
+      "type": "Coding"
+    }
+  ],
+  "concept": [
+    {
+      "code": "ROA-00000011",
+      "display": "Intestinal",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Intestinal"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "ROUTE",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "TEXT",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "ROA-00000029",
+      "display": "Intrasternal",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Intrasternal"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "ROUTE",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "TEXT",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "ROA-00000020",
+      "display": "Intraventricular cardiac",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Intraventricular cardiac"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "ROUTE",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "TEXT",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "ROA-00000018",
+      "display": "Submucosal rectal",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Submucosal rectal"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "ROUTE",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "TEXT",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "ROA-00000019",
+      "display": "Intracerebroventricular",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Intracerebroventricular"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "ROUTE",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "TEXT",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "ROA-00000016",
+      "display": "Oromucosal",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Oromucosal"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "ROUTE",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "TEXT",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "ROA-00000012",
+      "display": "Subretinal",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Subretinal"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "ROUTE",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "TEXT",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "ROA-00000014",
+      "display": "Intracameral",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Intracameral"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "ROUTE",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "TEXT",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "ROA-00000017",
+      "display": "Regional perfusion",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Regional perfusion"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "ROUTE",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "TEXT",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "ROA-00000027",
+      "display": "Obsolete-Oromucosal other",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Obsolete-Oromucosal other"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "ROUTE",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "TEXT",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "ROA-00000030",
+      "display": "Intracervical",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Intracervical"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "ROUTE",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "TEXT",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "ROA-00000024",
+      "display": "Obsolete-Intraventricular",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Obsolete-Intraventricular"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "ROUTE",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "TEXT",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "ROA-00000025",
+      "display": "Route of administration not applicable",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Route of administration not applicable"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "ROUTE",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "TEXT",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "ROA-00000022",
+      "display": "Haemofiltration",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Haemofiltration"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "ROUTE",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "TEXT",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "ROA-00000031",
+      "display": "Intraarticular",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Intraarticular"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "ROUTE",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "TEXT",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "ROA-00000026",
+      "display": "Inhalation",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Inhalation"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "ROUTE",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "TEXT",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "ROA-00000021",
+      "display": "Intraosseous",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Intraosseous"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "ROUTE",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "TEXT",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "ROA-00000013",
+      "display": "Intratumoral",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Intratumoral"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "ROUTE",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "TEXT",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "ROA-00000054",
+      "display": "Subconjunctival",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Subconjunctival"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "ROUTE",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "TEXT",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "ROA-00000015",
+      "display": "Epilesional",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Epilesional"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "ROUTE",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "TEXT",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "ROA-00000055",
+      "display": "Subarachnoid",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Subarachnoid"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "ROUTE",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "TEXT",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "ROA-00000057",
+      "display": "Retrobulbar",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Retrobulbar"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "ROUTE",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "TEXT",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "ROA-00000060",
+      "display": "Periodontal",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Periodontal"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "ROUTE",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "TEXT",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "ROA-00000058",
+      "display": "Respiratory (Inhalation)",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Respiratory (Inhalation)"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "ROUTE",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "TEXT",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "ROA-00000061",
+      "display": "Perineural",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Perineural"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "ROUTE",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "TEXT",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    }
+  ],
+  "resourceType": "CodeSystem"
+}

@@ -1,0 +1,927 @@
+{
+  "id": "ICD-10-WHO",
+  "meta": {
+    "lastUpdated": "2024-04-22T22:31:40.430708Z"
+  },
+  "language": "en",
+  "identifier": [
+    {
+      "type": {
+        "coding": [
+          {
+            "system": "http://hl7.org/fhir/v2/0203",
+            "code": "ACSN",
+            "display": "Accession ID"
+          }
+        ],
+        "text": "Accession ID"
+      },
+      "system": "https://ocl-testing-api.savannahghi.org",
+      "value": "/orgs/WHO/CodeSystem/ICD-10-WHO/"
+    }
+  ],
+  "version": "ICD102019",
+  "name": "ICD-10-WHO",
+  "title": "International Classification for Diseases version 10, WHO",
+  "status": "draft",
+  "description": "Based on ICD102019-covid",
+  "count": 12587,
+  "property": [
+    {
+      "code": "conceptclass",
+      "uri": "https://ocl-testing-api.savannahghi.org/orgs/OCL/sources/Classes/concepts",
+      "description": "Standard list of concept classes.",
+      "type": "string"
+    },
+    {
+      "code": "datatype",
+      "uri": "https://ocl-testing-api.savannahghi.org/orgs/OCL/sources/Datatypes/concepts",
+      "description": "Standard list of concept datatypes.",
+      "type": "string"
+    },
+    {
+      "code": "inactive",
+      "uri": "http://hl7.org/fhir/concept-properties",
+      "description": "True if the concept is not considered active.",
+      "type": "Coding"
+    }
+  ],
+  "concept": [
+    {
+      "code": "1",
+      "display": "Certain infectious and parasitic diseases",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Certain infectious and parasitic diseases"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Chapter",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "10",
+      "display": "Diseases of the respiratory system",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Diseases of the respiratory system"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Chapter",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "11",
+      "display": "Diseases of the digestive system",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Diseases of the digestive system"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Chapter",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "12",
+      "display": "Diseases of the skin and subcutaneous tissue",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Diseases of the skin and subcutaneous tissue"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Chapter",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "13",
+      "display": "Diseases of the musculoskeletal system and connective tissue",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Diseases of the musculoskeletal system and connective tissue"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Chapter",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "14",
+      "display": "Diseases of the genitourinary system",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Diseases of the genitourinary system"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Chapter",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "15",
+      "display": "Pregnancy, childbirth and the puerperium",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Pregnancy, childbirth and the puerperium"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Chapter",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "16",
+      "display": "Certain conditions originating in the perinatal period",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Certain conditions originating in the perinatal period"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Chapter",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "17",
+      "display": "Congenital malformations, deformations and chromosomal abnormalities",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Congenital malformations, deformations and chromosomal abnormalities"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Chapter",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "18",
+      "display": "Symptoms, signs and abnormal clinical and laboratory findings, not elsewhere classified",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Symptoms, signs and abnormal clinical and laboratory findings, not elsewhere classified"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Chapter",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "19",
+      "display": "Injury, poisoning and certain other consequences of external causes",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Injury, poisoning and certain other consequences of external causes"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Chapter",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "2",
+      "display": "Neoplasms",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Neoplasms"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Chapter",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "20",
+      "display": "External causes of morbidity and mortality",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "External causes of morbidity and mortality"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Chapter",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "21",
+      "display": "Factors influencing health status and contact with health services",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Factors influencing health status and contact with health services"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Chapter",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "22",
+      "display": "Codes for special purposes",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Codes for special purposes"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Chapter",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "3",
+      "display": "Diseases of the blood and blood-forming organs and certain disorders involving the immune mechanism",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Diseases of the blood and blood-forming organs and certain disorders involving the immune mechanism"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Chapter",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "4",
+      "display": "Endocrine, nutritional and metabolic diseases",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Endocrine, nutritional and metabolic diseases"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Chapter",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "5",
+      "display": "Mental and behavioural disorders",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Mental and behavioural disorders"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Chapter",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "6",
+      "display": "Diseases of the nervous system",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Diseases of the nervous system"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Chapter",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "7",
+      "display": "Diseases of the eye and adnexa",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Diseases of the eye and adnexa"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Chapter",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "8",
+      "display": "Diseases of the ear and mastoid process",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Diseases of the ear and mastoid process"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Chapter",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "9",
+      "display": "Diseases of the circulatory system",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Diseases of the circulatory system"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Chapter",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "A00",
+      "display": "Cholera",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Cholera"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Code",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "A00-A09",
+      "display": "Intestinal infectious diseases",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Intestinal infectious diseases"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Group",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    },
+    {
+      "code": "A00.0",
+      "display": "Cholera due to Vibrio cholerae 01, biovar cholerae",
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "code": "Fully Specified"
+          },
+          "value": "Cholera due to Vibrio cholerae 01, biovar cholerae"
+        }
+      ],
+      "property": [
+        {
+          "code": "conceptclass",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "Code",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        },
+        {
+          "code": "datatype",
+          "valueCode": "",
+          "valueCoding": {},
+          "valueString": "None",
+          "valueInteger": 0,
+          "valueBoolean": false,
+          "valueDateTime": "",
+          "valueDecimal": 0
+        }
+      ]
+    }
+  ],
+  "resourceType": "CodeSystem"
+}

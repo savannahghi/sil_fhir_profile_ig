@@ -231,7 +231,7 @@ Description: "A ValueSet defining the possible routes of drug administration."
 * ^status = #active
 * ^experimental = false
 
-* include codes from system https://ocl-testing-api.savannahghi.org/orgs/SIL/CodeSystem/KNC4Drugs where conceptclass = "ROUTE"
+* include codes from system https://ocl-testing-api.savannahghi.org/orgs/SIL/CodeSystem/KNC4Drugs where concept_class = "ROUTE"
 
 ValueSet: SGHIServiceRequestCodeVS
 Id: sghi-service-request-code-vs

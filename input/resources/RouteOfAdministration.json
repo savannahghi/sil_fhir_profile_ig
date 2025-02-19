@@ -1,0 +1,42 @@
+{
+  "id": "RouteOfAdministration",
+  "meta": {
+    "lastUpdated": "2025-02-19T07:04:57.288789Z"
+  },
+  "identifier": [
+    {
+      "type": {
+        "coding": [
+          {
+            "system": "http://hl7.org/fhir/v2/0203",
+            "code": "ACSN",
+            "display": "Accession ID"
+          }
+        ],
+        "text": "Accession ID"
+      },
+      "system": "https://ocl-testing-api.savannahghi.org",
+      "value": "/orgs/SIL/ValueSet/RouteOfAdministration/"
+    }
+  ],
+  "version": "1.0.1",
+  "name": "RouteOfAdministration",
+  "title": "Route Of Administration",
+  "status": "active",
+  "description": "Version 1",
+  "compose": {
+    "include": [
+      {
+        "system": "/orgs/SIL/ValueSet/KNC4Drugs/",
+        "filter": [
+          {
+            "property": "concept_class",
+            "op": "=",
+            "value": "ROUTE"
+          }
+        ]
+      }
+    ]
+  },
+  "resourceType": "ValueSet"
+}

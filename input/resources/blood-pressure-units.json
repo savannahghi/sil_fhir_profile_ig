@@ -1,0 +1,46 @@
+{
+  "id": "blood-pressure-units",
+  "meta": {
+    "lastUpdated": "2024-11-26T09:29:28.203939Z"
+  },
+  "url": "https://ocl-testing-api.savannahghi.org/fhir/ValueSet/blood-pressure-units",
+  "identifier": [
+    {
+      "type": {
+        "coding": [
+          {
+            "system": "http://hl7.org/fhir/v2/0203",
+            "code": "ACSN",
+            "display": "Accession ID"
+          }
+        ],
+        "text": "Accession ID"
+      },
+      "system": "https://ocl-testing-api.savannahghi.org",
+      "value": "/orgs/SIL/ValueSet/blood-pressure-units/"
+    }
+  ],
+  "version": "1.0.0",
+  "name": "BloodPressureUnits",
+  "title": "Blood Pressure Units",
+  "status": "active",
+  "date": "2024-11-26T09:29:27.572922Z",
+  "publisher": "SIL",
+  "description": "Units used for measuring blood pressure.",
+  "compose": {
+    "include": [
+      {
+        "system": "http://unitsofmeasure.org",
+        "concept": [
+          {
+            "code": "mm[Hg]"
+          },
+          {
+            "code": "kPa"
+          }
+        ]
+      }
+    ]
+  },
+  "resourceType": "ValueSet"
+}
