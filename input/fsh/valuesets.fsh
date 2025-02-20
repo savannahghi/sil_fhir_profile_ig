@@ -187,6 +187,13 @@ Description: "ValueSet containing SGHI medication codes"
 * ^status = #active
 * include codes from system https://ocl-testing-api.savannahghi.org/fhir/CodeSystem/KNC4Drugs 
 
+ValueSet: SGHIInvestigationCodes
+Id: sghi-investigation-codes
+Title: "SGHI Investigation Codes"
+Description: "ValueSet containing SGHI investigation codes"
+* ^status = #active
+* include codes from system https://ocl-testing-api.savannahghi.org/fhir/CodeSystem/KNC4Investigations 
+
 ValueSet: SGHIMedicationFormCodes
 Id: sghi-medication-form-codes
 Title: "SGHI Medication Form Codes"
@@ -226,7 +233,7 @@ Title: "SGHI Standard Identifier Types"
 Description: "Standard identifier types used in SGHI's systems"
 * include #SLADEID "Universal System Identifier" from system SGHIIdentifierCodeSystem
 
-ValueSet: RouteOfAdministration
+ValueSet: SGHIRouteOfAdministration
 Id: route-of-administration
 Title: "Route Of Administration"
 Description: "A ValueSet defining the possible routes of drug administration."
@@ -235,7 +242,7 @@ Description: "A ValueSet defining the possible routes of drug administration."
 * ^status = #active
 * ^experimental = false
 
-* include codes from system https://ocl-testing-api.savannahghi.org/orgs/SIL/CodeSystem/KNC4Drugs where concept_class = "ROUTE"
+* include codes from system https://ocl-testing-api.savannahghi.org/orgs/SIL/sources/KNC4Drugs/concepts/ where concept_class = "ROUTE"
 
 ValueSet: SGHIServiceRequestCodeVS
 Id: sghi-service-request-code-vs
@@ -243,6 +250,7 @@ Title: "SGHI ServiceRequest Code ValueSet"
 Description: "ValueSet for ServiceRequest.code, including concepts from LOINC and ICHI."
 * include codes from system https://loinc.org
 * include codes from system https://id.who.int/ichi
+* include codes from system https://ocl-testing-api.savannahghi.org/fhir/CodeSystem/KNC4Investigations
 
 ValueSet: AllLoincCodes
 Id: all-loinc
