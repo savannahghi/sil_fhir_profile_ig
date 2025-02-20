@@ -13,7 +13,7 @@ Description: "SGHI's profile for Medication Dispense resource"
 * medication 1..1
 * medication only SGHICodeableReference
 * medication only CodeableReference(SGHIMedication)
-* medication from https://ocl-testing-api.savannahghi.org/fhir/CodeSystem/KNC4Drugs (required)
+* medication from SGHIMedicationCodes (required)
 
 * encounter 1..1
 * encounter only SGHIReference

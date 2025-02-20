@@ -17,7 +17,7 @@ Description: "An example of a MedicationRequest resource conforming to the SGHI 
 * encounter = Reference(ExampleSGHIEncounter)
 * authoredOn = "2025-01-22"
 * requester = Reference(ExampleSGHIOrganization) 
-* recorder.reference = "SGHIOrganization/Practitioner" 
+* recorder = Reference(ExampleSGHIPractitioner)
 * reason =  Reference(ExampleSGHICondition)
 * effectiveDosePeriod.start = "2025-01-22"
 * effectiveDosePeriod.end = "2025-02-01"

@@ -19,6 +19,7 @@ Description: "An example of a patient profile."
 * birthDate = "1990-07-15"
 * contact[0].relationship[0].coding[0].system = "http://terminology.hl7.org/CodeSystem/v2-0131"
 * contact[0].relationship[0].coding[0].code = #N
+* contact[0].relationship[0].coding[0].display = "Next of kin"
 * contact[0].name.given[0] = "Mary"
 * contact[0].name.family = "Pond"
 * contact[0].name.use = #official

@@ -18,7 +18,7 @@ Description: "A single code system enumerating the many local identifier types u
 * #DOBID "Birth Certificate Number" "A unique identifier assigned by Client Registry"
 * #MN "Mandate Number" "A unique identifier assigned by Client Registry"
 * #CRN "Client Registry Number" "A unique identifier used for internal patient tracking"
-* #SC "Slade360 Code" "A unique identifier assigned by Slade360"
+* #SLADECODE "Slade360 Code" "A unique identifier assigned by Slade360"
 * #HID "Health ID" "Unique health identifier assigned by Health CRM"
 * #MFLCODE "Master Facility List Code" "A unique identifier assigned by Slade360"
 * #KMFR "Kenya Master Health Facility Registry" "A unique identifier for each facility assigned by Kenya health facility registry"

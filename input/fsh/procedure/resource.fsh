@@ -50,11 +50,11 @@ Description:    "This resource is used to record the details of current and hist
 
 * recorder 1..1 MS
 * recorder only SGHIReference
-* recorder only Reference(Practitioner or PractitionerRole)
+* recorder only Reference(SGHIPractitioner or SGHIPractitionerRole)
 
 * performer 1..1 MS
   * actor only SGHIReference
-  * actor only Reference(Practitioner or PractitionerRole)
+  * actor only Reference(SGHIPractitioner or SGHIPractitionerRole)
   * onBehalfOf only SGHIReference
   * onBehalfOf only Reference(SGHIOrganization)
 
