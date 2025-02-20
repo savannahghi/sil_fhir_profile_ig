@@ -1,0 +1,43 @@
+{
+  "id": "investigations",
+  "meta": {
+    "lastUpdated": "2025-02-20T13:11:38.405764Z"
+  },
+  "identifier": [
+    {
+      "type": {
+        "coding": [
+          {
+            "system": "http://hl7.org/fhir/v2/0203",
+            "code": "ACSN",
+            "display": "Accession ID"
+          }
+        ],
+        "text": "Accession ID"
+      },
+      "system": "https://ocl-testing-api.savannahghi.org",
+      "value": "/orgs/SIL/ValueSet/investigations/"
+    }
+  ],
+  "version": "1.0.0",
+  "name": "Investigations",
+  "title": "Investigations",
+  "status": "active",
+  "date": "2025-02-20T13:11:38.390202Z",
+  "description": "First Version ",
+  "compose": {
+    "include": [
+      {
+        "system": "/orgs/SIL/ValueSet/KNC4Investigations/",
+        "filter": [
+          {
+            "property": "concept_class",
+            "op": "=",
+            "value": "INVESTIGATIONS"
+          }
+        ]
+      }
+    ]
+  },
+  "resourceType": "ValueSet"
+}
