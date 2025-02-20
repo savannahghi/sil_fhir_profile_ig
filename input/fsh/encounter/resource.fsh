@@ -49,6 +49,7 @@ Description: "An interaction between a patient and healthcare provider(s) for th
   * condition 1..
   * condition only SGHICodeableReference
   * condition only CodeableReference(SGHICondition)
+  * condition from AllLoincCodes
 
 * basedOn only SGHIReference
 * basedOn only Reference(SGHIMedicationRequest or SGHIServiceRequest)

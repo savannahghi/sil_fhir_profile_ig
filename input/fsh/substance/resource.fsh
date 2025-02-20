@@ -17,7 +17,7 @@ Description: "Profile for representing substances in the SGHI context"
 
 * code 1..1
 * code only SGHICodeableReference
-* code from http://hl7.org/fhir/ValueSet/substance-code (required)
+* code from  https://ocl-testing-api.savannahghi.org/orgs/SIL/CodeSystem/KNC4Drugs (required)
 * description 1..1
 * expiry 1..1
 * quantity 1..1

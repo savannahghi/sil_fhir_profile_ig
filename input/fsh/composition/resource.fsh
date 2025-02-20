@@ -10,6 +10,7 @@ and any other resources referenced from Composition must be included as subseque
 * identifier 1..*
   * insert CommonIdentifierRules
 * type only SGHICodeableConcept
+* type from AllLoincCodes
 
 * category only SGHICodeableConcept
 * category 0..*

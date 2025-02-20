@@ -21,6 +21,7 @@ Description: "An example of a MedicationRequest resource conforming to the SGHI 
 * reason =  Reference(ExampleSGHICondition)
 * effectiveDosePeriod.start = "2025-01-22"
 * effectiveDosePeriod.end = "2025-02-01"
+
 * dosageInstruction[0].text = "Take one tablet twice daily after meals"
 * dosageInstruction[0].sequence = 1
 * dosageInstruction[0].text = "Take 500 mg by mouth twice daily for 10 days after meals"
@@ -72,3 +73,4 @@ Description: "An example of a MedicationRequest resource conforming to the SGHI 
 * dosageInstruction[0].doseAndRate[0].rateRatio.denominator.unit = "hr"
 * dosageInstruction[0].doseAndRate[0].rateRatio.denominator.system = "http://unitsofmeasure.org"
 * dosageInstruction[0].doseAndRate[0].rateRatio.denominator.code = #h
+

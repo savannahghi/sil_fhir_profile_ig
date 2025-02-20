@@ -45,3 +45,4 @@ Description: "A clinical condition, problem, diagnosis, or other event, situatio
   * actor only Reference(SGHIPatient or SGHIOrganization)
 
 * bodySite only SGHICodeableConcept
+* clinicalStatus only SGHICodeableConcept

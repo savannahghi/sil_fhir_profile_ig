@@ -13,7 +13,7 @@ Description: "SGHI's profile for Medication Dispense resource"
 * medication 1..1
 * medication only SGHICodeableReference
 * medication only CodeableReference(SGHIMedication)
-* medication from http://www.nlm.nih.gov/research/umls/rxnorm (required)
+* medication from https://ocl-testing-api.savannahghi.org/fhir/CodeSystem/KNC4Drugs (required)
 
 * encounter 1..1
 * encounter only SGHIReference
@@ -36,6 +36,7 @@ Description: "SGHI's profile for Medication Dispense resource"
 * authorizingPrescription only Reference(SGHIMedicationRequest)
 
 * type 1..1
+* type only SGHICodeableConcept
 
 * destination 1..1
 * destination only SGHIReference
@@ -48,6 +49,7 @@ Description: "SGHI's profile for Medication Dispense resource"
 * renderedDosageInstruction 1..1
 
 * dosageInstruction 1..*
+* dosageInstruction only SGHIDosage
 
 * substitution 1..1
   * wasSubstituted 1..1
