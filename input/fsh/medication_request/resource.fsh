@@ -62,6 +62,12 @@ Id: sghi-dosage
 Title: "SGHI Dosage"
 Description: "A comprehensive Dosage profile for SGHI prescriptions, ensuring structured routes, methods, timing, and dose details."
 
+* additionalInstruction only SGHICodeableConcept
+* asNeededFor only SGHICodeableConcept
+* site only SGHICodeableConcept
+* site from ICHICodes
+* route only SGHICodeableConcept
+* method only SGHICodeableConcept
 * timing 1..1
 * timing.repeat 1..1
 
@@ -69,8 +75,9 @@ Description: "A comprehensive Dosage profile for SGHI prescriptions, ensuring st
 * timing.repeat.frequency 0..1
 * timing.repeat.dayOfWeek 0..*
 * route 1..1
-* route from https://ocl-testing-api.savannahghi.org/fhir/ValueSet/RouteOfAdministration (required)
+* route from SGHIRouteOfAdministration (required)
 * doseAndRate 1..*
+* doseAndRate.type only SGHICodeableConcept
 * doseAndRate.doseQuantity.system = "http://unitsofmeasure.org" (exactly)
 * doseAndRate.doseRange.low.system = "http://unitsofmeasure.org" (exactly)
 * doseAndRate.doseRange.high.system = "http://unitsofmeasure.org" (exactly)
