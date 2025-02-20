@@ -10,10 +10,10 @@ Description: "SGHI's Medication profile for Medication resource"
 
 * code 1..1
 * code only SGHICodeableConcept
-* code from https://ocl-testing-api.savannahghi.org/fhir/CodeSystem/KNC4Drugs (required)
+* code from SGHIMedicationCodes (required)
 * status 1..1
 
-* doseForm from https://ocl-testing-api.savannahghi.org/fhir/ValueSet/DoseForm (required)
+* doseForm from SGHIMedicationFormCodes (required)
 * doseForm only SGHICodeableConcept
 
 * marketingAuthorizationHolder only SGHIReference

@@ -30,6 +30,7 @@ Description: "Demographics and other administrative information about an individ
 
 * contact 0..*
   * relationship 1..* 
+  * relationship only SGHICodeableConcept
   * relationship from SGHIContactRelationship (required)
   * name 1..1
   * name only SGHIHumanName

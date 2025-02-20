@@ -26,7 +26,7 @@ Description: "Identifier types used  to identify patient in SGHI's systems"
 * include #MFLCODE "Master Facility List Code"  from system SGHIIdentifierCodeSystem
 * include #KMFR "Kenya Master Health Facility Registry"  from system SGHIIdentifierCodeSystem
 * include #FRID "Facility Registry ID"  from system SGHIIdentifierCodeSystem
-* include #SC "Slade360 Code" from system SGHIIdentifierCodeSystem
+* include #SLADECODE "Slade360 Code" from system SGHIIdentifierCodeSystem
 
 ValueSet: SGHIAdministrativeGender
 Id: sghi-administrative-gender
@@ -183,18 +183,23 @@ Description: "LOIC codes used for order requests in SGHI"
 ValueSet: SGHIMedicationCodes
 Id: sghi-medication-codes
 Title: "SGHI Medication Codes"
-Description: "ValueSet containing SGHI medication codes including dm+d concepts"
+Description: "ValueSet containing SGHI medication codes"
 * ^status = #active
-* include codes from system http://fhir.nts.dha.go.ke/fhir/CodeSystem/sghi-medication-codes
-* include codes from system http://hl7.org/fhir/ValueSet/medication-codes
+* include codes from system https://ocl-testing-api.savannahghi.org/fhir/CodeSystem/KNC4Drugs 
+
+ValueSet: SGHIMedicationFormCodes
+Id: sghi-medication-form-codes
+Title: "SGHI Medication Form Codes"
+Description: "ValueSet containing SGHI medication form codes"
+* ^status = #active
+* include codes from system https://ocl-testing-api.savannahghi.org/fhir/ValueSet/DoseForm 
 
 ValueSet: SGHISubstanceCodes
 Id: sghi-substance-codes
 Title: "SGHI Substance Codes"
-Description: "ValueSet containing SGHI substance codes including dm+d concepts"
+Description: "ValueSet containing SGHI substance codes"
 * ^status = #active
-* include codes from system http://fhir.nts.dha.go.ke/fhir/CodeSystem/sghi-substance-codes
-* include codes from system http://hl7.org/fhir/ValueSet/substance-codes
+* include codes from system https://ocl-testing-api.savannahghi.org/orgs/SIL/CodeSystem/KNC4Drugs
 
 ValueSet: SGHIPractitionerRoleValueSet
 Id: sghi-practitioner-role-value-set
@@ -214,7 +219,6 @@ Description: "Custom practioner specialty value set"
 * include #394578005 "Audiological medicine"  from system SGHIIdentifierCodeSystem
 * include #421661004 "Blood banking and transfusion medicine"  from system SGHIIdentifierCodeSystem
 * include #408462000 "Burns care"  from system SGHIIdentifierCodeSystem
-* include codes from system http://snomed.info/sct
 
 ValueSet: SGHIIdentifierTypes
 Id: sghi-identifier-types

@@ -16,7 +16,7 @@ Description: "An order or request for both supply of the medication and the inst
 
 * medication only SGHICodeableReference
 * medication only CodeableReference(SGHIMedication)
-* medication from https://ocl-testing-api.savannahghi.org/fhir/CodeSystem/KNC4Drugs
+* medication from SGHIMedicationCodes (required)
 
 * informationSource only SGHIReference
 * informationSource only Reference(SGHIPatient or SGHIOrganization)
@@ -42,6 +42,9 @@ Description: "An order or request for both supply of the medication and the inst
 * requester only Reference(SGHIPatient or SGHIOrganization)
 
 * recorder 1..1
+* recorder only SGHIReference
+* recorder only Reference(SGHIPractitioner or SGHIPractitionerRole)
+
 * reason 1..1
 * reason only SGHICodeableReference
 * reason only CodeableReference(SGHICondition or SGHIObservation)
