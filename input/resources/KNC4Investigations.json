@@ -1,7 +1,7 @@
 {
-  "id": "KNC4Drugs",
+  "id": "KNC4Investigations",
   "meta": {
-    "lastUpdated": "2025-02-20T13:09:26.142316Z"
+    "lastUpdated": "2025-02-20T12:56:54.122753Z"
   },
   "language": "en",
   "identifier": [
@@ -17,15 +17,15 @@
         "text": "Accession ID"
       },
       "system": "https://ocl-testing-api.savannahghi.org",
-      "value": "/orgs/SIL/CodeSystem/KNC4Drugs/"
+      "value": "/orgs/SIL/CodeSystem/KNC4Investigations/"
     }
   ],
-  "version": "1.0.1",
-  "name": "KNC4Drugs",
-  "title": "KNC4Drugs",
+  "version": "1.0.0",
+  "name": "KNC4Investigations",
+  "title": "KNC4Investigations",
   "status": "active",
   "description": "First Version",
-  "count": 201657,
+  "count": 2584,
   "property": [
     {
       "code": "conceptclass",
@@ -48,15 +48,15 @@
   ],
   "concept": [
     {
-      "code": "ROA-00000011",
-      "display": "Intestinal",
+      "code": "INV-00000004",
+      "display": "Mri Thoracic Spine With Contrast IT",
       "designation": [
         {
           "language": "en",
           "use": {
             "code": "Fully Specified"
           },
-          "value": "Intestinal"
+          "value": "Mri Thoracic Spine With Contrast IT"
         }
       ],
       "property": [
@@ -64,7 +64,7 @@
           "code": "conceptclass",
           "valueCode": "",
           "valueCoding": {},
-          "valueString": "ROUTE",
+          "valueString": "INVESTIGATIONS",
           "valueInteger": 0,
           "valueBoolean": false,
           "valueDateTime": "",
@@ -83,15 +83,15 @@
       ]
     },
     {
-      "code": "ROA-00000029",
-      "display": "Intrasternal",
+      "code": "INV-00000007",
+      "display": "Test 991",
       "designation": [
         {
           "language": "en",
           "use": {
             "code": "Fully Specified"
           },
-          "value": "Intrasternal"
+          "value": "Test 991"
         }
       ],
       "property": [
@@ -99,7 +99,7 @@
           "code": "conceptclass",
           "valueCode": "",
           "valueCoding": {},
-          "valueString": "ROUTE",
+          "valueString": "INVESTIGATIONS",
           "valueInteger": 0,
           "valueBoolean": false,
           "valueDateTime": "",
@@ -118,15 +118,15 @@
       ]
     },
     {
-      "code": "ROA-00000020",
-      "display": "Intraventricular cardiac",
+      "code": "INV-00000002",
+      "display": "Test 51",
       "designation": [
         {
           "language": "en",
           "use": {
             "code": "Fully Specified"
           },
-          "value": "Intraventricular cardiac"
+          "value": "Test 51"
         }
       ],
       "property": [
@@ -134,7 +134,7 @@
           "code": "conceptclass",
           "valueCode": "",
           "valueCoding": {},
-          "valueString": "ROUTE",
+          "valueString": "INVESTIGATIONS",
           "valueInteger": 0,
           "valueBoolean": false,
           "valueDateTime": "",
@@ -153,15 +153,15 @@
       ]
     },
     {
-      "code": "ROA-00000018",
-      "display": "Submucosal rectal",
+      "code": "INV-00000006",
+      "display": "TEST Investigation TEST",
       "designation": [
         {
           "language": "en",
           "use": {
             "code": "Fully Specified"
           },
-          "value": "Submucosal rectal"
+          "value": "TEST Investigation TEST"
         }
       ],
       "property": [
@@ -169,7 +169,7 @@
           "code": "conceptclass",
           "valueCode": "",
           "valueCoding": {},
-          "valueString": "ROUTE",
+          "valueString": "INVESTIGATIONS",
           "valueInteger": 0,
           "valueBoolean": false,
           "valueDateTime": "",
@@ -188,15 +188,15 @@
       ]
     },
     {
-      "code": "ROA-00000019",
-      "display": "Intracerebroventricular",
+      "code": "INV-00000009",
+      "display": "Xray Foot Ap/Oblique",
       "designation": [
         {
           "language": "en",
           "use": {
             "code": "Fully Specified"
           },
-          "value": "Intracerebroventricular"
+          "value": "Xray Foot Ap/Oblique"
         }
       ],
       "property": [
@@ -204,7 +204,7 @@
           "code": "conceptclass",
           "valueCode": "",
           "valueCoding": {},
-          "valueString": "ROUTE",
+          "valueString": "INVESTIGATIONS",
           "valueInteger": 0,
           "valueBoolean": false,
           "valueDateTime": "",
@@ -223,15 +223,15 @@
       ]
     },
     {
-      "code": "ROA-00000016",
-      "display": "Oromucosal",
+      "code": "INV-00000011",
+      "display": "test investigation",
       "designation": [
         {
           "language": "en",
           "use": {
             "code": "Fully Specified"
           },
-          "value": "Oromucosal"
+          "value": "test investigation"
         }
       ],
       "property": [
@@ -239,7 +239,7 @@
           "code": "conceptclass",
           "valueCode": "",
           "valueCoding": {},
-          "valueString": "ROUTE",
+          "valueString": "INVESTIGATIONS",
           "valueInteger": 0,
           "valueBoolean": false,
           "valueDateTime": "",
@@ -258,15 +258,15 @@
       ]
     },
     {
-      "code": "ROA-00000012",
-      "display": "Subretinal",
+      "code": "INV-00000012",
+      "display": "etete",
       "designation": [
         {
           "language": "en",
           "use": {
             "code": "Fully Specified"
           },
-          "value": "Subretinal"
+          "value": "etete"
         }
       ],
       "property": [
@@ -274,7 +274,7 @@
           "code": "conceptclass",
           "valueCode": "",
           "valueCoding": {},
-          "valueString": "ROUTE",
+          "valueString": "INVESTIGATIONS",
           "valueInteger": 0,
           "valueBoolean": false,
           "valueDateTime": "",
@@ -293,15 +293,15 @@
       ]
     },
     {
-      "code": "ROA-00000014",
-      "display": "Intracameral",
+      "code": "INV-00000028",
+      "display": "XR Ankle and Foot - Right Views",
       "designation": [
         {
           "language": "en",
           "use": {
             "code": "Fully Specified"
           },
-          "value": "Intracameral"
+          "value": "XR Ankle and Foot - Right Views"
         }
       ],
       "property": [
@@ -309,7 +309,7 @@
           "code": "conceptclass",
           "valueCode": "",
           "valueCoding": {},
-          "valueString": "ROUTE",
+          "valueString": "INVESTIGATIONS",
           "valueInteger": 0,
           "valueBoolean": false,
           "valueDateTime": "",
@@ -328,15 +328,15 @@
       ]
     },
     {
-      "code": "ROA-00000017",
-      "display": "Regional perfusion",
+      "code": "INV-00000027",
+      "display": "Colposcopy",
       "designation": [
         {
           "language": "en",
           "use": {
             "code": "Fully Specified"
           },
-          "value": "Regional perfusion"
+          "value": "Colposcopy"
         }
       ],
       "property": [
@@ -344,7 +344,7 @@
           "code": "conceptclass",
           "valueCode": "",
           "valueCoding": {},
-          "valueString": "ROUTE",
+          "valueString": "INVESTIGATIONS",
           "valueInteger": 0,
           "valueBoolean": false,
           "valueDateTime": "",
@@ -363,15 +363,15 @@
       ]
     },
     {
-      "code": "ROA-00000027",
-      "display": "Obsolete-Oromucosal other",
+      "code": "INV-00000030",
+      "display": "X-Ray Ribs Right Oblique View",
       "designation": [
         {
           "language": "en",
           "use": {
             "code": "Fully Specified"
           },
-          "value": "Obsolete-Oromucosal other"
+          "value": "X-Ray Ribs Right Oblique View"
         }
       ],
       "property": [
@@ -379,7 +379,7 @@
           "code": "conceptclass",
           "valueCode": "",
           "valueCoding": {},
-          "valueString": "ROUTE",
+          "valueString": "INVESTIGATIONS",
           "valueInteger": 0,
           "valueBoolean": false,
           "valueDateTime": "",
@@ -398,15 +398,15 @@
       ]
     },
     {
-      "code": "ROA-00000030",
-      "display": "Intracervical",
+      "code": "INV-00000033",
+      "display": "Ultrasound Leg Arteries Doppler Unilateral Right",
       "designation": [
         {
           "language": "en",
           "use": {
             "code": "Fully Specified"
           },
-          "value": "Intracervical"
+          "value": "Ultrasound Leg Arteries Doppler Unilateral Right"
         }
       ],
       "property": [
@@ -414,7 +414,7 @@
           "code": "conceptclass",
           "valueCode": "",
           "valueCoding": {},
-          "valueString": "ROUTE",
+          "valueString": "INVESTIGATIONS",
           "valueInteger": 0,
           "valueBoolean": false,
           "valueDateTime": "",
@@ -433,15 +433,15 @@
       ]
     },
     {
-      "code": "ROA-00000024",
-      "display": "Obsolete-Intraventricular",
+      "code": "INV-00000034",
+      "display": "Ultrasound Leg Veins Doppler Unilateral Right",
       "designation": [
         {
           "language": "en",
           "use": {
             "code": "Fully Specified"
           },
-          "value": "Obsolete-Intraventricular"
+          "value": "Ultrasound Leg Veins Doppler Unilateral Right"
         }
       ],
       "property": [
@@ -449,7 +449,7 @@
           "code": "conceptclass",
           "valueCode": "",
           "valueCoding": {},
-          "valueString": "ROUTE",
+          "valueString": "INVESTIGATIONS",
           "valueInteger": 0,
           "valueBoolean": false,
           "valueDateTime": "",
@@ -468,15 +468,15 @@
       ]
     },
     {
-      "code": "ROA-00000025",
-      "display": "Route of administration not applicable",
+      "code": "INV-00000031",
+      "display": "Ultrasound Hips Doppler Right",
       "designation": [
         {
           "language": "en",
           "use": {
             "code": "Fully Specified"
           },
-          "value": "Route of administration not applicable"
+          "value": "Ultrasound Hips Doppler Right"
         }
       ],
       "property": [
@@ -484,7 +484,7 @@
           "code": "conceptclass",
           "valueCode": "",
           "valueCoding": {},
-          "valueString": "ROUTE",
+          "valueString": "INVESTIGATIONS",
           "valueInteger": 0,
           "valueBoolean": false,
           "valueDateTime": "",
@@ -503,15 +503,15 @@
       ]
     },
     {
-      "code": "ROA-00000022",
-      "display": "Haemofiltration",
+      "code": "INV-00000036",
+      "display": "Ultrasound Soft Tissue,Lower extremity",
       "designation": [
         {
           "language": "en",
           "use": {
             "code": "Fully Specified"
           },
-          "value": "Haemofiltration"
+          "value": "Ultrasound Soft Tissue,Lower extremity"
         }
       ],
       "property": [
@@ -519,7 +519,7 @@
           "code": "conceptclass",
           "valueCode": "",
           "valueCoding": {},
-          "valueString": "ROUTE",
+          "valueString": "INVESTIGATIONS",
           "valueInteger": 0,
           "valueBoolean": false,
           "valueDateTime": "",
@@ -538,15 +538,15 @@
       ]
     },
     {
-      "code": "ROA-00000031",
-      "display": "Intraarticular",
+      "code": "INV-00000037",
+      "display": "Proton Treatment Delivery Simple Without Compensation",
       "designation": [
         {
           "language": "en",
           "use": {
             "code": "Fully Specified"
           },
-          "value": "Intraarticular"
+          "value": "Proton Treatment Delivery Simple Without Compensation"
         }
       ],
       "property": [
@@ -554,7 +554,7 @@
           "code": "conceptclass",
           "valueCode": "",
           "valueCoding": {},
-          "valueString": "ROUTE",
+          "valueString": "INVESTIGATIONS",
           "valueInteger": 0,
           "valueBoolean": false,
           "valueDateTime": "",
@@ -573,15 +573,15 @@
       ]
     },
     {
-      "code": "ROA-00000026",
-      "display": "Inhalation",
+      "code": "INV-00000040",
+      "display": "Proton Treatment Delivery Intermediate",
       "designation": [
         {
           "language": "en",
           "use": {
             "code": "Fully Specified"
           },
-          "value": "Inhalation"
+          "value": "Proton Treatment Delivery Intermediate"
         }
       ],
       "property": [
@@ -589,7 +589,7 @@
           "code": "conceptclass",
           "valueCode": "",
           "valueCoding": {},
-          "valueString": "ROUTE",
+          "valueString": "INVESTIGATIONS",
           "valueInteger": 0,
           "valueBoolean": false,
           "valueDateTime": "",
@@ -608,15 +608,15 @@
       ]
     },
     {
-      "code": "ROA-00000021",
-      "display": "Intraosseous",
+      "code": "INV-00000039",
+      "display": "Proton Treatment Delivery Simple",
       "designation": [
         {
           "language": "en",
           "use": {
             "code": "Fully Specified"
           },
-          "value": "Intraosseous"
+          "value": "Proton Treatment Delivery Simple"
         }
       ],
       "property": [
@@ -624,7 +624,7 @@
           "code": "conceptclass",
           "valueCode": "",
           "valueCoding": {},
-          "valueString": "ROUTE",
+          "valueString": "INVESTIGATIONS",
           "valueInteger": 0,
           "valueBoolean": false,
           "valueDateTime": "",
@@ -643,15 +643,15 @@
       ]
     },
     {
-      "code": "ROA-00000013",
-      "display": "Intratumoral",
+      "code": "INV-00000043",
+      "display": "Pet, Whole Body, For Recurrence Of Melanoma Or Melanoma Metastatic Cancer, Gamma Cameras Only",
       "designation": [
         {
           "language": "en",
           "use": {
             "code": "Fully Specified"
           },
-          "value": "Intratumoral"
+          "value": "Pet, Whole Body, For Recurrence Of Melanoma Or Melanoma Metastatic Cancer, Gamma Cameras Only"
         }
       ],
       "property": [
@@ -659,7 +659,7 @@
           "code": "conceptclass",
           "valueCode": "",
           "valueCoding": {},
-          "valueString": "ROUTE",
+          "valueString": "INVESTIGATIONS",
           "valueInteger": 0,
           "valueBoolean": false,
           "valueDateTime": "",
@@ -678,15 +678,15 @@
       ]
     },
     {
-      "code": "ROA-00000054",
-      "display": "Subconjunctival",
+      "code": "INV-00000042",
+      "display": "Tumor Imaging (Pet)",
       "designation": [
         {
           "language": "en",
           "use": {
             "code": "Fully Specified"
           },
-          "value": "Subconjunctival"
+          "value": "Tumor Imaging (Pet)"
         }
       ],
       "property": [
@@ -694,7 +694,7 @@
           "code": "conceptclass",
           "valueCode": "",
           "valueCoding": {},
-          "valueString": "ROUTE",
+          "valueString": "INVESTIGATIONS",
           "valueInteger": 0,
           "valueBoolean": false,
           "valueDateTime": "",
@@ -713,15 +713,15 @@
       ]
     },
     {
-      "code": "ROA-00000015",
-      "display": "Epilesional",
+      "code": "INV-00000045",
+      "display": "Pet Scan Of Limited Body Region",
       "designation": [
         {
           "language": "en",
           "use": {
             "code": "Fully Specified"
           },
-          "value": "Epilesional"
+          "value": "Pet Scan Of Limited Body Region"
         }
       ],
       "property": [
@@ -729,7 +729,7 @@
           "code": "conceptclass",
           "valueCode": "",
           "valueCoding": {},
-          "valueString": "ROUTE",
+          "valueString": "INVESTIGATIONS",
           "valueInteger": 0,
           "valueBoolean": false,
           "valueDateTime": "",
@@ -748,15 +748,15 @@
       ]
     },
     {
-      "code": "ROA-00000055",
-      "display": "Subarachnoid",
+      "code": "INV-00000046",
+      "display": "Pet Scan Base Of Skull To Mid Thigh",
       "designation": [
         {
           "language": "en",
           "use": {
             "code": "Fully Specified"
           },
-          "value": "Subarachnoid"
+          "value": "Pet Scan Base Of Skull To Mid Thigh"
         }
       ],
       "property": [
@@ -764,7 +764,7 @@
           "code": "conceptclass",
           "valueCode": "",
           "valueCoding": {},
-          "valueString": "ROUTE",
+          "valueString": "INVESTIGATIONS",
           "valueInteger": 0,
           "valueBoolean": false,
           "valueDateTime": "",
@@ -783,15 +783,15 @@
       ]
     },
     {
-      "code": "ROA-00000057",
-      "display": "Retrobulbar",
+      "code": "INV-00000010",
+      "display": "X Ray Wrist Ap / Lat",
       "designation": [
         {
           "language": "en",
           "use": {
             "code": "Fully Specified"
           },
-          "value": "Retrobulbar"
+          "value": "X Ray Wrist Ap / Lat"
         }
       ],
       "property": [
@@ -799,7 +799,7 @@
           "code": "conceptclass",
           "valueCode": "",
           "valueCoding": {},
-          "valueString": "ROUTE",
+          "valueString": "INVESTIGATIONS",
           "valueInteger": 0,
           "valueBoolean": false,
           "valueDateTime": "",
@@ -818,15 +818,15 @@
       ]
     },
     {
-      "code": "ROA-00000060",
-      "display": "Periodontal",
+      "code": "INV-00000048",
+      "display": "Pet Myocardial Perfusion Imaging, (Following Coronary Angiography, 93510-93529), Multiple Studies, Rest Or Stress (Exercise And/Or Pharmacologic)",
       "designation": [
         {
           "language": "en",
           "use": {
             "code": "Fully Specified"
           },
-          "value": "Periodontal"
+          "value": "Pet Myocardial Perfusion Imaging, (Following Coronary Angiography, 93510-93529), Multiple Studies, Rest Or Stress (Exercise And/Or Pharmacologic)"
         }
       ],
       "property": [
@@ -834,7 +834,7 @@
           "code": "conceptclass",
           "valueCode": "",
           "valueCoding": {},
-          "valueString": "ROUTE",
+          "valueString": "INVESTIGATIONS",
           "valueInteger": 0,
           "valueBoolean": false,
           "valueDateTime": "",
@@ -853,15 +853,15 @@
       ]
     },
     {
-      "code": "ROA-00000058",
-      "display": "Respiratory (Inhalation)",
+      "code": "INV-00000049",
+      "display": "Pet Imaging Whole Body,Restaging Of Lung Cancer,Non-Small Cell",
       "designation": [
         {
           "language": "en",
           "use": {
             "code": "Fully Specified"
           },
-          "value": "Respiratory (Inhalation)"
+          "value": "Pet Imaging Whole Body,Restaging Of Lung Cancer,Non-Small Cell"
         }
       ],
       "property": [
@@ -869,7 +869,7 @@
           "code": "conceptclass",
           "valueCode": "",
           "valueCoding": {},
-          "valueString": "ROUTE",
+          "valueString": "INVESTIGATIONS",
           "valueInteger": 0,
           "valueBoolean": false,
           "valueDateTime": "",
@@ -888,15 +888,15 @@
       ]
     },
     {
-      "code": "ROA-00000061",
-      "display": "Perineural",
+      "code": "INV-00000052",
+      "display": "Pet Imaging Whole Body, Restaging, Melanoma (Replaces G0165)",
       "designation": [
         {
           "language": "en",
           "use": {
             "code": "Fully Specified"
           },
-          "value": "Perineural"
+          "value": "Pet Imaging Whole Body, Restaging, Melanoma (Replaces G0165)"
         }
       ],
       "property": [
@@ -904,7 +904,7 @@
           "code": "conceptclass",
           "valueCode": "",
           "valueCoding": {},
-          "valueString": "ROUTE",
+          "valueString": "INVESTIGATIONS",
           "valueInteger": 0,
           "valueBoolean": false,
           "valueDateTime": "",
