@@ -1,0 +1,32 @@
+name: Upload SGHI FHIR Implentation Guide(IG) Resources To HAPI FHIR server
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - closed
+
+jobs:
+  upload:
+    if: github.event.pull_request.merged == true 
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install jq
+      - run: |
+          apt-get update
+          apt-get install -y jq
+      
+      - name: Set execute permissions for upload script
+        run: chmod +x _upload.sh
+
+      - name: Run SGHI FHIR IG upload script
+        env:
+          HAPI_FHIR_BASE_URL: ${{ secrets.HAPI_FHIR_BASE_URL }}
+        run: |
+          echo "Base URL $HAPI_FHIR_BASE_URL"
+          ./_upload.sh
