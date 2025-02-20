@@ -11,7 +11,8 @@ Description: "SGHI's Practitioner used in SGHI systems"
 * gender 1..1
 * gender from SGHIAdministrativeGender
 * telecom only SGHIContactPoint
-* telecom.system from http://hl7.org/fhir/ValueSet/contact-point-system
+* telecom.system from SGHIContactSystem
+* telecom.use from SGHIContactPointUse
 * birthDate 1..1
 * qualification 1..
 * qualification.identifier 1..
