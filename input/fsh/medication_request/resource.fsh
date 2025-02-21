@@ -70,6 +70,8 @@ Description: "A comprehensive Dosage profile for SGHI prescriptions, ensuring st
 * method only SGHICodeableConcept
 * timing 1..1
 * timing.repeat 1..1
+* site from SGHIBodySiteValueSet
+* method from SGHIMethodValueSet
 
 // We can require that either frequency or dayOfWeek is provided:
 * timing.repeat.frequency 0..1

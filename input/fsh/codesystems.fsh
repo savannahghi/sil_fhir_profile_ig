@@ -100,3 +100,9 @@ Description: "A single code system enumerating the many local identifier types u
 * #394578005 "Audiological medicine" "Specialty focused on the diagnosis and treatment of hearing and balance disorders."
 * #421661004 "Blood banking and transfusion medicine" "Specialty focused on the collection, storage, and transfusion of blood and blood products."
 * #408462000 "Burns care" "Specialty focused on the treatment and management of burn injuries."
+
+// BodySite
+* #111002 "Parathyroid gland" "Parathyroid gland"
+
+// Method of application
+* #APPLY "Apply" "Apply"

@@ -227,6 +227,18 @@ Description: "Custom practioner specialty value set"
 * include #421661004 "Blood banking and transfusion medicine"  from system SGHIIdentifierCodeSystem
 * include #408462000 "Burns care"  from system SGHIIdentifierCodeSystem
 
+ValueSet: SGHIBodySiteValueSet
+Id: sghi-body-site-value-set
+Title: "SGHI Body Site Value Set"
+Description: "Custom body site value set"
+* include #111002 "Parathyroid gland"  from system SGHIIdentifierCodeSystem
+
+ValueSet: SGHIMethodValueSet
+Id: sghi-method-value-set
+Title: "SGHI Method Value Set"
+Description: "Custom method value set"
+* include #APPLY "Apply"  from system SGHIIdentifierCodeSystem
+
 ValueSet: SGHIIdentifierTypes
 Id: sghi-identifier-types
 Title: "SGHI Standard Identifier Types"
