@@ -4,7 +4,7 @@ Id:             sghi-procedure
 Title:          "SGHI Procedure"
 Description:    "This resource is used to record the details of current and historical procedures performed on, with, or for a patient, practitioner, device, organization, or location. Examples include surgical procedures, diagnostic procedures, endoscopic procedures, biopsies, counseling, physiotherapy, personal support services, adult day care services, non-emergency transportation, home modification, exercise, verification of enrollment qualifications for a social program etc. Procedures may be performed by a healthcare professional, a service provider, a friend or relative or in some cases by the patient themselves."
 
-* meta.profile = "https://fhir.slade360.co.ke/StructureDefinition/sghi-procedure" (exactly)
+* meta.profile = "{{HAPI_FHIR_BASE_URL}}/StructureDefinition/sghi-procedure" (exactly)
 
 * identifier 1..*
   * insert CommonIdentifierRules

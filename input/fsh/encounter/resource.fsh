@@ -4,7 +4,7 @@ Id: sghi-encounter
 Title: "SGHI Encounter"
 Description: "An interaction between a patient and healthcare provider(s) for the purpose of providing healthcare service(s) or assessing the health status of a patient. Encounter is primarily used to record information about the actual activities that occurred, where Appointment is used to record planned activities."
 
-* meta.profile = "https://fhir.slade360.co.ke/StructureDefinition/sghi-encounter" (exactly)
+* meta.profile = "{{HAPI_FHIR_BASE_URL}}/StructureDefinition/sghi-encounter" (exactly)
 
 * identifier 1..*
   * insert CommonIdentifierRules

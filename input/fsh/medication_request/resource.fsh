@@ -3,7 +3,7 @@ Parent: MedicationRequest
 Id: sghi-medication-request
 Title: "SGHI MedicationRequest"
 Description: "An order or request for both supply of the medication and the instructions for administration of the medication to a patient. The resource is called 'MedicationRequest' rather than 'MedicationPrescription' or 'MedicationOrder' to generalize the use across inpatient and outpatient settings, including care plans, etc., and to harmonize with workflow patterns."
-* meta.profile = "https://fhir.slade360.co.ke/StructureDefinition/sghi-medication-request" (exactly)
+* meta.profile = "{{HAPI_FHIR_BASE_URL}}/StructureDefinition/sghi-medication-request" (exactly)
 
 * identifier 1..*
   * insert CommonIdentifierRules

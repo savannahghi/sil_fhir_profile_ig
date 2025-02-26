@@ -4,7 +4,7 @@ Id: sghi-appointment
 Title: "SGHI Appointment Profile"
 Description: "A booking of a healthcare event among patient(s), practitioner(s), related person(s) and/or device(s) for a specific date/time. This may result in one or more Encounter(s)."
 
-* meta.profile = "https://fhir.slade360.co.ke/StructureDefinition/sghi-appointment" (exactly)
+* meta.profile = "{{HAPI_FHIR_BASE_URL}}/StructureDefinition/sghi-appointment" (exactly)
 
 * identifier 1..*
   * insert CommonIdentifierRules

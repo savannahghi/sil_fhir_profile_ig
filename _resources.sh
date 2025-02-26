@@ -1,5 +1,6 @@
 #!/bin/bash
-hapi_fhir_server="http://localhost:8080/fhir"
+
+set -e
 
 profiles_folder=uploads/profiles
 valuesets_folder=uploads/valuesets

@@ -3,7 +3,7 @@ Parent: Medication
 Id: sghi-medication
 Title: "SGHI Medication"
 Description: "SGHI's Medication profile for Medication resource"
-* meta.profile = "https://fhir.slade360.co.ke/StructureDefinition/sghi-medication" (exactly)
+* meta.profile = "{{HAPI_FHIR_BASE_URL}}/StructureDefinition/sghi-medication" (exactly)
 
 * identifier 1..*
   * insert CommonIdentifierRules

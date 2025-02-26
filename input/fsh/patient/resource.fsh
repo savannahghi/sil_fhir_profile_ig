@@ -3,7 +3,7 @@ Parent: Patient
 Id: sghi-patient
 Title: "SGHI Patient"
 Description: "Demographics and other administrative information about an individual or animal receiving care or other health-related services."
-* meta.profile = "https://fhir.slade360.co.ke/StructureDefinition/sghi-patient" (exactly)
+* meta.profile = "{{HAPI_FHIR_BASE_URL}}/StructureDefinition/sghi-patient" (exactly)
 
 * identifier 1..*
   * type only SGHICodeableConcept

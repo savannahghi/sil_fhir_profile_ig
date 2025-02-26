@@ -6,7 +6,7 @@ Description: "A set of healthcare-related information that is assembled together
 A Composition defines the structure and narrative content necessary for a document. However, a Composition alone does not constitute a document. Rather, the Composition must be the first entry in a Bundle where Bundle.type=document, 
 and any other resources referenced from Composition must be included as subsequent entries in the Bundle (for example Patient, Practitioner, Encounter, etc.)."
 
-* meta.profile = "https://fhir.slade360.co.ke/StructureDefinition/sghi-composition" (exactly)
+* meta.profile = "{{HAPI_FHIR_BASE_URL}}/StructureDefinition/sghi-composition" (exactly)
 * identifier 1..*
   * insert CommonIdentifierRules
 * type only SGHICodeableConcept

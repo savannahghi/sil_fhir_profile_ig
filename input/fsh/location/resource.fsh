@@ -4,7 +4,7 @@ Id: sghi-fhir-location
 Title: "SGHI Location"
 Description: "SGHI profile for location"
 
-* meta.profile = "https://fhir.slade360.co.ke/StructureDefinition/sghi-fhir-location" (exactly)
+* meta.profile = "{{HAPI_FHIR_BASE_URL}}/StructureDefinition/sghi-fhir-location" (exactly)
 
 * identifier 1..*
   * insert CommonIdentifierRules

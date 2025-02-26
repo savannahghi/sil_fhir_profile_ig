@@ -1,12 +1,11 @@
 #!/bin/bash
 set -e
 
-echo $HAPI_FHIR_BASE_URL
-
-hapi_fhir_server=$HAPI_FHIR_BASE_URL 
 codesystems_folder=uploads/codesystems
 profiles_folder=uploads/profiles
 valuesets_folder=uploads/valuesets
+HAPI_FHIR_BASE_URL=${HAPI_FHIR_BASE_URL:-"http://localhost:8080/fhir"}
+hapi_fhir_server=$HAPI_FHIR_BASE_URL 
 
 upload_sghi_ig_fhir_resources() {
   local folder=$1
@@ -38,8 +37,17 @@ upload_sghi_ig_fhir_resources() {
   fi
 }
 
-echo "Preparing SGHI FHIR IG resources..."
+
+echo "Fetching environments....."
+
+find input/fsh/ -type f -name "*.fsh" -exec sed -i "s|{{HAPI_FHIR_BASE_URL}}|$HAPI_FHIR_BASE_URL|g" {} +
+
+sed -i "s|{{HAPI_FHIR_BASE_URL}}|$HAPI_FHIR_BASE_URL|g" sushi-config.yaml
+
+echo "Building FHIR resources...."
 sushi -s
+
+echo "Preparing SGHI FHIR IG resources for server uploads..."
 ./_resources.sh
 
 echo "Uploading SGHI FHIR IG resources to HAPI FHIR server..."
