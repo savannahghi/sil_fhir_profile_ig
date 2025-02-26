@@ -86,18 +86,12 @@ Use SUSHI to compile the FSH definitions into FHIR artifacts:
 ```bash
 ./_updatePublisher.sh                  
 ```
-2. Preprocessing
-   - Create an env.sh file and set the canonical enviromental variable
-   - Run the script to substitue the set canonical variable
-```bash
-./_preprocess.sh
-```
 
-3. Build the FHIR artifacts by running:
+2. Build the FHIR artifacts by running:
 ```bash
-sushi build .
+./cmd/run-sushi
 ```
-4. Generate the FHIR IG(s)
+3. Generate the FHIR IG(s)
 ```bash
 ./_genonce.sh                     
 ```
