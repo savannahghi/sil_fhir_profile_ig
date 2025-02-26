@@ -2,7 +2,7 @@ Instance: ExampleSGHISubstance
 InstanceOf: SGHISubstance
 Description: "An example of a substance profile"
 
-* meta.profile = "https://fhir.slade360.co.ke/StructureDefinition/sghi-substance"
+* meta.profile = "{{HAPI_FHIR_BASE_URL}}/StructureDefinition/sghi-substance"
 
 * identifier[0].system = "http://example.org/substances"
 * identifier[0].value = "SUBST001"

@@ -37,10 +37,6 @@ jobs:
       - name: Set execute permissions for upload script
         run: chmod +x _upload.sh
 
-      - name: Substitute canonical in config.yaml
-        run: |
-          sed -i "s|REPLACE_CANONICAL|${{ env.HAPI_FHIR_BASE_URL }}|g" sushi-config.yaml
-          cat sushi-config.yaml
       - name: Run SGHI FHIR IG upload script
         shell: bash
         run: |

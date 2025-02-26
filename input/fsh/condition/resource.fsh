@@ -4,7 +4,7 @@ Id: sghi-condition
 Title: "SGHI Condition"
 Description: "A clinical condition, problem, diagnosis, or other event, situation, issue, or clinical concept that has risen to a level of concern."
 
-* meta.profile = "https://fhir.slade360.co.ke/StructureDefinition/sghi-condition" (exactly)
+* meta.profile = "{{HAPI_FHIR_BASE_URL}}/StructureDefinition/sghi-condition" (exactly)
 
 * identifier 1..*
   * insert CommonIdentifierRules

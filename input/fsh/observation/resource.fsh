@@ -4,7 +4,7 @@ Id: sghi-observation
 Title: "SGHI Observation"
 Description: "Measurements and simple assertions made about a patient, device or other subject."
 
-* meta.profile = "https://fhir.slade360.co.ke/StructureDefinition/sghi-observation" (exactly)
+* meta.profile = "{{HAPI_FHIR_BASE_URL}}/StructureDefinition/sghi-observation" (exactly)
 
 * identifier 1..*
   * insert CommonIdentifierRules
