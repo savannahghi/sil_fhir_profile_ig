@@ -36,6 +36,7 @@ Description: "A record of a healthcare consumer’s choices or choices made on t
 * manager only Reference(SGHIOrganization or SGHIPatient)
 
 * verification 1..*
+  * verificationType only SGHICodeableConcept
   * verifiedWith 1..1
   * verifiedWith only SGHIReference
   * verifiedWith only Reference(SGHIPatient)
@@ -49,12 +50,27 @@ Description: "A record of a healthcare consumer’s choices or choices made on t
   * actor 0..*
     * reference only SGHIReference
     * reference only Reference(SGHIPatient or SGHIOrganization)
+    * role only SGHICodeableConcept
+  * action only SGHICodeableConcept
+  * code only SGHICodeableConcept
+  * code from AllLoincCodes
+  * data 0..
+    * reference only SGHIReference
 
 * sourceAttachment MS
 * sourceAttachment only SGHIAttachment
 
 * sourceReference only SGHIReference
 * sourceReference only Reference(SGHIConsent)
+
+* regulatoryBasis only SGHICodeableConcept
+
+* policyBasis 0..1
+  * reference only SGHIReference
+  * reference only Reference(Resource)
+
+* policyText only SGHIReference
+* policyText only Reference(DocumentReference)
 
 
 Profile: SGHIAttachment
