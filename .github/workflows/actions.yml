@@ -35,10 +35,10 @@ jobs:
           sudo apt-get install -y jq
 
       - name: Set execute permissions for upload script
-        run: chmod +x _upload.sh
+        run: chmod +x ./cmd/upload.sh
 
       - name: Run SGHI FHIR IG upload script
         shell: bash
         run: |
           echo "Base URL $HAPI_FHIR_BASE_URL"
-          ./_upload.sh
+          ./cmd/upload.sh

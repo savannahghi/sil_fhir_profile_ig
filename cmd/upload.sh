@@ -9,7 +9,7 @@ hapi_fhir_server=$HAPI_FHIR_BASE_URL
 
 upload_sghi_ig_fhir_resources() {
   local folder=$1
-  local endpoint=$2
+  local fhir_resource=$2
 
   if [ -d "$folder" ] && find "$folder" -mindepth 1 -print -quit | grep -q .; then 
     for file in "$folder"/*.json; do
@@ -22,8 +22,8 @@ upload_sghi_ig_fhir_resources() {
         continue
       fi
 
-      echo "Uploading $file to $hapi_fhir_server/$endpoint/$resource_id...."
-      response=$(curl -s -o /dev/null -w "%{http_code}" -X PUT "$hapi_fhir_server/$endpoint/$resource_id" \
+      echo "Uploading $file to $hapi_fhir_server/$fhir_resource/$resource_id...."
+      response=$(curl -s -o /dev/null -w "%{http_code}" -X PUT "$hapi_fhir_server/$fhir_resource/$resource_id" \
                   -H "Content-Type: application/fhir+json" --data-binary "@$file")
     if [ "$response" -ne 201 ] && [ "$response" -ne 200 ]; then
       echo "Error: Upload failed for $file (HTTP $response)"
@@ -37,18 +37,11 @@ upload_sghi_ig_fhir_resources() {
   fi
 }
 
-
-echo "Fetching environments....."
-
-find input/fsh/ -type f -name "*.fsh" -exec sed -i "s|{{HAPI_FHIR_BASE_URL}}|$HAPI_FHIR_BASE_URL|g" {} +
-
-sed -i "s|{{HAPI_FHIR_BASE_URL}}|$HAPI_FHIR_BASE_URL|g" sushi-config.yaml
-
 echo "Building FHIR resources...."
-sushi -s
+./cmd/run-sushi.sh
 
 echo "Preparing SGHI FHIR IG resources for server uploads..."
-./_resources.sh
+./cmd/resources.sh
 
 echo "Uploading SGHI FHIR IG resources to HAPI FHIR server..."
 upload_sghi_ig_fhir_resources "$codesystems_folder" "CodeSystem"
