@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e 
+set -e
 
 HAPI_FHIR_BASE_URL=${HAPI_FHIR_BASE_URL:-"http://localhost:8080/fhir"}
 
@@ -19,9 +19,17 @@ done
 echo "Done processing fsh files!!!!"
 
 echo "Running sushi....."
-sed -i "s|{{HAPI_FHIR_BASE_URL}}|$HAPI_FHIR_BASE_URL|g" "$TMP_DIR/sushi-config.yaml"
+
+# Detect the OS and adjust the `sed` command accordingly
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  # macOS
+  sed -i '' "s|{{HAPI_FHIR_BASE_URL}}|$HAPI_FHIR_BASE_URL|g" "$TMP_DIR/sushi-config.yaml"
+else
+  # Linux and other OSes
+  sed -i "s|{{HAPI_FHIR_BASE_URL}}|$HAPI_FHIR_BASE_URL|g" "$TMP_DIR/sushi-config.yaml"
+fi
+
 sushi "$TMP_DIR" -s -o ./
 echo "Sushi build completed"
 
 rm -rf "$TMP_DIR"
-
