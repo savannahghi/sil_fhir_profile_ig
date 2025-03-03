@@ -1,6 +1,6 @@
 Profile: SGHIAllergyIntolerance
 Parent: AllergyIntolerance
-Id: sghi-allergy-intolerance
+Id: sghi-allergyintolerance
 Title: "SGHI AllergyIntolerance"
 Description: "Risk of harmful or undesirable physiological response which is specific to an individual and associated with exposure to a substance."
 
