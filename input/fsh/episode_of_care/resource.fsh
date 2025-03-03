@@ -1,10 +1,10 @@
 Profile: SGHIEpisodeOfCare
 Parent:  EpisodeOfCare
-Id: sghi-episode-of-care
+Id: sghi-episodeofcare
 Title: "SGHI EpisodeOfCare"
 Description: "An association between a patient and an organization / healthcare provider(s) during which time encounters may occur. The managing organization assumes a level of responsibility for the patient during this time."
 
-* meta.profile = "{{HAPI_FHIR_BASE_URL}}/StructureDefinition/sghi-episode-of-care" (exactly)
+* meta.profile = "{{HAPI_FHIR_BASE_URL}}/StructureDefinition/sghi-episodeofcare" (exactly)
 
 * identifier 1..*
   * insert CommonIdentifierRules
