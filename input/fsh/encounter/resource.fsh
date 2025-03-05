@@ -12,7 +12,7 @@ Description: "An interaction between a patient and healthcare provider(s) for th
 * class 1..* MS
 * class from SGHIEncounterClass (required)
 
-* priority 1..1
+* priority 0..1
 * priority from SGHIActPriority (required)
 * priority only SGHICodeableConcept
 
@@ -45,11 +45,11 @@ Description: "An interaction between a patient and healthcare provider(s) for th
   * actor only Reference(SGHIPatient)
   * type only SGHICodeableConcept
 
-* diagnosis 1..*
+* diagnosis 0..*
   * condition 1..
   * condition only SGHICodeableReference
   * condition only CodeableReference(SGHICondition)
-  * condition from AllLoincCodes
+  * condition from ICD11Codes (required)
 
 * basedOn only SGHIReference
 * basedOn only Reference(SGHIMedicationRequest or SGHIServiceRequest)
