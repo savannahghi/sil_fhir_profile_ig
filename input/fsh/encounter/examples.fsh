@@ -19,7 +19,6 @@ Description: "An example of an Encounter resource conforming to the SGHI Encount
 * subject = Reference(ExampleSGHIPatient)
 * episodeOfCare = Reference(ExampleSGHIEpisodeOfCare)
 * serviceProvider = Reference(ExampleSGHIOrganization)
-* priority = #A "ASAP"
 * diagnosis[0].condition = Reference(ExampleSGHICondition)
 * participant[0].actor = Reference(ExampleSGHIPatient)
 * appointment = Reference(ExampleSGHIAppointment)
