@@ -15,13 +15,25 @@ The **SGHI FHIR Profile Implementation Guide** provides a comprehensive set of t
 
 ## Table of Contents
 
-1. [Getting Started](#getting-started)
-2. [Project Structure](#project-structure)
-3. [Installation](#installation)
-4. [Usage](#usage)
-5. [Contributors](#Maintainers)
-6. [License](#license)
-7. [Contact](#contact)
+- [SGHI FHIR🔥 Profile Implementation Guide](#sghi-fhir-profile-implementation-guide)
+  - [Overview](#overview)
+  - [Key Features](#key-features)
+  - [Table of Contents](#table-of-contents)
+  - [Getting Started](#getting-started)
+  - [Project Structure](#project-structure)
+  - [Installation](#installation)
+    - [Steps](#steps)
+  - [Usage](#usage)
+    - [Compiling FHIR Profiles](#compiling-fhir-profiles)
+  - [Using the makefile](#using-the-makefile)
+      - [Local build](#local-build)
+      - [Generate FHIR IG locally](#generate-fhir-ig-locally)
+      - [Publish to local HAPI FHIR](#publish-to-local-hapi-fhir)
+  - [Contributing](#contributing)
+  - [License](#license)
+  - [Maintainers](#maintainers)
+  - [Contact Information](#contact-information)
+  - [](#)
 
 ## Getting Started
 
@@ -89,7 +101,7 @@ Use SUSHI to compile the FSH definitions into FHIR artifacts:
 
 2. Build the FHIR artifacts by running:
 ```bash
-./cmd/run-sushi
+sushi .
 ```
 3. Generate the FHIR IG(s)
 ```bash
@@ -101,6 +113,29 @@ This will generate output in the following directory:
 ./fsh-generated
 ```
 as well as the necessary FHIR artifacts in the `output` directory.
+
+## Using the makefile
+This project now provides a Makefile that simplifies common workflows.
+
+#### Local build
+Run the build with the local FHIR canonical URL without publishing:
+```bash
+make build
+```
+This command updates the canonical URL in sushi-config.yaml to point to your local HAPI FHIR instance (default: http://localhost:8080/fhir), then runs SUSHI to build the artifacts
+
+#### Generate FHIR IG locally
+Once the local build is complete, generate the FHIR Implementation Guide(s) by running:
+```bash
+make ig
+```
+This command first builds locally and then runs the `_genonce.sh` script to generate the IG(s).
+
+#### Publish to local HAPI FHIR
+```bash
+make publish-local
+```
+This target updates the canonical URL to the local value and uploads only the conformance resources (e.g. StructureDefinition, ValueSet, CodeSystem) to your local server.
 
 ## Contributing
 

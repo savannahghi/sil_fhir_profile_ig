@@ -41,7 +41,7 @@ jobs:
 
       - name: Run SUSHI Build
         run: |
-          sushi .
+          sushi -s .
 
       - name: Publish FHIR Artifacts to HAPI FHIR
         run: |
