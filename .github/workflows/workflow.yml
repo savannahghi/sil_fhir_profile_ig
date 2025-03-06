@@ -43,6 +43,13 @@ jobs:
         run: |
           sushi -s .
 
+      - name: Generate FHIR IG and Snapshots
+        run: |
+          echo "Generating FHIR Implementation Guide and snapshots..."
+          ./_updatePublisher.sh
+          ./_genonce.sh
+          echo "IG generation and snapshot creation complete."
+          
       - name: Publish FHIR Artifacts to HAPI FHIR
         run: |
           echo "Publishing to server: ${{ env.HAPI_FHIR_BASE_URL }}"
