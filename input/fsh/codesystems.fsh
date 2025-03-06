@@ -106,3 +106,11 @@ Description: "A single code system enumerating the many local identifier types u
 
 // Method of application
 * #APPLY "Apply" "Apply"
+
+// Organization type identifiers
+* #prov "Healthcare Provider" "An organization that provides healthcare services."
+* #dept "Hospital Department" "Hospital Department A department or ward within a hospital (Generally is not applicable to top level organizations)"
+* #ins "Insurance Company" "An organization that provides insurance to its subscribers that may include healthcare related policies."
+* #pay "Payer" "An organization, charity, or governmental organization, which processes claims and/or issues payments to providers on behalf of patients or groups of patients."
+* #crs "Clinical Research Sponsor" "An organization that is identified as a Pharmaceutical/Clinical Research Sponsor."
+* #other "Other" "Other type of organization not already specified."

@@ -15,6 +15,7 @@ Description: "SGHI's profile for Organization"
 * active 1..1
 * type 1..*
 * type only SGHICodeableConcept
+* type from SGHIOrganizationIdentifierTypes (required)
 
 * name 1..1
 
