@@ -20,7 +20,7 @@ Description: "An interaction between a patient and healthcare provider(s) for th
 * subjectStatus only SGHICodeableConcept
 * status 1..1
 
-* class 1..*
+* class 1..1
 * class only SGHICodeableConcept
 
 * appointment 0..*
