@@ -4,8 +4,6 @@ Id: sghi-diagnostic-report
 Title: "SGHI DiagnosticReport"
 Description: "SGHI's profile for DiagnosticReport"
 
-* meta.profile = "{{HAPI_FHIR_BASE_URL}}/StructureDefinition/sghi-diagnostic-report" (exactly)
-
 * identifier 1..*
   * insert CommonIdentifierRules
 

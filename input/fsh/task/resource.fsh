@@ -3,7 +3,6 @@ Parent: Task
 Id: sghi-task
 Title: "SGHI Task"
 Description: "SGHI's profile for Task"
-* meta.profile = "{{HAPI_FHIR_BASE_URL}}/StructureDefinition/sghi-task" (exactly)
 
 * identifier 1..*
   * insert CommonIdentifierRules

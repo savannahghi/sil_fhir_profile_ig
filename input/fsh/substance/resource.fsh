@@ -4,8 +4,6 @@ Id: sghi-substance
 Title: "SGHI Substance"
 Description: "Profile for representing substances in the SGHI context"
 
-* meta.profile = "{{HAPI_FHIR_BASE_URL}}/StructureDefinition/sghi-substance" (exactly)
-
 * identifier 1..*
   * insert CommonIdentifierRules
 * instance 1..1
