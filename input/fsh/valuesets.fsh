@@ -57,14 +57,6 @@ Description: "Urgency of an encounter"
 * include #PREOP "PREOP" from system SGHIIdentifierCodeSystem
 * include #EL "Routine" from system SGHIIdentifierCodeSystem
 
-ValueSet: SGHIEncounterClass
-Id: sghi-encounter-class
-Title: "SGHI Encounter Class"
-Description: "Codes that can be used to indicate the class of encounter: a specific code indicating class of service provided"
-* include #IP "In Patient" from system SGHIIdentifierCodeSystem
-* include #AMB "Ambulatory (Out Patient)" from system SGHIIdentifierCodeSystem
-* include #EMR "Emergency" from system SGHIIdentifierCodeSystem
-
 ValueSet: SGHIDiagnosticConclusionICD11
 Id: sghi-diagnostic-conclusion-icd11
 Title: "SGHI Diagnostic Conclusion ICD-11"

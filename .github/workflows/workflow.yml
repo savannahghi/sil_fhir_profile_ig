@@ -58,27 +58,34 @@ jobs:
             if [ -f "$file" ]; then
               RESOURCE_TYPE=$(jq -r '.resourceType' "$file")
               RESOURCE_ID=$(jq -r '.id' "$file")
-      
-              # Only upload if it's a conformance resource
+
               if [ "$RESOURCE_TYPE" = "StructureDefinition" ] || \
                 [ "$RESOURCE_TYPE" = "ValueSet" ] || \
                 [ "$RESOURCE_TYPE" = "CodeSystem" ]; then
-                
+
                 echo "Uploading $file with resourceType=$RESOURCE_TYPE, id=$RESOURCE_ID"
-                STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
-                  -X PUT "${{ env.HAPI_FHIR_BASE_URL }}/${RESOURCE_TYPE}/${RESOURCE_ID}" \
-                  -H "Content-Type: application/fhir+json" \
-                  --data-binary "@$file")
-      
-                if [ "$STATUS_CODE" -lt 200 ] || [ "$STATUS_CODE" -ge 300 ]; then
-                  echo "Error uploading $file. HTTP status code: $STATUS_CODE"
+                
+                RESPONSE=$(curl -s -X PUT "${HAPI_FHIR_BASE_URL}/${RESOURCE_TYPE}/${RESOURCE_ID}" \
+                  -H "Content-Type: application/fhir+json" --data-binary "@$file")
+
+                echo "Response: $RESPONSE"
+                STATUS_CODE=$(echo "$RESPONSE" | jq -r '.issue[0].severity // "unknown"')
+
+                if [ "$STATUS_CODE" != "unknown" ]; then
+                  echo "Upload failed for $file: $STATUS_CODE"
                   exit 1
                 fi
+
+                # Verify the update
+                RETRIEVED_RESOURCE=$(curl -s -X GET "${HAPI_FHIR_BASE_URL}/${RESOURCE_TYPE}/${RESOURCE_ID}" -H "Accept: application/fhir+json")
+                echo "Retrieved Resource after Upload: $RETRIEVED_RESOURCE"
+
               else
-                echo "Skipping $file: resourceType $RESOURCE_TYPE is not a conformance/terminology resource."
+                echo "Skipping $file: resourceType $RESOURCE_TYPE is not a conformance resource."
               fi
             fi
           done
+
       
           echo "All conformance resources uploaded successfully."
       

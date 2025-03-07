@@ -7,6 +7,9 @@ Description: "An interaction between a patient and healthcare provider(s) for th
 * identifier 1..*
   * insert CommonIdentifierRules
 
+* text.status = #generated (exactly)
+* text.div = "<div xmlns=\"http://www.w3.org/1999/xhtml\">Generated Encounter Narrative</div>" (exactly)
+
 * priority 0..1
 * priority from SGHIActPriority (required)
 * priority only SGHICodeableConcept
@@ -17,7 +20,6 @@ Description: "An interaction between a patient and healthcare provider(s) for th
 
 * class 1..1
 * class only SGHICodeableConcept
-* class from SGHIEncounterClass (required)
 
 * appointment 0..*
 * appointment only SGHIReference
