@@ -3,7 +3,6 @@ Parent: Organization
 Id: sghi-organization
 Title: "SGHI Organization"
 Description: "SGHI's profile for Organization"
-* meta.profile = "{{HAPI_FHIR_BASE_URL}}/StructureDefinition/sghi-organization" (exactly)
 
 * identifier 1..*
   * type only SGHICodeableConcept
@@ -13,9 +12,6 @@ Description: "SGHI's profile for Organization"
   * system 1..1
 
 * active 1..1
-* type 1..*
-* type only SGHICodeableConcept
-
 * name 1..1
 
 * partOf only SGHIReference
