@@ -3,7 +3,6 @@ Parent: Practitioner
 Id: sghi-practitioner
 Title: "SGHI Practitioner"
 Description: "SGHI's Practitioner used in SGHI systems"
-* meta.profile = "{{HAPI_FHIR_BASE_URL}}/StructureDefinition/sghi-consent" (exactly)
 * identifier 1..
   * insert CommonIdentifierRules
 * name 1..

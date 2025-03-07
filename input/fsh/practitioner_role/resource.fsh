@@ -4,7 +4,6 @@ Id: sghi-practitioner-role
 Title: "SGHI PractitionerRole"
 Description: "PractitionerRole describes the types of services that practitioners provide to SGHI Organization at specific location(s). The profile a specific set of Roles/Locations/specialties/services that a practitioner may perform at an organization for a period of time."
 
-* meta.profile = "{{HAPI_FHIR_BASE_URL}}/StructureDefinition/sghi-practitioner-role" (exactly)
 * identifier 1..*
   * insert CommonIdentifierRules
 
