@@ -9,9 +9,6 @@ Description: "An interaction between a patient and healthcare provider(s) for th
 * identifier 1..*
   * insert CommonIdentifierRules
 
-* class 1..* MS
-* class from SGHIEncounterClass (required)
-
 * priority 0..1
 * priority from SGHIActPriority (required)
 * priority only SGHICodeableConcept
@@ -22,6 +19,7 @@ Description: "An interaction between a patient and healthcare provider(s) for th
 
 * class 1..1
 * class only SGHICodeableConcept
+* class from SGHIEncounterClass (required)
 
 * appointment 0..*
 * appointment only SGHIReference
