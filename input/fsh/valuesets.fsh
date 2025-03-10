@@ -2,31 +2,30 @@ ValueSet: SGHIPatientIdentifierTypes
 Id: sghi-patient-identifier-types
 Title: "SGHI Identifier Types"
 Description: "Identifier types used  to identify patient in SGHI's systems"
-* include #PN "Patient Number" from system SGHIIdentifierCodeSystem
-* include #ID "National ID" from system SGHIIdentifierCodeSystem
-* include #PPN "Passport Number" from system SGHIIdentifierCodeSystem                    
-* include #MID "Military ID" from system SGHIIdentifierCodeSystem       
-* include #AID "Alien ID" from system SGHIIdentifierCodeSystem 
-* include #NHIFID "National Hospital Insurance Fund ID"  from system SGHIIdentifierCodeSystem
-* include #SMN "Smart Member Number" from system SGHIIdentifierCodeSystem 
-* include #DCCID "Dr Chrono Chart ID" from system SGHIIdentifierCodeSystem 
-* include #FPID "FHIR Patient ID" from system SGHIIdentifierCodeSystem 
-* include #ERPID "ERP Customer ID" from system SGHIIdentifierCodeSystem 
-* include #CCC "Comprehensive Care Clinic Number" from system SGHIIdentifierCodeSystem 
-* include #RFID "Refugee ID" from system SGHIIdentifierCodeSystem 
-* include #DOBID "Birth Certificate Number" from system SGHIIdentifierCodeSystem 
-* include #MN "Mandate Number" from system SGHIIdentifierCodeSystem 
-* include #CRN "Client Registry Number" from system SGHIIdentifierCodeSystem 
-* include #HID "Health ID" from system SGHIIdentifierCodeSystem
+* include #patient-number "Patient Number" from system SGHIIdentifierCodeSystem
+* include #national-id "National ID" from system SGHIIdentifierCodeSystem
+* include #passport-number "Passport Number" from system SGHIIdentifierCodeSystem                    
+* include #military-id "Military ID" from system SGHIIdentifierCodeSystem       
+* include #alien-id "Alien ID" from system SGHIIdentifierCodeSystem 
+* include #nhif-id "National Hospital Insurance Fund ID"  from system SGHIIdentifierCodeSystem
+* include #smart-member-number "Smart Member Number" from system SGHIIdentifierCodeSystem 
+* include #drchrono-id "Dr Chrono Chart ID" from system SGHIIdentifierCodeSystem 
+* include #fhir-patient-id "FHIR Patient ID" from system SGHIIdentifierCodeSystem 
+* include #erp-customer-id "ERP Customer ID" from system SGHIIdentifierCodeSystem 
+* include #ccc-number "Comprehensive Care Clinic Number" from system SGHIIdentifierCodeSystem 
+* include #refugee-id "Refugee ID" from system SGHIIdentifierCodeSystem 
+* include #birth-certificate "Birth Certificate Number" from system SGHIIdentifierCodeSystem 
+* include #mandate-number "Mandate Number" from system SGHIIdentifierCodeSystem 
+* include #client-registry-number "Client Registry Number" from system SGHIIdentifierCodeSystem 
+* include #slade-health-id "Slade Health ID" from system SGHIIdentifierCodeSystem
 
 ValueSet: SGHIOrganizationIdentifierTypes
 Id: sghi-organization-identifier-types
 Title: "SGHI Identifier Types"
 Description: "Identifier types used  to identify patient in SGHI's systems"
-* include #MFLCODE "Master Facility List Code"  from system SGHIIdentifierCodeSystem
-* include #KMFR "Kenya Master Health Facility Registry"  from system SGHIIdentifierCodeSystem
-* include #FRID "Facility Registry ID"  from system SGHIIdentifierCodeSystem
-* include #SLADECODE "Slade360 Code" from system SGHIIdentifierCodeSystem
+* include #mfl-code "Master Facility List Code"  from system SGHIIdentifierCodeSystem
+* include #facility-registry-id "Facility Registry ID"  from system SGHIIdentifierCodeSystem
+* include #slade-code "Slade360 Code" from system SGHIIdentifierCodeSystem
 
 ValueSet: SGHIAdministrativeGender
 Id: sghi-administrative-gender
@@ -51,11 +50,10 @@ ValueSet: SGHIActPriority
 Id: sghi-encounter-act-priority
 Title: "SGHI Encounter Priority"
 Description: "Urgency of an encounter"
-* include #STAT "STAT" from system SGHIIdentifierCodeSystem
-* include #ASAP "ASAP" from system SGHIIdentifierCodeSystem
-* include #NORMAL "Routine" from system SGHIIdentifierCodeSystem
-* include #PREOP "PREOP" from system SGHIIdentifierCodeSystem
-* include #EL "Routine" from system SGHIIdentifierCodeSystem
+* include #stat "stat" from system SGHIIdentifierCodeSystem
+* include #asap "asap" from system SGHIIdentifierCodeSystem
+* include #preop "preop" from system SGHIIdentifierCodeSystem
+* include #elective "routine" from system SGHIIdentifierCodeSystem
 
 ValueSet: SGHIDiagnosticConclusionICD11
 Id: sghi-diagnostic-conclusion-icd11
@@ -67,12 +65,12 @@ ValueSet: SGHIBedStatus
 Id: sghi-bed-status
 Title: "SGHI Bed Status"
 Description: "Codes that can be used to indicate the operating status of an organization's location"
-* include #CLOSED "Closed" from system SGHIIdentifierCodeSystem
-* include #HOUSEKEEPING "Housekeeping" from system SGHIIdentifierCodeSystem
-* include #OCCUPIED "Occupied" from system SGHIIdentifierCodeSystem
-* include #UNOCCUPIED "Unoccupied" from system SGHIIdentifierCodeSystem
-* include #CONTAMINATED "Contaminated" from system SGHIIdentifierCodeSystem
-* include #ISOLATED "Isolated" from system SGHIIdentifierCodeSystem
+* include #closed "Closed" from system SGHIIdentifierCodeSystem
+* include #housekeeping "Housekeeping" from system SGHIIdentifierCodeSystem
+* include #occupied "Occupied" from system SGHIIdentifierCodeSystem
+* include #unoccupied "Unoccupied" from system SGHIIdentifierCodeSystem
+* include #contaminated "Contaminated" from system SGHIIdentifierCodeSystem
+* include #isolated "Isolated" from system SGHIIdentifierCodeSystem
 
 ValueSet: SGHILocationMode
 Id: sghi-location-mode
@@ -99,14 +97,14 @@ ValueSet: SGHILocationForm
 Id: sghi-location-form
 Title: "SGHI Location Form"
 Description: "Physical form of the location, e.g. building, room, vehicle, road, virtual."
-* include #bu "Building" from system SGHIIdentifierCodeSystem
-* include #wi "Wing" from system SGHIIdentifierCodeSystem 
-* include #wa "Ward" from system SGHIIdentifierCodeSystem
-* include #ro "Room" from system SGHIIdentifierCodeSystem 
-* include #bd "Bed" from system SGHIIdentifierCodeSystem
-* include #ve "Vehicle" from system SGHIIdentifierCodeSystem 
+* include #building "Building" from system SGHIIdentifierCodeSystem
+* include #wing "Wing" from system SGHIIdentifierCodeSystem 
+* include #ward "Ward" from system SGHIIdentifierCodeSystem
+* include #room "Room" from system SGHIIdentifierCodeSystem 
+* include #bed "Bed" from system SGHIIdentifierCodeSystem
+* include #vehicle "Vehicle" from system SGHIIdentifierCodeSystem 
 * include #area "Area" from system SGHIIdentifierCodeSystem 
-* include #vi "Virtual" from system SGHIIdentifierCodeSystem
+* include #virtual "Virtual" from system SGHIIdentifierCodeSystem
 
 ValueSet: SGHIServiceRequestCategory
 Id: sghi-service-request-category
