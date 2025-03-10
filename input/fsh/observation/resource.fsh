@@ -50,6 +50,11 @@ Description: "Measurements and simple assertions made about a patient, device or
 * derivedFrom only SGHIReference
 * derivedFrom only Reference(SGHIObservation)
 
+
+* valueString only string
+* valueBoolean only boolean
+* valueInteger only integer
+* valueDateTime only dateTime
 * valueCodeableConcept only SGHICodeableConcept
 * valueReference only SGHIReference
 * valueAttachment only SGHIAttachment
