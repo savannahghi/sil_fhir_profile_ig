@@ -2,7 +2,7 @@ CodeSystem: SGHIIdentifierCodeSystem
 Id: sghi-identifier-codesystem
 Title: "SGHI Identifier Code System"
 Description: "A single code system enumerating the many local identifier types used across SGHI's environment."
-
+* ^status = #active
 * #national-id "National ID" "A unique national identifier assigned by the National Registration Bureau (NRB) under the Ministry of Interior and National Administration."
 * #passport-number "Passport Number" "A unique identifier assigned by the Directorate of Immigration Services under the Ministry of Interior and National Administration."
 * #military-id "Military ID" "A unique identifier assigned by the Kenya Defence Forces (KDF) for military personnel."

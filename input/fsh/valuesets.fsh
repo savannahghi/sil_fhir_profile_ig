@@ -2,6 +2,7 @@ ValueSet: SGHIPatientIdentifierTypes
 Id: sghi-patient-identifier-types
 Title: "SGHI Identifier Types"
 Description: "Identifier types used  to identify patient in SGHI's systems"
+* ^status = #active
 * include #patient-number "Patient Number" from system SGHIIdentifierCodeSystem
 * include #national-id "National ID" from system SGHIIdentifierCodeSystem
 * include #passport-number "Passport Number" from system SGHIIdentifierCodeSystem                    
