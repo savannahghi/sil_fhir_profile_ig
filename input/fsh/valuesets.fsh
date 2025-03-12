@@ -239,15 +239,6 @@ Description: "A ValueSet defining the possible routes of drug administration."
 
 * include codes from system https://ocl-testing-api.savannahghi.org/orgs/SIL/sources/KNC4Drugs/concepts/ where concept_class = "ROUTE"
 
-ValueSet: SGHIServiceRequestCodeVS
-Id: sghi-service-request-code-vs
-Title: "SGHI ServiceRequest Code ValueSet"
-Description: "ValueSet for ServiceRequest.code, including concepts from LOINC and ICHI."
-* ^status = #active
-* include codes from system https://loinc.org
-* include codes from system https://id.who.int/ichi
-* include codes from system https://ocl-testing-api.savannahghi.org/fhir/CodeSystem/KNC4Investigations
-
 ValueSet: AllLoincCodes
 Id: all-loinc
 Title: "All LOINC Codes"
