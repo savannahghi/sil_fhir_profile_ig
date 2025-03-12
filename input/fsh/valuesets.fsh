@@ -264,3 +264,12 @@ Id: ICHICodes
 Title: "All ICHI codes"
 Description: "All codes from ICHI"
 * include codes from system http://id.who.int/ichi
+
+ValueSet: SGHIConditionSeverity
+Id: sghi-condition-severity
+Title: "sghi-condition-severity"
+Description: "Condition severity"
+* ^status = #active
+* include #mild "Mild"  from system SGHIIdentifierCodeSystem
+* include #severe "Severe"  from system SGHIIdentifierCodeSystem
+* include #moderate "Moderate"  from system SGHIIdentifierCodeSystem 

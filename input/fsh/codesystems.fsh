@@ -105,3 +105,8 @@ Description: "A single code system enumerating the many local identifier types u
 
 // Method of application
 * #APPLY "Apply" "Apply"
+
+// Condition severities
+* #mild "Mild" "Mild"
+* #moderate "Moderate" "Moderate"
+* #severe "Severe" "Severe"
