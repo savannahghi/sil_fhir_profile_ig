@@ -1,6 +1,6 @@
 Profile: SGHIMedicationDispense
 Parent: MedicationDispense
-Id: sghi-medication-dispense
+Id: sghi-medicationdispense
 Title: "SGHI Medication Dispense"
 Description: "SGHI's profile for Medication Dispense resource"
 
