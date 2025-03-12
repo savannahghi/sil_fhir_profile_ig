@@ -24,7 +24,6 @@ Description: "Demographics and other administrative information about an individ
 * telecom only SGHIContactPoint
 
 * gender 1..1 
-* gender from SGHIAdministrativeGender (required)
 * birthDate 1..1 
 
 * contact 0..*

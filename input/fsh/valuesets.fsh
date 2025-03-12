@@ -28,14 +28,6 @@ Description: "Identifier types used  to identify patient in SGHI's systems"
 * include #facility-registry-id "Facility Registry ID"  from system SGHIIdentifierCodeSystem
 * include #slade-code "Slade360 Code" from system SGHIIdentifierCodeSystem
 
-ValueSet: SGHIAdministrativeGender
-Id: sghi-administrative-gender
-Title: "SGHI Administrative Gender"
-Description: "Gender codes used in SGHI systems"
-* ^experimental = false
-* include #male "Male" from system http://hl7.org/fhir/administrative-gender
-* include #female "Female" from system http://hl7.org/fhir/administrative-gender
-
 ValueSet: SGHIContactRelationship
 Id: sghi-contact-relationship
 Title: "SGHI Contact Relationship Types"

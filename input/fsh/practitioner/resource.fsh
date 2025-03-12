@@ -8,7 +8,6 @@ Description: "SGHI's Practitioner used in SGHI systems"
 * name 1..
 * name only SGHIHumanName
 * gender 1..1
-* gender from SGHIAdministrativeGender
 * telecom only SGHIContactPoint
 * telecom.system from SGHIContactSystem
 * telecom.use from SGHIContactPointUse
