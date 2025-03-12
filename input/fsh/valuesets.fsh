@@ -243,6 +243,7 @@ ValueSet: SGHIServiceRequestCodeVS
 Id: sghi-service-request-code-vs
 Title: "SGHI ServiceRequest Code ValueSet"
 Description: "ValueSet for ServiceRequest.code, including concepts from LOINC and ICHI."
+* ^status = #active
 * include codes from system https://loinc.org
 * include codes from system https://id.who.int/ichi
 * include codes from system https://ocl-testing-api.savannahghi.org/fhir/CodeSystem/KNC4Investigations
@@ -251,18 +252,21 @@ ValueSet: AllLoincCodes
 Id: all-loinc
 Title: "All LOINC Codes"
 Description: "All codes from LOINC"
+* ^status = #active
 * include codes from system http://loinc.org
 
 ValueSet: ICD11Codes
 Id: ICD11Codes
 Title: "All ICD-11 codes"
 Description: "All codes from ICD-11"
+* ^status = #active
 * include codes from system http://id.who.int/icd/release/11/mms
 
 ValueSet: ICHICodes
 Id: ICHICodes
 Title: "All ICHI codes"
 Description: "All codes from ICHI"
+* ^status = #active
 * include codes from system http://id.who.int/ichi
 
 ValueSet: SGHIConditionSeverity
