@@ -15,6 +15,7 @@ Description: "A clinical condition, problem, diagnosis, or other event, situatio
 
 * severity 1..1
 * severity only SGHICodeableConcept
+* severity from SGHIConditionSeverity (required)
 
 * subject only SGHIReference
 * subject only Reference(SGHIPatient)
