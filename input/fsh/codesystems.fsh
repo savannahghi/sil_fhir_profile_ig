@@ -110,3 +110,17 @@ Description: "A single code system enumerating the many local identifier types u
 * #mild "Mild" "Mild"
 * #moderate "Moderate" "Moderate"
 * #severe "Severe" "Severe"
+
+CodeSystem: SGHIServiceRequestCS
+Id: sghi-service-request-cs
+Title: "SGHI Service Request CodeSystem"
+Description: "A custom CodeSystem defining different elements of service requests."
+* ^status = #active
+* ^version = "1.0"
+
+* #laboratory-procedure "Laboratory procedure"
+* #imaging "Imaging"
+* #counselling "Counselling"
+* #education "Education"
+* #surgical-procedure "Surgical procedure"
+* #referral "Referral"
