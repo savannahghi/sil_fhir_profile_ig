@@ -243,8 +243,7 @@ ValueSet: AllLoincCodes
 Id: all-loinc
 Title: "All LOINC Codes"
 Description: "All codes from LOINC"
-* ^status = #active
-* include codes from system http://loinc.org
+* include codes from system SGHILOINCCodeSystem
 
 ValueSet: ICD11Codes
 Id: ICD11Codes
