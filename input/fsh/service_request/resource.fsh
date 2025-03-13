@@ -19,14 +19,6 @@ Description: "ServiceRequest represents an order or proposal or plan, as disting
 
 * priority 1..1
 * code only SGHICodeableReference
-* orderDetail 1..*
-  * parameterFocus 1..1
-  * parameterFocus only SGHICodeableReference
-  * parameterFocus only CodeableReference(SGHIMedication or SGHIMedicationRequest)
-  * parameter 1..1
-    * code only SGHICodeableConcept
-    * value[x] 1..1
-    * valueCodeableConcept only SGHICodeableConcept
 * subject 1..1
 * subject only SGHIReference
 * subject only Reference(SGHIPatient)
