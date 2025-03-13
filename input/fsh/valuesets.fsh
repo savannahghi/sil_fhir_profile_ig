@@ -243,14 +243,15 @@ ValueSet: AllLoincCodes
 Id: all-loinc
 Title: "All LOINC Codes"
 Description: "All codes from LOINC"
-* include codes from system SGHILOINCCodeSystem
+* ^status = #active
+* include codes from system LOINC
 
 ValueSet: ICD11Codes
 Id: ICD11Codes
 Title: "All ICD-11 codes"
 Description: "All codes from ICD-11"
 * ^status = #active
-* include codes from system http://id.who.int/icd/release/11/mms
+* include codes from system ICD-11
 
 ValueSet: ICHICodes
 Id: ICHICodes
