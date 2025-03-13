@@ -124,3 +124,25 @@ Description: "A custom CodeSystem defining different elements of service request
 * #education "Education"
 * #surgical-procedure "Surgical procedure"
 * #referral "Referral"
+
+CodeSystem: SGHILOINCCodeSystem
+Id: sghi-loinc-codesystem
+Title: "SGHI LOINC Code System"
+Description: "A a subset of LOINC codes used across SGHI's environment."
+* ^status = #active
+* #39152-4 "Mammogram" "LOINC Code For Mammogram"
+* #100884-6 "Biopsy" "LOINC Code For Biospy"
+* #35954-7 "MRI" "LOINC Code For MRI"
+* #24629-8 "Chest Ultrasound" "LOINC Code for Chest Ultrasound"
+* #32422-8 "Breast Examination" "LOINC Code for Breast Examination"
+* #718-7 "Whole Blood" "LOINC Code for Whole Blood"
+* #2857-1 "Prostate Cancer" "LOINC Code For Prostate Cancer"
+* #86662-4 "PapSmear" "LOINC Code For Pap Smear"
+* #11506-3 "Provider Unspecified Progress Note" "LOINC Code For Unspecified Progress Note"
+* #81216-4 "Progress Note Code" "LOINC Code For Progress Note"
+* #51847-2 "Assessment Plan Code" "LOINC Code for Assessment Plan"
+* #10164-2 "History Of Presenting Illness" "LOINC Code For History Of Present Illness"
+* #29762-2  "Social History" "LOINC Code For Social History"
+* #10157-6  "Family History" "LOINC Code For Family History"
+* #29545-1  "Examination" "LOINC Code For Examination"
+* #18776-5  "Plan Of Care" "LOINC Code For Plan Of Care"

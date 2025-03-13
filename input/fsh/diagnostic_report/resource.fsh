@@ -12,6 +12,7 @@ Description: "SGHI's profile for DiagnosticReport"
 
 * code only SGHICodeableConcept
 
+
 * category 1..*
 * category only SGHICodeableConcept
 
