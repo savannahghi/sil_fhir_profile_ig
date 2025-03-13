@@ -135,12 +135,6 @@ Description:    "The outcome of the procedure - did it resolve the reasons for t
 * include #385671000 "Unsuccessful" from system SGHIIdentifierCodeSystem
 * include #385670004 "Partially successful" from system SGHIIdentifierCodeSystem
 
-ValueSet:       SGHIProcedureComplication
-Id:             sghi-procedure-complication
-Title:          "SGHI ProcedureComplication value set"
-Description:    "A value set for procedure complications, using LOINC codes."
-* include codes from system http://loinc.org where concept is-a #42216-2
-
 ValueSet:       SGHIProcedureFollowUpCodes
 Id:             sghi-procedure-follow-up-codes
 Title:          "SGHI Procedure follow up codes"
@@ -244,14 +238,14 @@ Id: all-loinc
 Title: "All LOINC Codes"
 Description: "All codes from LOINC"
 * ^status = #active
-* include codes from system LOINC
+* include codes from system http://loinc.org
 
 ValueSet: ICD11Codes
 Id: ICD11Codes
 Title: "All ICD-11 codes"
 Description: "All codes from ICD-11"
 * ^status = #active
-* include codes from system ICD-11
+* include codes from system http://id.who.int/icd/release/11/mms
 
 ValueSet: ICHICodes
 Id: ICHICodes
