@@ -101,12 +101,12 @@ Description: "Physical form of the location, e.g. building, room, vehicle, road,
 
 ValueSet: SGHIServiceRequestCategory
 Id: sghi-service-request-category
-Title: "SGHI Service Request Category"
-Description: "Set of concepts that can classify a requested service."
-* include #26436-6 "Laboratory studies (set)" from system SGHIIdentifierCodeSystem 
-* include #18748-4 "Diagnostic imaging study" from system SGHIIdentifierCodeSystem 
-* include #21938-6 "Surgical approach" from system SGHIIdentifierCodeSystem
-* include codes from system http://loinc.org
+Title: "Service Request Categories"
+Description: "A ValueSet categorizing different types of service requests."
+* ^status = #active
+* ^version = "1.0"
+
+* include codes from system SGHIServiceRequestCS
 
 ValueSet:       SGHIProcedureStatus
 Id:             procedure-status
