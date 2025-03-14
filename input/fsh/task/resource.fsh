@@ -60,7 +60,6 @@ Description: "SGHI's profile for Task"
 
 * partOf only SGHIReference
 * partOf only Reference(SGHITask)
-* businessStatus only SGHICodeableConcept
 
 Invariant: task-lastModified
 Description: "Last modified date must be greater than or equal to authored-on date"
