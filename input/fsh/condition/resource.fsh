@@ -15,7 +15,7 @@ Description: "A clinical condition, problem, diagnosis, or other event, situatio
 
 * severity 1..1
 * severity only SGHICodeableConcept
-* severity from SGHIConditionSeverity (preferred)
+* severity from SGHIConditionSeverity (required)
 
 * subject only SGHIReference
 * subject only Reference(SGHIPatient)
@@ -26,11 +26,11 @@ Description: "A clinical condition, problem, diagnosis, or other event, situatio
 
 * code 1..1
 * code only SGHICodeableConcept
-* code from http://id.who.int/icd/release/11/mms (preferred)
+* code from http://id.who.int/icd/release/11/mms (required)
 
 * bodySite only SGHICodeableConcept
-* bodySite from http://id.who.int/icd/release/11/mms (preferred)
-* bodySite.coding from http://id.who.int/icd/release/11/mms (preferred)
+* bodySite from http://id.who.int/icd/release/11/mms (required)
+* bodySite.coding from http://id.who.int/icd/release/11/mms (required)
 
 * recordedDate 1..1
 * onset[x] only dateTime
