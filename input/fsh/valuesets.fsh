@@ -259,6 +259,6 @@ Id: sghi-condition-severity
 Title: "sghi-condition-severity"
 Description: "Condition severity"
 * ^status = #active
-* include #mild "Mild"  from system SGHIIdentifierCodeSystem
-* include #severe "Severe"  from system SGHIIdentifierCodeSystem
-* include #moderate "Moderate"  from system SGHIIdentifierCodeSystem 
+* include #mild "Mild" from system SGHIIdentifierCodeSystem
+* include #severe "Severe" from system SGHIIdentifierCodeSystem
+* include #moderate "Moderate" from system SGHIIdentifierCodeSystem 
