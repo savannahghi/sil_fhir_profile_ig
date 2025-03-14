@@ -15,22 +15,22 @@ Description: "A clinical condition, problem, diagnosis, or other event, situatio
 
 * severity 1..1
 * severity only SGHICodeableConcept
-* severity from SGHIConditionSeverity (required)
+* severity from SGHIConditionSeverity (preferred)
 
 * subject only SGHIReference
 * subject only Reference(SGHIPatient)
 
-* encounter 1..1 
+* encounter 1..1
 * encounter only SGHIReference
 * encounter only Reference(SGHIEncounter)
 
 * code 1..1
 * code only SGHICodeableConcept
-* code from ICD11Codes (required)
+* code from http://id.who.int/icd/release/11/mms (preferred)
 
 * bodySite only SGHICodeableConcept
-* bodySite from ICD11Codes (required)
-* bodySite.coding from ICD11Codes (required)
+* bodySite from http://id.who.int/icd/release/11/mms (preferred)
+* bodySite.coding from http://id.who.int/icd/release/11/mms (preferred)
 
 * recordedDate 1..1
 * onset[x] only dateTime
