@@ -10,7 +10,6 @@ Description: "SGHI's profile for Task"
 * priority 1..1
 
 * authoredOn 1..1
-* lastModified 1..1
 
 * for 1..1
 * for only SGHIReference
