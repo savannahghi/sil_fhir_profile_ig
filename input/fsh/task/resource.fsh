@@ -10,7 +10,6 @@ Description: "SGHI's profile for Task"
 * priority 1..1
 
 * authoredOn 1..1
-* lastModified 1..1
 
 * for 1..1
 * for only SGHIReference
@@ -36,14 +35,6 @@ Description: "SGHI's profile for Task"
 * restriction 0..
   * recipient only SGHIReference
   * recipient only Reference(SGHIPatient)
-
-* input 1..*
-  * type 1..1
-  * type only SGHICodeableConcept
-  * value[x] 1..1
-  * valueCodeableConcept only SGHICodeableConcept
-  * valueCodeableReference only SGHICodeableReference
-  * valueDosage only SGHIDosage
 
 * output 1..*
   * type 1..1
