@@ -18,6 +18,7 @@ Description: "An example of a MedicationRequest resource conforming to the SGHI 
 * authoredOn = "2025-01-22"
 * requester = Reference(ExampleSGHIOrganization) 
 * recorder = Reference(ExampleSGHIPractitioner)
+  * display = "Dr. John Doe"
 * reason =  Reference(ExampleSGHICondition)
 * effectiveDosePeriod.start = "2025-01-22"
 * effectiveDosePeriod.end = "2025-02-01"
@@ -73,4 +74,3 @@ Description: "An example of a MedicationRequest resource conforming to the SGHI 
 * dosageInstruction[0].doseAndRate[0].rateRatio.denominator.unit = "hr"
 * dosageInstruction[0].doseAndRate[0].rateRatio.denominator.system = "http://unitsofmeasure.org"
 * dosageInstruction[0].doseAndRate[0].rateRatio.denominator.code = #h
-
