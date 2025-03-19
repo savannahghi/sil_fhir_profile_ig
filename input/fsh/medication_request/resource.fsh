@@ -39,11 +39,9 @@ Description: "An order or request for both supply of the medication and the inst
 * requester only SGHIReference
 * requester only Reference(SGHIPatient or SGHIOrganization)
 
-* recorder 1..1
 * recorder only SGHIReference
 * recorder only Reference(SGHIPractitioner or SGHIPractitionerRole)
 
-* reason 1..1
 * reason only SGHICodeableReference
 * reason only CodeableReference(SGHICondition or SGHIObservation)
 
