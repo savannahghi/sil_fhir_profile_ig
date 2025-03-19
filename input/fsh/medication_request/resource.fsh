@@ -20,7 +20,6 @@ Description: "An order or request for both supply of the medication and the inst
 * informationSource only SGHIReference
 * informationSource only Reference(SGHIPatient or SGHIOrganization)
 
-* category 1..*
 * category only SGHICodeableConcept
 
 * priority 1..1
