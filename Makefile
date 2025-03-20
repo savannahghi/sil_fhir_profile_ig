@@ -18,6 +18,7 @@ build:
 	sed -i.bak "s|https://fhir.slade360.co.ke/fhir|$(LOCAL_CANONICAL)|g" sushi-config.yaml
 	$(SUSHI_CMD) .
 	@echo "Local SUSHI build complete. Canonical set to $(LOCAL_CANONICAL)."
+	sed -i.bak "s|$(LOCAL_CANONICAL)|https://fhir.slade360.co.ke/fhir|g" sushi-config.yaml
 	rm -f sushi-config.yaml.bak
 
 .PHONY: ig
