@@ -160,3 +160,17 @@ Title: "ICD-11"
 Description: "ICD-11 code system from WHO"
 * ^status = #active
 * ^url = "http://id.who.int/icd/release/11/mms"
+
+
+CodeSystem: SGHISpecialtyCodeSystem
+Id: sghi-specialtycodesystem
+Title: "SGHI Specialty Code System"
+Description: "A Specialty Code System to be used in  SGHI's environment."
+* ^status = #active
+* #gp "General Practitioner" "A Specialties for primary healthcare and general medical services"
+* #pd "Pediatrician" "Specialized for child healthcare, vaccination programs, and neonatal care."
+* #obg "Obstetrician" "Specializes in maternal health, pregnancy care, and childbirth services."
+* #sr "Surgeon" "Specializes in general surgical procedures for trauma, emergencies, and routine operations."
+* #asth "Anesthesiologist" "Necessary for surgical support and pain management."
+* #rd "Radiologist" "Specializes in diagnostic imaging such as X-rays and ultrasounds."
+* #dt "Dentist" "Specialist in dental health."

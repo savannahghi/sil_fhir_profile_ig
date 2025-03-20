@@ -262,3 +262,10 @@ Description: "Condition severity"
 * include #mild "Mild" from system SGHIIdentifierCodeSystem
 * include #severe "Severe" from system SGHIIdentifierCodeSystem
 * include #moderate "Moderate" from system SGHIIdentifierCodeSystem 
+
+ValueSet: SGHISpecialtyVs
+Id: sghi-speciality
+Title: "sghi-speciality"
+Description: "Speciality"
+* ^status = #active
+* include codes from system SGHISpecialtyCodeSystem
