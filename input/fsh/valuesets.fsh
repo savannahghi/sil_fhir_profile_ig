@@ -238,6 +238,7 @@ Id: all-loinc
 Title: "All LOINC Codes"
 Description: "All codes from LOINC"
 * ^status = #active
+* ^url = "http://loinc.org/vs"
 * include codes from system http://loinc.org
 
 ValueSet: ICD11Codes
