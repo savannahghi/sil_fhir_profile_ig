@@ -147,13 +147,6 @@ Description: "A a subset of LOINC codes used across SGHI's environment."
 * #29545-1  "Examination" "LOINC Code For Examination"
 * #18776-5  "Plan Of Care" "LOINC Code For Plan Of Care"
 
-CodeSystem: LOINC
-Id: loinc
-Title: "LOINC"
-Description: "LOINC codes"
-* ^status = #active
-* ^url = "http://loinc.org"
-
 CodeSystem: ICD11
 Id: icd-11
 Title: "ICD-11"
