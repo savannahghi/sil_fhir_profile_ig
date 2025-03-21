@@ -10,4 +10,4 @@ https://www.who.int/standards/classifications/classification-of-diseases
 """
 * ^url = "http://id.who.int/icd/release/11/2025-01/mms"
 * ^status = #active
-* ^content = #notPresent
+* ^content = #not-present
