@@ -36,7 +36,7 @@ Description: "ServiceRequest represents an order or proposal or plan, as disting
 * reason 1..*
 * reason only SGHICodeableReference
 * reason only CodeableReference(SGHICondition or SGHIObservation or SGHIDiagnosticReport)
-* reason from AllLoincCodes
+* reason from http://loinc.org/vs (required)
 
 * performer 1..*
 * performer only SGHIReference

@@ -233,19 +233,12 @@ Description: "A ValueSet defining the possible routes of drug administration."
 
 * include codes from system https://ocl-testing-api.savannahghi.org/orgs/SIL/sources/KNC4Drugs/concepts/ where concept_class = "ROUTE"
 
-ValueSet: AllLoincCodes
-Id: all-loinc
-Title: "All LOINC Codes"
-Description: "All codes from LOINC"
-* ^status = #active
-* include codes from system http://loinc.org
-
 ValueSet: ICD11Codes
 Id: ICD11Codes
 Title: "All ICD-11 codes"
 Description: "All codes from ICD-11"
 * ^status = #active
-* include codes from system http://id.who.int/icd/release/11/mms
+* include codes from system http://id.who.int/icd/release/11/2025-01/mms
 
 ValueSet: ICHICodes
 Id: ICHICodes
