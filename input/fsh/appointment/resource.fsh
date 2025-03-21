@@ -8,6 +8,7 @@ Description: "A booking of a healthcare event among patient(s), practitioner(s),
   * insert CommonIdentifierRules
 
 * specialty 1..*
+* specialty from SGHISpecialtyVs (required)
 * specialty only SGHICodeableConcept
 
 * cancellationReason only SGHICodeableConcept
@@ -18,10 +19,13 @@ Description: "A booking of a healthcare event among patient(s), practitioner(s),
 * appointmentType only SGHICodeableConcept
 
 * priority only SGHICodeableConcept
+* priority 1..1
+
 * appointmentType 1..1
 
 * reason 1..*
 * reason only SGHICodeableReference
+
 * reason from AllLoincCodes (required)
 * reason only CodeableReference(SGHICondition or SGHIObservation)
 
@@ -34,7 +38,6 @@ Description: "A booking of a healthcare event among patient(s), practitioner(s),
 * originatingAppointment only SGHIReference
 * originatingAppointment only Reference(SGHIAppointment)
 
-* priority 1..1
 * start 1..1
 * end 0..1
 * created 1..1
@@ -46,11 +49,8 @@ Description: "A booking of a healthcare event among patient(s), practitioner(s),
 * participant 1..*
   * actor 1..1
   * actor only SGHIReference
-  * actor only Reference(SGHIPatient or SGHILocation)
-  * status 1..1
-  * type 1..1
+  * actor only Reference(SGHIPatient or SGHILocation or SGHIPractitionerRole)
   * type only SGHICodeableConcept
 
-* note 0..*
 * basedOn only SGHIReference
 * basedOn only Reference(SGHIServiceRequest or SGHIMedicationRequest)
