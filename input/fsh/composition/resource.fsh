@@ -9,11 +9,11 @@ and any other resources referenced from Composition must be included as subseque
 * identifier 1..*
   * insert CommonIdentifierRules
 * type only SGHICodeableConcept
-* type from AllLoincCodes
+* type from http://loinc.org/vs (required)
 
 * category only SGHICodeableConcept
 * category 0..*
-* category from AllLoincCodes (required)
+* category from http://loinc.org/vs (required)
 * subject 0..1
 
 * encounter 1..1

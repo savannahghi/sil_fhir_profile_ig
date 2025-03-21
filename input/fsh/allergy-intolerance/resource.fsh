@@ -40,9 +40,9 @@ Description: "Risk of harmful or undesirable physiological response which is spe
   * severity 1..1
   * manifestation only SGHICodeableReference
   * manifestation only CodeableReference(SGHIObservation)
-  * manifestation from AllLoincCodes
+  * manifestation from http://loinc.org/vs (required)
   * exposureRoute only SGHICodeableConcept
-  * exposureRoute from AllLoincCodes
+  * exposureRoute from http://loinc.org/vs (required)
     * coding from http://loinc.org/vs (required)
 
 * onset[x] only dateTime
