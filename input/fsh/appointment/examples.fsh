@@ -12,7 +12,7 @@ Usage: #example
 
 * status = #booked
 
-* specialty[0].coding[0].system = "http://snomed.info/sct"
+* specialty[0].coding[0].system = "http://loinc.org/"
 * specialty[0].coding[0] = #394814009 "General practice"
 
 * appointmentType.coding[0] = $v2-0276#ROUTINE "Routine appointment"
