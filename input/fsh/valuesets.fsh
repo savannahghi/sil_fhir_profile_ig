@@ -245,7 +245,7 @@ Id: ICHICodes
 Title: "All ICHI codes"
 Description: "All codes from ICHI"
 * ^status = #active
-* include codes from system http://id.who.int/ichi
+* include codes from system http://id.who.int/icd/release/11/beta/ichi
 
 ValueSet: SGHIConditionSeverity
 Id: sghi-condition-severity
