@@ -26,8 +26,8 @@ Description: "Measurements and simple assertions made about a patient, device or
 * performer only SGHIReference
 * performer only Reference(SGHIOrganization or SGHIPatient)
 
-* effective[x] only dateTime
-* effectiveDateTime 1..1
+* effective[x] only instant
+* effectiveInstant 1..1
 
 * issued 1..1
 * interpretation 0..*
