@@ -14,7 +14,7 @@ Description: "An example of an Observation resource conforming to the SGHI Obser
 * subject = Reference(ExampleSGHIPatient)
 * encounter = Reference(ExampleSGHIEncounter)
 * performer = Reference(ExampleSGHIOrganization)
-* effectiveDateTime = "2025-02-10T08:00:00Z"
+* effectiveInstant = "2025-02-10T08:00:00Z"
 * issued = "2025-02-10T08:00:00Z"
 * interpretation[0].coding[0].system = "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation"
 * interpretation[0].coding[0].code = #N
