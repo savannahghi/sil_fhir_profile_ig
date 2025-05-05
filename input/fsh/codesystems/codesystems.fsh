@@ -52,6 +52,15 @@ Description: "A single code system enumerating the many local identifier types u
 * #house "House" "A residential dwelling where a person/patient may reside."
 * #area "Area" "A defined physical boundary of something, such as a flood risk zone or region."
 * #virtual "Virtual" "A location that is virtual in nature, such as a conference call or virtual meeting space."
+* #vtmid "VTM ID" "dm+d identifier for a Virtual Therapeutic Moiety (VTM) concept."
+* #vtmidprev "Previous VTM ID" "Deprecated VTM identifier retained for traceability."
+* #isid "IS ID" "dm+d identifier for an Ingredient Substance (IS) concept."
+* #isidprev "Previous IS ID" "Deprecated IS identifier retained for traceability."
+* #vpid  "VP ID" "dm+d identifier for a Virtual Product (VP) concept."
+* #vpidprev "Previous VP ID" "Deprecated VP identifier retained for traceability."
+* #vppid "VPP ID" "dm+d identifier for a Virtual Product Pack (VPP)."
+* #apid "AP ID" "dm+d identifier for an Actual Medicinal Product (AMP)."
+* #appid "APP ID" "dm+d identifier for an Actual Product Pack (APP)."
 
 //Standard identifer types
 * #SLADEID "Universal System Identifier" "A unique identifier assigned by the system by default"
