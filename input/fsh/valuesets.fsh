@@ -1,6 +1,6 @@
 ValueSet: SGHIPatientIdentifierTypes
 Id: sghi-patient-identifier-types
-Title: "SGHI Identifier Types"
+Title: "SGHI Patient Identifier Types"
 Description: "Identifier types used  to identify patient in SGHI's systems"
 * ^status = #active
 * include #patient-number "Patient Number" from system SGHIIdentifierCodeSystem
@@ -22,11 +22,27 @@ Description: "Identifier types used  to identify patient in SGHI's systems"
 
 ValueSet: SGHIOrganizationIdentifierTypes
 Id: sghi-organization-identifier-types
-Title: "SGHI Identifier Types"
+Title: "SGHI Organization Identifier Types"
 Description: "Identifier types used  to identify patient in SGHI's systems"
 * include #mfl-code "Master Facility List Code"  from system SGHIIdentifierCodeSystem
 * include #facility-registry-id "Facility Registry ID"  from system SGHIIdentifierCodeSystem
 * include #slade-code "Slade360 Code" from system SGHIIdentifierCodeSystem
+
+ValueSet: SGHIDrugsIdentifierTypeVS
+Id: sghi-drugs-identifier-type-vs
+Title: "SGHI Drugs Identifier Types"
+Description: """ Identifier types used across dm+d hierarchy"""
+* ^status = #active
+* ^experimental = false
+* include SGHIIdentifierCodeSystem#vtmid
+* include SGHIIdentifierCodeSystem#vtmidprev
+* include SGHIIdentifierCodeSystem#isid
+* include SGHIIdentifierCodeSystem#isidprev
+* include SGHIIdentifierCodeSystem#vpid
+* include SGHIIdentifierCodeSystem#vpidprev
+* include SGHIIdentifierCodeSystem#vppid
+* include SGHIIdentifierCodeSystem#apid
+* include SGHIIdentifierCodeSystem#appid
 
 ValueSet: SGHIContactRelationship
 Id: sghi-contact-relationship
