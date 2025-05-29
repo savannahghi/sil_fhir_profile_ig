@@ -278,3 +278,14 @@ Title: "sghi-speciality"
 Description: "Speciality"
 * ^status = #active
 * include codes from system SGHISpecialtyCodeSystem
+
+
+ValueSet: SGHIEncounterClassVs
+Id: sghi-encounter-class
+Title: "Encounter Class Value Sets"
+* ^status = #active
+* include codes from system http://terminology.hl7.org/ValueSet/encounter-class
+* include #chemo from system SGHIIdentifierCodeSystem
+* include #surg from system SGHIIdentifierCodeSystem
+* include #radio from system SGHIIdentifierCodeSystem
+
