@@ -23,6 +23,22 @@ Description: "A single code system enumerating the many local identifier types u
 * #slade-health-id "Slade Health ID" "A unique health identifier assigned by Slade360 Health CRM for patient records."
 * #mfl-code "Master Facility List Code" "A unique identifier for each facility assigned by the Kenya Master Health Facility Registry under the Ministry of Health."
 * #facility-registry-id "Facility Registry ID" "A unique identifier for each facility assigned by the Kenya Master Facility List (MFL) registry."
+* #vtmid "VTM ID" "dm+d identifier for a Virtual Therapeutic Moiety (VTM) concept."
+* #vtmidprev "Previous VTM ID" "Deprecated VTM identifier retained for traceability."
+* #isid "IS ID" "dm+d identifier for an Ingredient Substance (IS) concept."
+* #isidprev "Previous IS ID" "Deprecated IS identifier retained for traceability."
+* #vpid  "VP ID" "dm+d identifier for a Virtual Product (VP) concept."
+* #vpidprev "Previous VP ID" "Deprecated VP identifier retained for traceability."
+* #vppid "VPP ID" "dm+d identifier for a Virtual Product Pack (VPP)."
+* #apid "AP ID" "dm+d identifier for an Actual Medicinal Product (AMP)."
+* #appid "APP ID" "dm+d identifier for an Actual Product Pack (APP)."
+* #dbid "DB ID" "dm+d identifier referencing the primary key stored in our database."
+* #slade-concept-code "Slade Concept Code" "A unique drug identifier assigned by slade 360."
+
+//Standard identifer types
+* #SLADEID "Universal System Identifier" "A unique identifier assigned by the system by default"
+
+
 * #stat "STAT" "A unique identifier assigned for highest priority cases (e.g., emergency)"
 * #asap "ASAP" "As soon as possible, next highest priority after STAT"
 * #routine "Routine" "Routine service, do at usual work hours"
@@ -52,18 +68,8 @@ Description: "A single code system enumerating the many local identifier types u
 * #house "House" "A residential dwelling where a person/patient may reside."
 * #area "Area" "A defined physical boundary of something, such as a flood risk zone or region."
 * #virtual "Virtual" "A location that is virtual in nature, such as a conference call or virtual meeting space."
-* #vtmid "VTM ID" "dm+d identifier for a Virtual Therapeutic Moiety (VTM) concept."
-* #vtmidprev "Previous VTM ID" "Deprecated VTM identifier retained for traceability."
-* #isid "IS ID" "dm+d identifier for an Ingredient Substance (IS) concept."
-* #isidprev "Previous IS ID" "Deprecated IS identifier retained for traceability."
-* #vpid  "VP ID" "dm+d identifier for a Virtual Product (VP) concept."
-* #vpidprev "Previous VP ID" "Deprecated VP identifier retained for traceability."
-* #vppid "VPP ID" "dm+d identifier for a Virtual Product Pack (VPP)."
-* #apid "AP ID" "dm+d identifier for an Actual Medicinal Product (AMP)."
-* #appid "APP ID" "dm+d identifier for an Actual Product Pack (APP)."
 
-//Standard identifer types
-* #SLADEID "Universal System Identifier" "A unique identifier assigned by the system by default"
+
 
 // Service Request Categories
 * #26436-6 "Laboratory studies (set)" "Laboratory studies (set)"
