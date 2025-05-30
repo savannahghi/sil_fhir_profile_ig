@@ -120,6 +120,12 @@ Description: "A single code system enumerating the many local identifier types u
 * #moderate "Moderate" "Moderate"
 * #severe "Severe" "Severe"
 
+// Encounter class
+* #chemo "Chemotherapy"
+* #surg "Surgery"
+* #radio "Radiotherapy"
+
+
 CodeSystem: SGHIServiceRequestCS
 Id: sghi-service-request-cs
 Title: "SGHI Service Request CodeSystem"
