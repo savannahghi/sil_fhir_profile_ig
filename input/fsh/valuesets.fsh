@@ -231,6 +231,11 @@ Id: sghi-method-value-set
 Title: "SGHI Method Value Set"
 Description: "Custom method value set"
 * include #APPLY "Apply"  from system SGHIIdentifierCodeSystem
+* include #INJECT "Inject" from system SGHIIdentifierCodeSystem
+* include #DIALYSIS "Dialysis" from system SGHIIdentifierCodeSystem
+* include #INSERT "Insert" from system SGHIIdentifierCodeSystem
+* include #IMPLANT "Implant" from system SGHIIdentifierCodeSystem
+* include #INFUSE "Infuse" from system SGHIIdentifierCodeSystem
 
 ValueSet: SGHIIdentifierTypes
 Id: sghi-identifier-types
@@ -248,6 +253,10 @@ Description: "A ValueSet defining the possible routes of drug administration."
 * ^experimental = false
 
 * include codes from system https://ocl-testing-api.savannahghi.org/orgs/SIL/sources/KNC4Drugs/concepts/ where concept_class = "ROUTE"
+* include #IV "Intravenous" from system SGHIIdentifierCodeSystem
+* include #IM "Intramuscular" from system SGHIIdentifierCodeSystem 
+* include #IT "Intrathecal" from system SGHIIdentifierCodeSystem 
+* include #PO "Oral" from system SGHIIdentifierCodeSystem 
 
 ValueSet: ICD11Codes
 Id: ICD11Codes
