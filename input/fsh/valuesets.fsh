@@ -28,8 +28,8 @@ Description: "Identifier types used  to identify patient in SGHI's systems"
 * include #facility-registry-id "Facility Registry ID"  from system SGHIIdentifierCodeSystem
 * include #slade-code "Slade360 Code" from system SGHIIdentifierCodeSystem
 
-ValueSet: SGHIDrugsIdentifierTypeVS
-Id: sghi-drugs-identifier-type-vs
+ValueSet: SGHIDrugsIdentifierType
+Id: sghi-drugs-identifier-type
 Title: "SGHI Drugs Identifier Types"
 Description: """ Identifier types used across dm+d hierarchy"""
 * ^status = #active
@@ -43,6 +43,8 @@ Description: """ Identifier types used across dm+d hierarchy"""
 * include SGHIIdentifierCodeSystem#vppid
 * include SGHIIdentifierCodeSystem#apid
 * include SGHIIdentifierCodeSystem#appid
+* include SGHIIdentifierCodeSystem#dbid
+* include SGHIIdentifierCodeSystem#slade-concept-code
 
 ValueSet: SGHIContactRelationship
 Id: sghi-contact-relationship
