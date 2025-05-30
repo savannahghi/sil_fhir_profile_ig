@@ -8,3 +8,4 @@ Description: "This resouce allows for the definition of some activity to be perf
   * insert CommonIdentifierRules
 * name 1..1
 * title 1..1
+* dosage only SGHIDosage

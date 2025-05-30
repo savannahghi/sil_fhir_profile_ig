@@ -114,6 +114,11 @@ Description: "A single code system enumerating the many local identifier types u
 
 // Method of application
 * #APPLY "Apply" "Apply"
+* #INJECT "Inject"
+* #DIALYSIS "Dialysis" 
+* #INSERT "Insert" 
+* #IMPLANT "Implant" 
+* #INFUSE "Infuse"
 
 // Condition severities
 * #mild "Mild" "Mild"
@@ -125,6 +130,52 @@ Description: "A single code system enumerating the many local identifier types u
 * #surg "Surgery"
 * #radio "Radiotherapy"
 
+// Route of Administration
+* #IV "Intravenous" 
+* #IM "Intramuscular"  
+* #IT "Intrathecal" 
+* #PO "Oral"
+
+// Molecular Markers
+* #BRAF "BRAF Mutation"
+* #KRAS "KRAS Mutation"
+* #NRAS "NRAS Mutation"
+* #EGFR "EGFR Mutation"
+* #ALK "ALK Rearrangement"
+* #HER2 "HER2 Amplification"
+* #PIK3CA "PIK3CA Mutation"
+* #TP53 "TP53 Mutation"
+* #MSI "Microsatellite Instability"
+* #PD-L1 "PD-L1 Expression"
+* #Other "Other"
+
+// Distance Metastatis 
+* #BONE "Bone"
+* #LIVER "Liver"
+* #LUNG "Lung"
+* #BRAIN "Brain"
+* #SKIN "Skin"
+* #DLN "Distant Lymph Nodes"
+
+// Grade 
+* #GradeI "Well Differentiated"
+* #GradeII "Moderately Differentiated"
+* #GradeIII "Poorly Differentiated"
+* #GradeIV "Undifferentiated/ Anaplastic"
+* #None "Not Graded"
+
+// Behaviour 
+* #Benign "Benign"
+* #Malignant "Malignant"
+* #InSitu "InSitu"
+* #Borderline "Borderline"
+* #Uncertain "Uncertain"
+
+// Hormone Receptor Status
+* #Positive "Positive"
+* #Negative "Negative"
+* #Equivocal "Equivocal"
+* #NotTested "Not Tested"
 
 CodeSystem: SGHIServiceRequestCS
 Id: sghi-service-request-cs
