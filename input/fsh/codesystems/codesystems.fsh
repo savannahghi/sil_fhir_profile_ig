@@ -183,6 +183,30 @@ Description: "A single code system enumerating the many local identifier types u
 * #Equivocal "Equivocal"
 * #NotTested "Not Tested"
 
+// Specimen Type
+* #CNB "Core Needle Biopsy" 
+* #Excision "Excision"
+* #FNA "Fine Needle Aspiration" 
+* #IB "Incisional Biopsy" 
+* #PB "Punch Biopsy" 
+* #SB "Shave Biopsy" 
+* #EB "Endoscopic Biopsy" 
+* #RAS "Resection Autopsy Specimen"
+
+// Type of Test
+* #Hematology "Hematology" 
+* #Cytology "Cytology"
+* #Histopathology "Histopathology" 
+* #ICH "Immunohistochemistry"
+* #FC "Flow Cytometry"
+* #Molecular "Molecular" 
+
+// Laterality
+* #Right "Right"
+* #Left "Left"
+* #Bilateral "Bilateral"
+* #Unknown "Unknown"
+
 CodeSystem: SGHIServiceRequestCS
 Id: sghi-service-request-cs
 Title: "SGHI Service Request CodeSystem"
