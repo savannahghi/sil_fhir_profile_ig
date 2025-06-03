@@ -228,16 +228,18 @@ Title: "SGHI Body Site Value Set"
 Description: "Custom body site value set"
 * include #111002 "Parathyroid gland"  from system SGHIIdentifierCodeSystem
 
-ValueSet: SGHIMethodValueSet
-Id: sghi-method-value-set
-Title: "SGHI Method Value Set"
-Description: "Custom method value set"
-* include #APPLY "Apply"  from system SGHIIdentifierCodeSystem
-* include #INJECT "Inject" from system SGHIIdentifierCodeSystem
-* include #DIALYSIS "Dialysis" from system SGHIIdentifierCodeSystem
-* include #INSERT "Insert" from system SGHIIdentifierCodeSystem
-* include #IMPLANT "Implant" from system SGHIIdentifierCodeSystem
-* include #INFUSE "Infuse" from system SGHIIdentifierCodeSystem
+ValueSet: SGHIMethodOfAdministration
+Id: sghi-method-of-administration
+Title: "SGHI Method Of Medication Administration"
+Description: "Custom methods of administering medication"
+* ^status = #active
+
+* include SGHIIdentifierCodeSystem#apply
+* include SGHIIdentifierCodeSystem#inject
+* include SGHIIdentifierCodeSystem#dialysis
+* include SGHIIdentifierCodeSystem#insert
+* include SGHIIdentifierCodeSystem#implant
+* include SGHIIdentifierCodeSystem#infuse
 
 ValueSet: SGHIIdentifierTypes
 Id: sghi-identifier-types
@@ -249,16 +251,12 @@ ValueSet: SGHIRouteOfAdministration
 Id: route-of-administration
 Title: "Route Of Administration"
 Description: "A ValueSet defining the possible routes of drug administration."
-* ^url = "https://ocl-testing-api.savannahghi.org/orgs/SIL/ValueSet/RouteOfAdministration"
-* ^version = "1.0.0"
 * ^status = #active
-* ^experimental = false
 
-* include codes from system https://ocl-testing-api.savannahghi.org/orgs/SIL/sources/KNC4Drugs/concepts/ where concept_class = "ROUTE"
-* include #IV "Intravenous" from system SGHIIdentifierCodeSystem
-* include #IM "Intramuscular" from system SGHIIdentifierCodeSystem 
-* include #IT "Intrathecal" from system SGHIIdentifierCodeSystem 
-* include #PO "Oral" from system SGHIIdentifierCodeSystem 
+* include SGHIIdentifierCodeSystem#iv
+* include SGHIIdentifierCodeSystem#im
+* include SGHIIdentifierCodeSystem#it
+* include SGHIIdentifierCodeSystem#ro
 
 ValueSet: ICD11Codes
 Id: ICD11Codes

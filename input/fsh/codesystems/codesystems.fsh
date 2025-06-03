@@ -119,12 +119,12 @@ Description: "A single code system enumerating the many local identifier types u
 * #111002 "Parathyroid gland" "Parathyroid gland"
 
 // Method of application
-* #APPLY "Apply" "Apply"
-* #INJECT "Inject"
-* #DIALYSIS "Dialysis" 
-* #INSERT "Insert" 
-* #IMPLANT "Implant" 
-* #INFUSE "Infuse"
+* #apply "Apply" "Apply"
+* #inject "Inject" "Inject"
+* #dialysis "Dialysis" "Dialysis"
+* #insert "Insert" "Insert"
+* #implant "Implant" "Implant"
+* #infuse "Infuse" "Infuse"
 
 // Condition severities
 * #mild "Mild" "Mild"
@@ -137,10 +137,10 @@ Description: "A single code system enumerating the many local identifier types u
 * #radio "Radiotherapy"
 
 // Route of Administration
-* #IV "Intravenous" 
-* #IM "Intramuscular"  
-* #IT "Intrathecal" 
-* #PO "Oral"
+* #iv "Intravenous" "Intravenous" 
+* #im "Intramuscular" "Intramuscular" 
+* #it "Intrathecal" "Intrathecal"
+* #ro "Oral" "Oral"
 
 // Molecular Markers
 * #BRAF "BRAF Mutation"
