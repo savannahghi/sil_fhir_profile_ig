@@ -45,7 +45,6 @@ Description: "An order or request for both supply of the medication and the inst
 * reason only SGHICodeableReference
 * reason only CodeableReference(SGHICondition or SGHIObservation)
 
-* effectiveDosePeriod 1..1
 * dosageInstruction 1..*
 * dosageInstruction only SGHIDosage
 
