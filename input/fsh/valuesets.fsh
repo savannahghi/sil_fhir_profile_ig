@@ -302,6 +302,7 @@ Title: "Encounter Class Value Sets"
 ValueSet: SGHISpecimenMolecularMarkersVs
 Id: sghi-molecular-Markers
 Title: "Molecular Markers Value Sets"
+Description: "Molecular Markers Value Sets"
 * ^status = #active
 * include SGHIIdentifierCodeSystem#braf "BRAF Mutation"
 * include SGHIIdentifierCodeSystem#kras "KRAS Mutation"
@@ -318,6 +319,7 @@ Title: "Molecular Markers Value Sets"
 ValueSet: SGHIDistanceMetastatisVs
 Id: sghi-distance-metastatis
 Title: "Distance Metastatis Value Sets"
+Description: "Distance Metastatis Value Sets"
 * ^status = #active
 * include SGHIIdentifierCodeSystem#bone "Bone"
 * include SGHIIdentifierCodeSystem#liver "Liver"
@@ -329,6 +331,7 @@ Title: "Distance Metastatis Value Sets"
 ValueSet: SGHIGradeVs
 Id: sghi-grade
 Title: "Grade Value Sets"
+Description: "Grade Value Sets"
 * ^status = #active
 * include SGHIIdentifierCodeSystem#gradeI "Well Differentiated"
 * include SGHIIdentifierCodeSystem#gradeII "Moderately Differentiated"
@@ -339,6 +342,7 @@ Title: "Grade Value Sets"
 ValueSet: SGHIBehaviourVs
 Id: sghi-behaviour
 Title: "Behaviour Value Sets"
+Description: "Behaviour Value Sets"
 * ^status = #active
 * include SGHIIdentifierCodeSystem#benign "Benign"
 * include SGHIIdentifierCodeSystem#malignant "Malignant"
@@ -350,6 +354,7 @@ Title: "Behaviour Value Sets"
 ValueSet: SGHIHormoneReceptorStatusVs
 Id: sghi-hormone-receptor-status
 Title: "Hormone Receptor Status"
+Description: "Hormone Receptor Status"
 * ^status = #active
 * include SGHIIdentifierCodeSystem#positive "Positive"
 * include SGHIIdentifierCodeSystem#negative "Negative"
@@ -358,7 +363,8 @@ Title: "Hormone Receptor Status"
 
 ValueSet: SGHITypeOfTestVs
 Id: sghi-typeoftest
-Title: "Specimen Type Value Sets"
+Title: "Type Of Test Value Sets"
+Description: "Type Of Test Value Sets"
 * ^status = #active
 * include SGHIIdentifierCodeSystem#hematology "Hematology" 
 * include SGHIIdentifierCodeSystem#cytology "Cytology"
@@ -371,6 +377,7 @@ Title: "Specimen Type Value Sets"
 ValueSet: SGHISpecimenTypeVs
 Id: sghi-specimentype
 Title: "Specimen Type Value Sets"
+Description: "Specimen Type Value Sets"
 * ^status = #active
 * include SGHIIdentifierCodeSystem#cnb "Core Needle Biopsy" 
 * include SGHIIdentifierCodeSystem#excision "Excision"
@@ -384,6 +391,7 @@ Title: "Specimen Type Value Sets"
 ValueSet: SGHILateralityVs
 Id: sghi-laterality
 Title: "Laterality Value Sets"
+Description: "Laterality Value Sets"
 * ^status = #active
 * include SGHIIdentifierCodeSystem#right "Right"
 * include SGHIIdentifierCodeSystem#left "Left"
