@@ -234,12 +234,12 @@ Title: "SGHI Method Of Medication Administration"
 Description: "Custom methods of administering medication"
 * ^status = #active
 
-* include SGHIIdentifierCodeSystem#apply
-* include SGHIIdentifierCodeSystem#inject
-* include SGHIIdentifierCodeSystem#dialysis
-* include SGHIIdentifierCodeSystem#insert
-* include SGHIIdentifierCodeSystem#implant
-* include SGHIIdentifierCodeSystem#infuse
+* SGHIIdentifierCodeSystem#apply "Apply"
+* SGHIIdentifierCodeSystem#inject "Inject"
+* SGHIIdentifierCodeSystem#dialysis "Dialysis"
+* SGHIIdentifierCodeSystem#insert "Insert"
+* SGHIIdentifierCodeSystem#implant "Implant"
+* SGHIIdentifierCodeSystem#infuse "Infuse"
 
 ValueSet: SGHIIdentifierTypes
 Id: sghi-identifier-types
@@ -253,10 +253,10 @@ Title: "Route Of Administration"
 Description: "A ValueSet defining the possible routes of drug administration."
 * ^status = #active
 
-* include SGHIIdentifierCodeSystem#iv
-* include SGHIIdentifierCodeSystem#im
-* include SGHIIdentifierCodeSystem#it
-* include SGHIIdentifierCodeSystem#ro
+* include SGHIIdentifierCodeSystem#iv "Intravenous"
+* include SGHIIdentifierCodeSystem#im "Intramuscular"
+* include SGHIIdentifierCodeSystem#it "Intrathecal"
+* include SGHIIdentifierCodeSystem#ro "Oral"
 
 ValueSet: ICD11Codes
 Id: ICD11Codes
