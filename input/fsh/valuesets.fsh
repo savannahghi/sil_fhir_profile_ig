@@ -294,7 +294,98 @@ Id: sghi-encounter-class
 Title: "Encounter Class Value Sets"
 * ^status = #active
 * include codes from system http://terminology.hl7.org/ValueSet/encounter-class
-* include #chemo from system SGHIIdentifierCodeSystem
-* include #surg from system SGHIIdentifierCodeSystem
-* include #radio from system SGHIIdentifierCodeSystem
+* include SGHIIdentifierCodeSystem#chemo "Chemotherapy"
+* include SGHIIdentifierCodeSystem#surg "Surgery"
+* include SGHIIdentifierCodeSystem#radio "Radiotherapy"
 
+
+ValueSet: SGHISpecimenMolecularMarkersVs
+Id: sghi-molecular-Markers
+Title: "Molecular Markers Value Sets"
+* ^status = #active
+* include SGHIIdentifierCodeSystem#braf "BRAF Mutation"
+* include SGHIIdentifierCodeSystem#kras "KRAS Mutation"
+* include SGHIIdentifierCodeSystem#nras "NRAS Mutation"
+* include SGHIIdentifierCodeSystem#egfr "EGFR Mutation"
+* include SGHIIdentifierCodeSystem#alk "ALK Rearrangement"
+* include SGHIIdentifierCodeSystem#her2 "HER2 Amplification"
+* include SGHIIdentifierCodeSystem#pik3ca "PIK3CA Mutation"
+* include SGHIIdentifierCodeSystem#pt53 "TP53 Mutation"
+* include SGHIIdentifierCodeSystem#msi "Microsatellite Instability"
+* include SGHIIdentifierCodeSystem#pdli "PD-L1 Expression"
+* include SGHIIdentifierCodeSystem#other "Other"
+
+ValueSet: SGHIDistanceMetastatisVs
+Id: sghi-distance-metastatis
+Title: "Distance Metastatis Value Sets"
+* ^status = #active
+* include SGHIIdentifierCodeSystem#bone "Bone"
+* include SGHIIdentifierCodeSystem#liver "Liver"
+* include SGHIIdentifierCodeSystem#lung "Lung"
+* include SGHIIdentifierCodeSystem#brain  "Brain"
+* include SGHIIdentifierCodeSystem#skin "Skin"
+* include SGHIIdentifierCodeSystem#dln "Distant Lymph Nodes"
+
+ValueSet: SGHIGradeVs
+Id: sghi-grade
+Title: "Grade Value Sets"
+* ^status = #active
+* include SGHIIdentifierCodeSystem#gradeI "Well Differentiated"
+* include SGHIIdentifierCodeSystem#gradeII "Moderately Differentiated"
+* include SGHIIdentifierCodeSystem#gradeIII "Poorly Differentiated"
+* include SGHIIdentifierCodeSystem#gradeIV "Undifferentiated / Anaplastic"
+* include SGHIIdentifierCodeSystem#none "Not Graded"
+
+ValueSet: SGHIBehaviourVs
+Id: sghi-behaviour
+Title: "Behaviour Value Sets"
+* ^status = #active
+* include SGHIIdentifierCodeSystem#benign "Benign"
+* include SGHIIdentifierCodeSystem#malignant "Malignant"
+* include SGHIIdentifierCodeSystem#insitu "In Situ"
+* include SGHIIdentifierCodeSystem#borderline "Borderline"
+* include SGHIIdentifierCodeSystem#uncertain "Uncertain"
+* include SGHIIdentifierCodeSystem#other "Other"
+
+ValueSet: SGHIHormoneReceptorStatusVs
+Id: sghi-hormone-receptor-status
+Title: "Hormone Receptor Status"
+* ^status = #active
+* include SGHIIdentifierCodeSystem#positive "Positive"
+* include SGHIIdentifierCodeSystem#negative "Negative"
+* include SGHIIdentifierCodeSystem#equivocal  "Equivocal"
+* include SGHIIdentifierCodeSystem#nottested "Not Tested"
+
+ValueSet: SGHITypeOfTestVs
+Id: sghi-typeoftest
+Title: "Specimen Type Value Sets"
+* ^status = #active
+* include SGHIIdentifierCodeSystem#hematology "Hematology" 
+* include SGHIIdentifierCodeSystem#cytology "Cytology"
+* include SGHIIdentifierCodeSystem#histopathology "Histopathology" 
+* include SGHIIdentifierCodeSystem#ich "Immunohistochemistry"
+* include SGHIIdentifierCodeSystem#fc "Flow Cytometry"
+* include SGHIIdentifierCodeSystem#molecular "Molecular" 
+* include SGHIIdentifierCodeSystem#other "Other"
+
+ValueSet: SGHISpecimenTypeVs
+Id: sghi-specimentype
+Title: "Specimen Type Value Sets"
+* ^status = #active
+* include SGHIIdentifierCodeSystem#cnb "Core Needle Biopsy" 
+* include SGHIIdentifierCodeSystem#excision "Excision"
+* include SGHIIdentifierCodeSystem#fna "Fine Needle Aspiration" 
+* include SGHIIdentifierCodeSystem#ib "Incisional Biopsy" 
+* include SGHIIdentifierCodeSystem#pb "Punch Biopsy" 
+* include SGHIIdentifierCodeSystem#sb "Shave Biopsy" 
+* include SGHIIdentifierCodeSystem#eb "Endoscopic Biopsy" 
+* include SGHIIdentifierCodeSystem#ras "Resection Autopsy Specimen"
+
+ValueSet: SGHILateralityVs
+Id: sghi-laterality
+Title: "Laterality Value Sets"
+* ^status = #active
+* include SGHIIdentifierCodeSystem#right "Right"
+* include SGHIIdentifierCodeSystem#left "Left"
+* include SGHIIdentifierCodeSystem#bilateral "Bilateral"
+* include SGHIIdentifierCodeSystem#unknown "Unknown"

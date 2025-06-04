@@ -15,7 +15,11 @@ Description: "A sample to be used for analysis."
 * role 1..
 * role only SGHICodeableConcept
 * collection 1..1
-* collection.collector 1..1
 * collection.collector only SGHIReference
 * collection.collector only Reference(SGHIPractitioner)
 * collection.collected[x] 1..1
+* processing 1..1
+* processing.method 1..1
+* processing.method only SGHICodeableConcept
+* processing.method from SGHISpecimenTypeVs
+* processing.additive only SGHIReference

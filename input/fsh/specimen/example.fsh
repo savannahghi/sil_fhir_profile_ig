@@ -25,4 +25,6 @@ Description: "An example of Specimen resource that conforms to SGHI Specimen pro
 * role.coding[0].display = "Electronic QC"
 * collection.collectedDateTime = "2025-01-01T10:30:00Z"
 
-* collection.collector = Reference(ExampleSGHIPractitioner)
+* processing.method.coding.code = #cnb
+* processing.method.coding.display = "Core Needle Biopsy"
+* processing.method.coding.system = "http://hl7.org/fhir/specimen-role"
