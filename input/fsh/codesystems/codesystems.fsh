@@ -206,6 +206,12 @@ Description: "A single code system enumerating the many local identifier types u
 * #bilateral "Bilateral"
 * #unknown "Unknown"
 
+// Cancer Stages
+* #stag1 "Stage 1"
+* #stage2 "Stage 2"
+* #stage3 "Stage 3"
+* #stage4 "Stage 4"
+
 CodeSystem: SGHIServiceRequestCS
 Id: sghi-service-request-cs
 Title: "SGHI Service Request CodeSystem"
