@@ -338,6 +338,7 @@ Description: "Grade Value Sets"
 * include SGHIIdentifierCodeSystem#gradeIII "Poorly Differentiated"
 * include SGHIIdentifierCodeSystem#gradeIV "Undifferentiated / Anaplastic"
 * include SGHIIdentifierCodeSystem#none "Not Graded"
+* include codes from system http://loinc.org
 
 ValueSet: SGHIBehaviourVs
 Id: sghi-behaviour
@@ -408,3 +409,11 @@ Description: "Cancer Stages Value Sets"
 * include SGHIIdentifierCodeSystem#stage2 "Stage 2"
 * include SGHIIdentifierCodeSystem#stage3 "Stage 3"
 * include SGHIIdentifierCodeSystem#stage4 "Stage 4"
+
+
+ValueSet: SGHIDefaultCodeVs
+Id: sghi-default-code
+Title: "SGHI Default Code Value Sets"
+Description: "SGHI Default Code Value Sets"
+* ^status = #active
+* include SGHIIdentifierCodeSystem#sghidefaultcode "SGHI Default Code"
