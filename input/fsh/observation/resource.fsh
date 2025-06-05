@@ -13,6 +13,7 @@ Description: "Measurements and simple assertions made about a patient, device or
 
 * code 1..1
 * code only SGHICodeableConcept
+* code from SGHIGradeVs
 
 * subject 1..1
 * subject only SGHIReference
