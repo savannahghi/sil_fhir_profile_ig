@@ -181,6 +181,7 @@ Title: "SGHI Medication Codes"
 Description: "ValueSet containing SGHI medication codes"
 * ^status = #active
 * include codes from system https://ocl-testing-api.savannahghi.org/fhir/CodeSystem/KNC4Drugs 
+* include SGHIIdentifierCodeSystem#sghidefaultcode "SGHI Default Code"
 
 ValueSet: SGHIInvestigationCodes
 Id: sghi-investigation-codes
@@ -194,7 +195,11 @@ Id: sghi-medication-form-codes
 Title: "SGHI Medication Form Codes"
 Description: "ValueSet containing SGHI medication form codes"
 * ^status = #active
-* include codes from system https://ocl-testing-api.savannahghi.org/fhir/ValueSet/DoseForm 
+* include codes from system https://ocl-testing-api.savannahghi.org/fhir/ValueSet/DoseForm
+* include SGHIIdentifierCodeSystem#powder "Powder"
+* include SGHIIdentifierCodeSystem#tablets "Tablets"
+* include SGHIIdentifierCodeSystem#capsule "Capsule"
+* include SGHIIdentifierCodeSystem#vials "Vials"
 
 ValueSet: SGHISubstanceCodes
 Id: sghi-substance-codes
@@ -406,7 +411,7 @@ Id: sghi-cancer-stages
 Title: "Cancer Stages Value Sets"
 Description: "Cancer Stages Value Sets"
 * ^status = #active
-* include SGHIIdentifierCodeSystem#stag1 "Stage 1"
+* include SGHIIdentifierCodeSystem#stage1 "Stage 1"
 * include SGHIIdentifierCodeSystem#stage2 "Stage 2"
 * include SGHIIdentifierCodeSystem#stage3 "Stage 3"
 * include SGHIIdentifierCodeSystem#stage4 "Stage 4"

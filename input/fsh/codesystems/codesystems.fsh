@@ -207,13 +207,18 @@ Description: "A single code system enumerating the many local identifier types u
 * #unknown "Unknown"
 
 // Cancer Stages
-* #stag1 "Stage 1"
+* #stage1 "Stage 1"
 * #stage2 "Stage 2"
 * #stage3 "Stage 3"
 * #stage4 "Stage 4"
 
 // Default Code!!!
 * #sghidefaultcode "SGHI Default Code"
+
+* #powder "Powder"
+* #tablets "Tablets"
+* #capsule "Capsule"
+* #vials "Vials"
 
 CodeSystem: SGHIServiceRequestCS
 Id: sghi-service-request-cs

@@ -17,7 +17,7 @@ Description: "SGHI's Medication profile for Medication resource"
 * marketingAuthorizationHolder only SGHIReference
 * marketingAuthorizationHolder only Reference(SGHIOrganization)
 
-* ingredient 1..*
+* ingredient 0..*
   * item 1..1
   * item only SGHICodeableReference
   * item only CodeableReference(SGHIMedication or SGHISubstance)
