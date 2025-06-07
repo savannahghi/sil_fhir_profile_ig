@@ -19,6 +19,7 @@ Description: "Identifier types used  to identify patient in SGHI's systems"
 * include #mandate-number "Mandate Number" from system SGHIIdentifierCodeSystem 
 * include #client-registry-number "Client Registry Number" from system SGHIIdentifierCodeSystem 
 * include #slade-health-id "Slade Health ID" from system SGHIIdentifierCodeSystem
+* include #SLADEID "Universal System Identifier" from system SGHIIdentifierCodeSystem
 
 ValueSet: SGHIOrganizationIdentifierTypes
 Id: sghi-organization-identifier-types
@@ -27,6 +28,7 @@ Description: "Identifier types used  to identify patient in SGHI's systems"
 * include #mfl-code "Master Facility List Code"  from system SGHIIdentifierCodeSystem
 * include #facility-registry-id "Facility Registry ID"  from system SGHIIdentifierCodeSystem
 * include #slade-code "Slade360 Code" from system SGHIIdentifierCodeSystem
+* include #SLADEID "Universal System Identifier" from system SGHIIdentifierCodeSystem
 
 ValueSet: SGHIDrugsIdentifierType
 Id: sghi-drugs-identifier-type
