@@ -218,7 +218,10 @@ Description: "A single code system enumerating the many local identifier types u
 * #powder "Powder"
 * #tablets "Tablets"
 * #capsule "Capsule"
-* #vials "Vials"
+* #solution "Solution"
+* #lozenge "Lozenge"
+* #suspension "Suspension"
+* #syrup "Syrup"
 
 CodeSystem: SGHIServiceRequestCS
 Id: sghi-service-request-cs

@@ -201,7 +201,10 @@ Description: "ValueSet containing SGHI medication form codes"
 * include SGHIIdentifierCodeSystem#powder "Powder"
 * include SGHIIdentifierCodeSystem#tablets "Tablets"
 * include SGHIIdentifierCodeSystem#capsule "Capsule"
-* include SGHIIdentifierCodeSystem#vials "Vials"
+* include SGHIIdentifierCodeSystem#solution "Solution"
+* include SGHIIdentifierCodeSystem#lozenge "Lozenge"
+* include SGHIIdentifierCodeSystem#suspension "Suspension"
+* include SGHIIdentifierCodeSystem#syrup "Syrup"
 
 ValueSet: SGHISubstanceCodes
 Id: sghi-substance-codes
