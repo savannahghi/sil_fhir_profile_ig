@@ -1,0 +1,40 @@
+{
+    "resourceType": "Parameters",
+    "parameter": [
+        {
+            "name": "source",
+            "valueUri": "http://hl7.org/fhir/uv/xver/StructureMap/Patient4to5"
+        },
+        {
+            "name": "resource",
+            "resource": {
+                "resourceType": "Patient",
+                "id": "6284cd94-d331-41b9-85bb-dfaec5a88d73",
+                "language": "en",
+                "active": true,
+                "name": [
+                    {
+                        "use": "official",
+                        "family": "Lydia",
+                        "given": [
+                            "Namee"
+                        ],
+                        "text": "LYDIA, NAMEE"
+                    }
+                ],
+                "telecom": [
+                    {
+                        "system": "phone",
+                        "value": "+254114761997",
+                        "use": "home",
+                        "rank": 2
+                    }
+                ],
+                "birthDate": "1999-12-25",
+                "maritalStatus": {
+                    "text": "unknown"
+                }
+            }
+        }
+    ]
+}
