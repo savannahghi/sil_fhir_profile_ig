@@ -342,6 +342,7 @@ Description: "Grade Value Sets"
 * include SGHIIdentifierCodeSystem#gradeIII "Poorly Differentiated"
 * include SGHIIdentifierCodeSystem#gradeIV "Undifferentiated / Anaplastic"
 * include SGHIIdentifierCodeSystem#none "Not Graded"
+* include codes from system http://loinc.org
 
 ValueSet: SGHIBehaviourVs
 Id: sghi-behaviour
