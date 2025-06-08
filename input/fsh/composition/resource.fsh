@@ -9,11 +9,11 @@ and any other resources referenced from Composition must be included as subseque
 * identifier 1..*
   * insert CommonIdentifierRules
 * type only SGHICodeableConcept
-* type from http://hl7.org/fhir/ValueSet/doc-typecodes (required)
+* type from http://hl7.org/fhir/ValueSet/doc-typecodes (extensible)
 
 * category only SGHICodeableConcept
 * category 0..*
-* category from http://hl7.org/fhir/ValueSet/referenced-item-category (required)
+* category from http://hl7.org/fhir/ValueSet/referenced-item-category (extensible)
 * subject 0..1
 
 * encounter 1..1
