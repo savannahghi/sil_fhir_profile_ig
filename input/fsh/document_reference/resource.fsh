@@ -16,7 +16,7 @@ Description: "A reference to a document of any kind for any purpose."
 
 * type only SGHICodeableConcept
 * type 1..1
-* type from http://loinc.org/vs (required)
+* type from http://loinc.org (required)
 
 * category only SGHICodeableConcept
 
@@ -31,7 +31,7 @@ Description: "A reference to a document of any kind for any purpose."
 * event only SGHICodeableReference
 
 * bodySite only SGHICodeableReference
-* bodySite from http://loinc.org/vs (required)
+* bodySite from http://loinc.org (required)
 
 
 * facilityType only SGHICodeableConcept
