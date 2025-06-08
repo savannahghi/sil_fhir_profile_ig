@@ -37,8 +37,6 @@ Description: "SGHI's profile for Task"
   * recipient only Reference(SGHIPatient)
 
 * input 0..*
-  * type 1..1
-  * type only SGHICodeableConcept
   * value[x] 1..1
   * valueCodeableConcept only SGHICodeableConcept
   * valueCodeableReference only SGHICodeableReference
