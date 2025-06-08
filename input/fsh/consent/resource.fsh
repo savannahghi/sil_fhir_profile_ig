@@ -51,7 +51,7 @@ Description: "A record of a healthcare consumer’s choices or choices made on t
     * role only SGHICodeableConcept
   * action only SGHICodeableConcept
   * code only SGHICodeableConcept
-  * code from http://loinc.org (required)
+  * code from http://hl7.org/fhir/ValueSet/consent-content-code (required)
   * data 0..
     * reference only SGHIReference
 

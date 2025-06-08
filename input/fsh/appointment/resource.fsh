@@ -13,7 +13,7 @@ Description: "A booking of a healthcare event among patient(s), practitioner(s),
 
 * cancellationReason only SGHICodeableConcept
 * class only SGHICodeableConcept
-* class from http://loinc.org (required)
+* class from AllLoincCodes (required)
 
 * serviceCategory only SGHICodeableConcept
 * appointmentType only SGHICodeableConcept
@@ -26,7 +26,7 @@ Description: "A booking of a healthcare event among patient(s), practitioner(s),
 * reason 1..*
 * reason only SGHICodeableReference
 
-* reason from http://loinc.org (required)
+* reason from AllLoincCodes (required)
 * reason only CodeableReference(SGHICondition or SGHIObservation)
 
 * replaces only SGHIReference
