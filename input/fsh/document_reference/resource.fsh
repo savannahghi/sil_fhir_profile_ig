@@ -16,7 +16,7 @@ Description: "A reference to a document of any kind for any purpose."
 
 * type only SGHICodeableConcept
 * type 1..1
-* type from http://loinc.org (required)
+* type from http://hl7.org/fhir/ValueSet/doc-typecodes (required)
 
 * category only SGHICodeableConcept
 
@@ -31,7 +31,7 @@ Description: "A reference to a document of any kind for any purpose."
 * event only SGHICodeableReference
 
 * bodySite only SGHICodeableReference
-* bodySite from http://loinc.org (required)
+* bodySite from AllLoincCodes (required)
 
 
 * facilityType only SGHICodeableConcept

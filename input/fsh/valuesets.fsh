@@ -96,15 +96,17 @@ ValueSet: SGHIContactPointUse
 Id: sghi-contact-point-use
 Title: "SGHI Contact Point Use"
 Description: "Code used to indicate contact use"
-* include #work "Work" from system SGHIIdentifierCodeSystem
-* include #mobile "Mobile" from system SGHIIdentifierCodeSystem
+* ^status = #active
+* include http://hl7.org/fhir/ValueSet/contact-point-use#work
+* include http://hl7.org/fhir/ValueSet/contact-point-use#mobile
 
 ValueSet: SGHIContactSystem
 Id: sghi-contact-system
 Title: "SGHI Contact System"
 Description: "Code used to indicate what communications system is required to make use of the contact."
-* include #phone "Phone" from system SGHIIdentifierCodeSystem
-* include #email "Email" from system SGHIIdentifierCodeSystem
+* ^status = #active
+* include http://hl7.org/fhir/ValueSet/contact-point-system#phone
+* include http://hl7.org/fhir/ValueSet/contact-point-system#email
 
 ValueSet: SGHILocationForm
 Id: sghi-location-form
@@ -421,3 +423,10 @@ Title: "SGHI Default Code Value Sets"
 Description: "SGHI Default Code Value Sets"
 * ^status = #active
 * include SGHIIdentifierCodeSystem#sghidefaultcode "SGHI Default Code"
+
+ValueSet: AllLoincCodes
+Id: all-loinc-codes
+Title: "All LOINC Codes"
+Description: "A ValueSet that includes all codes from the LOINC code system."
+* ^status = #active
+* include codes from system http://loinc.org
