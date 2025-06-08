@@ -1,0 +1,56 @@
+{
+    "resourceType": "Parameters",
+    "parameter": [
+        {
+            "name": "source",
+            "valueUri": "http://hl7.org/fhir/uv/xver/StructureMap/Patient4to5"
+        },
+        {
+            "name": "resource",
+            "resource": {
+                "resourceType": "Patient",
+                "id": "6284cd94-d331-41b9-85bb-dfaec5a88d73",
+                "meta": {
+                    "lastUpdated": "2023-06-05T08:38:08.889312+00:00",
+                    "versionId": "MTY4NTk1NDI4ODg4OTMxMjAwMA"
+                },
+                "language": "en",
+                "active": true,
+                "name": [
+                    {
+                        "use": "official",
+                        "family": "Lydia",
+                        "given": [
+                            "Namee"
+                        ],
+                        "text": "LYDIA, NAMEE"
+                    }
+                ],
+                "telecom": [
+                    {
+                        "system": "phone",
+                        "value": "+254114761997",
+                        "use": "home",
+                        "rank": 2
+                    }
+                ],
+                "birthDate": "1999-12-25",
+                "maritalStatus": {
+                    "text": "unknown"
+                },
+                "identifier": [
+                    {
+                        "use": "official",
+                        "system": "healthcloud.identifiers",
+                        "value": "chupts4nbr5ob6smhfdg"
+                    },
+                    {
+                        "use": "official",
+                        "system": "healthcloud.identifiers",
+                        "value": "chupts4nbr5ob6smhfe0"
+                    }
+                ]
+            }
+        }
+    ]
+}
