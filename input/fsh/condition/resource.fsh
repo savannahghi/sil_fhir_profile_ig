@@ -31,7 +31,6 @@ Description: "A clinical condition, problem, diagnosis, or other event, situatio
 
 * bodySite only SGHICodeableConcept
 * bodySite from ICD11Codes (required)
-* bodySite.coding from ICD11Codes (required)
 
 * recordedDate 1..1
 * onset[x] only dateTime
