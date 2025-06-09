@@ -8,7 +8,7 @@ Description: "SGHI's Medication profile for Medication resource"
 
 * code 1..1
 * code only SGHICodeableConcept
-* code from SGHIMedicationCodes (required)
+* code from SGHIRouteOfAdministration (required)
 * status 1..1
 
 * doseForm from SGHIMedicationFormCodes (required)
