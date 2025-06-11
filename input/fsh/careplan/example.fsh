@@ -18,6 +18,6 @@ Description: "SGHI CarePlan demonstration."
 * subject = Reference(ExampleSGHIPatient)
 * custodian = Reference(ExampleSGHIOrganization)
 * created = "2025-06-03T14:30:00Z"
-* activity.performedActivity = Reference(ExampleSGHTask)
+* activity.performedActivity = Reference(ExampleSGHITask)
 * note.authorReference = Reference(ExampleSGHIOrganization)
 * note.text = "Example Note"

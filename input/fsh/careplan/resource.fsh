@@ -20,5 +20,5 @@ Description: "A profile on the R5 CarePlan resource to represent a patient's tre
 * activity 1..* MS
 * activity.performedActivity 1..* MS
 * activity.performedActivity only SGHICodeableReference
-* activity.performedActivity only Reference(SGHITask)
+* activity.performedActivity only CodeableReference(SGHITask)
 * note.authorReference only Reference(SGHIOrganization or SGHIPractitioner)

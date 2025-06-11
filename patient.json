@@ -1,0 +1,130 @@
+{
+    "active": true,
+    "birthDate": "1997-02-20",
+    "gender": "female",
+    "id": "b6fbdd67-d193-426a-aac7-71be69426da7",
+    "identifier": [
+        {
+            "period": {
+                "end": "2125-08-10T12:21:19+12:00",
+                "start": "2025-05-26T12:21:19+12:00"
+            },
+            "system": "healthcloud.iddocument",
+            "type": {
+                "coding": [
+                    {
+                        "code": "36529736",
+                        "display": "36529736",
+                        "system": "NATIONAL_ID",
+                        "userSelected": true,
+                        "version": "0.0.1"
+                    }
+                ],
+                "text": "36529736"
+            },
+            "use": "official",
+            "value": "36529736"
+        },
+        {
+            "period": {
+                "end": "2125-08-10T12:21:19+12:00",
+                "start": "2025-05-26T12:21:19+12:00"
+            },
+            "system": "healthcloud.iddocument",
+            "type": {
+                "coding": [
+                    {
+                        "system": "HEALTH_ID",
+                        "userSelected": true,
+                        "version": "0.0.1"
+                    }
+                ]
+            },
+            "use": "official"
+        },
+        {
+            "period": {
+                "end": "2125-08-10T12:21:19+12:00",
+                "start": "2025-05-26T12:21:19+12:00"
+            },
+            "system": "healthcloud.msisdn",
+            "type": {
+                "coding": [
+                    {
+                        "code": "+254790862998",
+                        "display": "+254790862998",
+                        "system": "healthcloud.iddocument",
+                        "userSelected": true,
+                        "version": "0.0.1"
+                    }
+                ],
+                "text": "+254790862998"
+            },
+            "use": "official",
+            "value": "+254790862998"
+        }
+    ],
+    "language": "EN",
+    "managingOrganization": {
+        "display": "Meru",
+        "id": "98497ada-88de-476e-96d9-6477e100636e",
+        "reference": "Organization/98497ada-88de-476e-96d9-6477e100636e",
+        "type": "Organization"
+    },
+    "maritalStatus": {
+        "coding": [
+            {
+                "display": "unknown",
+                "userSelected": true
+            }
+        ],
+        "text": "unknown"
+    },
+    "meta": {
+        "lastUpdated": "2025-05-26T12:21:20.578516+00:00",
+        "tag": [
+            {
+                "code": "85e4b0d3-1d69-47ba-b265-579d125f18e5",
+                "display": "Oregon Health Services",
+                "system": "http://mycarehub/tenant-identification/organisation",
+                "userSelected": false,
+                "version": "1.0"
+            },
+            {
+                "code": "98497ada-88de-476e-96d9-6477e100636e",
+                "display": "Meru",
+                "system": "http://mycarehub/tenant-identification/facility",
+                "userSelected": false,
+                "version": "1.0"
+            }
+        ],
+        "versionId": "MTc0ODI2MjA4MDU3ODUxNjAwMA"
+    },
+    "name": [
+        {
+            "family": "Abwao",
+            "given": [
+                "Lorraine"
+            ],
+            "period": {
+                "end": "2125-08-10T12:21:19+12:00",
+                "start": "2025-05-26T12:21:19+12:00"
+            },
+            "text": "Abwao, Lorraine Rose",
+            "use": "official"
+        }
+    ],
+    "resourceType": "Patient",
+    "telecom": [
+        {
+            "period": {
+                "end": "2125-08-10T12:21:19+12:00",
+                "start": "2025-05-26T12:21:19+12:00"
+            },
+            "rank": 2,
+            "system": "phone",
+            "use": "home",
+            "value": "+254790862998"
+        }
+    ]
+}

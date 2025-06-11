@@ -1,0 +1,91 @@
+/// url    = "https://fhir.slade360.co.ke/fhir/StructureMap/Patient4toSGHI5"
+/// name   = "Patient4toSGHI5"
+/// title  = "Patient Transforms: R4 → SGHI R5"
+/// status = "active"
+
+uses "http://hl7.org/fhir/4.0/StructureDefinition/Patient"                 alias PatientR4   as source
+uses "https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-patient"   alias SGHIPatient as target
+uses "https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-human-name"      alias SGHIHumanName      as produced
+uses "https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-contact-point"   alias SGHIContactPoint   as produced
+uses "https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-codeableconcept" alias SGHICodeableConcept as produced
+uses "https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-reference"       alias SGHIReference      as produced
+
+imports "http://hl7.org/fhir/StructureMap/*4to5"
+
+group SGHIPatient(source src : PatientR4, target tgt : SGHIPatient) extends DomainResource <<type+>> {
+  src.text                 -> tgt.text;
+  src.identifier as s      -> tgt.identifier as t then PatientIdentifier(s,t);
+  src.active               -> tgt.active;
+  src.name first as s      -> tgt.name as t then SGHIHumanNameMap(s,t);
+  src.telecom as s         -> tgt.telecom as t then SGHIContactPointMap(s,t);
+  src.gender as v          -> tgt.gender = translate(v,"http://hl7.org/fhir/uv/xver/ConceptMap/pat.gender-4to5","code") "map-gender";
+  src.birthDate            -> tgt.birthDate;
+  src.deceased : boolean   -> tgt.deceased "deceasedBoolean";
+  src.deceased : dateTime  -> tgt.deceased "deceasedDateTime";
+  src.multipleBirth : boolean -> tgt.multipleBirth "multipleBirthBoolean";
+  src.multipleBirth : integer -> tgt.multipleBirth "multipleBirthInteger";
+  src.address              -> tgt.address;
+  src.maritalStatus        -> tgt.maritalStatus;
+  src.photo                -> tgt.photo;
+  src.contact as s         -> tgt.contact as t then SGHIPatientContact(s,t);
+  src.communication as s   -> tgt.communication as t then PatientCommunication(s,t);
+  src.managingOrganization -> tgt.managingOrganization;
+  src.generalPractitioner  -> tgt.generalPractitioner;
+  src.link as s            -> tgt.link as t then SGHIPatientLink(s,t);
+}
+
+group PatientIdentifier(source src, target tgt) extends Identifier {
+  src.use    -> tgt.use;
+  src.value  -> tgt.value;
+  src.period -> tgt.period;
+
+  src -> tgt.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/sghi-identifier-codesystem' "SetFixedIdentifierSystem";
+
+  src -> tgt.assigner as t_assigner then {
+    src -> t_assigner.reference = "Organization/f291945a-af90-4c7b-bccb-ef0808e3e03e" "SetAssignerReference";
+    src -> t_assigner.display = "Default Assigning Authority" "SetAssignerDisplay";
+  } "CreateDefaultAssigner";
+}
+
+group SGHIHumanNameMap(source src, target tgt) extends HumanName {
+  src.use      -> tgt.use;
+  src.text     -> tgt.text;
+  src.family   -> tgt.family;
+  src.given    -> tgt.given;
+  src.prefix   -> tgt.prefix;
+  src.suffix   -> tgt.suffix;
+  src.period   -> tgt.period;
+}
+
+group SGHIContactPointMap(source src, target tgt) extends ContactPoint {
+  src.system -> tgt.system;
+  src.value  -> tgt.value;
+  src.use    -> tgt.use;
+  src.rank   -> tgt.rank;
+  src.period -> tgt.period;
+}
+
+group SGHICodeableConceptCopy(source src, target tgt) extends CodeableConcept {
+  src.coding -> tgt.coding;
+  src.text   -> tgt.text;
+}
+
+group SGHIPatientContact(source src, target tgt) extends BackboneElement {
+  src.relationship as r -> tgt.relationship as t then SGHICodeableConceptCopy(r,t);
+  src.name as n         -> tgt.name as tn   then SGHIHumanNameMap(n,tn);
+  src.telecom first as c-> tgt.telecom as tc then SGHIContactPointMap(c,tc);
+  src.address            -> tgt.address;
+  src.gender as v        -> tgt.gender = translate(v,"http://hl7.org/fhir/uv/xver/ConceptMap/pat.co.gender-4to5","code") "map-contact-gender";
+  src.organization       -> tgt.organization;
+  src.period             -> tgt.period;
+}
+
+group PatientCommunication(source src, target tgt) extends BackboneElement {
+  src.language  -> tgt.language;
+  src.preferred -> tgt.preferred;
+}
+
+group SGHIPatientLink(source src, target tgt) extends BackboneElement {
+  src.other -> tgt.other;
+  src.type as v -> tgt.type = translate(v,"http://hl7.org/fhir/uv/xver/ConceptMap/pat.li.type-4to5","code") "map-link-type";
+}
