@@ -60,6 +60,7 @@ jobs:
               RESOURCE_ID=$(jq -r '.id' "$file")
 
               if [ "$RESOURCE_TYPE" = "StructureDefinition" ] || \
+                [ "$RESOURCE_TYPE" = "ConceptMap" ] || \
                 [ "$RESOURCE_TYPE" = "ValueSet" ] || \
                 [ "$RESOURCE_TYPE" = "CodeSystem" ]; then
 
