@@ -271,3 +271,11 @@ Description: "A Specialty Code System to be used in  SGHI's environment."
 * #anaesthesiologist "Anesthesiologist" "Necessary for surgical support and pain management."
 * #radiologist "Radiologist" "Specializes in diagnostic imaging such as X-rays and ultrasounds."
 * #dentist "Dentist" "Specialist in dental health."
+
+CodeSystem: LegacyIdentifierTypes
+Id: legacy-identifier-types
+Title: "Legacy Identifier Types (Deprecated)"
+Description: "Obsolete identifier-type codes encountered in R4 data."
+* ^status = #retired
+* #HEALTH_ID "Health ID"
+* #NATIONAL_ID "National ID"
