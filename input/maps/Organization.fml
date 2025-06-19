@@ -1,0 +1,62 @@
+/// url    = "https://fhir.slade360.co.ke/fhir/StructureMap/Organization4toSGHI5"
+/// name   = "Organization4toSGHI5"
+/// title  = "Organization Transforms: R4 → SGHI R5"
+/// status = "active"
+
+uses "http://hl7.org/fhir/4.0/StructureDefinition/Organization"                 alias OrganizationR4   as source
+uses "https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-organization"   alias SGHIOrganization as target
+
+imports "http://hl7.org/fhir/StructureMap/*4to5"
+
+
+group SGHIOrganization(source src : OrganizationR4, target tgt : SGHIOrganization) extends DomainResource <<type+>> {
+  src.text                 -> tgt.text;
+  src.identifier as s where s.system = 'SladeCode' and s.value.exists() -> tgt.identifier as t then {
+    s.use    -> t.use    "copy-use";
+    s.value  -> t.value  "copy-value";
+    s.period -> t.period "copy-period";
+
+    s.type as st -> t.type as tt then {
+      st.coding as sc where(sc.system = 'SladeCode') -> tt.coding = create('CodeableConcept') as tc, tc.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/sghi-identifier-codesystem', tc.code = 'slade-code', tc.display = 'Slade360 Code';
+    };
+
+    s -> t.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/sghi-identifier-codesystem' "SetFixedIdentifierSystem";
+  } "process-one-identifier";
+
+  src.identifier as s_id -> tgt.identifier as t_id then {
+    s_id.use -> t_id.use "copy-use";
+    src.id as uuid -> t_id.value = uuid;
+    s_id.period -> t_id.period;
+    
+    s_id.type as st -> t_id.type as tt then {
+      st.coding -> tt.coding = create('CodeableConcept') as tt, tt.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/sghi-identifier-codesystem', tt.code = 'fhir-id', tt.display = 'FHIR Id';
+    };
+
+    s_id -> t_id.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/sghi-identifier-codesystem' "SetFixedIdentifierSystem";
+  } "create the default FHIR ID identifier type";
+
+  src.active               -> tgt.active;
+  src.name                 -> tgt.name;
+
+  src -> tgt.contact = create('ExtendedContactDetail') as t_contact then {
+    src.telecom as s_contact -> t_contact.telecom as t_contact then SGHIContactPointMap(s_contact, t_contact) "set-contact";
+  } "create-contact";
+
+
+  src -> tgt.text = create('Narrative') as tgt_n then {
+    src -> tgt_n.status = 'generated' "set-text-status";
+    src -> tgt_n.div = '<div xmlns="http://www.w3.org/1999/xhtml"><h1>Generated text</h1></div>' "set-text-div";
+  } "create-hardcoded-text";
+
+  src -> tgt.meta = create('Meta') as tm then {
+    src -> tm.profile = 'https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-organization' "set-profile-in-meta";
+  }  "create-hardcoded-profile";
+}
+
+group SGHIContactPointMap(source src, target tgt) extends ContactPoint {
+  src.system -> tgt.system;
+  src.value  -> tgt.value;
+  src.use    -> tgt.use;
+  src.rank   -> tgt.rank;
+  src.period -> tgt.period;
+}
