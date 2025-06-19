@@ -3,32 +3,33 @@ Id: sghi-patient-identifier-types
 Title: "SGHI Patient Identifier Types"
 Description: "Identifier types used  to identify patient in SGHI's systems"
 * ^status = #active
-* include #patient-number "Patient Number" from system SGHIIdentifierCodeSystem
-* include #national-id "National ID" from system SGHIIdentifierCodeSystem
-* include #passport-number "Passport Number" from system SGHIIdentifierCodeSystem                    
-* include #military-id "Military ID" from system SGHIIdentifierCodeSystem       
-* include #alien-id "Alien ID" from system SGHIIdentifierCodeSystem 
-* include #nhif-id "National Hospital Insurance Fund ID"  from system SGHIIdentifierCodeSystem
-* include #smart-member-number "Smart Member Number" from system SGHIIdentifierCodeSystem 
-* include #drchrono-id "Dr Chrono Chart ID" from system SGHIIdentifierCodeSystem 
-* include #fhir-patient-id "FHIR Patient ID" from system SGHIIdentifierCodeSystem 
-* include #erp-customer-id "ERP Customer ID" from system SGHIIdentifierCodeSystem 
-* include #ccc-number "Comprehensive Care Clinic Number" from system SGHIIdentifierCodeSystem 
-* include #refugee-id "Refugee ID" from system SGHIIdentifierCodeSystem 
-* include #birth-certificate "Birth Certificate Number" from system SGHIIdentifierCodeSystem 
-* include #mandate-number "Mandate Number" from system SGHIIdentifierCodeSystem 
-* include #client-registry-number "Client Registry Number" from system SGHIIdentifierCodeSystem 
-* include #slade-health-id "Slade Health ID" from system SGHIIdentifierCodeSystem
-* include #SLADEID "Universal System Identifier" from system SGHIIdentifierCodeSystem
+* include SGHIIdentifierCodeSystem#patient-number
+* include SGHIIdentifierCodeSystem#national-id
+* include SGHIIdentifierCodeSystem#passport-number                     
+* include SGHIIdentifierCodeSystem#military-id       
+* include SGHIIdentifierCodeSystem#alien-id 
+* include SGHIIdentifierCodeSystem#nhif-id 
+* include SGHIIdentifierCodeSystem#smart-member-number  
+* include SGHIIdentifierCodeSystem#drchrono-id 
+* include SGHIIdentifierCodeSystem#fhir-patient-id  
+* include SGHIIdentifierCodeSystem#erp-customer-id 
+* include SGHIIdentifierCodeSystem#ccc-number 
+* include SGHIIdentifierCodeSystem#refugee-id 
+* include SGHIIdentifierCodeSystem#birth-certificate 
+* include SGHIIdentifierCodeSystem#mandate-number 
+* include SGHIIdentifierCodeSystem#client-registry-number
+* include SGHIIdentifierCodeSystem#slade-health-id 
+* include SGHIIdentifierCodeSystem#SLADEID 
 
 ValueSet: SGHIOrganizationIdentifierTypes
 Id: sghi-organization-identifier-types
 Title: "SGHI Organization Identifier Types"
 Description: "Identifier types used  to identify patient in SGHI's systems"
-* include #mfl-code "Master Facility List Code"  from system SGHIIdentifierCodeSystem
-* include #facility-registry-id "Facility Registry ID"  from system SGHIIdentifierCodeSystem
-* include #slade-code "Slade360 Code" from system SGHIIdentifierCodeSystem
-* include #SLADEID "Universal System Identifier" from system SGHIIdentifierCodeSystem
+* include SGHIIdentifierCodeSystem#mfl-code 
+* include SGHIIdentifierCodeSystem#facility-registry-id 
+* include SGHIIdentifierCodeSystem#slade-code 
+* include SGHIIdentifierCodeSystem#SLADEID
+* include SGHIIdentifierCodeSystem#fhir-id
 
 ValueSet: SGHIDrugsIdentifierType
 Id: sghi-drugs-identifier-type
@@ -63,10 +64,10 @@ ValueSet: SGHIActPriority
 Id: sghi-encounter-act-priority
 Title: "SGHI Encounter Priority"
 Description: "Urgency of an encounter"
-* include #stat "stat" from system SGHIIdentifierCodeSystem
-* include #asap "asap" from system SGHIIdentifierCodeSystem
-* include #preop "preop" from system SGHIIdentifierCodeSystem
-* include #elective "routine" from system SGHIIdentifierCodeSystem
+* include SGHIIdentifierCodeSystem#stat 
+* include SGHIIdentifierCodeSystem#asap
+* include SGHIIdentifierCodeSystem#preop 
+* include SGHIIdentifierCodeSystem#elective
 
 ValueSet: SGHIDiagnosticConclusionICD11
 Id: sghi-diagnostic-conclusion-icd11
@@ -250,7 +251,8 @@ ValueSet: SGHIIdentifierTypes
 Id: sghi-identifier-types
 Title: "SGHI Standard Identifier Types"
 Description: "Standard identifier types used in SGHI's systems"
-* include #SLADEID "Universal System Identifier" from system SGHIIdentifierCodeSystem
+* include SGHIIdentifierCodeSystem#SLADEID "Universal System Identifier"
+* include SGHIIdentifierCodeSystem#fhir-id "FHIR Id"
 
 ValueSet: SGHIRouteOfAdministration
 Id: route-of-administration
