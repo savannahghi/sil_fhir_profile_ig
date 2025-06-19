@@ -279,3 +279,19 @@ Description: "Obsolete identifier-type codes encountered in R4 data."
 * ^status = #retired
 * #HEALTH_ID "Health ID"
 * #NATIONAL_ID "National ID"
+
+CodeSystem: RetiredCIELCodes
+Id: retired-ciel-codes
+Title: "Retired CIEL Codes"
+Description: "A collection of CIEL codes formerly in use for clinical observations."
+
+* #5089 "Weight (kg)"
+* #5086 "Diastolic blood pressure"
+* #5085 "Systolic blood pressure"
+* #5087 "Pulse"
+* #1342 "Body mass index"
+* #5090 "Height (cm)"
+* #1343 "Mid-upper arm circumference"
+* #5088 "Temperature (C)"
+* #5092 "Arterial blood oxygen saturation (pulse oximeter)"
+* #5242 "Respiratory rate"
