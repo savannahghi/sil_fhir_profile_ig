@@ -13,6 +13,7 @@ Description: "A single code system enumerating the many local identifier types u
 * #smart-member-number "Smart Member Number" "A unique health identifier assigned by Slade360."
 * #drchrono-id "Dr Chrono Chart ID" "A unique identifier assigned by the Dr. Chrono healthcare platform for patient records."
 * #fhir-patient-id "FHIR Patient ID" "A clinical identifier assigned by the Clinical Data Repository (CDR) for FHIR-based patient records."
+* #fhir-id "FHIR Id" "Is a UUID that uniquely identifiers all FHIR resources in SGHI."
 * #erp-customer-id "ERP Customer ID" "A unique patient identifier assigned by Slade360 ERP system."
 * #ccc-number "Comprehensive Care Clinic Number" "A unique identifier assigned by HIV/AIDS treatment programs."
 * #refugee-id "Refugee ID" "A unique identifier assigned by the Refugee Affairs Secretariat (RAS) under the Ministry of Interior, in collaboration with UNHCR."
