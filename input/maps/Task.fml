@@ -1,0 +1,106 @@
+/// url    = "https://fhir.slade360.co.ke/fhir/StructureMap/Task4toSGHI5"
+/// name   = "Task4toSGHI5"
+/// title  = "Task Transforms: R4 → SGHI R5"
+/// status = "active"
+
+uses "http://hl7.org/fhir/4.0/StructureDefinition/Task"                 alias TaskR4   as source
+uses "https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-task"   alias SGHITask as target
+
+
+imports "http://hl7.org/fhir/StructureMap/*4to5"
+
+group SGHITask(source src : TaskR4, target tgt : SGHITask) extends DomainResource <<type+>> {
+  src.id -> tgt.id;
+  src.active               -> tgt.active = true;
+  src.language -> tgt.language;
+
+  src -> tgt.text = create('Narrative') as tgt_n then {
+    src -> tgt_n.status = 'generated' "set-text-status";
+    src -> tgt_n.div = '<div xmlns="http://www.w3.org/1999/xhtml"><h1>Generated text</h1></div>' "set-text-div";
+  } "create-hardcoded-text";
+
+  // Create identifier
+  src as sc where identifier.exists().not() -> tgt.identifier = create("Identifier") as tt_id then {
+    src.id as uuid -> tt_id.value = uuid "creating id";
+    src -> tt_id.use = "official" "creating use";
+    src -> tt_id.type as ty then {
+      src -> ty.coding = create('CodeableConcept') as ty_c then {
+        src -> ty_c.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/sghi-identifier-codesystem' "creating coding";
+        src -> ty_c.code = 'fhir-id' "creating code";
+        src -> ty_c.display = 'FHIR Id' "creating display";
+      } "creating identifier type"; 
+      src -> tt_id.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/sghi-identifier-codesystem' "creating system";
+      src.owner as sp -> tt_id.assigner = create('Reference') as t_assigner then {
+        sp.reference -> t_assigner.reference;
+        sp where sp.display.exists().not() -> t_assigner.display = 'Unknown display' "setting default display";
+        sp.display -> t_assigner.display;
+      };
+    } "creating identifier type";
+  } "creating identifier"; 
+  
+  src.meta as s_meta -> tgt.meta as t_meta then {
+    s_meta.lastUpdated -> t_meta.lastUpdated;
+    s_meta.language -> t_meta.language;
+    s_meta.tags -> t_meta.tags;
+    src.meta where profile.exists().not() -> t_meta.profile =  'https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-task' "set-profile-in-meta";
+  } "set profile in meta";
+
+  src.status -> tgt.status;
+
+  src.period -> tgt.period;
+
+  src as sb where businessStatus.exists() -> tgt.businessStatus as tb then {
+    sb.text -> tb.text;
+  } "mapping business status";
+
+  src.basedOn as sb -> tgt.basedOn as tb then TransformReference(sb, tb);
+ 
+  src.authoredOn -> tgt.authoredOn;
+  
+  src.encounter as se -> tgt.encounter as te then TransformReference(se, te);
+
+  src.executionPeriod as sp -> tgt.executionPeriod as tp then TransformPeriod(sp, tp);
+  
+  src.focus as sf -> tgt.focus as tf then TransformReference(sf, tf);
+
+  src.for as sf -> tgt.for as tf then TransformReference(sf, tf);
+
+  src.intent -> tgt.intent;
+
+  src.owner as so -> tgt.owner as to then TransformReference(so, to);
+
+  src.priority -> tgt.priority;
+
+  src.requester as sr -> tgt.requester as tr then TransformReference(sr, tr);
+
+  src where requestedPerformer.exists().not() -> tgt.requestedPerformer = create('CodeableReference') as to then {
+    src.owner as so -> to.reference as to then TransformReference(so, to);
+  } "creating requested performer";
+
+  src where businessStatus.exists().not() -> tgt.businessStatus = create('CodeableConcept') as tb then {
+    src.basedOn first as st then {
+      st.type as text -> tb.text = text;
+    };
+  } "creating business status";
+
+  src.businessStatus as st -> tgt.businessStatus as ts then {
+    st.text -> ts.text;
+  };
+}
+
+group TransformAssigner(source src, target tgt) <<types>> {
+  src.reference -> tgt.reference;
+  src.display -> tgt.display;
+}
+
+group TransformPeriod(source src, target tgt) <<types>> {
+  src.start -> tgt.start;
+  src.end -> tgt.end;
+}
+
+group TransformReference(source src, target tgt) <<types>> {
+  src.id -> tgt.id;
+  src.reference -> tgt.reference;
+  src.display -> tgt.display;
+  src where display.exists().not() -> tgt.display = 'Unknown display' "setting display";
+}
