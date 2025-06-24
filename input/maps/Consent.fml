@@ -1,0 +1,145 @@
+/// url    = "https://fhir.slade360.co.ke/fhir/StructureMap/ConsenttoSGHI5"
+/// name   = "ConsenttoSGHI5"
+/// title  = "Consent Transforms: R4 → SGHI R5"
+/// status = "active"
+
+uses "http://hl7.org/fhir/4.0/StructureDefinition/Consent"                 alias ConsentR4   as source
+uses "https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-consent"   alias SGHIConsent as target
+
+
+imports "http://hl7.org/fhir/StructureMap/*4to5"
+
+group SGHIConsent(source src : ConsentR4, target tgt : SGHIConsent) extends DomainResource <<type+>> {
+  src.id -> tgt.id;
+  src.active               -> tgt.active = true;
+  src.language -> tgt.language;
+
+  src where text.exists().not() -> tgt.text = create('Narrative') as tgt_n then {
+    src -> tgt_n.status = 'generated' "set-text-status";
+    src -> tgt_n.div = '<div xmlns="http://www.w3.org/1999/xhtml"><h1>Generated text</h1></div>' "set-text-div";
+  } "create-hardcoded-text";
+
+  src.text as st -> tgt.text as tt then {
+    st.status -> tt.status;
+    st.div -> tt.div;
+  };
+
+  // Create identifier
+  src as sc where identifier.exists().not() -> tgt.identifier = create("Identifier") as tt_id then {
+    src.id as uuid -> tt_id.value = uuid "creating id";
+    src -> tt_id.use = "official" "creating use";
+    src -> tt_id.type as ty then {
+      src -> ty.coding = create('CodeableConcept') as ty_c then {
+        src -> ty_c.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/sghi-identifier-codesystem' "creating coding";
+        src -> ty_c.code = 'fhir-id' "creating code";
+        src -> ty_c.display = 'FHIR Id' "creating display";
+      } "creating identifier type";
+
+      src -> tt_id.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/sghi-identifier-codesystem' "creating system";
+
+      // creating identifier assigner
+      src.meta as sm then {
+        sm.tag first as sm -> tt_id.assigner = create('Reference') as t_assigner then TransformAssigner(sm, t_assigner); 
+      } "setting owner";
+    } "setting identifier type";
+  }  "setting identifier";
+
+  src.meta as s_meta -> tgt.meta as t_meta then {
+    s_meta.lastUpdated -> t_meta.lastUpdated;
+    s_meta.language -> t_meta.language;
+    s_meta.tags -> t_meta.tags;
+    src.meta where profile.exists().not() -> t_meta.profile =  'https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-consent' "set-profile-in-meta";
+  } "set profile in meta";
+
+  src.status -> tgt.status;
+
+  src.category as sc -> tgt.category as tc then TransformCoding(sc, tc);
+
+  // Patient has been translated to subject in R5
+  src.patient as sp -> tgt.subject as tp then TransformReference(sp, tp);
+
+  src.dateTime -> tgt.date;
+
+  src.provision as spr -> tgt.provision as tpr then {
+    spr.data as sd -> tpr.data as td then {
+      sd.meaning -> td.meaning;
+      sd.reference as sf -> td.reference as tf then TransformReference(sf, tf);
+    };
+  };
+
+  // Performer has been translated to grantee in R5
+  // Handles cases where performer exists in legacy R4 data
+  src.performer as sp where performer.exists() -> tgt.grantee as tp then TransformReference(sp, tp);
+
+  // Handles cases where performer does not exists in legacy R4 data
+  src where performer.exists().not() then {
+    src.patient as sp -> tgt.grantee as tp then TransformReference(sp, tp);
+    src.patient as sp -> tgt.grantor as tp then TransformReference(sp, tp);
+  } "populating grantee with patient details";
+ 
+  // handles cases where organization exists in legacy R4 data
+  src.organization as so where organization.exists() -> tgt.manager as tm then TransformReference(so, tm);
+  src.organization as so where organization.exists() -> tgt.controller as tm then TransformReference(so, tm);
+
+  // handles cases where organization does not exists in legacy R4 data
+  src where organization.exists().not() then {
+    src.meta as sm then {
+      sm.tag first as st -> tgt.manager as tp then TransformAssigner(st, tp);
+      sm.tag first as st -> tgt.controller as tp then TransformAssigner(st, tp);
+    };
+  } "setting manager and controller";
+
+  // Policyrule has been translated to regulatoryBasis in R4
+  src.policyRule as sr where text.exists() -> tgt.regulatoryBasis = create('CodeableConcept') as tr then {
+    sr.text -> tr.text;
+    src -> tr.coding = create('Coding') as tcc, tcc.system = 'https://hl7.org/fhir/R4/codesystem-consent-policy.html', tcc.code = 'cric', tcc.display = 'Common Rule Informed Consent' "setting coding";
+  } "setting rule policy";
+  
+  src  where verification.exists().not() -> tgt.verification = create('BackboneElement') as tb then {
+    src -> tb.verified = true "setting verified status";
+    src -> tb.verificationDate = '2025-06-16' "setting verification date";
+    src.meta as sm then {
+      sm.tag last as st -> tb.verifiedBy = create('Reference') as tf then {
+        st.code as org -> tf.reference = append("Organization/", org);
+        st.display -> tf.display;
+        st.display where display.exists().not() -> tf.display = 'Unknown display';
+        st.code -> tf.id;
+      } "setting verified by";
+    }"setting verify by";
+
+    src.patient as sp -> tb.verifiedWith = create('Reference') as trf then TransformReference(sp, trf) "setting reference";
+  }"setting verification";
+
+  src.category as sc -> tgt.category as tc then {
+    sc.text -> tc.text;
+    sc.coding as scc -> tc.coding as tcc then TransformCoding(scc, tcc);
+  };
+
+  src.provision as sp then {
+    sp.type -> tgt.decision;
+  };
+
+  src.dateTime as sdt where dateTime.exists() -> tgt.date = sdt;
+  src -> tgt.date = '2025-06-16' "setting consent date";
+}
+
+group TransformAssigner(source src, target tgt) <<types>> {
+  src.code as code -> tgt.reference = append("Organization/", code);
+  src where display.exists().not() -> tgt.display = 'Unknown display' "setting default display";
+  src.display -> tgt.display;
+  src.code -> tgt.id;
+}
+
+group TransformReference(source src, target tgt) <<types>> {
+  src.id -> tgt.id;
+  src.reference -> tgt.reference;
+  src.display -> tgt.display;
+  src where display.exists().not() -> tgt.display = 'Unknown display' "setting display";
+}
+
+
+group TransformCoding(source src, target tgt) <<types>> {
+  src.system -> tgt.system;
+  src.code -> tgt.code;
+  src.display -> tgt.display;
+}
