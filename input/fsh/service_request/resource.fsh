@@ -16,9 +16,13 @@ Description: "ServiceRequest represents an order or proposal or plan, as disting
 * category 1..*
 * category only SGHICodeableConcept
 * category from SGHIServiceRequestCategory
+* category from SGHIServiceRequestVs (required)
 
 * priority 1..1
+
 * code only SGHICodeableReference
+* code from AllLoincCodes (required)
+
 * subject 1..1
 * subject only SGHIReference
 * subject only Reference(SGHIPatient)
