@@ -1,0 +1,114 @@
+/// url    = "https://fhir.slade360.co.ke/fhir/StructureMap/ServiceRequestSGHI5"
+/// name   = "ServiceRequestSGHI5"
+/// title  = "ServiceRequest Transforms: R4 → SGHI R5"
+/// status = "active"
+
+uses "http://hl7.org/fhir/4.0/StructureDefinition/ServiceRequest"                 alias ServiceRequestR4   as source
+uses "https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-servicerequest"   alias SGHIServiceRequest as target
+
+
+// Removed the default transformations to allow text to be mapped correctly according to R5.
+// imports "http://hl7.org/fhir/StructureMap/*4to5"
+
+group SGHIServiceRequest(source src : ServiceRequestR4, target tgt : SGHIServiceRequest) <<type+>> {
+  src.id as uuid -> tgt.id = uuid;
+  src.active               -> tgt.active = true;
+  src.language as sl -> tgt.language = sl;
+  src.authoredOn as sa -> tgt.authoredOn = sa;
+
+  src where text.exists().not() -> tgt.text = create('Narrative') as tgt_n then {
+    src -> tgt_n.status = 'generated' "set-text-status";
+    src -> tgt_n.div = '<div xmlns="http://www.w3.org/1999/xhtml"><h1>Generated text</h1></div>' "set-text-div";
+  } "create-hardcoded-text";  
+
+  src -> tgt.text = create('Narrative') as ttt then {
+    src.text as st then {
+      st.status as s -> ttt.status = s;
+      st.div as d -> ttt.div = ('<div xmlns="http://www.w3.org/1999/xhtml"><p>' + d + '</p></div>') "wrap-text-in-html";
+    };
+  } "setting text";
+
+  // Create identifier
+  src as sc where identifier.exists().not() -> tgt.identifier = create("Identifier") as tt_id then {
+    src.id as uuid -> tt_id.value = uuid "creating id";
+    src -> tt_id.use = "official" "creating use";
+    src -> tt_id.type as ty then {
+      src -> ty.coding = create('CodeableConcept') as ty_c then {
+        src -> ty_c.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/sghi-identifier-codesystem' "creating coding";
+        src -> ty_c.code = 'fhir-id' "creating code";
+        src -> ty_c.display = 'FHIR Id' "creating display";
+      } "creating identifier type"; 
+      src -> tt_id.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/sghi-identifier-codesystem' "creating system";
+      src.performer as sp -> tt_id.assigner = create('Reference') as t_assigner then {
+        sp.reference as sf -> t_assigner.reference = sf;
+        sp.id as sid -> t_assigner.id = sid;
+        sp.display as sd -> t_assigner.display = sd;
+        sp where display.exists().not() -> t_assigner.display = 'Unknown display' "setting default display";
+      };
+    } "creating identifier type";
+  } "creating identifier"; 
+
+  src.meta as s_meta -> tgt.meta as t_meta then {
+    s_meta.lastUpdated as sl -> t_meta.lastUpdated = sl;
+    s_meta.language as sl -> t_meta.language = sl;
+    s_meta.tags as st -> t_meta.tags = st;
+    src.meta as sp where profile.exists().not() -> t_meta.profile =  'https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-servicerequest' "set-profile-in-meta";
+  } "set profile in meta";
+
+  src.status as sst -> tgt.status = sst;
+
+  src.dateTime as sd -> tgt.date = sd;
+ 
+  src.basedOn as sb -> tgt.basedOn as tb then TransformReference(sb, tb);
+
+  src.category as sc -> tgt.category as tc then {
+    sc.text as st -> tc.text = st;
+    sc.coding as scc -> tc.coding as tcc then TransformCoding(scc, tcc);
+  };
+
+  src.encounter as se -> tgt.encounter as te then TransformReference(se, te);
+
+  src.requester as sr -> tgt.requester as tr then TransformReference(sr, tr);
+
+  src.subject as sbb -> tgt.subject as tbb then TransformReference(sbb, tbb);
+
+  src.performer as sp -> tgt.performer as tp then TransformReference(sp, tp);
+
+  src.priority as sp -> tgt.priority = sp;
+
+  src.intent as sti -> tgt.intent = sti;
+
+  src -> tgt.code = create('CodeableReference') as trf then {
+    src.code as scc -> trf.concept = create('CodeableConcept') as tcc then {
+      scc.coding as sc -> tcc.coding = create('Coding') as tc then TransformCoding(sc, tc);
+    };
+  } "translate codeableConcept to CodeableReference in R5";
+
+  src -> tgt.reason = create('CodeableReference') as tr then {
+    src.code as scc -> tr.concept = create('CodeableConcept') as tcc then {
+      scc.coding as sc -> tcc.coding = create('Coding') as tc then TransformCoding(sc, tc);
+    };
+  } "setting reason";
+}
+
+group TransformAssigner(source src, target tgt) <<types>> {
+  src.reference as saf-> tgt.reference = saf;
+  src.display as sd -> tgt.display = sd;
+  src where display.exists().not() -> tgt.display = 'Unknown display' "setting default display";
+  
+}
+
+group TransformReference(source src, target tgt) <<types>> {
+  src.id as sid -> tgt.id = sid;
+  src.reference as sf -> tgt.reference = sf;
+  src.display as sd -> tgt.display = sd;
+  src where display.exists().not() -> tgt.display = 'Unknown display' "setting display";
+}
+
+
+group TransformCoding(source src, target tgt) <<types>> {
+  src where system.exists().not() -> tgt.system = "http://snomed.info/sct" 'setting system';
+  src.system as sm -> tgt.system = sm;
+  src.code as sc -> tgt.code = sc;
+  src.display as sd -> tgt.display = sd;
+}
