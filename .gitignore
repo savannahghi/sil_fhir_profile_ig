@@ -7,7 +7,7 @@ Thumbs.db
 /template
 env.sh
 dump.rdb
-patient.json
+resource.json
 structuremap.sh
 /logs
 application.yaml
