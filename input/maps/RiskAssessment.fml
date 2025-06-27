@@ -1,0 +1,99 @@
+
+/// url    = "https://fhir.slade360.co.ke/fhir/StructureMap/RiskAssessmentSGHI5"
+/// name   = "RiskAssessmentSGHI5"
+/// title  = "RiskAssessment Transforms: R4 → SGHI R5"
+/// status = "active"
+
+uses "http://hl7.org/fhir/4.0/StructureDefinition/RiskAssessment" alias RiskAssessmentR4   as source
+uses "https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-riskassessment" alias SGHIRiskAssessment as target
+
+imports "http://hl7.org/fhir/StructureMap/*4to5"
+
+group SGHIRiskAssessment(source src : RiskAssessmentR4, target tgt : SGHIRiskAssessment) <<type+>> {
+  src.id as uuid -> tgt.id = uuid;
+  src.active               -> tgt.active;
+  src.language -> tgt.language;
+  src -> tgt.meta as t_meta then {
+    src -> t_meta.profile = 'https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-riskassessment' "add-sghi-profile";
+  } "add-to-meta";
+
+  src where text.exists().not() -> tgt.text = create('Narrative') as t_text then {
+    src -> t_text.status = 'generated' "set-text-status";
+    src -> t_text.div = '<div xmlns="http://www.w3.org/1999/xhtml"><h1>Generated text</h1></div>' "set-text-div";
+  } "create-hardcoded-text";
+
+  src -> tgt.text = create('Narrative') as ttt then {
+    src.text as st then {
+      st.status as s -> ttt.status = s;
+      st.div as d -> ttt.div = ('<div xmlns="http://www.w3.org/1999/xhtml"><p>' + d + '</p></div>') "wrap-text-in-html";
+    };
+  } "setting text";
+
+  src.id as s_id -> tgt.identifier = create('Identifier') as t_ident then {
+      s_id as uuid -> t_ident.value = uuid "copy-id";
+      src -> t_ident.use = 'official' "set-use";
+      src -> t_ident.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/sghi-identifier-codesystem' "set-system";
+
+      src -> t_ident.type = create('CodeableConcept') as t_type then {
+        src -> t_type.coding = create('Coding') as t_code then {
+          src -> t_code.system  = 'https://fhir.slade360.co.ke/fhir/CodeSystem/sghi-identifier-codesystem' "type-system";
+          src -> t_code.code    = 'fhir-id' "type-code";
+          src -> t_code.display = 'FHIR Id' "type-display";
+        } "init-coding";
+      } "init-type";
+
+      src.meta as sm then {
+        sm.tag last as st -> t_ident.assigner = create('Reference') as ta then TransformAssigner(st, ta); 
+      } "setting owner";
+  } "add-fhir-id-identifier";
+
+
+  src.basis as sb -> tgt.basis as tb then TransformReference(sb, tb);
+  src.basedOn as sob -> tgt.basedOn as tob then TransformReference(sob, tob);
+  
+  src.status as v -> tgt.status = v;
+  src where status.exists().not() -> tgt.status = 'registered' "setting-default-status";
+
+  src.subject as sb -> tgt.subject as tb then TransformReference(sb, tb);
+  src.encounter as se -> tgt.encounter as te then TransformReference(se, te);
+
+  src.performer as spf -> tgt.performer as tpf then TransformReference(spf, tpf);
+  src.occurrenceDateTime as st -> tgt.occurrenceDateTime = st;
+
+  src where performer.exists().not() then {
+    src.patient as sp -> tgt.performer = create('Reference') as tp then TransformAssigner(sp, tp) "setting-default-performer";
+  } "setting performer";
+
+  src.code as sc -> tgt.code as tc then {
+    sc.coding as scc -> tc.coding as tcc then TransformReference(scc, tcc);
+  };
+
+  src.prediction as sp -> tgt.prediction as tp then {
+    sp.qualitativeRisk as scc -> tp.qualitativeRisk as tcc then {
+      scc.coding as sc -> tcc.coding as tc then TransformCoding(sc, tc);
+      scc.text -> tcc.text;
+    };
+  };
+
+  src.note -> tgt.note;
+}
+
+group TransformAssigner(source src, target tgt) <<types>> {
+  src.code as code -> tgt.reference = append("Organization/", code);
+  src where display.exists().not() -> tgt.display = 'Unknown display' "setting default display";
+  src.display -> tgt.display;
+  src.code -> tgt.id;
+}
+
+group TransformReference(source src, target tgt) <<types>> {
+  src.id -> tgt.id;
+  src.reference -> tgt.reference;
+  src.display -> tgt.display;
+  src where display.exists().not() -> tgt.display = 'Unknown display' "setting display";
+}
+
+group TransformCoding(source src, target tgt) <<types>> {
+  src.code -> tgt.code;
+  src.display -> tgt.display;
+  src.system -> tgt.system;
+}
