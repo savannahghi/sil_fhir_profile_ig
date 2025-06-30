@@ -1,0 +1,153 @@
+/// url    = "https://fhir.slade360.co.ke/fhir/StructureMap/AllergyIntoleranceSGHI5"
+/// name   = "AllergyIntoleranceSGHI5"
+/// title  = "Encounter Transforms: R4 → SGHI R5"
+/// status = "active"
+
+uses "http://hl7.org/fhir/4.0/StructureDefinition/AllergyIntolerance" alias AllergyIntoleranceR4   as source
+uses "https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-allergyintolerance" alias SGHIAllergyIntolerance as target
+
+imports "http://hl7.org/fhir/StructureMap/*4to5"
+
+group SGHIAllergyIntolerance(source src : AllergyIntoleranceR4, target tgt : SGHIAllergyIntolerance) <<type+>> {
+  src.id as uuid -> tgt.id = uuid;
+  src.active               -> tgt.active;
+  src.language -> tgt.language;
+
+  src -> tgt.meta as t_meta then {
+    src -> t_meta.profile = 'https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-allergyintolerance' "add-sghi-profile";
+  } "add-to-meta";
+
+  src where text.exists().not() -> tgt.text = create('Narrative') as t_text then {
+    src -> t_text.status = 'generated' "set-text-status";
+    src -> t_text.div = '<div xmlns="http://www.w3.org/1999/xhtml"><h1>Generated text</h1></div>' "set-text-div";
+  } "create-hardcoded-text";
+
+  src -> tgt.text = create('Narrative') as ttt then {
+    src.text as st then {
+      st.status as s -> ttt.status = s;
+      st.div as d -> ttt.div = ('<div xmlns="http://www.w3.org/1999/xhtml"><p>' + d + '</p></div>') "wrap-text-in-html";
+    };
+  } "setting text";
+
+  src.id as s_id -> tgt.identifier = create('Identifier') as t_ident then {
+      s_id as uuid -> t_ident.value = uuid "copy-id";
+      src -> t_ident.use = 'official' "set-use";
+      src -> t_ident.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/sghi-identifier-codesystem' "set-system";
+
+      src -> t_ident.type = create('CodeableConcept') as t_type then {
+        src -> t_type.coding = create('Coding') as t_code then {
+          src -> t_code.system  = 'https://fhir.slade360.co.ke/fhir/CodeSystem/sghi-identifier-codesystem' "type-system";
+          src -> t_code.code    = 'fhir-id' "type-code";
+          src -> t_code.display = 'FHIR Id' "type-display";
+        } "init-coding";
+      } "init-type";
+
+      src.meta as sm then {
+        sm.tag last as st -> t_ident.assigner = create('Reference') as ta then TransformAssigner(st, ta); 
+      } "setting owner";
+  } "add-fhir-id-identifier";
+
+  src.clinicalStatus as sg -> tgt.clinicalStatus as tg then {
+    sg.coding as sc -> tg.coding as tc then TransformCoding(sc, tc);
+    sg.text -> tg.text;
+  };
+  
+  src.verificationStatus as sv -> tgt.verificationStatus as tv then {
+    sv.coding as sc -> tv.coding as tc then TransformCoding(sc, tc);
+    sv.text -> tv.text;
+  };
+
+  src.type as st where type.exists() -> tgt.type = cc('http://hl7.org/fhir/allergy-intolerance-type', st,  st);
+  
+
+  src.patient as sb -> tgt.patient as tb then TransformReference(sb, tb);
+
+  src.encounter as se -> tgt.encounter as te then {
+    se.id -> te.id;
+    se.reference -> te.reference;
+
+    se where reference.exists().not() then {
+      se.id as id -> te.reference = append("Encounter/", id);
+    } "setting reference";
+
+    se.display -> te.display;
+    se where display.exists().not() -> te.display = 'Unknown display' "setting the default display";
+  };
+
+  src.code as sc -> tgt.code as tc then {
+    sc.coding as scc -> tc.coding as tcc then TransformCoding(scc, tcc);
+    sc.text -> tc.text;
+  };
+
+
+  src.category as sg -> tgt.category as tg then {
+    sg.coding as sc -> tg.coding as tc then TransformCoding(sc, tc);
+    sg.text -> tg.text;
+  };
+
+  src.criticality -> tgt.criticality;
+  src.onsetDateTime -> tgt.recordedDate;
+
+  src.reaction as sre -> tgt.reaction as tre then {
+    sre.manifestation as scpt -> tre.manifestation = create('CodeableReference') as tcpt then {
+      src -> tcpt.concept = create('CodeableConcept') as tcc then {
+        scpt.coding as sc -> tcc.coding = create('Coding') as tc then TransformCoding(sc, tc);
+      }"creating codeable concept";
+    };
+    sre.description -> tre.description;
+    sre.severity -> tre.severity;
+    sre.note as sn -> tre.note as tn then TransformNote(sn, tn);
+  };
+
+  src.severity as sv -> tgt.severity as tv then {
+    sv.coding as sc -> tv.coding as tc then {
+      sc.system -> tc.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/sghi-identifier-codesystem';
+      sc.code -> tc.code;
+      sc.display -> tc.display;
+    };
+    sv.text -> tv.text;
+  };
+  
+  src where participant.exists().not() -> tgt.participant = create('BackboneElement') as tb then {
+    src.patient as sp -> tb.actor = create('Reference') as trf then TransformReference(sp, trf);
+  } "setting participant";
+
+  src.recordedDate -> tgt.recordedDate;
+
+  src where onsetDateTime.exists() then {
+    src.onsetDateTime as sd -> tgt.onset = sd;
+  }"setting onset date";
+
+  src where onsetDateTime.exists().not() then {
+    src.recordedDate as sd -> tgt.onset = sd;
+  }"setting onset date";
+  
+
+  src.note as sn -> tgt.note as tn then TransformNote(sn, tn);
+}
+
+group TransformAssigner(source src, target tgt) <<types>> {
+  src.code as code -> tgt.reference = append("Organization/", code);
+  src where display.exists().not() -> tgt.display = 'Unknown display' "setting default display";
+  src.display -> tgt.display;
+  src.code -> tgt.id;
+}
+
+group TransformReference(source src, target tgt) <<types>> {
+  src.id -> tgt.id;
+  src.reference -> tgt.reference;
+  src.display -> tgt.display;
+  src where display.exists().not() -> tgt.display = 'Unknown display' "setting display";
+}
+
+group TransformCoding(source src, target tgt) <<types>> {
+  src.code -> tgt.code;
+  src.display -> tgt.display;
+  src where display.exists().not() -> tgt.display = 'Unknown display' "setting-default-display";
+  src.system -> tgt.system;
+}
+
+group TransformNote(source src, target tgt) <<types>> {
+  src.time -> tgt.time;
+  src.text -> tgt.text;
+}
