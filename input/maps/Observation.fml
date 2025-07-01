@@ -1,0 +1,146 @@
+/// url    = "https://fhir.slade360.co.ke/fhir/StructureMap/Observation4toSGHI5"
+/// name   = "Observation4toSGHI5"
+/// title  = "Observation Transforms: R4 to SGHI R5"
+/// status = "active"
+
+uses "http://hl7.org/fhir/4.0/StructureDefinition/Observation" alias ObservationR4   as source
+uses "https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-observation" alias SGHIObservation as target
+
+imports "http://hl7.org/fhir/StructureMap/*4to5"
+
+group SGHIObservation(source src : ObservationR4, target tgt : SGHIObservation) <<type+>> {
+  src -> tgt.meta as t_meta then {
+    src -> t_meta.profile = 'https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-observation' "add-sghi-profile";
+  } "add-to-meta";
+
+  src where text.exists().not() -> tgt.text = create('Narrative') as t_text then {
+    src -> t_text.status = 'generated' "set-text-status";
+    src -> t_text.div = '<div xmlns="http://www.w3.org/1999/xhtml"><h1>Generated text</h1></div>' "set-text-div";
+  } "create-hardcoded-text";
+
+  src -> tgt.text = create('Narrative') as ttt then {
+    src.text as st then {
+      st.status as s -> ttt.status = s;
+      st.div as d -> ttt.div = ('<div xmlns="http://www.w3.org/1999/xhtml"><p>' + d + '</p></div>') "wrap-text-in-html";
+    };
+  } "setting text";
+
+  src.effectiveInstant as se -> tgt.issued = se "map-issued-from-effective";
+
+  src.code as s_code -> create('Coding') as canonical_coding then {
+    s_code.coding first as first_coding then {
+      first_coding.code -> canonical_coding.code;
+      first_coding.display -> canonical_coding.display;
+      first_coding.system -> canonical_coding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/retired-ciel-codes' "set-source-system";
+
+      first_coding -> tgt.code as t_code then ProcessAndTranslateCode(first_coding, t_code) "process-and-translate";
+    };
+  } "map-observation-code";
+
+  src.id as s_id -> tgt.identifier = create('Identifier') as t_ident then {
+      s_id as uuid -> t_ident.value = uuid "copy-id";
+      src -> t_ident.use = 'official' "set-use";
+      src -> t_ident.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/sghi-identifier-codesystem' "set-system";
+
+      src -> t_ident.type = create('CodeableConcept') as t_type then {
+        src -> t_type.coding = create('Coding') as t_code then {
+          src -> t_code.system  = 'https://fhir.slade360.co.ke/fhir/CodeSystem/sghi-identifier-codesystem' "type-system";
+          src -> t_code.code    = 'fhir-id' "type-code";
+          src -> t_code.display = 'FHIR Id' "type-display";
+        } "init-coding";
+      } "init-type";
+
+      src.meta as sm then {
+        sm.tag last as st -> t_ident.assigner = create('Reference') as ta then TransformAssigner(st, ta); 
+      } "setting owner";
+  } "add-fhir-id-identifier";
+
+  src.basedOn -> tgt.basedOn;
+  src.partOf -> tgt.partOf;
+  src.status as v -> tgt.status = translate(v, 'http://hl7.org/fhir/uv/xver/ConceptMap/obs.status-4to5', 'code');
+  src.category as sc -> tgt.category = sc;
+  src.subject as sb -> tgt.subject as tb then TransformReference(sb, tb);
+  src.focus -> tgt.focus;
+  src.encounter as se -> tgt.encounter as te then TransformReference(se, te);
+  src.effective : dateTime -> tgt.effective "effectiveDateTime";
+  src.effective : Period -> tgt.effective "effectivePeriod";
+  src.effective : Timing -> tgt.effective "effectiveTiming";
+  src.effective : instant -> tgt.effective "effectiveInstant";
+  src.value : Quantity -> tgt.value "valueQuantity";
+  src.value : CodeableConcept as sv -> tgt.value = sv "valueCodeableConcept";
+  src.value : string -> tgt.value "valueString";
+  src.value : boolean -> tgt.value "valueBoolean";
+  src.value : integer -> tgt.value "valueInteger";
+  src.value : Range -> tgt.value "valueRange";
+  src.value : Ratio -> tgt.value "valueRatio";
+  src.value : SampledData -> tgt.value "valueSampledData";
+  src.value : time -> tgt.value "valueTime";
+  src.value : dateTime -> tgt.value "valueDateTime";
+  src.value : Period -> tgt.value "valuePeriod";
+  src.dataAbsentReason -> tgt.dataAbsentReason;
+  src.interpretation -> tgt.interpretation;
+  src.note -> tgt.note;
+  src.bodySite -> tgt.bodySite;
+  src.method -> tgt.method;
+  src.specimen -> tgt.specimen;
+  src.device -> tgt.device;
+  src.referenceRange as s -> tgt.referenceRange as t then ObservationReferenceRange(s, t);
+  src.hasMember -> tgt.hasMember;
+  src.derivedFrom -> tgt.derivedFrom;
+  src.component as s -> tgt.component as t then ObservationComponent(s, t);
+  src.performer as spf -> tgt.performer as tpf then TransformReference(spf, tpf);
+
+  src where performer.exists().not() then {
+    src.meta as sm  then {
+      sm.tag last as st -> tgt.performer = create('Reference') as tp then TransformAssigner(st, tp);
+    };
+  } "setting performer";
+}
+
+src where code.exists().not() -> tgt.code = cc('http://loinc.org', '26436-6', 'Laboratory studies (set)') "setting the default code";
+
+group ProcessAndTranslateCode(source canonical_coding : Coding, target result_codeableconcept : CodeableConcept) {
+  canonical_coding -> result_codeableconcept.coding = translate(canonical_coding, 'https://fhir.slade360.co.ke/fhir/ConceptMap/CIELtoLOINCObservationMap', 'Coding') "to-loinc";
+  canonical_coding.display as sd -> result_codeableconcept.text = sd;
+}
+
+group ObservationReferenceRange(source src, target tgt) extends BackboneElement {
+  src.low as sl -> tgt.low = sl;
+  src.high -> tgt.high;
+  src.type -> tgt.type;
+  src.appliesTo -> tgt.appliesTo;
+  src.age -> tgt.age;
+  src.text -> tgt.text;
+}
+
+group ObservationComponent(source src, target tgt) extends BackboneElement {
+  src.code -> tgt.code;
+  src.value : Quantity -> tgt.value "valueQuantity";
+  src.value : CodeableConcept -> tgt.value "valueCodeableConcept";
+  src.value : string -> tgt.value "valueString";
+  src.value : boolean -> tgt.value "valueBoolean";
+  src.value : integer -> tgt.value "valueInteger";
+  src.value : Range -> tgt.value "valueRange";
+  src.value : Ratio -> tgt.value "valueRatio";
+  src.value : SampledData -> tgt.value "valueSampledData";
+  src.value : time -> tgt.value "valueTime";
+  src.value : dateTime -> tgt.value "valueDateTime";
+  src.value : Period -> tgt.value "valuePeriod";
+  src.dataAbsentReason -> tgt.dataAbsentReason;
+  src.interpretation -> tgt.interpretation;
+  src.referenceRange as s -> tgt.referenceRange as t then ObservationReferenceRange(s, t);
+}
+
+group TransformAssigner(source src, target tgt) <<types>> {
+  src.code as code -> tgt.reference = append("Organization/", code);
+  src where display.exists().not() -> tgt.display = 'Unknown display' "setting default display";
+  src.display -> tgt.display;
+  src.code -> tgt.id;
+}
+
+group TransformReference(source src, target tgt) <<types>> {
+  src.id -> tgt.id;
+  src.reference -> tgt.reference;
+  src.display -> tgt.display;
+  src where display.exists().not() -> tgt.display = 'Unknown display' "setting display";
+}
