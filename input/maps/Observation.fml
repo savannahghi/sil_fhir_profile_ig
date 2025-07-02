@@ -95,6 +95,8 @@ group SGHIObservation(source src : ObservationR4, target tgt : SGHIObservation) 
       sm.tag last as st -> tgt.performer = create('Reference') as tp then TransformAssigner(st, tp);
     };
   } "setting performer";
+
+  src where code.exists().not() -> tgt.code = cc('http://loinc.org', '26436-6', 'Laboratory studies (set)') "setting the default code";
 }
 
 group ProcessAndTranslateCode(source canonical_coding : Coding, target result_codeableconcept : CodeableConcept) {
