@@ -313,4 +313,4 @@ Description: "A collection of CIEL codes formerly in use for clinical observatio
 * #154451 "abnormal Papanicolaou smear of vagina"
 * #166674 "High Risk"
 *   #1064  "Not At Risk"
-* #166675 "Average Risk"
+* #166675  "Low Risk"
