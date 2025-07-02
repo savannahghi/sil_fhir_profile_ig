@@ -3,7 +3,7 @@
 /// title  = "Encounter Transforms: R4 → SGHI R5"
 /// status = "active"
 
-uses "http://hl7.org/fhir/4.0/StructureDefinition/Encounter4toSGHI5"                 alias EncounterR4   as source
+uses "http://hl7.org/fhir/4.0/StructureDefinition/Encounter" alias EncounterR4   as source
 uses "https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-encounter"   alias SGHIEncounter as target
 
 
@@ -46,6 +46,10 @@ group SGHIEncounter(source src : EncounterR4, target tgt : SGHIEncounter) extend
   };
 
   src.status -> tgt.status;
+  
+  src where status = "finished" then {
+    src -> tgt.status = "completed" "setting R5 status";
+  } "setting R5 status in target";
   
   src -> tgt.class as t_c then {
     src.class as sc -> t_c.coding = create('CodeableConcept') as tt then TransformEncounterClass(sc, tt);

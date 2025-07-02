@@ -9,6 +9,10 @@ uses "https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-observation" ali
 imports "http://hl7.org/fhir/StructureMap/*4to5"
 
 group SGHIObservation(source src : ObservationR4, target tgt : SGHIObservation) <<type+>> {
+  src.id as uuid -> tgt.id = uuid;
+  src.active -> tgt.active;
+  src.language -> tgt.language;
+  
   src -> tgt.meta as t_meta then {
     src -> t_meta.profile = 'https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-observation' "add-sghi-profile";
   } "add-to-meta";
