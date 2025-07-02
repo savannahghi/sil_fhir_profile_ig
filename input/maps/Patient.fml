@@ -34,6 +34,18 @@ group SGHIPatient(source src : PatientR4, target tgt : SGHIPatient) extends Doma
 
   } "process-one-identifier";
 
+  src.identifier as s_id -> tgt.identifier as t_id then {
+    s_id.use -> t_id.use "copy-use";
+    src.id as uuid -> t_id.value = uuid;
+    s_id.period -> t_id.period;
+    
+    s_id.type as st -> t_id.type as tt then {
+      st.coding -> tt.coding = create('CodeableConcept') as tt, tt.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/sghi-identifier-codesystem', tt.code = 'fhir-id', tt.display = 'FHIR Id';
+    };
+
+    s_id -> t_id.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/sghi-identifier-codesystem' "SetFixedIdentifierSystem";
+  } "create the default FHIR ID identifier type";
+
   src.active               -> tgt.active;
   src.name first as s      -> tgt.name as t then SGHIHumanNameMap(s,t);
   src.telecom as s         -> tgt.telecom as t then SGHIContactPointMap(s,t);
