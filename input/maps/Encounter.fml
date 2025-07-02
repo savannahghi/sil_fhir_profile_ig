@@ -37,8 +37,6 @@ group SGHIEncounter(source src : EncounterR4, target tgt : SGHIEncounter) extend
     } "creating identifier type";
   } "creating identifier"; 
 
-
-  
   src.episodeOfCare as se -> tgt.episodeOfCare = create('Reference') as te then {
     se.reference -> te.reference;
     se.id -> te.id;
