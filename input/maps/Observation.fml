@@ -97,8 +97,6 @@ group SGHIObservation(source src : ObservationR4, target tgt : SGHIObservation) 
   } "setting performer";
 }
 
-src where code.exists().not() -> tgt.code = cc('http://loinc.org', '26436-6', 'Laboratory studies (set)') "setting the default code";
-
 group ProcessAndTranslateCode(source canonical_coding : Coding, target result_codeableconcept : CodeableConcept) {
   canonical_coding -> result_codeableconcept.coding = translate(canonical_coding, 'https://fhir.slade360.co.ke/fhir/ConceptMap/CIELtoLOINCObservationMap', 'Coding') "to-loinc";
   canonical_coding.display as sd -> result_codeableconcept.text = sd;

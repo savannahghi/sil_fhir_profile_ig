@@ -173,9 +173,3 @@ Title: "CIEL to LOINC Observation Code Map"
 * group[0].element[26].target[0].code = #86662-4
 * group[0].element[26].target[0].display = "Pap smear tests - FPAR 2.0 set"
 * group[0].element[26].target[0].relationship = #equivalent
-
-"code": "166674",
-            "display": "High Risk",
-
-97953-4
-Risk level of developing disease after exposure
