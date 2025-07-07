@@ -56,6 +56,7 @@ group SGHIObservation(source src : ObservationR4, target tgt : SGHIObservation) 
       d.code as code -> tcoding.code = translate(code, 'https://fhir.slade360.co.ke/fhir/ConceptMap/CIELtoLOINCObservationMap', 'code');
       d.code as sd -> tcoding.system = translate(sd, 'https://fhir.slade360.co.ke/fhir/ConceptMap/CIELtoLOINCObservationMap', 'system');
       d.code as d -> tcoding.display = translate(d, 'https://fhir.slade360.co.ke/fhir/ConceptMap/CIELtoLOINCObservationMap', 'display');
+      d.code as d -> tcode.text = translate(d, 'https://fhir.slade360.co.ke/fhir/ConceptMap/CIELtoLOINCObservationMap', 'display');
     };
   };
 
