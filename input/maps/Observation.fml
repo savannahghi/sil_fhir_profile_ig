@@ -29,18 +29,6 @@ group SGHIObservation(source src : ObservationR4, target tgt : SGHIObservation) 
     };
   } "setting text";
 
-  src.effectiveInstant as se -> tgt.issued = se "map-issued-from-effective";
-
-  src.code as s_code -> create('Coding') as canonical_coding then {
-    s_code.coding first as first_coding then {
-      first_coding.code -> canonical_coding.code;
-      first_coding.display -> canonical_coding.display;
-      first_coding.system -> canonical_coding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/retired-ciel-codes' "set-source-system";
-
-      first_coding -> tgt.code as t_code then ProcessAndTranslateCode(first_coding, t_code) "process-and-translate";
-    };
-  } "map-observation-code";
-
   src.id as s_id -> tgt.identifier = create('Identifier') as t_ident then {
       s_id as uuid -> t_ident.value = uuid "copy-id";
       src -> t_ident.use = 'official' "set-use";
@@ -59,10 +47,25 @@ group SGHIObservation(source src : ObservationR4, target tgt : SGHIObservation) 
       } "setting owner";
   } "add-fhir-id-identifier";
 
+  src.effectiveInstant as se -> tgt.issued = se "map-issued-from-effective";
+  
+
+  src.code as scode -> tgt.code as tcode then {
+    scode.coding as d where system.exists().not() -> tcode.coding = translate(d, 'https://fhir.slade360.co.ke/fhir/ConceptMap/CIELtoLOINCObservationMap', 'Coding');
+    scode.coding as d where system.exists() -> tcode.coding = create('Coding') as tcoding then {
+      d.code as code -> tcoding.code = translate(code, 'https://fhir.slade360.co.ke/fhir/ConceptMap/CIELtoLOINCObservationMap', 'code');
+      d.code as sd -> tcoding.system = translate(sd, 'https://fhir.slade360.co.ke/fhir/ConceptMap/CIELtoLOINCObservationMap', 'system');
+      d.code as d -> tcoding.display = translate(d, 'https://fhir.slade360.co.ke/fhir/ConceptMap/CIELtoLOINCObservationMap', 'display');
+    };
+  };
+
+
+  src.code as s_code -> tgt.code as t_code then {
+  s_code.text -> t_code.text;
   src.basedOn -> tgt.basedOn;
   src.partOf -> tgt.partOf;
+  src.category -> tgt.category;
   src.status as v -> tgt.status = translate(v, 'http://hl7.org/fhir/uv/xver/ConceptMap/obs.status-4to5', 'code');
-  src.category as sc -> tgt.category = sc;
   src.subject as sb -> tgt.subject as tb then TransformReference(sb, tb);
   src.focus -> tgt.focus;
   src.encounter as se -> tgt.encounter as te then TransformReference(se, te);
@@ -98,12 +101,8 @@ group SGHIObservation(source src : ObservationR4, target tgt : SGHIObservation) 
     src.meta as sm  then {
       sm.tag last as st -> tgt.performer = create('Reference') as tp then TransformAssigner(st, tp);
     };
-  } "setting performer";
-}
-
-group ProcessAndTranslateCode(source canonical_coding : Coding, target result_codeableconcept : CodeableConcept) {
-  canonical_coding -> result_codeableconcept.coding = translate(canonical_coding, 'https://fhir.slade360.co.ke/fhir/ConceptMap/CIELtoLOINCObservationMap', 'Coding') "to-loinc";
-  canonical_coding.display as sd -> result_codeableconcept.text = sd;
+    } "setting performer";
+  };
 }
 
 group ObservationReferenceRange(source src, target tgt) extends BackboneElement {
@@ -116,7 +115,6 @@ group ObservationReferenceRange(source src, target tgt) extends BackboneElement 
 }
 
 group ObservationComponent(source src, target tgt) extends BackboneElement {
-  src.code -> tgt.code;
   src.value : Quantity -> tgt.value "valueQuantity";
   src.value : CodeableConcept -> tgt.value "valueCodeableConcept";
   src.value : string -> tgt.value "valueString";
@@ -145,4 +143,4 @@ group TransformReference(source src, target tgt) <<types>> {
   src.reference -> tgt.reference;
   src.display -> tgt.display;
   src where display.exists().not() -> tgt.display = 'Unknown display' "setting display";
-}
+};
