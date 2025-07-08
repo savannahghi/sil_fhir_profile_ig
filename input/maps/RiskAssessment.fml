@@ -70,8 +70,12 @@ group SGHIRiskAssessment(source src : RiskAssessmentR4, target tgt : SGHIRiskAss
 
   src.prediction as sp -> tgt.prediction as tp then {
     sp.qualitativeRisk as scc -> tp.qualitativeRisk as tcc then {
-      scc.coding as sc -> tcc.coding as tc then TransformCoding(sc, tc);
-      scc.text -> tcc.text;
+      scc.coding as sc -> tcc.coding = create('Coding') as tc then {
+        sc.code as d -> tc.code = translate(d, 'https://fhir.slade360.co.ke/fhir/ConceptMap/CIELtoFHIRRiskAssessmentMap', 'code');
+        sc.code as d -> tc.system = translate(d, 'https://fhir.slade360.co.ke/fhir/ConceptMap/CIELtoFHIRRiskAssessmentMap', 'system');
+        sc.code as d -> tc.display = translate(d, 'https://fhir.slade360.co.ke/fhir/ConceptMap/CIELtoFHIRRiskAssessmentMap', 'display');
+        sc.code as d -> tcc.text = translate(d, 'https://fhir.slade360.co.ke/fhir/ConceptMap/CIELtoFHIRRiskAssessmentMap', 'display');
+      };
     };
   };
 
