@@ -1,0 +1,142 @@
+/// url    = "https://fhir.slade360.co.ke/fhir/StructureMap/ConditionSGHI5"
+/// name   = "ConditionSGHI5"
+/// title  = "Condition Transforms: R4 → SGHI R5"
+/// status = "active"
+
+
+uses "http://hl7.org/fhir/4.0/StructureDefinition/Condition" alias ConditionR4   as source
+uses "https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-condition" alias SGHICondition as target
+
+imports "http://hl7.org/fhir/StructureMap/*4to5"
+
+group SGHICondition(source src : ConditionR4, target tgt : SGHICondition) <<type+>> {
+  src.id as uuid -> tgt.id = uuid;
+  src.active               -> tgt.active;
+  src.language -> tgt.language;
+
+  src -> tgt.meta as t_meta then {
+    src -> t_meta.profile = 'https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-condition' "add-sghi-profile";
+  } "add-to-meta";
+
+  src where text.exists().not() -> tgt.text = create('Narrative') as t_text then {
+    src -> t_text.status = 'generated' "set-text-status";
+    src -> t_text.div = '<div xmlns="http://www.w3.org/1999/xhtml"><h1>Generated text</h1></div>' "set-text-div";
+  } "create-hardcoded-text";
+
+  src -> tgt.text = create('Narrative') as ttt then {
+    src.text as st then {
+      st.status as s -> ttt.status = s;
+      st.div as d -> ttt.div = ('<div xmlns="http://www.w3.org/1999/xhtml"><p>' + d + '</p></div>') "wrap-text-in-html";
+    };
+  } "setting text";
+
+  src.id as s_id -> tgt.identifier = create('Identifier') as t_ident then {
+      s_id as uuid -> t_ident.value = uuid "copy-id";
+      src -> t_ident.use = 'official' "set-use";
+      src -> t_ident.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/sghi-identifier-codesystem' "set-system";
+
+      src -> t_ident.type = create('CodeableConcept') as t_type then {
+        src -> t_type.coding = create('Coding') as t_code then {
+          src -> t_code.system  = 'https://fhir.slade360.co.ke/fhir/CodeSystem/sghi-identifier-codesystem' "type-system";
+          src -> t_code.code    = 'fhir-id' "type-code";
+          src -> t_code.display = 'FHIR Id' "type-display";
+        } "init-coding";
+      } "init-type";
+
+      src.meta as sm then {
+        sm.tag last as st -> t_ident.assigner = create('Reference') as ta then TransformAssigner(st, ta); 
+      } "setting owner";
+  } "add-fhir-id-identifier";
+
+  src.code as scode -> tgt.code as tcode then {
+    scode.coding as d where system.exists().not() -> tcode.coding = translate(d, 'https://fhir.slade360.co.ke/fhir/ConceptMap/CIELtoICD11Condition', 'Coding');
+    scode.coding as d where d.system.exists() -> tcode.coding = create('Coding') as tcoding then {
+      d.code as d -> tcoding.code = translate(d, 'https://fhir.slade360.co.ke/fhir/ConceptMap/CIELtoICD11Condition', 'code');
+      d.code as d -> tcoding.system = translate(d, 'https://fhir.slade360.co.ke/fhir/ConceptMap/CIELtoICD11Condition', 'system');
+      d.code as d -> tcoding.display = translate(d, 'https://fhir.slade360.co.ke/fhir/ConceptMap/CIELtoICD11Condition', 'display');
+      d.code as d -> tcode.text = translate(d, 'https://fhir.slade360.co.ke/fhir/ConceptMap/CIELtoICD11Condition', 'display');
+    };
+  };
+  
+
+  src.subject as sb -> tgt.subject as tb then TransformReference(sb, tb);
+  src.encounter as se -> tgt.encounter as te then TransformReference(se, te);
+
+  src.verificationStatus as sv -> tgt.verificationStatus as tv then {
+    sv.coding as sc -> tv.coding as tc then TransformCoding(sc, tc);
+    sv.text -> tv.text;
+  };
+
+  src.category as sg -> tgt.category as tg then {
+    sg.coding as d -> tg.coding = create('Coding') as tcode then {
+      d.code as d -> tcode.code = translate(d, 'https://fhir.slade360.co.ke/fhir/ConceptMap/FHIRCodeCategoryMap', 'code');
+      d.code as d -> tcode.system = translate(d, 'https://fhir.slade360.co.ke/fhir/ConceptMap/FHIRCodeCategoryMap', 'system');
+      d.code as d -> tcode.display = translate(d, 'https://fhir.slade360.co.ke/fhir/ConceptMap/FHIRCodeCategoryMap', 'display');
+      d.code as d -> tg.text = translate(d, 'https://fhir.slade360.co.ke/fhir/ConceptMap/FHIRCodeCategoryMap', 'display');
+    };
+  };
+
+  src.severity as sv -> tgt.severity as tv then {
+    sv.coding as sc -> tv.coding as tc then {
+      sc.system -> tc.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/sghi-identifier-codesystem';
+      sc.code -> tc.code;
+      sc.display -> tc.display;
+    };
+    sv.text -> tv.text;
+  };
+  
+  src.clinicalStatus as sg -> tgt.clinicalStatus as tg then {
+    sg.coding as scode -> tg.coding = create('Coding') as tcode then {
+      scode.code as d -> tcode.code = translate(d, 'https://fhir.slade360.co.ke/fhir/ConceptMap/FHIRClinicalStatusMap', 'code');
+      scode.code as d -> tcode.system = translate(d, 'https://fhir.slade360.co.ke/fhir/ConceptMap/FHIRClinicalStatusMap', 'system');
+      scode.code as d -> tcode.display = translate(d, 'https://fhir.slade360.co.ke/fhir/ConceptMap/FHIRClinicalStatusMap', 'display');
+      scode.code as d -> tg.text = translate(d, 'https://fhir.slade360.co.ke/fhir/ConceptMap/FHIRClinicalStatusMap', 'display');
+    };
+  };
+
+  src where severity.exists().not() -> tgt.severity = create('CodeableConcept') as tcc then {
+    src -> tcc.coding = create('Coding') as tc then {
+      src -> tc.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/sghi-identifier-codesystem' "set default system";
+      src -> tc.code = 'mild' "set default code";
+      src -> tc.display = 'Mild' "setting default display";
+    } "set severity coding";
+  }"set default severity";
+  
+  
+  src where participant.exists().not() -> tgt.participant = create('BackboneElement') as tb then {
+    src.meta as sm then {
+      src.meta as sm then {
+        sm.tag last as st -> tb.actor = create('Reference') as ta then TransformAssigner(st, ta); 
+      };
+    };
+  } "setting participant";
+
+  src.recordedDate -> tgt.recordedDate;
+  src.onsetDate as sd -> tgt.onset = sd;
+
+  src.note as sn -> tgt.note as tn then {
+    sn.time -> tn.time;
+    sn.text -> tn.text;
+  };
+}
+
+group TransformAssigner(source src, target tgt) <<types>> {
+  src.code as code -> tgt.reference = append("Organization/", code);
+  src where display.exists().not() -> tgt.display = 'Unknown display' "setting default display";
+  src.display -> tgt.display;
+  src.code -> tgt.id;
+}
+
+group TransformReference(source src, target tgt) <<types>> {
+  src.id -> tgt.id;
+  src.reference -> tgt.reference;
+  src.display -> tgt.display;
+  src where display.exists().not() -> tgt.display = 'Unknown display' "setting display";
+}
+
+group TransformCoding(source src, target tgt) <<types>> {
+  src.code -> tgt.code;
+  src.display -> tgt.display;
+  src where display.exists().not() -> tgt.display = 'Unknown display' "setting-default-display";
+  src.system -> tgt.system;
+}
