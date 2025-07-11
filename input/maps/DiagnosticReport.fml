@@ -47,16 +47,14 @@ group SGHIDiagnosticReport(source src : DiagnosticReportR4, target tgt : SGHIDia
       } "setting owner";
   } "add-fhir-id-identifier";
 
-
   src.code as sc -> tgt.code as tc then {
     sc.coding as scc -> tc.coding = create('Coding') as tcode then {
-      scc.code as d -> tcode.code = translate(d,'https://fhir.slade360.co.ke/fhir/ConceptMap/CIELtoLoincDiagnosticReportMap', 'code');
-      scc.code as d -> tcode.system = translate(d,'https://fhir.slade360.co.ke/fhir/ConceptMap/CIELtoLoincDiagnosticReportMap', 'system');
-      scc.code as d -> tcode.display = translate(d,'https://fhir.slade360.co.ke/fhir/ConceptMap/CIELtoLoincDiagnosticReportMap', 'display');
-      scc.code as d -> tc.text = translate(d,'https://fhir.slade360.co.ke/fhir/ConceptMap/CIELtoLoincDiagnosticReportMap', 'display');
+      scc.code as d -> tcode.code = translate(d,'https://fhir.slade360.co.ke/fhir/ConceptMap/CIELtoLOINCServiceRequestMap', 'code');
+      scc.code as d -> tcode.system = translate(d,'https://fhir.slade360.co.ke/fhir/ConceptMap/CIELtoLOINCServiceRequestMap', 'system');
+      scc.code as d -> tcode.display = translate(d,'https://fhir.slade360.co.ke/fhir/ConceptMap/CIELtoLOINCServiceRequestMap', 'display');
+      scc.code as d -> tc.text = translate(d,'https://fhir.slade360.co.ke/fhir/ConceptMap/CIELtoLOINCServiceRequestMap', 'display');
     };
   };
-
 
   src.category as sg -> tgt.category as tg then {
     sg.coding as sc -> tg.coding as tc then TransformCoding(sc, tc);
