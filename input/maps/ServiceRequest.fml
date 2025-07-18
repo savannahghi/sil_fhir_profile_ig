@@ -50,7 +50,11 @@ group SGHIServiceRequest(source src : ServiceRequestR4, target tgt : SGHIService
     src.meta as sp where profile.exists().not() -> t_meta.profile =  'https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-servicerequest' "set-profile-in-meta";
   } "set profile in meta";
 
-  src.status as sst -> tgt.status = sst;
+  src where status != 'finished' then {
+    src.status as sd -> tgt.status = sd;
+  } "coppying status";
+
+  src where status = 'finished' -> tgt.status = 'completed' "setting-R5-status";
 
   src.dateTime as sd -> tgt.date = sd;
  
