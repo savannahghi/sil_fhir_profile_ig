@@ -33,45 +33,45 @@ Title: "CIEL to LOINC ServiceRequest Code Map"
 * group[0].element[3].target[0].relationship = #equivalent
 
 
-* group[0].element[5].code = #162927
-* group[0].element[5].display = "Excisional biopsy of breast"
-* group[0].element[5].target[0].code = #42448-1
-* group[0].element[5].target[0].display = "US Guidance for excisional biopsy of Breast"
+* group[0].element[4].code = #162927
+* group[0].element[4].display = "Excisional biopsy of breast"
+* group[0].element[4].target[0].code = #42448-1
+* group[0].element[4].target[0].display = "US Guidance for excisional biopsy of Breast"
+* group[0].element[4].target[0].relationship = #equivalent
+
+* group[0].element[5].code = #163591
+* group[0].element[5].display = "Mammogram"
+* group[0].element[5].target[0].code = #24606-6
+* group[0].element[5].target[0].display = "MG Breast Screening"
 * group[0].element[5].target[0].relationship = #equivalent
 
-* group[0].element[6].code = #163591
-* group[0].element[6].display = "Mammogram"
-* group[0].element[6].target[0].code = #24606-6
-* group[0].element[6].target[0].display = "MG Breast Screening"
+
+* group[0].element[6].code = #168651
+* group[0].element[6].display = "Magnetic resonance imaging of breast"
+* group[0].element[6].target[0].code = #30794-2
+* group[0].element[6].target[0].display = "MR Breast"
 * group[0].element[6].target[0].relationship = #equivalent
 
-
-* group[0].element[7].code = #168651
-* group[0].element[7].display = "Magnetic resonance imaging of breast"
-* group[0].element[7].target[0].code = #30794-2
-* group[0].element[7].target[0].display = "MR Breast"
+* group[0].element[7].code = #885
+* group[0].element[7].display = "Papanicolaou smear"
+* group[0].element[7].target[0].code = #19766-5
+* group[0].element[7].target[0].display = "Microscopic observation [Identifier] in Cervical or vaginal smear or scraping by Cyto stain Narrative"
 * group[0].element[7].target[0].relationship = #equivalent
 
-* group[0].element[8].code = #885
-* group[0].element[8].display = "Papanicolaou smear"
-* group[0].element[8].target[0].code = #19766-5
-* group[0].element[8].target[0].display = "Microscopic observation [Identifier] in Cervical or vaginal smear or scraping by Cyto stain Narrative"
+* group[0].element[8].code = #160980
+* group[0].element[8].display = "Prostate examination (text)"
+* group[0].element[8].target[0].code = #LA16051-7
+* group[0].element[8].target[0].display = "Rectal examination of prostate"
 * group[0].element[8].target[0].relationship = #equivalent
 
-* group[0].element[9].code = #160980
-* group[0].element[9].display = "Prostate examination (text)"
-* group[0].element[9].target[0].code = #LA16051-7
-* group[0].element[9].target[0].display = "Rectal examination of prostate"
+* group[0].element[9].code = #161290	 
+* group[0].element[9].display = "Ultrasound of right breast"
+* group[0].element[9].target[0].code = #26216-2
+* group[0].element[9].target[0].display = "US Breast - right"
 * group[0].element[9].target[0].relationship = #equivalent
 
-* group[0].element[10].code = #161290	 
-* group[0].element[10].display = "Ultrasound of right breast"
-* group[0].element[10].target[0].code = #26216-2
-* group[0].element[10].target[0].display = "US Breast - right"
+* group[0].element[10].code = #161939	 
+* group[0].element[10].display = "Whole blood"
+* group[0].element[10].target[0].code = #51876-1
+* group[0].element[10].target[0].display = "Whole blood"
 * group[0].element[10].target[0].relationship = #equivalent
-
-* group[0].element[11].code = #161939	 
-* group[0].element[11].display = "Whole blood"
-* group[0].element[11].target[0].code = #51876-1
-* group[0].element[11].target[0].display = "Whole blood"
-* group[0].element[11].target[0].relationship = #equivalent
