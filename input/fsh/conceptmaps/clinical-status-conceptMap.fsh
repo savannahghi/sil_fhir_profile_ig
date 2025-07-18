@@ -5,7 +5,7 @@ Title: "R4 to R5 ClinicalStatus Map"
 
 * url = "https://fhir.slade360.co.ke/fhir/ConceptMap/FHIRCodeCategoryMap"
 * status = #active
-* group[0].source = "http://terminology.hl7.org/CodeSystem/condition-clinical"
+* group[0].source = "*"
 * group[0].target = "http://terminology.hl7.org/CodeSystem/condition-clinical"
 
 * group[0].element[0].code = #UNKNOWN
