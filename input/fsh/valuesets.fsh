@@ -432,3 +432,19 @@ Title: "All LOINC Codes"
 Description: "A ValueSet that includes all codes from the LOINC code system."
 * ^status = #active
 * include codes from system http://loinc.org
+
+
+ValueSet: SGHIServiceRequestVs
+Id: sghi-service-request-codes
+Title: "ServiceRequest Codes"
+Description: "A ValueSet that includes all codes from the sghi code system."
+* ^status = #active
+* include SGHIServiceRequestCS#laboratory-procedure "Laboratory procedure"
+* include SGHIServiceRequestCS#imaging "Imaging"
+* include SGHIServiceRequestCS#counselling "Counselling"
+* include SGHIServiceRequestCS#education "Education"
+* include SGHIServiceRequestCS#surgical-procedure "Surgical procedure"
+* include SGHIServiceRequestCS#referral "Referral"
+
+
+
