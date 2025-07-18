@@ -5,6 +5,7 @@ Title: "CIEL to FHIR Code Map"
 
 * url = "https://fhir.slade360.co.ke/fhir/ConceptMap/CIELtoFHIRRiskAssessmentMap"
 * status = #active
+
 * group[0].source = "https://CIELterminology.org"
 * group[0].target = "http://terminology.hl7.org/CodeSystem/risk-probability"
 
