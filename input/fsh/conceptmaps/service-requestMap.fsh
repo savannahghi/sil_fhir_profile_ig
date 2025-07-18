@@ -7,6 +7,7 @@ Title: "CIEL to LOINC ServiceRequest Code Map"
 * status = #active
 
 * group[0].target = "http://loinc.org"
+* group[0].source = "*"
 
 * group[0].element[0].code = #TEST
 * group[0].element[0].display = "HPV"

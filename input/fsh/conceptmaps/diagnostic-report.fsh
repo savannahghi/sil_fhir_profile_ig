@@ -7,6 +7,7 @@ Title: "CIEL → LOINC DiagnosticReport .code Map (breast-imaging + chest US)"
 * status = #active
 
 * group[0].target = "http://loinc.org"
+* group[0].source = "*"
 
 * group[0].element[0].code                = #168651
 * group[0].element[0].display             = "Magnetic resonance imaging of breast"

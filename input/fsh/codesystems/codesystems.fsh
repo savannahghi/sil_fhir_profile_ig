@@ -314,3 +314,12 @@ Description: "A collection of CIEL codes formerly in use for clinical observatio
 * #166674 "High Risk"
 *   #1064  "Not At Risk"
 * #166675  "Low Risk"
+
+CodeSystem: RetiredFHIRR4Codes
+Id: retired-fhrr4-codes
+Title: "Retired FHIR R4 Codes"
+Description: "A collection of FHIR R 4 codes formerly in used in R4"
+
+* #161360 "Referral"
+* #159623 "Specialist"
+* #1283 "Laboratory orders"

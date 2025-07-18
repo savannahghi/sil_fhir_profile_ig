@@ -7,6 +7,7 @@ Title: "CIEL → ICD-11 Condition Map (generated 2025-07-09)"
 * status = #draft
 
 * group[0].target = "https://icd.who.int/browse/2025-01/mms/en"
+* group[0].source = "*"
 
 * group[0].element[0].code = #10
 * group[0].element[0].display = "Acute bronchitis"
