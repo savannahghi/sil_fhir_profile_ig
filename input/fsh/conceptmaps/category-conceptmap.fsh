@@ -5,7 +5,8 @@ Title: "R4 to R5 Category Map"
 
 * url = "https://fhir.slade360.co.ke/fhir/ConceptMap/FHIRCodeCategoryMap"
 * status = #active
-* group[0].source = "*"
+
+* group[0].source = "http://terminology.hl7.org/CodeSystem/condition-category"
 * group[0].target = "http://terminology.hl7.org/CodeSystem/condition-category"
 
 * group[0].element[0].code = #PROBLEM_LIST_ITEM
