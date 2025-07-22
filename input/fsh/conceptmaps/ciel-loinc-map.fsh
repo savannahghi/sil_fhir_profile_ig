@@ -173,3 +173,9 @@ Title: "CIEL to LOINC Observation Code Map"
 * group[0].element[26].target[0].code = #86662-4
 * group[0].element[26].target[0].display = "Pap smear tests - FPAR 2.0 set"
 * group[0].element[26].target[0].relationship = #equivalent
+
+* group[0].element[27].code = #160338
+* group[0].element[27].display = "Patient referred for medical consultation"
+* group[0].element[27].target[0].code = #57133-1
+* group[0].element[27].target[0].display = "Referral note"
+* group[0].element[27].target[0].relationship = #equivalent
