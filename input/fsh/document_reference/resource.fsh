@@ -9,7 +9,6 @@ Description: "A reference to a document of any kind for any purpose."
 
 * basedOn only SGHIReference
 * basedOn only Reference(SGHIAppointment or SGHIMedicationRequest or SGHIServiceRequest)
-* basedOn 1..
 
 * docStatus 1..1
 * modality only SGHICodeableConcept
