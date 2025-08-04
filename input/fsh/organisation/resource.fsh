@@ -17,7 +17,5 @@ Description: "SGHI's profile for Organization"
 * partOf only SGHIReference
 * partOf only Reference(SGHIOrganization)
 
-* contact 1..*
-
 * qualification.issuer only SGHIReference
 * qualification.issuer only Reference(SGHIOrganization)
