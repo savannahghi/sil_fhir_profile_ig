@@ -24,6 +24,7 @@
   "name": "ICD-10-WHO",
   "title": "International Classification for Diseases version 10, WHO",
   "status": "draft",
+  "content": "fragment",
   "description": "Based on ICD102019-covid",
   "count": 12587,
   "property": [

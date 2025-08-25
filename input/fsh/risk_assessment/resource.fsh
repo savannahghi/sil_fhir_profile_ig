@@ -26,7 +26,7 @@ Description:    "An assessment of the likely outcome(s) for a patient or other s
 * performer only Reference(SGHIPatient or Practitioner)
 
 * reason only SGHICodeableReference
-* reason only Reference(SGHICondition or SGHIObservation or SGHIDiagnosticReport)
+* reason only CodeableReference(SGHICondition or SGHIObservation or SGHIDiagnosticReport)
 
 * prediction 1..
   * qualitativeRisk 1..1

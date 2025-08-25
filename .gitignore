@@ -11,3 +11,4 @@ resource.json
 structuremap.sh
 /logs
 application.yaml
+*.ndjson
