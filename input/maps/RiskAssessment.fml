@@ -1,4 +1,3 @@
-
 /// url    = "https://fhir.slade360.co.ke/fhir/StructureMap/RiskAssessmentSGHI5"
 /// name   = "RiskAssessmentSGHI5"
 /// title  = "RiskAssessment Transforms: R4 → SGHI R5"
@@ -12,9 +11,11 @@ imports "http://hl7.org/fhir/StructureMap/*4to5"
 group SGHIRiskAssessment(source src : RiskAssessmentR4, target tgt : SGHIRiskAssessment) <<type+>> {
   src.id as uuid -> tgt.id = uuid;
   src.active               -> tgt.active;
-  src.language -> tgt.language;
-  src -> tgt.meta as t_meta then {
-    src -> t_meta.profile = 'https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-riskassessment' "add-sghi-profile";
+
+  src.language as lang -> tgt.language = lang "map-language";
+
+  tgt.meta = create('Meta') as t_meta then {
+    t_meta.profile = 'https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-riskassessment' "add-sghi-profile";
   } "add-to-meta";
 
   src where text.exists().not() -> tgt.text = create('Narrative') as t_text then {
@@ -46,7 +47,6 @@ group SGHIRiskAssessment(source src : RiskAssessmentR4, target tgt : SGHIRiskAss
         sm.tag last as st -> t_ident.assigner = create('Reference') as ta then TransformAssigner(st, ta); 
       } "setting owner";
   } "add-fhir-id-identifier";
-
 
   src.basis as sb -> tgt.basis as tb then TransformReference(sb, tb);
   src.basedOn as sob -> tgt.basedOn as tob then TransformReference(sob, tob);
