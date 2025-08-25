@@ -13,9 +13,10 @@ group SGHIRiskAssessment(source src : RiskAssessmentR4, target tgt : SGHIRiskAss
   src.active               -> tgt.active;
 
   src.language as lang -> tgt.language = lang "map-language";
+  src where language.exists().not() -> tgt.language = 'en-US' "default-language";
 
-  tgt.meta = create('Meta') as t_meta then {
-    t_meta.profile = 'https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-riskassessment' "add-sghi-profile";
+  tgt.meta -> create('Meta') as t_meta then {
+    t_meta.profile -> 'https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-riskassessment' "add-sghi-profile";
   } "add-to-meta";
 
   src where text.exists().not() -> tgt.text = create('Narrative') as t_text then {
