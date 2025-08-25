@@ -3,6 +3,7 @@ Id: sghi-identifier-codesystem
 Title: "SGHI Identifier Code System"
 Description: "A single code system enumerating the many local identifier types used across SGHI's environment."
 * ^status = #active
+* ^content = #supplement
 * #national-id "National ID" "A unique national identifier assigned by the National Registration Bureau (NRB) under the Ministry of Interior and National Administration."
 * #passport-number "Passport Number" "A unique identifier assigned by the Directorate of Immigration Services under the Ministry of Interior and National Administration."
 * #military-id "Military ID" "A unique identifier assigned by the Kenya Defence Forces (KDF) for military personnel."
@@ -230,7 +231,7 @@ Title: "SGHI Service Request CodeSystem"
 Description: "A custom CodeSystem defining different elements of service requests."
 * ^status = #active
 * ^version = "1.0"
-
+* ^content = #complete
 * #laboratory-procedure "Laboratory procedure"
 * #imaging "Imaging"
 * #counselling "Counselling"
@@ -243,6 +244,7 @@ Id: sghi-loinc-codesystem
 Title: "SGHI LOINC Code System"
 Description: "A a subset of LOINC codes used across SGHI's environment."
 * ^status = #active
+* ^content = #fragment
 * #39152-4 "Mammogram" "LOINC Code For Mammogram"
 * #100884-6 "Biopsy" "LOINC Code For Biospy"
 * #35954-7 "MRI" "LOINC Code For MRI"
@@ -265,6 +267,7 @@ Id: sghi-specialtycodesystem
 Title: "SGHI Specialty Code System"
 Description: "A Specialty Code System to be used in  SGHI's environment."
 * ^status = #active
+* ^content = #complete
 * #general-practitioner "General Practitioner" "A Specialties for primary healthcare and general medical services"
 * #pediatrician "Pediatrician" "Specialized for child healthcare, vaccination programs, and neonatal care."
 * #obstetrician "Obstetrician" "Specializes in maternal health, pregnancy care, and childbirth services."
@@ -278,6 +281,7 @@ Id: legacy-identifier-types
 Title: "Legacy Identifier Types (Deprecated)"
 Description: "Obsolete identifier-type codes encountered in R4 data."
 * ^status = #retired
+* ^content = #complete
 * #HEALTH_ID "Health ID"
 * #NATIONAL_ID "National ID"
 
@@ -285,7 +289,8 @@ CodeSystem: RetiredCIELCodes
 Id: retired-ciel-codes
 Title: "Retired CIEL Codes"
 Description: "A collection of CIEL codes formerly in use for clinical observations."
-
+* ^status = #retired
+* ^content = #fragment
 * #5089 "Weight (kg)"
 * #5086 "Diastolic blood pressure"
 * #5085 "Systolic blood pressure"
@@ -306,20 +311,21 @@ Description: "A collection of CIEL codes formerly in use for clinical observatio
 * #162927 "Excisional biopsy of breast"
 * #167166 "Immune stain study"
 * #160980 "Prostate examination (text)"
-* #161939  "Whole blood"
+* #161939 "Whole blood"
 * #160406 "Bilateral"
 * #147661 "Benign Neoplasm of Skin of Breast"
 * #161290 "Ultrasound of right breast"
 * #154451 "abnormal Papanicolaou smear of vagina"
 * #166674 "High Risk"
-*   #1064  "Not At Risk"
-* #166675  "Low Risk"
+* #1064   "Not At Risk"
+* #166675 "Low Risk"
 
 CodeSystem: RetiredFHIRR4Codes
 Id: retired-fhrr4-codes
 Title: "Retired FHIR R4 Codes"
 Description: "A collection of FHIR R 4 codes formerly in used in R4"
-
+* ^status = #retired
+* ^content = #complete
 * #161360 "Referral"
 * #159623 "Specialist"
-* #1283 "Laboratory orders"
+* #1283   "Laboratory orders"

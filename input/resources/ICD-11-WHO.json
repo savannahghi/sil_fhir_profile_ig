@@ -24,6 +24,7 @@
   "name": "ICD 11",
   "title": "International Classification for Diseases version 11, WHO",
   "status": "draft",
+  "content": "fragment",
   "publisher": "World Health Organization",
   "description": "This version contains the latest version of ICD-11 (2024)",
   "versionNeeded": true,

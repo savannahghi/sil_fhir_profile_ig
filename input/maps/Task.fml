@@ -51,9 +51,6 @@ group SGHITask(source src : TaskR4, target tgt : SGHITask) extends DomainResourc
 
   src as sb where businessStatus.exists() -> tgt.businessStatus as tb then {
     sb.text -> tb.text;
-Code	Display	Definition
-patient-number	Patient Number	A unique identifier assigned by Slade360 Advantage for internal patient tracking.
-national-id
   } "mapping business status";
 
   src.basedOn as sb -> tgt.basedOn as tb then TransformReference(sb, tb);
