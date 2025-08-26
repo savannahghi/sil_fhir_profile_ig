@@ -10,14 +10,17 @@ imports "http://hl7.org/fhir/StructureMap/*4to5"
 
 group SGHIRiskAssessment(source src : RiskAssessmentR4, target tgt : SGHIRiskAssessment) <<type+>> {
   src.id as uuid -> tgt.id = uuid;
-  src.active               -> tgt.active;
+  src.active     -> tgt.active;
 
   src.language as lang -> tgt.language = lang "map-language";
   src where language.exists().not() -> tgt.language = 'en-US' "default-language";
 
-  tgt.meta -> create('Meta') as t_meta then {
-    t_meta.profile -> 'https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-riskassessment' "add-sghi-profile";
-  } "add-to-meta";
+  src.meta as s_meta -> tgt.meta as t_meta then {
+    s_meta.lastUpdated as sl -> t_meta.lastUpdated = sl;
+    s_meta.language as sl -> t_meta.language = sl;
+    s_meta.tags as st -> t_meta.tags = st;
+    src.meta as sp where profile.exists().not() -> t_meta.profile =  'https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-riskassessment' "set-profile-in-meta";
+  } "set profile in meta";
 
   src where text.exists().not() -> tgt.text = create('Narrative') as t_text then {
     src -> t_text.status = 'generated' "set-text-status";
