@@ -4,73 +4,40 @@
 /// status = "active"
 
 uses "http://hl7.org/fhir/4.0/StructureDefinition/RiskAssessment" alias RiskAssessmentR4   as source
-uses "https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-riskassessment" alias SGHIRiskAssessment as target
+uses "https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-riskassessment" alias RiskAssessmentR5 as target
 
-imports "http://hl7.org/fhir/StructureMap/*4to5"
+group RiskAssessment(source src : RiskAssessmentR4, target tgt : RiskAssessmentR5) <<type+>> {
+  src.id as v                 -> tgt.id = v;
+  src.meta as m               -> tgt.meta = copy(m);
+  src.language as l           -> tgt.language = (l.lower());
+  src.text as n               -> tgt.text = copy(n);
 
-group RiskAssessmentR4toSGHIR5(source src : RiskAssessmentR4, target tgt : SGHIRiskAssessment) <<type+>> {
-  src.id as id -> tgt.id = id "sghi-id";
-  src.active -> tgt.active "sghi-active";
-  src.language as lang -> tgt.language = lang "map-language";
-  src where language.exists().not() -> tgt.language = 'en-US' "default-language";
-  src.meta as s_meta -> tgt.meta as t_meta then MetaTransform(s_meta, t_meta) "transform-meta";
+  src.status as s             -> tgt.status = s;
+  src.code as c               -> tgt.code = copy(c);
+  src.subject as sbj          -> tgt.subject = copy(sbj);
+  src.encounter as enc        -> tgt.encounter = copy(enc);
+  src.occurrence as occ       -> tgt.occurrence = occ;
 
-  src.text as st -> tgt.text as tt then NarrativeTransform(st, tt) "sghi-narrative";
-  src where text.exists().not() -> tgt.text = create('Narrative') as nt then {
-    src -> nt.status = 'generated' "set-narrative-status";
-    src -> nt.div = '<div xmlns="http://www.w3.org/1999/xhtml"><p>Generated summary</p></div>' "set-narrative-div";
-  } "set-narrative";
+  src.condition as cond       -> tgt.condition = copy(cond);
+  src.performer as perf       -> tgt.performer = copy(perf);
 
-  src.id as s_id -> tgt.identifier = create('Identifier') as ident then {
-    src -> ident.use = 'official' "set-identifier-use";
-    src -> ident.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/sghi-identifier-codesystem' "set-identifier-system";
-    s_id -> ident.value "set-identifier-value";
-  } "sghi-default-identifier";
+  // R4 reasonCode + reasonReference → R5 reason (CodeableReference)
+  src.reasonCode as rc        -> tgt.reason as r, r.concept   = copy(rc)      "reasonCodeToReason";
+  src.reasonReference as rr   -> tgt.reason as r2, r2.reference = copy(rr)    "reasonRefToReason";
 
-  src.subject as s -> tgt.subject as t then ReferenceTransform(s, t) "transform-subject";
+  src.basis as b              -> tgt.basis = copy(b);
 
-  src.encounter as s -> tgt.encounter as t then ReferenceTransform(s, t) "transform-encounter";
+  src.prediction as p         -> tgt.prediction as tp then {
+    p.outcome as o            -> tp.outcome = copy(o);
+    p.probabilityDecimal as d -> tp.probability = d;
+    p.probabilityRange  as pr -> tp.probability = copy(pr);
+    p.qualitativeRisk   as qr -> tp.qualitativeRisk = copy(qr);
+    p.relativeRisk      as rr -> tp.relativeRisk = rr;
+    p.whenPeriod        as wp -> tp.when = copy(wp);
+    p.whenRange         as wr -> tp.when = copy(wr);
+    p.rationale         as ra -> tp.rationale = ra;
+  };
 
-  src.basis as s -> tgt.basis as t then ReferenceTransform(s, t) "transform-basis";
-
-  src.status as s -> tgt.status = s "sghi-status";
-  src where status.exists().not() -> tgt.status = 'registered' "sghi-default-status";
-
-  src.occurrenceDateTime as dt -> tgt.occurrenceDateTime = dt "sghi-occurrence-datetime";
-
-  src.prediction as sp -> tgt.prediction as tp then {
-    sp.qualitativeRisk as sq -> tp.qualitativeRisk as tq then {
-      sq.coding as sc -> tq.coding as tc then CodingTransform(sc, tc) "sghi-qualitative-risk-coding";
-      sq.text as t -> tq.text = t "sghi-qualitative-risk-text";
-    } "sghi-qualitative-risk";
-  } "sghi-prediction";
-
-  src.note -> tgt.note "sghi-notes";
-}
-
-group MetaTransform(source s_meta, target t_meta) {
-  s_meta.lastUpdated -> t_meta.lastUpdated "sghi-lastUpdated";
-  s_meta.tag -> t_meta.tag "sghi-tags";
-  s_meta.profile -> t_meta.profile "sghi-profiles";
-  s_meta.security -> t_meta.security "sghi-security";
-  s_meta where profile.exists().not() ->
-    t_meta.profile = 'https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-riskassessment' "sghi-default-meta";
-}
-
-group NarrativeTransform(source s, target t) {
-  s.status as st -> t.status = st "sghi-narrative-status";
-  s.div as d -> t.div = ('<div xmlns="http://www.w3.org/1999/xhtml"><p>' + d + '</p></div>') "sghi-default-narrative";
-}
-
-group ReferenceTransform(source s, target t) <<types>> {
-  s.id -> t.id "sghi-reference-id";
-  s.reference -> t.reference "sghi-reference";
-  s.display -> t.display "sghi-display";
-  s where display.exists().not() -> t.display = 'Unknown' "sghi-default-display";
-}
-
-group CodingTransform(source s, target t) <<types>> {
-  s.code -> t.code "sghi-code";
-  s.display -> t.display "sghi-display";
-  s.system -> t.system "sghi-system";
+  src.mitigation as mit       -> tgt.mitigation = mit;
+  src.note as notes           -> tgt.note = copy(notes);
 }
