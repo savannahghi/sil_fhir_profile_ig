@@ -1,0 +1,118 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/GlasgowCommaScaleExtract"
+/// name = "GlasgowCommaScaleExtract"
+/// status = "active"
+/// title = "Glasgow Coma Scale Extraction"
+/// description = "Extracts three Observation resources, one per GCS subscore, from a QuestionnaireResponse to the GCS questionnaire."
+/// experimental = "true"
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Observation as target
+
+group GlasgowCommaScaleExtract(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  qr.item as itV where linkId = 'verbal-response' -> bundle.entry as eV, eV.resource = create('Observation') as oV
+  then BuildVerbal(qr, itV, oV, eV) "verbalResponseObs";
+
+  qr.item as itM where linkId = 'motor-response' -> bundle.entry as eM, eM.resource = create('Observation') as oM
+  then BuildMotor(qr, itM, oM, eM) "motorResponseObs";
+
+  qr.item as itE where linkId = 'eye-opening' -> bundle.entry as eE, eE.resource = create('Observation') as oE
+  then BuildEye(qr, itE, oE, eE) "eyeResponseObs";
+
+}
+
+group BuildVerbal(source qr : QR, source it : Element, target obs : Observation, target entry) {
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "reqMethodV";
+    qr -> request.url = 'Observation' "reqUrlV";
+  } "entryRequestV";
+  
+  qr -> obs.id = uuid() then
+    SetFullUrl(obs, entry) "setIdAndFullUrlV";
+
+  qr -> obs.status "statusV";
+  qr -> obs.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'survey', 'Survey') "catVSystem";
+  qr -> obs.code = cc('http://loinc.org', '9270-0', 'Glasgow coma score verbal') "codeVCode";
+
+  qr.subject as s -> obs.subject = create('Reference') as r then {
+    s.reference as ref -> r.reference = ref "subRefV";
+    s.display as disp -> r.display = disp "subDispV";
+  } "subjectV";
+
+  qr.authored as t -> obs.effective = t "effectiveV";
+  qr.authored as t -> obs.issued = t "issuedV";
+
+  it.answer as a -> obs.value = create('CodeableConcept') as c then {
+    a.value as coding -> c.coding = coding as nc "valCodingV";
+  } "valueV";
+
+  qr -> obs.derivedFrom = create('Reference') as dr then {
+    qr.id as id -> dr.reference = append('QuestionnaireResponse/', id) "derRefV";
+  } "derivedFromV";
+}
+
+group BuildMotor(source qr : QR, source it : Element, target obs : Observation, target entry) {
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "reqMethodM";
+    qr -> request.url = 'Observation' "reqUrlM";
+  } "entryRequestM";
+
+  qr -> obs.id = uuid() then
+    SetFullUrl(obs, entry) "setIdAndFullUrlM";
+
+  qr -> obs.status "statusM";
+  qr -> obs.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'survey', 'Survey') "catMSystem";
+  qr -> obs.code = cc('http://loinc.org', '9268-4', 'Glasgow coma score motor') "catMCode";
+
+  qr.subject as s -> obs.subject = create('Reference') as r then {
+    s.reference as ref -> r.reference = ref "subRefM";
+    s.display as disp -> r.display = disp "subDispM";
+  } "subjectM";
+
+  qr.authored as t -> obs.effective = t "effectiveM";
+  qr.authored as t -> obs.issued = t "issuedM";
+
+  it.answer as a -> obs.value = create('CodeableConcept') as c then {
+    a.value as coding -> c.coding = coding as nc "valCodingM";
+  } "valueM";
+
+  qr -> obs.derivedFrom = create('Reference') as dr then {
+    qr.id as id -> dr.reference = append('QuestionnaireResponse/', id) "derRefM";
+  } "derivedFromM";
+}
+
+group BuildEye(source qr : QR, source it : Element, target obs : Observation, target entry) {
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "reqMethodE";
+    qr -> request.url = 'Observation' "reqUrlE";
+  } "entryRequestE";
+
+  qr -> obs.id = uuid() then
+    SetFullUrl(obs, entry) "setIdAndFullUrlE";
+
+  qr -> obs.status "statusE";
+  qr -> obs.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'survey', 'Survey') "catESystem";
+  qr -> obs.code = cc('http://loinc.org', '9267-6', 'Glasgow coma score motor') "catECode";
+
+  qr.subject as s -> obs.subject = create('Reference') as r then {
+    s.reference as ref -> r.reference = ref "subRefE";
+    s.display as disp -> r.display = disp "subDispE";
+  } "subjectE";
+
+  qr.authored as t -> obs.effective = t "effectiveE";
+  qr.authored as t -> obs.issued = t "issuedE";
+
+  it.answer as a -> obs.value = create('CodeableConcept') as c then {
+    a.value as coding -> c.coding = coding as nc "valCodingE";
+  } "valueE";
+
+  qr -> obs.derivedFrom = create('Reference') as dr then {
+    qr.id as id -> dr.reference = append('QuestionnaireResponse/', id) "derRefE";
+  } "derivedFromE";
+}
+
+group SetFullUrl(source obs : Observation, target entry) {
+  obs.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/Observation/', id) "assignFullUrl";
+}
