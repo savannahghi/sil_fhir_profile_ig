@@ -12,105 +12,58 @@ uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Observation as 
 group GlasgowCommaScaleExtract(source qr : QR, target bundle : Bundle) {
   qr -> bundle.type = 'transaction' "setBundleType";
 
-  qr.item as itV where linkId = 'verbal-response' -> bundle.entry as eV, eV.resource = create('Observation') as oV
-  then BuildVerbal(qr, itV, oV, eV) "verbalResponseObs";
+  // Verbal
+  qr.item as itV where linkId = 'verbal-response' -> bundle.entry as eV, eV.resource = create('Observation') as oV then {
+    qr -> oV.id then BuildBaseObs(qr, oV, eV) "baseV";
+    qr -> oV.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'survey', 'Survey') "catVSystem";
+    qr -> oV.code = cc('http://loinc.org', '9270-0', 'Glasgow coma score verbal') "codeVCode";
+    qr -> oV.id then SetValueFromItem(itV, oV) "valV";
+  } "verbalResponseObs";
 
-  qr.item as itM where linkId = 'motor-response' -> bundle.entry as eM, eM.resource = create('Observation') as oM
-  then BuildMotor(qr, itM, oM, eM) "motorResponseObs";
+  // Motor
+  qr.item as itM where linkId = 'motor-response' -> bundle.entry as eM, eM.resource = create('Observation') as oM then {
+    qr -> oM.id then BuildBaseObs(qr, oM, eM) "baseM";
+    qr -> oM.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'survey', 'Survey') "catMSystem";
+    qr -> oM.code = cc('http://loinc.org', '9268-4', 'Glasgow coma score motor') "catMCode";
+    qr -> oM.id then SetValueFromItem(itM, oM) "valM";
+  } "motorResponseObs";
 
-  qr.item as itE where linkId = 'eye-opening' -> bundle.entry as eE, eE.resource = create('Observation') as oE
-  then BuildEye(qr, itE, oE, eE) "eyeResponseObs";
-
+  // Eye
+  qr.item as itE where linkId = 'eye-opening' -> bundle.entry as eE, eE.resource = create('Observation') as oE then {
+    qr -> oE.id then BuildBaseObs(qr, oE, eE) "baseE";
+    qr -> oE.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'survey', 'Survey') "catESystem";
+    qr -> oE.code = cc('http://loinc.org', '9267-6', 'Glasgow coma score eye opening') "catECode";
+    qr -> oE.id then SetValueFromItem(itE, oE) "valE";
+  } "eyeResponseObs";
 }
 
-group BuildVerbal(source qr : QR, source it : Element, target obs : Observation, target entry) {
-  qr -> entry.request as request then {
-    qr -> request.method = 'POST' "reqMethodV";
-    qr -> request.url = 'Observation' "reqUrlV";
-  } "entryRequestV";
-  
-  qr -> obs.id = uuid() then
-    SetFullUrl(obs, entry) "setIdAndFullUrlV";
+group BuildBaseObs(source qr : QR, target obs : Observation, target entry) {
+  qr -> entry.request as req then {
+    qr -> req.method = 'POST' "reqMethod";
+    qr -> req.url = 'Observation' "reqUrl";
+  } "entryRequest";
 
-  qr -> obs.status "statusV";
-  qr -> obs.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'survey', 'Survey') "catVSystem";
-  qr -> obs.code = cc('http://loinc.org', '9270-0', 'Glasgow coma score verbal') "codeVCode";
+  qr -> obs.id = uuid() then SetFullUrl(obs, entry) "setIdAndFullUrl";
+
+  qr -> obs.status = 'final' "setStatus";
 
   qr.subject as s -> obs.subject = create('Reference') as r then {
-    s.reference as ref -> r.reference = ref "subRefV";
-    s.display as disp -> r.display = disp "subDispV";
-  } "subjectV";
+    s.reference as ref -> r.reference = ref "subRef";
+    s.display as disp -> r.display = disp "subDisp";
+  } "setSubject";
 
-  qr.authored as t -> obs.effective = t "effectiveV";
-  qr.authored as t -> obs.issued = t "issuedV";
-
-  it.answer as a -> obs.value = create('CodeableConcept') as c then {
-    a.value as coding -> c.coding = coding as nc "valCodingV";
-  } "valueV";
+  qr.authored as t -> obs.effective = t "setEffective";
+  qr.authored as t -> obs.issued = t "setIssued";
 
   qr -> obs.derivedFrom = create('Reference') as dr then {
-    qr.id as id -> dr.reference = append('QuestionnaireResponse/', id) "derRefV";
-  } "derivedFromV";
+    qr.id as id -> dr.reference = append('QuestionnaireResponse/', id) "derRef";
+  } "setDerivedFrom";
 }
 
-group BuildMotor(source qr : QR, source it : Element, target obs : Observation, target entry) {
-  qr -> entry.request as request then {
-    qr -> request.method = 'POST' "reqMethodM";
-    qr -> request.url = 'Observation' "reqUrlM";
-  } "entryRequestM";
-
-  qr -> obs.id = uuid() then
-    SetFullUrl(obs, entry) "setIdAndFullUrlM";
-
-  qr -> obs.status "statusM";
-  qr -> obs.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'survey', 'Survey') "catMSystem";
-  qr -> obs.code = cc('http://loinc.org', '9268-4', 'Glasgow coma score motor') "catMCode";
-
-  qr.subject as s -> obs.subject = create('Reference') as r then {
-    s.reference as ref -> r.reference = ref "subRefM";
-    s.display as disp -> r.display = disp "subDispM";
-  } "subjectM";
-
-  qr.authored as t -> obs.effective = t "effectiveM";
-  qr.authored as t -> obs.issued = t "issuedM";
-
+group SetValueFromItem(source it : Element, target obs : Observation) {
   it.answer as a -> obs.value = create('CodeableConcept') as c then {
-    a.value as coding -> c.coding = coding as nc "valCodingM";
-  } "valueM";
-
-  qr -> obs.derivedFrom = create('Reference') as dr then {
-    qr.id as id -> dr.reference = append('QuestionnaireResponse/', id) "derRefM";
-  } "derivedFromM";
-}
-
-group BuildEye(source qr : QR, source it : Element, target obs : Observation, target entry) {
-  qr -> entry.request as request then {
-    qr -> request.method = 'POST' "reqMethodE";
-    qr -> request.url = 'Observation' "reqUrlE";
-  } "entryRequestE";
-
-  qr -> obs.id = uuid() then
-    SetFullUrl(obs, entry) "setIdAndFullUrlE";
-
-  qr -> obs.status "statusE";
-  qr -> obs.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'survey', 'Survey') "catESystem";
-  qr -> obs.code = cc('http://loinc.org', '9267-6', 'Glasgow coma score motor') "catECode";
-
-  qr.subject as s -> obs.subject = create('Reference') as r then {
-    s.reference as ref -> r.reference = ref "subRefE";
-    s.display as disp -> r.display = disp "subDispE";
-  } "subjectE";
-
-  qr.authored as t -> obs.effective = t "effectiveE";
-  qr.authored as t -> obs.issued = t "issuedE";
-
-  it.answer as a -> obs.value = create('CodeableConcept') as c then {
-    a.value as coding -> c.coding = coding as nc "valCodingE";
-  } "valueE";
-
-  qr -> obs.derivedFrom = create('Reference') as dr then {
-    qr.id as id -> dr.reference = append('QuestionnaireResponse/', id) "derRefE";
-  } "derivedFromE";
+    a.value as coding -> c.coding = coding as nc "copyCoding";
+  } "setValueCC";
 }
 
 group SetFullUrl(source obs : Observation, target entry) {
