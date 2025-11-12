@@ -1,25 +1,9 @@
 ValueSet: SGHIPatientIdentifierTypes
 Id: sghi-patient-identifier-types
 Title: "SGHI Patient Identifier Types"
-Description: "Identifier types used  to identify patient in SGHI's systems"
+Description: "Identifier types used  to identify a patient in SGHI's systems"
 * ^status = #active
-* include SGHIIdentifierCodeSystem#patient-number
-* include SGHIIdentifierCodeSystem#national-id
-* include SGHIIdentifierCodeSystem#passport-number                     
-* include SGHIIdentifierCodeSystem#military-id       
-* include SGHIIdentifierCodeSystem#alien-id 
-* include SGHIIdentifierCodeSystem#nhif-id 
-* include SGHIIdentifierCodeSystem#smart-member-number  
-* include SGHIIdentifierCodeSystem#drchrono-id 
-* include SGHIIdentifierCodeSystem#fhir-patient-id  
-* include SGHIIdentifierCodeSystem#erp-customer-id 
-* include SGHIIdentifierCodeSystem#ccc-number 
-* include SGHIIdentifierCodeSystem#refugee-id 
-* include SGHIIdentifierCodeSystem#birth-certificate 
-* include SGHIIdentifierCodeSystem#mandate-number 
-* include SGHIIdentifierCodeSystem#client-registry-number
-* include SGHIIdentifierCodeSystem#slade-health-id 
-* include SGHIIdentifierCodeSystem#SLADEID 
+* include codes from valueset $SIL_PatientIds_V3
 
 ValueSet: SGHIOrganizationIdentifierTypes
 Id: sghi-organization-identifier-types
@@ -178,7 +162,7 @@ Id: sghi-medication-codes
 Title: "SGHI Medication Codes"
 Description: "ValueSet containing SGHI medication codes"
 * ^status = #active
-* include codes from system https://ocl-testing-api.savannahghi.org/fhir/CodeSystem/KNC4Drugs 
+* include codes from system https://ocl-testing-api.savannahghi.org/orgs/SIL/CodeSystem/KNC4Drugs 
 * include SGHIIdentifierCodeSystem#sghidefaultcode "SGHI Default Code"
 
 ValueSet: SGHIInvestigationCodes

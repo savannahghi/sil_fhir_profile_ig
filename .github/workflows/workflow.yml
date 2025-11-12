@@ -7,12 +7,12 @@ env:
 
 jobs:
   build-and-publish:
-    if: ${{ github.ref == 'refs/heads/main' }}
+    if: ${{ github.ref == 'refs/heads/use-ocl-code-system' }}
     runs-on: ubuntu-latest
     
     strategy:
       matrix:
-        environment: [testing, staging, prod]
+        environment: [testing]
 
     environment:
       name: ${{ matrix.environment }}
