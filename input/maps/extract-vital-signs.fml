@@ -12,7 +12,7 @@ group VitalSignsExtract(source qr : QR, target bundle : Bundle) {
   qr -> bundle.type = 'transaction' "setBundleType";
 
   // Height, LOINC 8302-2, cm
-  qr.item as it where linkId = '834591352448'
+  qr.item as it where linkId = '8302-2'
     -> bundle.entry as eH, eH.resource = create('Observation') as oH then {
       qr -> oH.id then BuildBaseObs(qr, oH, eH) "baseH";
       qr -> oH.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'vital-signs', 'Vital Signs') "catH";
@@ -22,7 +22,7 @@ group VitalSignsExtract(source qr : QR, target bundle : Bundle) {
     } "heightObs";
 
   // Weight, LOINC 29463-7, kg
-  qr.item as it where linkId = '612376851550'
+  qr.item as it where linkId = '29463-7'
     -> bundle.entry as eW, eW.resource = create('Observation') as oW then {
       qr -> oW.id then BuildBaseObs(qr, oW, eW) "baseW";
       qr -> oW.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'vital-signs', 'Vital Signs') "catW";
@@ -32,7 +32,7 @@ group VitalSignsExtract(source qr : QR, target bundle : Bundle) {
     } "weightObs";
 
   // Pulse rate, LOINC 8889-8, /min
-  qr.item as it where linkId = '118945747144'
+  qr.item as it where linkId = '8889-8'
     -> bundle.entry as eP, eP.resource = create('Observation') as oP then {
       qr -> oP.id then BuildBaseObs(qr, oP, eP) "baseP";
       qr -> oP.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'vital-signs', 'Vital Signs') "catP";
@@ -42,7 +42,7 @@ group VitalSignsExtract(source qr : QR, target bundle : Bundle) {
     } "pulseObs";
 
   // Systolic BP, LOINC 8480-6, mm[Hg]
-  qr.item as it where linkId = '961601071435'
+  qr.item as it where linkId = '8480-6'
     -> bundle.entry as eS, eS.resource = create('Observation') as oS then {
       qr -> oS.id then BuildBaseObs(qr, oS, eS) "baseS";
       qr -> oS.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'vital-signs', 'Vital Signs') "catS";
@@ -52,7 +52,7 @@ group VitalSignsExtract(source qr : QR, target bundle : Bundle) {
     } "systolicObs";
 
   // Diastolic BP, LOINC 8462-4, mm[Hg]
-  qr.item as it where linkId = '354414349687'
+  qr.item as it where linkId = '8462-4'
     -> bundle.entry as eD, eD.resource = create('Observation') as oD then {
       qr -> oD.id then BuildBaseObs(qr, oD, eD) "baseD";
       qr -> oD.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'vital-signs', 'Vital Signs') "catD";
@@ -62,7 +62,7 @@ group VitalSignsExtract(source qr : QR, target bundle : Bundle) {
     } "diastolicObs";
 
   // Temperature, LOINC 8310-5, Cel
-  qr.item as it where linkId = '608221161831'
+  qr.item as it where linkId = '8310-5'
     -> bundle.entry as eT, eT.resource = create('Observation') as oT then {
       qr -> oT.id then BuildBaseObs(qr, oT, eT) "baseT";
       qr -> oT.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'vital-signs', 'Vital Signs') "catT";
@@ -72,7 +72,7 @@ group VitalSignsExtract(source qr : QR, target bundle : Bundle) {
     } "tempObs";
 
   // Oxygen saturation, LOINC 20564-1, %
-  qr.item as it where linkId = '851250344540'
+  qr.item as it where linkId = '20564-1'
     -> bundle.entry as eO2, eO2.resource = create('Observation') as oO2 then {
       qr -> oO2.id then BuildBaseObs(qr, oO2, eO2) "baseO2";
       qr -> oO2.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'vital-signs', 'Vital Signs') "catO2";
@@ -82,7 +82,7 @@ group VitalSignsExtract(source qr : QR, target bundle : Bundle) {
     } "spo2Obs";
 
   // Respiratory rate, LOINC 9279-1, /min
-  qr.item as it where linkId = '222626668435'
+  qr.item as it where linkId = '9279-1'
     -> bundle.entry as eR, eR.resource = create('Observation') as oR then {
       qr -> oR.id then BuildBaseObs(qr, oR, eR) "baseR";
       qr -> oR.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'vital-signs', 'Vital Signs') "catR";
@@ -92,7 +92,7 @@ group VitalSignsExtract(source qr : QR, target bundle : Bundle) {
     } "respObs";
 
   // MUAC, LOINC 9847-5, mm
-  qr.item as it where linkId = '943347546713'
+  qr.item as it where linkId = '9847-5'
     -> bundle.entry as eM, eM.resource = create('Observation') as oM then {
       qr -> oM.id then BuildBaseObs(qr, oM, eM) "baseMUAC";
       qr -> oM.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'vital-signs', 'Vital Signs') "catMUAC";
@@ -101,8 +101,8 @@ group VitalSignsExtract(source qr : QR, target bundle : Bundle) {
       it then SetNoteFromNested(it, oM) "noteMUAC";
     } "muacObs";
 
-  // BMI, LOINC 39156-5, as string if provided
-  qr.item as it where linkId = '606919475524'
+  // BMI, LOINC 39156-5
+  qr.item as it where linkId = '39156-5'
     -> bundle.entry as eBMI, eBMI.resource = create('Observation') as oBMI then {
       qr -> oBMI.id then BuildBaseObs(qr, oBMI, eBMI) "baseBMI";
       qr -> oBMI.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'vital-signs', 'Vital Signs') "catBMI";
@@ -110,6 +110,46 @@ group VitalSignsExtract(source qr : QR, target bundle : Bundle) {
       it then SetStringValueFromItem(it, oBMI) "valBMI";
       it then SetNoteFromNested(it, oBMI) "noteBMI";
     } "bmiObs";
+
+  // Chief complaint, LOINC 10154-3
+  qr.item as it where linkId = '10154-3'
+    -> bundle.entry as eCC, eCC.resource = create('Observation') as oCC then {
+      qr -> oCC.id then BuildBaseObs(qr, oCC, eCC) "baseCC";
+      qr -> oCC.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'social-history', 'Social History') "catCC";
+      qr -> oCC.code = cc('http://loinc.org', '10154-3', 'Chief complaint Narrative - Reported') "codeCC";
+      it then SetStringValueFromItem(it, oCC) "valCC";
+      it then SetNoteFromNested(it, oCC) "noteCC";
+    } "chiefComplaintObs";
+
+  // Family History, LOINC 10157-6
+  qr.item as it where linkId = '10157-6'
+    -> bundle.entry as eFH, eFH.resource = create('Observation') as oFH then {
+      qr -> oFH.id then BuildBaseObs(qr, oFH, eFH) "baseFH";
+      qr -> oFH.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'social-history', 'Social History') "catFH";
+      qr -> oFH.code = cc('http://loinc.org', '10157-6', 'History of family member diseases Narrative') "codeFH";
+      it then SetStringValueFromItem(it, oFH) "valFH";
+      it then SetNoteFromNested(it, oFH) "noteFH";
+    } "familyHistoryObs";
+
+  // Surgical History, LOINC 8690-0
+  qr.item as it where linkId = '8690-0'
+    -> bundle.entry as eSH, eSH.resource = create('Observation') as oSH then {
+      qr -> oSH.id then BuildBaseObs(qr, oSH, eSH) "baseSH";
+      qr -> oSH.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'social-history', 'Social History') "catSH";
+      qr -> oSH.code = cc('http://loinc.org', '8690-0', 'History of Surgical procedures') "codeSH";
+      it then SetStringValueFromItem(it, oSH) "valSH";
+      it then SetNoteFromNested(it, oSH) "noteSH";
+    } "surgicalHistoryObs";
+
+  // History of Present Illness, LOINC 10164-2
+  qr.item as it where linkId = '10164-2'
+    -> bundle.entry as eHPI, eHPI.resource = create('Observation') as oHPI then {
+      qr -> oHPI.id then BuildBaseObs(qr, oHPI, eHPI) "baseHPI";
+      qr -> oHPI.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'social-history', 'Social History') "catHPI";
+      qr -> oHPI.code = cc('http://loinc.org', '10164-2', 'History of Present illness Narrative') "codeHPI";
+      it then SetStringValueFromItem(it, oHPI) "valHPI";
+      it then SetNoteFromNested(it, oHPI) "noteHPI";
+    } "hpiObs";
 }
 
 group BuildBaseObs(source qr : QR, target obs : Observation, target entry) {
@@ -135,7 +175,13 @@ group BuildBaseObs(source qr : QR, target obs : Observation, target entry) {
   } "setDerivedFrom";
 }
 
-group SetQuantityValueFromItem(source it : Element, target obs : Observation, source sys : string, source ucode : string, source utext : string) {
+group SetQuantityValueFromItem(
+  source it : Element,
+  target obs : Observation,
+  source sys : string,
+  source ucode : string,
+  source utext : string
+) {
   it.answer as a -> obs.value = create('Quantity') as q then {
     a.value as v -> q.value = v "qVal";
     sys -> q.system = sys "qSys";
