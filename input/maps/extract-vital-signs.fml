@@ -8,205 +8,230 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
   qr -> bundle.type = 'transaction' "setBundleType";
 
   // Height
-  qr -> bundle.entry as eH, eH.resource = create('Observation') as oH then {
-    qr -> oH, eH then BuildBaseObs(qr, oH, eH) "heightBase";
-    qr -> oH.code = cc('http://loinc.org', '8302-2', 'Body Height') "codeH";
+  qr.item as itH where (linkId = '8302-2') then {
+    itH.answer first as aH then {
+      aH -> bundle.entry as eH, eH.resource = create('Observation') as oH then {
+        qr -> oH, eH then BuildBaseObs(qr, oH, eH) "heightBase";
+        qr -> oH.code = cc('http://loinc.org', '8302-2', 'Body Height') "codeH";
 
-    qr.item as itH where (linkId = '8302-2') then {
-      itH.answer first as aH -> oH.valueQuantity as vH then {
-        aH.value as hv -> vH.value = hv "setVal";
-        qr -> vH.system = 'http://unitsofmeasure.org' "setSys";
-        qr -> vH.code   = 'cm' "setCode";
-        qr -> vH.unit   = 'centimeter' "setUnit";
-      } "valH";
-    } "heightVal";
-  } "heightObs";
+        aH.value as hv -> oH.valueQuantity as vH then {
+          hv -> vH.value = hv "setVal";
+          qr -> vH.system = 'http://unitsofmeasure.org' "setSys";
+          qr -> vH.code   = 'cm' "setCode";
+          qr -> vH.unit   = 'centimeter' "setUnit";
+        } "valH";
+      } "heightObs";
+    } "heightAns";
+  } "heightRule";
+
 
   // Weight
-  qr -> bundle.entry as eW, eW.resource = create('Observation') as oW then {
-    qr -> oW, eW then BuildBaseObs(qr, oW, eW) "weightBase";
-    qr -> oW.code = cc('http://loinc.org', '29463-7', 'Body Weight') "codeW";
+  qr.item as itW where (linkId = '29463-7') then {
+    itW.answer first as aW then {
+      aW -> bundle.entry as eW, eW.resource = create('Observation') as oW then {
+        qr -> oW, eW then BuildBaseObs(qr, oW, eW) "weightBase";
+        qr -> oW.code = cc('http://loinc.org', '29463-7', 'Body Weight') "codeW";
 
-    qr.item as itW where (linkId = '29463-7') then {
-      itW.answer first as aW -> oW.valueQuantity as vW then {
-        aW.value as hv -> vW.value = hv "setVal";
-        qr -> vW.system = 'http://unitsofmeasure.org' "setSys";
-        qr -> vW.code   = 'kg' "setCode";
-        qr -> vW.unit   = 'kilogram' "setUnit";
-      } "valW";
-    } "weightVal";
-  } "weightObs";
+        aW.value as hv -> oW.valueQuantity as vW then {
+          hv -> vW.value = hv "setVal";
+          qr -> vW.system = 'http://unitsofmeasure.org' "setSys";
+          qr -> vW.code   = 'kg' "setCode";
+          qr -> vW.unit   = 'kilogram' "setUnit";
+        } "valW";
+      } "weightObs";
+    } "weightAns";
+  } "weightRule";
+
 
   // BMI
-  qr -> bundle.entry as eBmi, eBmi.resource = create('Observation') as oBmi then {
-    qr -> oBmi, eBmi then BuildBaseObs(qr, oBmi, eBmi) "bmiBase";
-    qr -> oBmi.code = cc('http://loinc.org', '39156-5', 'Body mass index (BMI) [Ratio]') "codeBmi";
+  qr.item as itBmi where (linkId = '39156-5') then {
+    itBmi.answer first as aBmi then {
+      aBmi -> bundle.entry as eBmi, eBmi.resource = create('Observation') as oBmi then {
+        qr -> oBmi, eBmi then BuildBaseObs(qr, oBmi, eBmi) "bmiBase";
+        qr -> oBmi.code = cc('http://loinc.org', '39156-5', 'Body mass index (BMI) [Ratio]') "codeBmi";
 
-    qr.item as itBmi where (linkId = '39156-5') then {
+        aBmi.value as hv -> oBmi.valueQuantity as vBmi then {
+          hv -> vBmi.value = hv "setVal";
+          qr -> vBmi.system = 'http://unitsofmeasure.org' "setSys";
+          qr -> vBmi.code   = 'kg/m2' "setCode";
+          qr -> vBmi.unit   = 'kilogram per square meter' "setUnit";
+        } "valBmi";
 
-      itBmi.answer first as aBmi -> oBmi.valueQuantity as vBmi then {
-        aBmi.value as hv -> vBmi.value = hv "setVal";
-        qr -> vBmi.system = 'http://unitsofmeasure.org' "setSys";
-        qr -> vBmi.code   = 'kg/m2' "setCode";
-        qr -> vBmi.unit   = 'kilogram per square meter' "setUnit";
-      } "valBmi";
-
-      itBmi.answer first as aBmi2 then {
-        aBmi2.item as bmiStatusItem where (linkId = '39156-5_status') then {
+        // Interpretation 39156-5_status
+        itBmi.item as bmiStatusItem where (linkId = '39156-5_status') then {
           bmiStatusItem.answer first as bmiStatusAns -> oBmi.interpretation as iBmi then {
             bmiStatusAns.value as statusText -> iBmi.text = statusText "interpBmi";
           } "setInterpBmi";
         } "findBmiStatus";
-      } "bmiStatusPath";
-    } "bmiVal";
-  } "bmiObs";
+      } "bmiObs";
+    } "bmiAns";
+  } "bmiRule";
 
-  // Pulse rate
-  qr -> bundle.entry as eP, eP.resource = create('Observation') as oP then {
-    qr -> oP, eP then BuildBaseObs(qr, oP, eP) "pulseBase";
-    qr -> oP.code = cc('http://loinc.org', '8889-8', 'Heart rate by Pulse oximetry') "codeP";
 
-    qr.item as itP where (linkId = '8889-8') then {
-      itP.answer first as aP -> oP.valueQuantity as vP then {
-        aP.value as hv -> vP.value = hv "setVal";
-        qr -> vP.system = 'http://unitsofmeasure.org' "setSys";
-        qr -> vP.code   = '/min' "setCode";
-        qr -> vP.unit   = 'per minute' "setUnit";
-      } "valP";
-    } "pulseVal";
-  } "pulseObs";
+  // Pulse
+  qr.item as itP where (linkId = '8889-8') then {
+    itP.answer first as aP then {
+      aP -> bundle.entry as eP, eP.resource = create('Observation') as oP then {
+        qr -> oP, eP then BuildBaseObs(qr, oP, eP) "pulseBase";
+        qr -> oP.code = cc('http://loinc.org', '8889-8', 'Heart rate by Pulse oximetry') "codeP";
 
-  // Blood pressure
-  qr -> bundle.entry as eBP, eBP.resource = create('Observation') as oBP then {
-    qr -> oBP, eBP then BuildBaseObs(qr, oBP, eBP) "bpBase";
-    qr -> oBP.code = cc('http://loinc.org', '55284-4', 'Blood pressure systolic and diastolic') "codeBP";
+        aP.value as hv -> oP.valueQuantity as vP then {
+          hv -> vP.value = hv "setVal";
+          qr -> vP.system = 'http://unitsofmeasure.org' "setSys";
+          qr -> vP.code   = '/min' "setCode";
+          qr -> vP.unit   = 'per minute' "setUnit";
+        } "valP";
+      } "pulseObs";
+    } "pulseAns";
+  } "pulseRule";
 
-    qr.item as itBP where (linkId = '55284-4') then {
 
-      // Systolic
-      itBP.item as itSys where (linkId = '8480-6') then {
-        itSys.answer first as aSys -> oBP.component as cSys then {
-          aSys -> cSys.code = cc('http://loinc.org', '8480-6', 'Systolic blood pressure') "bpSysCode";
-          aSys.value as hv -> cSys.valueQuantity as vSys then {
-            hv -> vSys.value = hv "setVal";
-            qr -> vSys.system = 'http://unitsofmeasure.org' "setSys";
-            qr -> vSys.code   = 'mm[Hg]' "setCode";
-            qr -> vSys.unit   = 'millimeter of mercury' "setUnit";
-          } "bpSysVal";
-        } "bpSysComp";
-      } "bpSysRule";
+  // Blood Pressure
+  qr.item as itBP where (linkId = '55284-4') then {
+    itBP.answer first as aPanel then {
+      aPanel -> bundle.entry as eBP, eBP.resource = create('Observation') as oBP then {
+        qr -> oBP, eBP then BuildBaseObs(qr, oBP, eBP) "bpBase";
+        qr -> oBP.code = cc('http://loinc.org', '55284-4', 'Blood pressure systolic and diastolic') "codeBP";
 
-      // Diastolic
-      itBP.item as itDia where (linkId = '8462-4') then {
-        itDia.answer first as aDia -> oBP.component as cDia then {
-          aDia -> cDia.code = cc('http://loinc.org', '8462-4', 'Diastolic blood pressure') "bpDiaCode";
-          aDia.value as hv -> cDia.valueQuantity as vDia then {
-            hv -> vDia.value = hv "setVal";
-            qr -> vDia.system = 'http://unitsofmeasure.org' "setSys";
-            qr -> vDia.code   = 'mm[Hg]' "setCode";
-            qr -> vDia.unit   = 'millimeter of mercury' "setUnit";
-          } "bpDiaVal";
-        } "bpDiaComp";
-      } "bpDiaRule";
+        // Systolic 8480-6
+        itBP.item as itSys where (linkId = '8480-6') then {
+          itSys.answer first as aSys -> oBP.component as cSys then {
+            aSys -> cSys.code = cc('http://loinc.org', '8480-6', 'Systolic blood pressure') "bpSysCode";
+            aSys.value as hv -> cSys.valueQuantity as vSys then {
+              hv -> vSys.value = hv "setVal";
+              qr -> vSys.system = 'http://unitsofmeasure.org' "setSys";
+              qr -> vSys.code   = 'mm[Hg]' "setCode";
+              qr -> vSys.unit   = 'millimeter of mercury' "setUnit";
+            } "bpSysVal";
+          } "bpSysComponent";
+        } "bpSysRule";
 
-    } "bpComponents";
-  } "bpObs";
+        // Diastolic 8462-4
+        itBP.item as itDia where (linkId = '8462-4') then {
+          itDia.answer first as aDia -> oBP.component as cDia then {
+            aDia -> cDia.code = cc('http://loinc.org', '8462-4', 'Diastolic blood pressure') "bpDiaCode";
+            aDia.value as hv -> cDia.valueQuantity as vDia then {
+              hv -> vDia.value = hv "setVal";
+              qr -> vDia.system = 'http://unitsofmeasure.org' "setSys";
+              qr -> vDia.code   = 'mm[Hg]' "setCode";
+              qr -> vDia.unit   = 'millimeter of mercury' "setUnit";
+            } "bpDiaVal";
+          } "bpDiaComponent";
+        } "bpDiaRule";
+      } "bpObs";
+    } "bpAns";
+  } "bpRule";
+
 
   // Temperature
-  qr -> bundle.entry as eT, eT.resource = create('Observation') as oT then {
-    qr -> oT, eT then BuildBaseObs(qr, oT, eT) "tempBase";
-    qr -> oT.code = cc('http://loinc.org', '8310-5', 'Body Temperature') "codeT";
+  qr.item as itT where (linkId = '8310-5') then {
+    itT.answer first as aT then {
+      aT -> bundle.entry as eT, eT.resource = create('Observation') as oT then {
+        qr -> oT, eT then BuildBaseObs(qr, oT, eT) "tempBase";
+        qr -> oT.code = cc('http://loinc.org', '8310-5', 'Body Temperature') "codeT";
 
-    qr.item as itT where (linkId = '8310-5') then {
-      itT.answer first as aT -> oT.valueQuantity as vT then {
-        aT.value as hv -> vT.value = hv "setVal";
-        qr -> vT.system = 'http://unitsofmeasure.org' "setSys";
-        qr -> vT.code   = 'Cel' "setCode";
-        qr -> vT.unit   = 'degree Celsius' "setUnit";
-      } "valT";
+        aT.value as hv -> oT.valueQuantity as vT then {
+          hv -> vT.value = hv "setVal";
+          qr -> vT.system = 'http://unitsofmeasure.org' "setSys";
+          qr -> vT.code   = 'Cel' "setCode";
+          qr -> vT.unit   = 'degree Celsius' "setUnit";
+        } "valT";
 
-      itT.item as tStatusItem where (linkId = '8310-5_status') then {
-        tStatusItem.answer first as tStatusAns -> oT.interpretation as iT then {
-          tStatusAns.value as statusText -> iT.text = statusText "interpT";
-        } "setInterpT";
-      } "findTStatus";
-    } "tempVal";
-  } "tempObs";
+        // Interpretation 8310-5_status
+        itT.item as tStatusItem where (linkId = '8310-5_status') then {
+          tStatusItem.answer first as tStatusAns -> oT.interpretation as iT then {
+            tStatusAns.value as statusText -> iT.text = statusText "interpT";
+          } "setInterpT";
+        } "findTStatus";
+      } "tempObs";
+    } "tempAns";
+  } "tempRule";
 
-  // Oxygen saturation
-  qr -> bundle.entry as eO2, eO2.resource = create('Observation') as oO2 then {
-    qr -> oO2, eO2 then BuildBaseObs(qr, oO2, eO2) "spo2Base";
-    qr -> oO2.code = cc('http://loinc.org', '20564-1', 'Oxygen saturation in Blood') "codeO2";
 
-    qr.item as itO2 where (linkId = '20564-1') then {
-      itO2.answer first as aO2 -> oO2.valueQuantity as vO2 then {
-        aO2.value as hv -> vO2.value = hv "setVal";
-        qr -> vO2.system = 'http://unitsofmeasure.org' "setSys";
-        qr -> vO2.code   = '%' "setCode";
-        qr -> vO2.unit   = '%' "setUnit";
-      } "valO2";
+  // SpO2
+  qr.item as itO2 where (linkId = '20564-1') then {
+    itO2.answer first as aO2 then {
+      aO2 -> bundle.entry as eO2, eO2.resource = create('Observation') as oO2 then {
+        qr -> oO2, eO2 then BuildBaseObs(qr, oO2, eO2) "spo2Base";
+        qr -> oO2.code = cc('http://loinc.org', '20564-1', 'Oxygen saturation in Blood') "codeO2";
 
-      itO2.item as o2StatusItem where (linkId = '20564-1_status') then {
-        o2StatusItem.answer first as o2StatusAns -> oO2.interpretation as iO2 then {
-          o2StatusAns.value as statusText -> iO2.text = statusText "interpO2";
-        } "setInterpO2";
-      } "findO2Status";
-    } "spo2Val";
-  } "spo2Obs";
+        aO2.value as hv -> oO2.valueQuantity as vO2 then {
+          hv -> vO2.value = hv "setVal";
+          qr -> vO2.system = 'http://unitsofmeasure.org' "setSys";
+          qr -> vO2.code   = '%' "setCode";
+          qr -> vO2.unit   = '%' "setUnit";
+        } "valO2";
+
+        // Interpretation of SpO2 20564-1_status
+        itO2.item as o2StatusItem where (linkId = '20564-1_status') then {
+          o2StatusItem.answer first as o2StatusAns -> oO2.interpretation as iO2 then {
+            o2StatusAns.value as statusText -> iO2.text = statusText "interpO2";
+          } "setInterpO2";
+        } "findO2Status";
+      } "spo2Obs";
+    } "spo2Ans";
+  } "spo2Rule";
+
 
   // Respiratory rate
-  qr -> bundle.entry as eRR, eRR.resource = create('Observation') as oRR then {
-    qr -> oRR, eRR then BuildBaseObs(qr, oRR, eRR) "rrBase";
-    qr -> oRR.code = cc('http://loinc.org', '9279-1', 'Respiratory rate') "codeRR";
+  qr.item as itRR where (linkId = '9279-1') then {
+    itRR.answer first as aRR then {
+      aRR -> bundle.entry as eRR, eRR.resource = create('Observation') as oRR then {
+        qr -> oRR, eRR then BuildBaseObs(qr, oRR, eRR) "rrBase";
+        qr -> oRR.code = cc('http://loinc.org', '9279-1', 'Respiratory rate') "codeRR";
 
-    qr.item as itRR where (linkId = '9279-1') then {
-      itRR.answer first as aRR -> oRR.valueQuantity as vRR then {
-        aRR.value as hv -> vRR.value = hv "setVal";
-        qr -> vRR.system = 'http://unitsofmeasure.org' "setSys";
-        qr -> vRR.code   = '/min' "setCode";
-        qr -> vRR.unit   = 'per minute' "setUnit";
-      } "valRR";
-    } "rrVal";
-  } "rrObs";
+        aRR.value as hv -> oRR.valueQuantity as vRR then {
+          hv -> vRR.value = hv "setVal";
+          qr -> vRR.system = 'http://unitsofmeasure.org' "setSys";
+          qr -> vRR.code   = '/min' "setCode";
+          qr -> vRR.unit   = 'per minute' "setUnit";
+        } "valRR";
+      } "rrObs";
+    } "rrAns";
+  } "rrRule";
+
 
   // MUAC
-  qr -> bundle.entry as eMuac, eMuac.resource = create('Observation') as oMuac then {
-    qr -> oMuac, eMuac then BuildBaseObs(qr, oMuac, eMuac) "muacBase";
-    qr -> oMuac.code = cc('http://loinc.org', '9847-5', 'Circumference') "codeMuac";
+  qr.item as itMuac where (linkId = '9847-5') then {
+    itMuac.answer first as aMuac then {
+      aMuac -> bundle.entry as eMuac, eMuac.resource = create('Observation') as oMuac then {
+        qr -> oMuac, eMuac then BuildBaseObs(qr, oMuac, eMuac) "muacBase";
+        qr -> oMuac.code = cc('http://loinc.org', '9847-5', 'Circumference') "codeMuac";
 
-    qr.item as itMuac where (linkId = '9847-5') then {
-      itMuac.answer first as aMuac -> oMuac.valueQuantity as vMuac then {
-        aMuac.value as hv -> vMuac.value = hv "setVal";
-        qr -> vMuac.system = 'http://unitsofmeasure.org' "setSys";
-        qr -> vMuac.code   = 'mm' "setCode";
-        qr -> vMuac.unit   = 'millimeter' "setUnit";
-      } "valMuac";
-    } "muacVal";
-  } "muacObs";
+        aMuac.value as hv -> oMuac.valueQuantity as vMuac then {
+          hv -> vMuac.value = hv "setVal";
+          qr -> vMuac.system = 'http://unitsofmeasure.org' "setSys";
+          qr -> vMuac.code   = 'mm' "setCode";
+          qr -> vMuac.unit   = 'millimeter' "setUnit";
+        } "valMuac";
+      } "muacObs";
+    } "muacAns";
+  } "muacRule";
 
-  // Chief complaint
-  qr -> bundle.entry as eCC, eCC.resource = create('Observation') as oCC then {
-    qr -> oCC, eCC then BuildBaseObs(qr, oCC, eCC) "chiefComplaintBase";
 
-    qr -> oCC.category = cc(
-      'http://terminology.hl7.org/CodeSystem/observation-category',
-      'social-history',
-      'Social History'
-    ) "chiefComplaintCategory";
+  // Chief Complaint
+  qr.item as itCC where (linkId = '10154-3') then {
+    itCC.answer first as aCC then {
+      aCC -> bundle.entry as eCC, eCC.resource = create('Observation') as oCC then {
+        qr -> oCC, eCC then BuildBaseObs(qr, oCC, eCC) "chiefComplaintBase";
 
-    qr -> oCC.code = cc(
-      'http://loinc.org',
-      '10154-3',
-      'Chief complaint Narrative'
-    ) "chiefComplaintCode";
+        // Override category to social-history
+        qr -> oCC.category = cc(
+          'http://terminology.hl7.org/CodeSystem/observation-category',
+          'social-history',
+          'Social History'
+        ) "chiefComplaintCategory";
 
-    qr.item as itCC where (linkId = '10154-3') then {
-      itCC.answer first as aCC then {
+        qr -> oCC.code = cc(
+          'http://loinc.org',
+          '10154-3',
+          'Chief complaint Narrative'
+        ) "chiefComplaintCode";
+
         aCC.value as textVal -> oCC.valueString = textVal "chiefComplaintValue";
-      } "chiefComplaintValRule";
-    } "chiefComplaintVal";
-
-  } "chiefComplaintObs";
+      } "chiefComplaintObs";
+    } "chiefComplaintAns";
+  } "chiefComplaintRule";
 }
 
 group BuildBaseObs(source qr : QR, target obs : Observation, target entry) {
