@@ -1,210 +1,245 @@
-/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/VitalSignsExtract"
-/// name = "VitalSignsExtract"
-/// status = "active"
-/// title = "Vital Signs Extraction"
-/// description = "Extracts Observation resources from a QuestionnaireResponse to the Vital Signs questionnaire."
+map "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractVitalSigns" = "ExtractVitalSigns"
 
 uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
 uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
 uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Observation as target
 
-group VitalSignsExtract(source qr : QR, target bundle : Bundle) {
+group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
   qr -> bundle.type = 'transaction' "setBundleType";
 
-  // Height, LOINC 8302-2, cm
-  qr.item as it where linkId = '8302-2'
-    -> bundle.entry as eH, eH.resource = create('Observation') as oH then {
-      qr -> oH.id then BuildBaseObs(qr, oH, eH) "baseH";
-      qr -> oH.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'vital-signs', 'Vital Signs') "catH";
-      qr -> oH.code = cc('http://loinc.org', '8302-2', 'Body Height') "codeH";
-      it then SetQuantityValueFromItem(it, oH, 'http://unitsofmeasure.org', 'cm', 'centimeter') "valH";
-      it then SetNoteFromNested(it, oH) "noteH";
-    } "heightObs";
+  // Height
+  qr -> bundle.entry as eH, eH.resource = create('Observation') as oH then {
+    qr -> oH, eH then BuildBaseObs(qr, oH, eH) "heightBase";
+    qr -> oH.code = cc('http://loinc.org', '8302-2', 'Body Height') "codeH";
 
-  // Weight, LOINC 29463-7, kg
-  qr.item as it where linkId = '29463-7'
-    -> bundle.entry as eW, eW.resource = create('Observation') as oW then {
-      qr -> oW.id then BuildBaseObs(qr, oW, eW) "baseW";
-      qr -> oW.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'vital-signs', 'Vital Signs') "catW";
-      qr -> oW.code = cc('http://loinc.org', '29463-7', 'Body Weight') "codeW";
-      it then SetQuantityValueFromItem(it, oW, 'http://unitsofmeasure.org', 'kg', 'kilogram') "valW";
-      it then SetNoteFromNested(it, oW) "noteW";
-    } "weightObs";
+    qr.item as itH where (linkId = '8302-2') then {
+      itH.answer first as aH -> oH.valueQuantity as vH then {
+        aH.value as hv -> vH.value = hv "setVal";
+        qr -> vH.system = 'http://unitsofmeasure.org' "setSys";
+        qr -> vH.code   = 'cm' "setCode";
+        qr -> vH.unit   = 'centimeter' "setUnit";
+      } "valH";
+    } "heightVal";
+  } "heightObs";
 
-  // Pulse rate, LOINC 8889-8, /min
-  qr.item as it where linkId = '8889-8'
-    -> bundle.entry as eP, eP.resource = create('Observation') as oP then {
-      qr -> oP.id then BuildBaseObs(qr, oP, eP) "baseP";
-      qr -> oP.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'vital-signs', 'Vital Signs') "catP";
-      qr -> oP.code = cc('http://loinc.org', '8889-8', 'Heart rate by Pulse oximetry') "codeP";
-      it then SetQuantityValueFromItem(it, oP, 'http://unitsofmeasure.org', '/min', 'per minute') "valP";
-      it then SetNoteFromNested(it, oP) "noteP";
-    } "pulseObs";
+  // Weight
+  qr -> bundle.entry as eW, eW.resource = create('Observation') as oW then {
+    qr -> oW, eW then BuildBaseObs(qr, oW, eW) "weightBase";
+    qr -> oW.code = cc('http://loinc.org', '29463-7', 'Body Weight') "codeW";
 
-  // Systolic BP, LOINC 8480-6, mm[Hg]
-  qr.item as it where linkId = '8480-6'
-    -> bundle.entry as eS, eS.resource = create('Observation') as oS then {
-      qr -> oS.id then BuildBaseObs(qr, oS, eS) "baseS";
-      qr -> oS.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'vital-signs', 'Vital Signs') "catS";
-      qr -> oS.code = cc('http://loinc.org', '8480-6', 'Systolic blood pressure') "codeS";
-      it then SetQuantityValueFromItem(it, oS, 'http://unitsofmeasure.org', 'mm[Hg]', 'millimeter of mercury') "valS";
-      it then SetNoteFromNested(it, oS) "noteS";
-    } "systolicObs";
+    qr.item as itW where (linkId = '29463-7') then {
+      itW.answer first as aW -> oW.valueQuantity as vW then {
+        aW.value as hv -> vW.value = hv "setVal";
+        qr -> vW.system = 'http://unitsofmeasure.org' "setSys";
+        qr -> vW.code   = 'kg' "setCode";
+        qr -> vW.unit   = 'kilogram' "setUnit";
+      } "valW";
+    } "weightVal";
+  } "weightObs";
 
-  // Diastolic BP, LOINC 8462-4, mm[Hg]
-  qr.item as it where linkId = '8462-4'
-    -> bundle.entry as eD, eD.resource = create('Observation') as oD then {
-      qr -> oD.id then BuildBaseObs(qr, oD, eD) "baseD";
-      qr -> oD.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'vital-signs', 'Vital Signs') "catD";
-      qr -> oD.code = cc('http://loinc.org', '8462-4', 'Diastolic blood pressure') "codeD";
-      it then SetQuantityValueFromItem(it, oD, 'http://unitsofmeasure.org', 'mm[Hg]', 'millimeter of mercury') "valD";
-      it then SetNoteFromNested(it, oD) "noteD";
-    } "diastolicObs";
+  // BMI
+  qr -> bundle.entry as eBmi, eBmi.resource = create('Observation') as oBmi then {
+    qr -> oBmi, eBmi then BuildBaseObs(qr, oBmi, eBmi) "bmiBase";
+    qr -> oBmi.code = cc('http://loinc.org', '39156-5', 'Body mass index (BMI) [Ratio]') "codeBmi";
 
-  // Temperature, LOINC 8310-5, Cel
-  qr.item as it where linkId = '8310-5'
-    -> bundle.entry as eT, eT.resource = create('Observation') as oT then {
-      qr -> oT.id then BuildBaseObs(qr, oT, eT) "baseT";
-      qr -> oT.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'vital-signs', 'Vital Signs') "catT";
-      qr -> oT.code = cc('http://loinc.org', '8310-5', 'Body Temperature') "codeT";
-      it then SetQuantityValueFromItem(it, oT, 'http://unitsofmeasure.org', 'Cel', 'degree Celsius') "valT";
-      it then SetNoteFromNested(it, oT) "noteT";
-    } "tempObs";
+    qr.item as itBmi where (linkId = '39156-5') then {
 
-  // Oxygen saturation, LOINC 20564-1, %
-  qr.item as it where linkId = '20564-1'
-    -> bundle.entry as eO2, eO2.resource = create('Observation') as oO2 then {
-      qr -> oO2.id then BuildBaseObs(qr, oO2, eO2) "baseO2";
-      qr -> oO2.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'vital-signs', 'Vital Signs') "catO2";
-      qr -> oO2.code = cc('http://loinc.org', '20564-1', 'Oxygen saturation in Blood') "codeO2";
-      it then SetQuantityValueFromItem(it, oO2, 'http://unitsofmeasure.org', '%', 'percent') "valO2";
-      it then SetNoteFromNested(it, oO2) "noteO2";
-    } "spo2Obs";
+      itBmi.answer first as aBmi -> oBmi.valueQuantity as vBmi then {
+        aBmi.value as hv -> vBmi.value = hv "setVal";
+        qr -> vBmi.system = 'http://unitsofmeasure.org' "setSys";
+        qr -> vBmi.code   = 'kg/m2' "setCode";
+        qr -> vBmi.unit   = 'kilogram per square meter' "setUnit";
+      } "valBmi";
 
-  // Respiratory rate, LOINC 9279-1, /min
-  qr.item as it where linkId = '9279-1'
-    -> bundle.entry as eR, eR.resource = create('Observation') as oR then {
-      qr -> oR.id then BuildBaseObs(qr, oR, eR) "baseR";
-      qr -> oR.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'vital-signs', 'Vital Signs') "catR";
-      qr -> oR.code = cc('http://loinc.org', '9279-1', 'Respiratory rate') "codeR";
-      it then SetQuantityValueFromItem(it, oR, 'http://unitsofmeasure.org', '/min', 'per minute') "valR";
-      it then SetNoteFromNested(it, oR) "noteR";
-    } "respObs";
+      itBmi.answer first as aBmi2 then {
+        aBmi2.item as bmiStatusItem where (linkId = '39156-5_status') then {
+          bmiStatusItem.answer first as bmiStatusAns -> oBmi.interpretation as iBmi then {
+            bmiStatusAns.value as statusText -> iBmi.text = statusText "interpBmi";
+          } "setInterpBmi";
+        } "findBmiStatus";
+      } "bmiStatusPath";
+    } "bmiVal";
+  } "bmiObs";
 
-  // MUAC, LOINC 9847-5, mm
-  qr.item as it where linkId = '9847-5'
-    -> bundle.entry as eM, eM.resource = create('Observation') as oM then {
-      qr -> oM.id then BuildBaseObs(qr, oM, eM) "baseMUAC";
-      qr -> oM.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'vital-signs', 'Vital Signs') "catMUAC";
-      qr -> oM.code = cc('http://loinc.org', '9847-5', 'Circumference') "codeMUAC";
-      it then SetQuantityValueFromItem(it, oM, 'http://unitsofmeasure.org', 'mm', 'millimeter') "valMUAC";
-      it then SetNoteFromNested(it, oM) "noteMUAC";
-    } "muacObs";
+  // Pulse rate
+  qr -> bundle.entry as eP, eP.resource = create('Observation') as oP then {
+    qr -> oP, eP then BuildBaseObs(qr, oP, eP) "pulseBase";
+    qr -> oP.code = cc('http://loinc.org', '8889-8', 'Heart rate by Pulse oximetry') "codeP";
 
-  // BMI, LOINC 39156-5
-  qr.item as it where linkId = '39156-5'
-    -> bundle.entry as eBMI, eBMI.resource = create('Observation') as oBMI then {
-      qr -> oBMI.id then BuildBaseObs(qr, oBMI, eBMI) "baseBMI";
-      qr -> oBMI.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'vital-signs', 'Vital Signs') "catBMI";
-      qr -> oBMI.code = cc('http://loinc.org', '39156-5', 'Body mass index (BMI) [Ratio]') "codeBMI";
-      it then SetStringValueFromItem(it, oBMI) "valBMI";
-      it then SetNoteFromNested(it, oBMI) "noteBMI";
-    } "bmiObs";
+    qr.item as itP where (linkId = '8889-8') then {
+      itP.answer first as aP -> oP.valueQuantity as vP then {
+        aP.value as hv -> vP.value = hv "setVal";
+        qr -> vP.system = 'http://unitsofmeasure.org' "setSys";
+        qr -> vP.code   = '/min' "setCode";
+        qr -> vP.unit   = 'per minute' "setUnit";
+      } "valP";
+    } "pulseVal";
+  } "pulseObs";
 
-  // Chief complaint, LOINC 10154-3
-  qr.item as it where linkId = '10154-3'
-    -> bundle.entry as eCC, eCC.resource = create('Observation') as oCC then {
-      qr -> oCC.id then BuildBaseObs(qr, oCC, eCC) "baseCC";
-      qr -> oCC.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'social-history', 'Social History') "catCC";
-      qr -> oCC.code = cc('http://loinc.org', '10154-3', 'Chief complaint Narrative - Reported') "codeCC";
-      it then SetStringValueFromItem(it, oCC) "valCC";
-      it then SetNoteFromNested(it, oCC) "noteCC";
-    } "chiefComplaintObs";
+  // Blood pressure
+  qr -> bundle.entry as eBP, eBP.resource = create('Observation') as oBP then {
+    qr -> oBP, eBP then BuildBaseObs(qr, oBP, eBP) "bpBase";
+    qr -> oBP.code = cc('http://loinc.org', '55284-4', 'Blood pressure systolic and diastolic') "codeBP";
 
-  // Family History, LOINC 10157-6
-  qr.item as it where linkId = '10157-6'
-    -> bundle.entry as eFH, eFH.resource = create('Observation') as oFH then {
-      qr -> oFH.id then BuildBaseObs(qr, oFH, eFH) "baseFH";
-      qr -> oFH.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'social-history', 'Social History') "catFH";
-      qr -> oFH.code = cc('http://loinc.org', '10157-6', 'History of family member diseases Narrative') "codeFH";
-      it then SetStringValueFromItem(it, oFH) "valFH";
-      it then SetNoteFromNested(it, oFH) "noteFH";
-    } "familyHistoryObs";
+    qr.item as itBP where (linkId = '55284-4') then {
 
-  // Surgical History, LOINC 8690-0
-  qr.item as it where linkId = '8690-0'
-    -> bundle.entry as eSH, eSH.resource = create('Observation') as oSH then {
-      qr -> oSH.id then BuildBaseObs(qr, oSH, eSH) "baseSH";
-      qr -> oSH.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'social-history', 'Social History') "catSH";
-      qr -> oSH.code = cc('http://loinc.org', '8690-0', 'History of Surgical procedures') "codeSH";
-      it then SetStringValueFromItem(it, oSH) "valSH";
-      it then SetNoteFromNested(it, oSH) "noteSH";
-    } "surgicalHistoryObs";
+      // Systolic
+      itBP.item as itSys where (linkId = '8480-6') then {
+        itSys.answer first as aSys -> oBP.component as cSys then {
+          aSys -> cSys.code = cc('http://loinc.org', '8480-6', 'Systolic blood pressure') "bpSysCode";
+          aSys.value as hv -> cSys.valueQuantity as vSys then {
+            hv -> vSys.value = hv "setVal";
+            qr -> vSys.system = 'http://unitsofmeasure.org' "setSys";
+            qr -> vSys.code   = 'mm[Hg]' "setCode";
+            qr -> vSys.unit   = 'millimeter of mercury' "setUnit";
+          } "bpSysVal";
+        } "bpSysComp";
+      } "bpSysRule";
 
-  // History of Present Illness, LOINC 10164-2
-  qr.item as it where linkId = '10164-2'
-    -> bundle.entry as eHPI, eHPI.resource = create('Observation') as oHPI then {
-      qr -> oHPI.id then BuildBaseObs(qr, oHPI, eHPI) "baseHPI";
-      qr -> oHPI.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'social-history', 'Social History') "catHPI";
-      qr -> oHPI.code = cc('http://loinc.org', '10164-2', 'History of Present illness Narrative') "codeHPI";
-      it then SetStringValueFromItem(it, oHPI) "valHPI";
-      it then SetNoteFromNested(it, oHPI) "noteHPI";
-    } "hpiObs";
+      // Diastolic
+      itBP.item as itDia where (linkId = '8462-4') then {
+        itDia.answer first as aDia -> oBP.component as cDia then {
+          aDia -> cDia.code = cc('http://loinc.org', '8462-4', 'Diastolic blood pressure') "bpDiaCode";
+          aDia.value as hv -> cDia.valueQuantity as vDia then {
+            hv -> vDia.value = hv "setVal";
+            qr -> vDia.system = 'http://unitsofmeasure.org' "setSys";
+            qr -> vDia.code   = 'mm[Hg]' "setCode";
+            qr -> vDia.unit   = 'millimeter of mercury' "setUnit";
+          } "bpDiaVal";
+        } "bpDiaComp";
+      } "bpDiaRule";
+
+    } "bpComponents";
+  } "bpObs";
+
+  // Temperature
+  qr -> bundle.entry as eT, eT.resource = create('Observation') as oT then {
+    qr -> oT, eT then BuildBaseObs(qr, oT, eT) "tempBase";
+    qr -> oT.code = cc('http://loinc.org', '8310-5', 'Body Temperature') "codeT";
+
+    qr.item as itT where (linkId = '8310-5') then {
+      itT.answer first as aT -> oT.valueQuantity as vT then {
+        aT.value as hv -> vT.value = hv "setVal";
+        qr -> vT.system = 'http://unitsofmeasure.org' "setSys";
+        qr -> vT.code   = 'Cel' "setCode";
+        qr -> vT.unit   = 'degree Celsius' "setUnit";
+      } "valT";
+
+      itT.item as tStatusItem where (linkId = '8310-5_status') then {
+        tStatusItem.answer first as tStatusAns -> oT.interpretation as iT then {
+          tStatusAns.value as statusText -> iT.text = statusText "interpT";
+        } "setInterpT";
+      } "findTStatus";
+    } "tempVal";
+  } "tempObs";
+
+  // Oxygen saturation
+  qr -> bundle.entry as eO2, eO2.resource = create('Observation') as oO2 then {
+    qr -> oO2, eO2 then BuildBaseObs(qr, oO2, eO2) "spo2Base";
+    qr -> oO2.code = cc('http://loinc.org', '20564-1', 'Oxygen saturation in Blood') "codeO2";
+
+    qr.item as itO2 where (linkId = '20564-1') then {
+      itO2.answer first as aO2 -> oO2.valueQuantity as vO2 then {
+        aO2.value as hv -> vO2.value = hv "setVal";
+        qr -> vO2.system = 'http://unitsofmeasure.org' "setSys";
+        qr -> vO2.code   = '%' "setCode";
+        qr -> vO2.unit   = '%' "setUnit";
+      } "valO2";
+
+      itO2.item as o2StatusItem where (linkId = '20564-1_status') then {
+        o2StatusItem.answer first as o2StatusAns -> oO2.interpretation as iO2 then {
+          o2StatusAns.value as statusText -> iO2.text = statusText "interpO2";
+        } "setInterpO2";
+      } "findO2Status";
+    } "spo2Val";
+  } "spo2Obs";
+
+  // Respiratory rate
+  qr -> bundle.entry as eRR, eRR.resource = create('Observation') as oRR then {
+    qr -> oRR, eRR then BuildBaseObs(qr, oRR, eRR) "rrBase";
+    qr -> oRR.code = cc('http://loinc.org', '9279-1', 'Respiratory rate') "codeRR";
+
+    qr.item as itRR where (linkId = '9279-1') then {
+      itRR.answer first as aRR -> oRR.valueQuantity as vRR then {
+        aRR.value as hv -> vRR.value = hv "setVal";
+        qr -> vRR.system = 'http://unitsofmeasure.org' "setSys";
+        qr -> vRR.code   = '/min' "setCode";
+        qr -> vRR.unit   = 'per minute' "setUnit";
+      } "valRR";
+    } "rrVal";
+  } "rrObs";
+
+  // MUAC
+  qr -> bundle.entry as eMuac, eMuac.resource = create('Observation') as oMuac then {
+    qr -> oMuac, eMuac then BuildBaseObs(qr, oMuac, eMuac) "muacBase";
+    qr -> oMuac.code = cc('http://loinc.org', '9847-5', 'Circumference') "codeMuac";
+
+    qr.item as itMuac where (linkId = '9847-5') then {
+      itMuac.answer first as aMuac -> oMuac.valueQuantity as vMuac then {
+        aMuac.value as hv -> vMuac.value = hv "setVal";
+        qr -> vMuac.system = 'http://unitsofmeasure.org' "setSys";
+        qr -> vMuac.code   = 'mm' "setCode";
+        qr -> vMuac.unit   = 'millimeter' "setUnit";
+      } "valMuac";
+    } "muacVal";
+  } "muacObs";
+
+  // Chief complaint
+  qr -> bundle.entry as eCC, eCC.resource = create('Observation') as oCC then {
+    qr -> oCC, eCC then BuildBaseObs(qr, oCC, eCC) "chiefComplaintBase";
+
+    qr -> oCC.category = cc(
+      'http://terminology.hl7.org/CodeSystem/observation-category',
+      'social-history',
+      'Social History'
+    ) "chiefComplaintCategory";
+
+    qr -> oCC.code = cc(
+      'http://loinc.org',
+      '10154-3',
+      'Chief complaint Narrative'
+    ) "chiefComplaintCode";
+
+    qr.item as itCC where (linkId = '10154-3') then {
+      itCC.answer first as aCC then {
+        aCC.value as textVal -> oCC.valueString = textVal "chiefComplaintValue";
+      } "chiefComplaintValRule";
+    } "chiefComplaintVal";
+
+  } "chiefComplaintObs";
 }
 
 group BuildBaseObs(source qr : QR, target obs : Observation, target entry) {
-  qr -> entry.request as req then {
-    qr -> req.method = 'POST' "reqMethod";
-    qr -> req.url = 'Observation' "reqUrl";
+  qr -> obs.status = 'final' "status";
+  qr.subject as s -> obs.subject = s "subject";
+  qr.authored as t -> obs.effectiveDateTime = t "effective";
+
+  // Category (vital signs) - defaukt
+  qr -> obs.category = cc(
+    'http://terminology.hl7.org/CodeSystem/observation-category',
+    'vital-signs',
+    'Vital Signs'
+  ) "category";
+
+  // Observation id and fullUrl
+  qr -> obs.id = uuid() then
+    SetObservationFullUrl(obs, entry) "setObsIdAndFullUrl";
+
+  // Bundle.entry.request (transaction POST Observation)
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "reqMethod";
+    qr -> request.url    = 'Observation' "reqUrl";
   } "entryRequest";
 
-  qr -> obs.id = uuid() then SetFullUrl(obs, entry) "setIdAndFullUrl";
-
-  qr -> obs.status = 'final' "setStatus";
-
-  qr.subject as s -> obs.subject = create('Reference') as r then {
-    s.reference as ref -> r.reference = ref "subRef";
-    s.display as disp -> r.display = disp "subDisp";
-  } "setSubject";
-
-  qr.authored as t -> obs.effective = t "setEffective";
-  qr.authored as t -> obs.issued = t "setIssued";
-
-  qr -> obs.derivedFrom = create('Reference') as dr then {
-    qr.id as id -> dr.reference = append('QuestionnaireResponse/', id) "derRef";
-  } "setDerivedFrom";
+  // Link Observation -> QuestionnaireResponse
+  qr -> obs.derivedFrom = create('Reference') as newRef then {
+    qr.id as qid -> newRef.reference = append('QuestionnaireResponse/', qid) "setQRRef";
+  } "linkQR";
 }
 
-group SetQuantityValueFromItem(
-  source it : Element,
-  target obs : Observation,
-  source sys : string,
-  source ucode : string,
-  source utext : string
-) {
-  it.answer as a -> obs.value = create('Quantity') as q then {
-    a.value as v -> q.value = v "qVal";
-    sys -> q.system = sys "qSys";
-    ucode -> q.code = ucode "qCode";
-    utext -> q.unit = utext "qUnit";
-  } "setQuantity";
-}
-
-group SetStringValueFromItem(source it : Element, target obs : Observation) {
-  it.answer as a -> obs.value = a.value "setString";
-}
-
-group SetNoteFromNested(source it : Element, target obs : Observation) {
-  it.answer as a then {
-    a.item as ni then {
-      ni.answer as na where na.value.exists()
-        -> obs.note = create('Annotation') as an then {
-          na.value as txt -> an.text = txt "noteTxt";
-        } "addNote";
-    } "scanNested";
-  } "ifNested";
-}
-
-group SetFullUrl(source obs : Observation, target entry) {
-  obs.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/Observation/', id) "assignFullUrl";
+group SetObservationFullUrl(source obs : Observation, target entry) {
+  obs.id as id -> entry.fullUrl = append(
+    'https://fhir.slade360.co.ke/fhir/Observation/',
+    id
+  ) "assignFullUrl";
 }
