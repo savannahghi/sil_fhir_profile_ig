@@ -232,11 +232,60 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
       } "chiefComplaintObs";
     } "chiefComplaintAns";
   } "chiefComplaintRule";
+
+  // History of Presenting Illness
+  qr.item as hpiCC where (linkId = '8684-3') then {
+    hpiCC.answer first as aCC then {
+      aCC -> bundle.entry as eCC, eCC.resource = create('Observation') as oCC then {
+        qr -> oCC, eCC then BuildBaseObs(qr, oCC, eCC) "historyOfPIBase";
+
+        // Override category to social-history
+        qr -> oCC.category = cc(
+          'http://terminology.hl7.org/CodeSystem/observation-category',
+          'social-history',
+          'Social History'
+        ) "historyOfPICategory";
+
+        qr -> oCC.code = cc(
+          'http://loinc.org',
+          '8684-3',
+          'History of Present illness'
+        ) "historyOfPICode";
+
+        aCC.value as textVal -> oCC.valueString = textVal "historyOfPIValue";
+      } "historyOfPIObs";
+    } "historyOfPIAns";
+  } "historyOfPIRule";
+
+  // History of Past Illness
+  qr.item as hPastCC where (linkId = '11349-8') then {
+    hPastCC.answer first as aCC then {
+      aCC -> bundle.entry as eCC, eCC.resource = create('Observation') as oCC then {
+        qr -> oCC, eCC then BuildBaseObs(qr, oCC, eCC) "historyOfPastIBase";
+
+        // Override category to social-history
+        qr -> oCC.category = cc(
+          'http://terminology.hl7.org/CodeSystem/observation-category',
+          'social-history',
+          'Social History'
+        ) "historyOfPastICategory";
+
+        qr -> oCC.code = cc(
+          'http://loinc.org',
+          '11349-8',
+          'History of Past illness'
+        ) "historyOfPastICode";
+
+        aCC.value as textVal -> oCC.valueString = textVal "historyOfPastIValue";
+      } "historyOfPastIObs";
+    } "historyOfPastIAns";
+  } "historyOfPastIRule";
 }
 
 group BuildBaseObs(source qr : QR, target obs : Observation, target entry) {
   qr -> obs.status = 'final' "status";
   qr.subject as s -> obs.subject = s "subject";
+  qr.encounter as e -> obs.encounter = e "encounter";
   qr.authored as t -> obs.effectiveDateTime = t "effective";
 
   // Category (vital signs) - defaukt
