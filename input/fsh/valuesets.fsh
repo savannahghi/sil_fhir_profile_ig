@@ -24,12 +24,8 @@ Description: "Identifier types used  to identify patient in SGHI's systems"
 ValueSet: SGHIOrganizationIdentifierTypes
 Id: sghi-organization-identifier-types
 Title: "SGHI Organization Identifier Types"
-Description: "Identifier types used  to identify patient in SGHI's systems"
-* include SGHIIdentifierCodeSystem#mfl-code 
-* include SGHIIdentifierCodeSystem#facility-registry-id 
-* include SGHIIdentifierCodeSystem#slade-code 
-* include SGHIIdentifierCodeSystem#SLADEID
-* include SGHIIdentifierCodeSystem#fhir-id
+Description: "Identifier types used to identify an organization across in SIL's systems"
+* include codes from system SGHIOrganisationIdentifierCodeSystem
 
 ValueSet: SGHIDrugsIdentifierType
 Id: sghi-drugs-identifier-type
