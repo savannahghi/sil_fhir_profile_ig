@@ -1,3 +1,21 @@
+CodeSystem: SGHIOrganisationIdentifierCodeSystem
+Description: "A single code system enumerating the identifier types used identify organisations across SIL's environment."
+* ^status = #active
+* #mfl-code "Master Facility List Code"
+  * ^definition = "Official identifier assigned by the Kenya Master Facility List (MFL) for healthcare facilities and organizations within Kenya's health system"
+* #sha-slade-code "SHA Slade Code"
+  * ^definition = "Unique identifier assigned by the Social Health Authority (SHA) in collaboration with Slade 360 platform for healthcare provider identification and claims processing"
+* #fid-code "Facility ID Code"
+  * ^definition = "Generic facility identification code used for internal healthcare facility tracking and administrative purposes"
+* #fr-code "Facility Registry Code"
+  * ^definition = "Identifier assigned by the national or regional Facility Registry system for official healthcare facility registration and cataloging"
+* #kmpdc-registration-number "KMPDC Registration Number"
+  * ^definition = "Registration number issued by the Kenya Medical Practitioners and Dentists Council (KMPDC) for licensed medical practitioners and dentists"
+* #slade-code "Slade Code"
+  * ^definition = "Unique identifier assigned by the Slade 360 healthcare information platform for healthcare organizations and providers within their network"
+* #default-id "Default System Identifier"
+  * ^definition = "A unique UUID identifier assigned by the system by default"
+
 CodeSystem: SGHIIdentifierCodeSystem
 Id: sghi-identifier-codesystem
 Title: "SGHI Identifier Code System"
@@ -21,9 +39,7 @@ Description: "A single code system enumerating the many local identifier types u
 * #birth-certificate "Birth Certificate Number" "A unique identifier assigned by the Civil Registration Department under the Ministry of Interior and National Administration."
 * #mandate-number "Mandate Number" "A regulatory or legal identifier assigned by relevant government agencies."
 * #client-registry-number "Client Registry Number" "A unique identifier used for internal patient tracking within a Client Registry system."
-* #slade-code "Slade360 Code" "A unique identifier assigned by Slade360."
 * #slade-health-id "Slade Health ID" "A unique health identifier assigned by Slade360 Health CRM for patient records."
-* #mfl-code "Master Facility List Code" "A unique identifier for each facility assigned by the Kenya Master Health Facility Registry under the Ministry of Health."
 * #facility-registry-id "Facility Registry ID" "A unique identifier for each facility assigned by the Kenya Master Facility List (MFL) registry."
 * #vtmid "VTM ID" "dm+d identifier for a Virtual Therapeutic Moiety (VTM) concept."
 * #vtmidprev "Previous VTM ID" "Deprecated VTM identifier retained for traceability."
