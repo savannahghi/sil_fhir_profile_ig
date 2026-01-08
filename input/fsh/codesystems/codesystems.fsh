@@ -11,7 +11,7 @@ Description: "A single code system enumerating the identifier types used identif
   * ^definition = "Identifier assigned by the national or regional Facility Registry system for official healthcare facility registration and cataloging"
 * #kmpdc-registration-number "KMPDC Registration Number"
   * ^definition = "Registration number issued by the Kenya Medical Practitioners and Dentists Council (KMPDC) for licensed medical practitioners and dentists"
-* #slade-code "Slade Code"
+* #slade-code "Slade360 Code"
   * ^definition = "Unique identifier assigned by the Slade 360 healthcare information platform for healthcare organizations and providers within their network"
 * #default-id "Default System Identifier"
   * ^definition = "A unique UUID identifier assigned by the system by default"
