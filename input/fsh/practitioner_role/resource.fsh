@@ -1,10 +1,11 @@
 Profile: SGHIPractitionerRole
 Parent: PractitionerRole
-Id: sghi-practitionerrole
+Id: practitionerrole
 Title: "SGHI PractitionerRole"
 Description: "PractitionerRole describes the types of services that practitioners provide to SGHI Organization at specific location(s). The profile a specific set of Roles/Locations/specialties/services that a practitioner may perform at an organization for a period of time."
 
 * identifier 1..*
+  * type from SGHIDefaultIdentifierTypes (required)
   * insert CommonIdentifierRules
 
 * active 1..1

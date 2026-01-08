@@ -1,10 +1,11 @@
 Profile: SGHIDiagnosticReport
 Parent: DiagnosticReport
-Id: sghi-diagnosticreport
+Id: diagnosticreport
 Title: "SGHI DiagnosticReport"
 Description: "SGHI's profile for DiagnosticReport"
 
 * identifier 1..*
+  * type from SGHIDefaultIdentifierTypes (required)
   * insert CommonIdentifierRules
 
 * basedOn only SGHIReference

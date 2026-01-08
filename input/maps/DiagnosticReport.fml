@@ -4,7 +4,7 @@
 /// status = "active"
 
 uses "http://hl7.org/fhir/4.0/StructureDefinition/DiagnosticReport" alias DiagnosticReportR4   as source
-uses "https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-diagnosticreport" alias SGHIDiagnosticReport as target
+uses "https://fhir.slade360.co.ke/fhir/StructureDefinition/diagnosticreport" alias SGHIDiagnosticReport as target
 
 imports "http://hl7.org/fhir/StructureMap/*4to5"
 
@@ -14,7 +14,7 @@ group SGHIDiagnosticReport(source src : DiagnosticReportR4, target tgt : SGHIDia
   src.language -> tgt.language;
 
   src -> tgt.meta as t_meta then {
-    src -> t_meta.profile = 'https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-diagnosticreport' "add-sghi-profile";
+    src -> t_meta.profile = 'https://fhir.slade360.co.ke/fhir/StructureDefinition/diagnosticreport' "add-profile";
   } "add-to-meta";
 
   src where text.exists().not() -> tgt.text = create('Narrative') as t_text then {
@@ -32,11 +32,11 @@ group SGHIDiagnosticReport(source src : DiagnosticReportR4, target tgt : SGHIDia
   src.id as s_id -> tgt.identifier = create('Identifier') as t_ident then {
       s_id as uuid -> t_ident.value = uuid "copy-id";
       src -> t_ident.use = 'official' "set-use";
-      src -> t_ident.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/sghi-identifier-codesystem' "set-system";
+      src -> t_ident.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/identifier-codesystem' "set-system";
 
       src -> t_ident.type = create('CodeableConcept') as t_type then {
         src -> t_type.coding = create('Coding') as t_code then {
-          src -> t_code.system  = 'https://fhir.slade360.co.ke/fhir/CodeSystem/sghi-identifier-codesystem' "type-system";
+          src -> t_code.system  = 'https://fhir.slade360.co.ke/fhir/CodeSystem/identifier-codesystem' "type-system";
           src -> t_code.code    = 'fhir-id' "type-code";
           src -> t_code.display = 'FHIR Id' "type-display";
         } "init-coding";

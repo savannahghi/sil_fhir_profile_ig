@@ -1,10 +1,11 @@
 Profile: SGHIAppointment
 Parent: Appointment
-Id: sghi-appointment
+Id: appointment
 Title: "SGHI Appointment Profile"
 Description: "A booking of a healthcare event among patient(s), practitioner(s), related person(s) and/or device(s) for a specific date/time. This may result in one or more Encounter(s)."
 
 * identifier 1..*
+  * type from SGHIDefaultIdentifierTypes (required)
   * insert CommonIdentifierRules
 
 * specialty 1..*

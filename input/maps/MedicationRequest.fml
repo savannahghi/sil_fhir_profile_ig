@@ -5,7 +5,7 @@
 /// status = "active"
 
 uses "http://hl7.org/fhir/4.0/StructureDefinition/MedicationRequest"                 alias MedicationRequestR4   as source
-uses "https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-medicationrequest"   alias SGHIMedicationRequest as target
+uses "https://fhir.slade360.co.ke/fhir/StructureDefinition/medicationrequest"   alias SGHIMedicationRequest as target
 
 
 imports "http://hl7.org/fhir/StructureMap/*4to5"
@@ -16,7 +16,7 @@ group SGHIMedicationRequest(source src : MedicationRequestR4, target tgt : SGHIM
   src.language -> tgt.language;
 
   src -> tgt.meta as t_meta then {
-    src -> t_meta.profile = 'https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-medicationrequest' "add-sghi-profile";
+    src -> t_meta.profile = 'https://fhir.slade360.co.ke/fhir/StructureDefinition/medicationrequest' "add-profile";
   } "add-to-meta";
 
   src where text.exists().not() -> tgt.text = create('Narrative') as t_text then {
@@ -34,11 +34,11 @@ group SGHIMedicationRequest(source src : MedicationRequestR4, target tgt : SGHIM
   src.id as s_id -> tgt.identifier = create('Identifier') as t_ident then {
       s_id as uuid -> t_ident.value = uuid "copy-id";
       src -> t_ident.use = 'official' "set-use";
-      src -> t_ident.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/sghi-identifier-codesystem' "set-system";
+      src -> t_ident.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/identifier-codesystem' "set-system";
 
       src -> t_ident.type = create('CodeableConcept') as t_type then {
         src -> t_type.coding = create('Coding') as t_code then {
-          src -> t_code.system  = 'https://fhir.slade360.co.ke/fhir/CodeSystem/sghi-identifier-codesystem' "type-system";
+          src -> t_code.system  = 'https://fhir.slade360.co.ke/fhir/CodeSystem/identifier-codesystem' "type-system";
           src -> t_code.code    = 'fhir-id' "type-code";
           src -> t_code.display = 'FHIR Id' "type-display";
         } "init-coding";
@@ -89,7 +89,7 @@ group SGHIMedicationRequest(source src : MedicationRequestR4, target tgt : SGHIM
     sd.patientInstruction -> td.patientInstruction;
     sd.route as sr -> td.route as tr then {
       sr.coding as sc -> tr.coding as tc then TransformCoding(sc, tc);
-      sr where coding.exists().not() -> tr.coding = create('Coding') as tc, tc.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/sghi-identifier-codesystem', tc.code = 'iv', tc.display = 'Intravenous' "setting default route";
+      sr where coding.exists().not() -> tr.coding = create('Coding') as tc, tc.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/identifier-codesystem', tc.code = 'iv', tc.display = 'Intravenous' "setting default route";
       sr.text -> tr.text;
     };
     sd.timing as st -> td.timing as tt then {

@@ -1,10 +1,11 @@
 Profile: SGHIMedicationRequest
 Parent: MedicationRequest
-Id: sghi-medicationrequest
+Id: medicationrequest
 Title: "SGHI MedicationRequest"
 Description: "An order or request for both supply of the medication and the instructions for administration of the medication to a patient. The resource is called 'MedicationRequest' rather than 'MedicationPrescription' or 'MedicationOrder' to generalize the use across inpatient and outpatient settings, including care plans, etc., and to harmonize with workflow patterns."
 
 * identifier 1..*
+  * type from SGHIDefaultIdentifierTypes (required)
   * insert CommonIdentifierRules
 
 * basedOn only SGHIReference
@@ -53,7 +54,7 @@ Description: "An order or request for both supply of the medication and the inst
 
 Profile: SGHIDosage
 Parent: Dosage
-Id: sghi-dosage
+Id: dosage
 Title: "SGHI Dosage"
 Description: "A comprehensive Dosage profile for SGHI prescriptions, ensuring structured routes, methods, timing, and dose details."
 

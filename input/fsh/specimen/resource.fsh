@@ -1,10 +1,11 @@
 Profile: SGHISpecimen
 Parent: Specimen
-Id: sghi-specimen
+Id: specimen
 Title: "SGHI Specimen"
 Description: "A sample to be used for analysis."
 
 * identifier 1..*
+  * type from SGHIDefaultIdentifierTypes (required)
   * insert CommonIdentifierRules
 * accessionIdentifier 1..1
 * status 1..1 

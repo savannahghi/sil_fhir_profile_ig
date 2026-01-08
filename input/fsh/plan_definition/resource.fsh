@@ -1,11 +1,12 @@
 Profile: SGHIPlanDefinition
 Parent: PlanDefinition
-Id: sghi-plandefinition
+Id: plandefinition
 Title: "SGHI Plan Definition Profile"
 Description: "This resource allows for the definition of various types of plans as a sharable, consumable, and executable artifact."
 
 
 * identifier 1..*
+  * type from SGHIDefaultIdentifierTypes (required)
   * insert CommonIdentifierRules
 * name 1..1
 * title 1..1

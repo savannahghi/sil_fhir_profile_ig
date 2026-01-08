@@ -1,34 +1,18 @@
-ValueSet: SGHIPatientIdentifierTypes
-Id: sghi-patient-identifier-types
-Title: "SGHI Patient Identifier Types"
-Description: "Identifier types used  to identify patient in SGHI's systems"
+ValueSet: SGHIPersonIdentifierTypes
+Id: patient-identifier-types
+Title: "SGHI Person Identifier Types"
+Description: "Identifier types used  to identify patient, practitioner, animal or a live actor in the healthcare context in SGHI's systems"
 * ^status = #active
-* include SGHIIdentifierCodeSystem#patient-number
-* include SGHIIdentifierCodeSystem#national-id
-* include SGHIIdentifierCodeSystem#passport-number                     
-* include SGHIIdentifierCodeSystem#military-id       
-* include SGHIIdentifierCodeSystem#alien-id 
-* include SGHIIdentifierCodeSystem#nhif-id 
-* include SGHIIdentifierCodeSystem#smart-member-number  
-* include SGHIIdentifierCodeSystem#drchrono-id 
-* include SGHIIdentifierCodeSystem#fhir-patient-id  
-* include SGHIIdentifierCodeSystem#erp-customer-id 
-* include SGHIIdentifierCodeSystem#ccc-number 
-* include SGHIIdentifierCodeSystem#refugee-id 
-* include SGHIIdentifierCodeSystem#birth-certificate 
-* include SGHIIdentifierCodeSystem#mandate-number 
-* include SGHIIdentifierCodeSystem#client-registry-number
-* include SGHIIdentifierCodeSystem#slade-health-id 
-* include SGHIIdentifierCodeSystem#SLADEID 
+* include codes from system SGHIPersonIdentifierCodeSystem
 
 ValueSet: SGHIOrganizationIdentifierTypes
-Id: sghi-organization-identifier-types
+Id: organization-identifier-types
 Title: "SGHI Organization Identifier Types"
 Description: "Identifier types used to identify an organization across in SIL's systems"
 * include codes from system SGHIOrganisationIdentifierCodeSystem
 
 ValueSet: SGHIDrugsIdentifierType
-Id: sghi-drugs-identifier-type
+Id: drugs-identifier-type
 Title: "SGHI Drugs Identifier Types"
 Description: """ Identifier types used across dm+d hierarchy"""
 * ^status = #active
@@ -46,7 +30,7 @@ Description: """ Identifier types used across dm+d hierarchy"""
 * include SGHIIdentifierCodeSystem#slade-concept-code
 
 ValueSet: SGHIContactRelationship
-Id: sghi-contact-relationship
+Id: contact-relationship
 Title: "SGHI Contact Relationship Types"
 Description: "Contact relationship types used in SGHI systems"
 * ^experimental = false
@@ -57,7 +41,7 @@ Description: "Contact relationship types used in SGHI systems"
 * include #CP "Contact Person" from system $v2-0131
 
 ValueSet: SGHIActPriority
-Id: sghi-encounter-act-priority
+Id: encounter-act-priority
 Title: "SGHI Encounter Priority"
 Description: "Urgency of an encounter"
 * include SGHIIdentifierCodeSystem#stat 
@@ -66,13 +50,13 @@ Description: "Urgency of an encounter"
 * include SGHIIdentifierCodeSystem#elective
 
 ValueSet: SGHIDiagnosticConclusionICD11
-Id: sghi-diagnostic-conclusion-icd11
+Id: diagnostic-conclusion-icd11
 Title: "SGHI Diagnostic Conclusion ICD-11"
 Description: "ICD-11 codes used for diagnostic conclusions in SGHI"
 * include codes from system http://id.who.int/icd/release/11/mms
 
 ValueSet: SGHIBedStatus
-Id: sghi-bed-status
+Id: bed-status
 Title: "SGHI Bed Status"
 Description: "Codes that can be used to indicate the operating status of an organization's location"
 * include #closed "Closed" from system SGHIIdentifierCodeSystem
@@ -83,14 +67,14 @@ Description: "Codes that can be used to indicate the operating status of an orga
 * include #isolated "Isolated" from system SGHIIdentifierCodeSystem
 
 ValueSet: SGHILocationMode
-Id: sghi-location-mode
+Id: location-mode
 Title: "SGHI Location Mode"
 Description: "Codes that can be used to indicate the mode of a location"
 * include #instance "Instance" from system SGHIIdentifierCodeSystem
 * include #kind "Instance" from system SGHIIdentifierCodeSystem
 
 ValueSet: SGHIContactPointUse
-Id: sghi-contact-point-use
+Id: contact-point-use
 Title: "SGHI Contact Point Use"
 Description: "Code used to indicate contact use"
 * ^status = #active
@@ -98,7 +82,7 @@ Description: "Code used to indicate contact use"
 * include http://hl7.org/fhir/ValueSet/contact-point-use#mobile
 
 ValueSet: SGHIContactSystem
-Id: sghi-contact-system
+Id: contact-system
 Title: "SGHI Contact System"
 Description: "Code used to indicate what communications system is required to make use of the contact."
 * ^status = #active
@@ -106,7 +90,7 @@ Description: "Code used to indicate what communications system is required to ma
 * include http://hl7.org/fhir/ValueSet/contact-point-system#email
 
 ValueSet: SGHILocationForm
-Id: sghi-location-form
+Id: location-form
 Title: "SGHI Location Form"
 Description: "Physical form of the location, e.g. building, room, vehicle, road, virtual."
 * include #building "Building" from system SGHIIdentifierCodeSystem
@@ -119,7 +103,7 @@ Description: "Physical form of the location, e.g. building, room, vehicle, road,
 * include #virtual "Virtual" from system SGHIIdentifierCodeSystem
 
 ValueSet: SGHIServiceRequestCategory
-Id: sghi-service-request-category
+Id: service-request-category
 Title: "Service Request Categories"
 Description: "A ValueSet categorizing different types of service requests."
 * ^status = #active
@@ -134,7 +118,7 @@ Description:    "A value set for the status of a procedure, based on the FHIR Pr
 * include codes from system http://hl7.org/fhir/event-status
 
 ValueSet:       SGHIProcedureCategory
-Id:             sghi-procedure-category
+Id:             procedure-category
 Title:          "SGHI Procedure Category value set"
 Description:    "A value set for categorizing procedures, using LOINC codes where applicable."
 * include #24642003 "Psychiatry procedure or service" from system SGHIIdentifierCodeSystem
@@ -146,7 +130,7 @@ Description:    "A value set for categorizing procedures, using LOINC codes wher
 * include #410606002 "Social service procedure (procedure)" from system SGHIIdentifierCodeSystem 
 
 ValueSet:       SGHIProcedureOutcome
-Id:             sghi-procedure-outcome
+Id:             procedure-outcome
 Title:          "SGHI Procedure outcome value set"
 Description:    "The outcome of the procedure - did it resolve the reasons for the procedure being performed?"
 * include #385669000 "Successful" from system SGHIIdentifierCodeSystem
@@ -154,7 +138,7 @@ Description:    "The outcome of the procedure - did it resolve the reasons for t
 * include #385670004 "Partially successful" from system SGHIIdentifierCodeSystem
 
 ValueSet:       SGHIProcedureFollowUpCodes
-Id:             sghi-procedure-follow-up-codes
+Id:             procedure-follow-up-codes
 Title:          "SGHI Procedure follow up codes"
 Description:    "Custom follow up procedure codes"
 * include #18949003 "Change of dressing" from system SGHIIdentifierCodeSystem
@@ -170,7 +154,7 @@ Description:    "Custom follow up procedure codes"
 
 
 ValueSet: SGHIMedicationCodes
-Id: sghi-medication-codes
+Id: medication-codes
 Title: "SGHI Medication Codes"
 Description: "ValueSet containing SGHI medication codes"
 * ^status = #active
@@ -178,14 +162,14 @@ Description: "ValueSet containing SGHI medication codes"
 * include SGHIIdentifierCodeSystem#sghidefaultcode "SGHI Default Code"
 
 ValueSet: SGHIInvestigationCodes
-Id: sghi-investigation-codes
+Id: investigation-codes
 Title: "SGHI Investigation Codes"
 Description: "ValueSet containing SGHI investigation codes"
 * ^status = #active
 * include codes from system https://ocl-testing-api.savannahghi.org/fhir/CodeSystem/KNC4Investigations 
 
 ValueSet: SGHIMedicationFormCodes
-Id: sghi-medication-form-codes
+Id: medication-form-codes
 Title: "SGHI Medication Form Codes"
 Description: "ValueSet containing SGHI medication form codes"
 * ^status = #active
@@ -199,14 +183,14 @@ Description: "ValueSet containing SGHI medication form codes"
 * include SGHIIdentifierCodeSystem#syrup "Syrup"
 
 ValueSet: SGHISubstanceCodes
-Id: sghi-substance-codes
+Id: substance-codes
 Title: "SGHI Substance Codes"
 Description: "ValueSet containing SGHI substance codes"
 * ^status = #active
 * include codes from system https://ocl-testing-api.savannahghi.org/orgs/SIL/CodeSystem/KNC4Drugs
 
 ValueSet: SGHIPractitionerRoleValueSet
-Id: sghi-practitioner-role-value-set
+Id: practitioner-role-value-set
 Title: "SGHI Practitioner Value Set"
 Description: "Custom practioner role value set"
 * include #doctor "Doctor"  from system SGHIIdentifierCodeSystem
@@ -215,7 +199,7 @@ Description: "Custom practioner role value set"
 * include #researcher "Researcher"  from system SGHIIdentifierCodeSystem
 
 ValueSet: SGHIPractitionerSpecialtyValueSet
-Id: sghi-practitioner-specialty-value-set
+Id: practitioner-specialty-value-set
 Title: "SGHI Practitioner Value Set"
 Description: "Custom practioner specialty value set"
 * include #408467006 "Adult mental illness"  from system SGHIIdentifierCodeSystem
@@ -225,13 +209,13 @@ Description: "Custom practioner specialty value set"
 * include #408462000 "Burns care"  from system SGHIIdentifierCodeSystem
 
 ValueSet: SGHIBodySiteValueSet
-Id: sghi-body-site-value-set
+Id: body-site-value-set
 Title: "SGHI Body Site Value Set"
 Description: "Custom body site value set"
 * include #111002 "Parathyroid gland"  from system SGHIIdentifierCodeSystem
 
 ValueSet: SGHIMethodOfAdministration
-Id: sghi-method-of-administration
+Id: method-of-administration
 Title: "SGHI Method Of Medication Administration"
 Description: "Custom methods of administering medication"
 * ^status = #active
@@ -243,12 +227,11 @@ Description: "Custom methods of administering medication"
 * SGHIIdentifierCodeSystem#implant "Implant"
 * SGHIIdentifierCodeSystem#infuse "Infuse"
 
-ValueSet: SGHIIdentifierTypes
-Id: sghi-identifier-types
-Title: "SGHI Standard Identifier Types"
-Description: "Standard identifier types used in SGHI's systems"
-* include SGHIIdentifierCodeSystem#SLADEID "Universal System Identifier"
-* include SGHIIdentifierCodeSystem#fhir-id "FHIR Id"
+ValueSet: SGHIDefaultIdentifierTypes
+Id: default-identifier-types
+Title: "SGHI Default Identifier Types"
+Description: "Default identifier types used in SGHI's systems"
+* include codes from system SGHIDefaultIdentifierCodeSystem
 
 ValueSet: SGHIRouteOfAdministration
 Id: route-of-administration
@@ -277,24 +260,22 @@ Description: "All codes from ICHI"
 * include codes from system http://id.who.int/icd/release/11/beta/ichi
 
 ValueSet: SGHIConditionSeverity
-Id: sghi-condition-severity
-Title: "sghi-condition-severity"
+Id: condition-severity
+Title: "condition-severity"
 Description: "Condition severity"
 * ^status = #active
-* include #mild "Mild" from system SGHIIdentifierCodeSystem
-* include #severe "Severe" from system SGHIIdentifierCodeSystem
-* include #moderate "Moderate" from system SGHIIdentifierCodeSystem 
+* include codes from system SGHIConditionSeverityCodeSystem
 
 ValueSet: SGHISpecialtyVs
-Id: sghi-speciality
-Title: "sghi-speciality"
+Id: speciality
+Title: "speciality"
 Description: "Speciality"
 * ^status = #active
 * include codes from system SGHISpecialtyCodeSystem
 
 
 ValueSet: SGHIEncounterClassVs
-Id: sghi-encounter-class
+Id: encounter-class
 Title: "Encounter Class Value Sets"
 * ^status = #active
 * include codes from system http://terminology.hl7.org/ValueSet/encounter-class
@@ -304,7 +285,7 @@ Title: "Encounter Class Value Sets"
 
 
 ValueSet: SGHISpecimenMolecularMarkersVs
-Id: sghi-molecular-Markers
+Id: molecular-Markers
 Title: "Molecular Markers Value Sets"
 Description: "Molecular Markers Value Sets"
 * ^status = #active
@@ -321,7 +302,7 @@ Description: "Molecular Markers Value Sets"
 * include SGHIIdentifierCodeSystem#other "Other"
 
 ValueSet: SGHIDistanceMetastatisVs
-Id: sghi-distance-metastatis
+Id: distance-metastatis
 Title: "Distance Metastatis Value Sets"
 Description: "Distance Metastatis Value Sets"
 * ^status = #active
@@ -333,7 +314,7 @@ Description: "Distance Metastatis Value Sets"
 * include SGHIIdentifierCodeSystem#dln "Distant Lymph Nodes"
 
 ValueSet: SGHIGradeVs
-Id: sghi-grade
+Id: grade
 Title: "Grade Value Sets"
 Description: "Grade Value Sets"
 * ^status = #active
@@ -345,7 +326,7 @@ Description: "Grade Value Sets"
 * include codes from system http://loinc.org
 
 ValueSet: SGHIBehaviourVs
-Id: sghi-behaviour
+Id: behaviour
 Title: "Behaviour Value Sets"
 Description: "Behaviour Value Sets"
 * ^status = #active
@@ -357,7 +338,7 @@ Description: "Behaviour Value Sets"
 * include SGHIIdentifierCodeSystem#other "Other"
 
 ValueSet: SGHIHormoneReceptorStatusVs
-Id: sghi-hormone-receptor-status
+Id: hormone-receptor-status
 Title: "Hormone Receptor Status"
 Description: "Hormone Receptor Status"
 * ^status = #active
@@ -367,7 +348,7 @@ Description: "Hormone Receptor Status"
 * include SGHIIdentifierCodeSystem#nottested "Not Tested"
 
 ValueSet: SGHITypeOfTestVs
-Id: sghi-typeoftest
+Id: typeoftest
 Title: "Type Of Test Value Sets"
 Description: "Type Of Test Value Sets"
 * ^status = #active
@@ -380,7 +361,7 @@ Description: "Type Of Test Value Sets"
 * include SGHIIdentifierCodeSystem#other "Other"
 
 ValueSet: SGHISpecimenTypeVs
-Id: sghi-specimentype
+Id: specimentype
 Title: "Specimen Type Value Sets"
 Description: "Specimen Type Value Sets"
 * ^status = #active
@@ -394,7 +375,7 @@ Description: "Specimen Type Value Sets"
 * include SGHIIdentifierCodeSystem#ras "Resection Autopsy Specimen"
 
 ValueSet: SGHILateralityVs
-Id: sghi-laterality
+Id: laterality
 Title: "Laterality Value Sets"
 Description: "Laterality Value Sets"
 * ^status = #active
@@ -405,7 +386,7 @@ Description: "Laterality Value Sets"
 
 
 ValueSet: SGHICancerStagesVs
-Id: sghi-cancer-stages
+Id: cancer-stages
 Title: "Cancer Stages Value Sets"
 Description: "Cancer Stages Value Sets"
 * ^status = #active
@@ -416,7 +397,7 @@ Description: "Cancer Stages Value Sets"
 
 
 ValueSet: SGHIDefaultCodeVs
-Id: sghi-default-code
+Id: default-code
 Title: "SGHI Default Code Value Sets"
 Description: "SGHI Default Code Value Sets"
 * ^status = #active

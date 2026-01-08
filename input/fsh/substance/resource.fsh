@@ -1,10 +1,11 @@
 Profile: SGHISubstance
 Parent: Substance
-Id: sghi-substance
+Id: substance
 Title: "SGHI Substance"
 Description: "Profile for representing substances in the SGHI context"
 
 * identifier 1..*
+  * type from SGHIDefaultIdentifierTypes (required)
   * insert CommonIdentifierRules
 * instance 1..1
 * status 1..1

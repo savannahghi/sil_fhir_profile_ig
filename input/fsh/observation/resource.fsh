@@ -1,10 +1,11 @@
 Profile: SGHIObservation
 Parent: Observation
-Id: sghi-observation
+Id: observation
 Title: "SGHI Observation"
 Description: "Measurements and simple assertions made about a patient, device or other subject."
 
 * identifier 1..*
+  * type from SGHIDefaultIdentifierTypes (required)
   * insert CommonIdentifierRules
 
 * category 1..1
