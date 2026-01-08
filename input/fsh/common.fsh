@@ -38,7 +38,6 @@ Title: "SGHI Reference"
 Description: "SGHI Reference"
 * reference 1..1
 * type 0..1
-* display 1..1
 
 Profile: SGHIAnnotation
 Parent: Annotation
