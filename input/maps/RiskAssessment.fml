@@ -4,7 +4,7 @@
 /// status = "active"
 
 uses "http://hl7.org/fhir/4.0/StructureDefinition/RiskAssessment" alias RiskAssessmentR4   as source
-uses "https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-riskassessment" alias RiskAssessmentR5 as target
+uses "https://fhir.slade360.co.ke/fhir/StructureDefinition/riskassessment" alias RiskAssessmentR5 as target
 
 group RiskAssessment(source src : RiskAssessmentR4, target tgt : RiskAssessmentR5) <<type+>> {
   src.id as v                 -> tgt.id = v;

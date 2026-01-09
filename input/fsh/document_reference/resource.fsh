@@ -1,10 +1,11 @@
 Profile: SGHIDocumentReference
 Parent: DocumentReference
-Id: sghi-documentreference
+Id: documentreference
 Title: "SGHI DocumentReference Profile."
 Description: "A reference to a document of any kind for any purpose."
 
 * identifier 1..*
+  * type from SGHIDefaultIdentifierTypes (required)
   * insert CommonIdentifierRules
 
 * basedOn only SGHIReference

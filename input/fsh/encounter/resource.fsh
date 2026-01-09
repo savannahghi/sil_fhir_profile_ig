@@ -1,10 +1,11 @@
 Profile: SGHIEncounter
 Parent: Encounter
-Id: sghi-encounter
+Id: encounter
 Title: "SGHI Encounter"
 Description: "An interaction between a patient and healthcare provider(s) for the purpose of providing healthcare service(s) or assessing the health status of a patient. Encounter is primarily used to record information about the actual activities that occurred, where Appointment is used to record planned activities."
 
 * identifier 1..*
+  * type from SGHIDefaultIdentifierTypes (required)
   * insert CommonIdentifierRules
 
 * text.status = #generated (exactly)

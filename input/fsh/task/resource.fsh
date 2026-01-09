@@ -1,10 +1,11 @@
 Profile: SGHITask
 Parent: Task
-Id: sghi-task
+Id: task
 Title: "SGHI Task"
 Description: "SGHI's profile for Task"
 
 * identifier 1..*
+  * type from SGHIDefaultIdentifierTypes (required)
   * insert CommonIdentifierRules
 * businessStatus 1..1
 * priority 1..1

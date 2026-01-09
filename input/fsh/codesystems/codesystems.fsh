@@ -16,31 +16,63 @@ Description: "A single code system enumerating the identifier types used identif
 * #default-id "Default System Identifier"
   * ^definition = "A unique UUID identifier assigned by the system by default"
 
+CodeSystem: SGHIConditionSeverityCodeSystem
+Description: "A single code system enumerating severity levels for clinical conditions within the SGHI ecosystem."
+* ^status = #active
+* #severe "Severe"
+  * ^definition = "Indicates a life-threatening or highly serious clinical condition requiring urgent or intensive medical intervention."
+* #mild "Mild"
+  * ^definition = "Indicates a low-severity clinical condition with minimal symptoms and routine clinical management."
+* #moderate "Moderate"
+  * ^definition = "Indicates a clinical condition of intermediate severity requiring medical attention but not immediately life-threatening."
+
+CodeSystem: SGHIDefaultIdentifierCodeSystem
+Description: "A single code system enumerating severity levels for clinical conditions within the SGHI ecosystem."
+* ^status = #active
+* #default-id "Default Resource Identifier"
+  * ^definition = "A unique UUID identifier assigned by the system by default."
+
+CodeSystem: SGHIPersonIdentifierCodeSystem
+Description: "A code system different identifiers used to identify an animal, patient, practitioner or any other live actior in the healthcare context"
+* ^status = #active
+* #national-id "National ID" 
+  * ^definition = "A unique national identifier assigned by the National Registration Bureau (NRB) under the Ministry of Interior and National Administration."
+* #passport-number "Passport Number"
+  * ^definition = "A unique identifier assigned by the Directorate of Immigration Services under the Ministry of Interior and National Administration."
+* #military-id "Military ID" 
+  * ^definition = "A unique identifier assigned by the Kenya Defence Forces (KDF) for military personnel."
+* #alien-id "Alien ID"
+  * ^definition = "A unique identifier assigned by the Directorate of Immigration Services to foreign nationals residing in Kenya."
+* #patient-number "Patient Number"
+  * ^definition = "A unique identifier assigned by Slade360 Advantage for internal patient tracking."
+* #payer-member-number "Payer Member Number"
+  * ^definition = "A unique identifier assigned by insurance providers, including private insurers and Slade360."
+* #smart-member-number "Smart Member Number"
+  * ^definition = "A unique health identifier assigned by Slade360."
+* #drchrono-id "Dr Chrono Chart ID"
+  * ^definition = "A unique identifier assigned by the Dr. Chrono healthcare platform for patient records."
+* #erp-customer-id "ERP Customer ID"
+  * ^definition = "A unique patient identifier assigned by Slade360 ERP system."
+* #ccc-number "Comprehensive Care Clinic Number"
+  * ^definition = "A unique identifier assigned by HIV/AIDS treatment programs."
+* #refugee-id "Refugee ID"
+  * ^definition = "A unique identifier assigned by the Refugee Affairs Secretariat (RAS) under the Ministry of Interior, in collaboration with UNHCR."
+* #birth-certificate "Birth Certificate Number"
+  * ^definition = "A unique identifier assigned by the Civil Registration Department under the Ministry of Interior and National Administration."
+* #mandate-number "Mandate Number"
+  * ^definition = "A regulatory or legal identifier assigned by relevant government agencies."
+* #client-registry-number "Client Registry Number"
+  * ^definition = "A unique identifier used for internal patient tracking within a Client Registry system."
+* #slade-health-id "Slade Health ID"
+  * ^definition = "A unique health identifier assigned by Slade360 Health CRM for patient records."
+
+
 CodeSystem: SGHIIdentifierCodeSystem
-Id: sghi-identifier-codesystem
+Id: identifier-codesystem
 Title: "SGHI Identifier Code System"
 Description: "A single code system enumerating the many local identifier types used across SGHI's environment."
 * ^status = #active
 * ^content = #supplement
-* #national-id "National ID" "A unique national identifier assigned by the National Registration Bureau (NRB) under the Ministry of Interior and National Administration."
-* #passport-number "Passport Number" "A unique identifier assigned by the Directorate of Immigration Services under the Ministry of Interior and National Administration."
-* #military-id "Military ID" "A unique identifier assigned by the Kenya Defence Forces (KDF) for military personnel."
-* #alien-id "Alien ID" "A unique identifier assigned by the Directorate of Immigration Services to foreign nationals residing in Kenya."
-* #nhif-id "National Hospital Insurance Fund ID" "A unique health insurance identifier assigned by the National Hospital Insurance Fund (NHIF)."
-* #patient-number "Patient Number" "A unique identifier assigned by Slade360 Advantage for internal patient tracking."
-* #payer-member-number "Payer Member Number" "A unique identifier assigned by insurance providers, including private insurers and Slade360."
-* #smart-member-number "Smart Member Number" "A unique health identifier assigned by Slade360."
-* #drchrono-id "Dr Chrono Chart ID" "A unique identifier assigned by the Dr. Chrono healthcare platform for patient records."
-* #fhir-patient-id "FHIR Patient ID" "A clinical identifier assigned by the Clinical Data Repository (CDR) for FHIR-based patient records."
-* #fhir-id "FHIR Id" "Is a UUID that uniquely identifiers all FHIR resources in SGHI."
-* #erp-customer-id "ERP Customer ID" "A unique patient identifier assigned by Slade360 ERP system."
-* #ccc-number "Comprehensive Care Clinic Number" "A unique identifier assigned by HIV/AIDS treatment programs."
-* #refugee-id "Refugee ID" "A unique identifier assigned by the Refugee Affairs Secretariat (RAS) under the Ministry of Interior, in collaboration with UNHCR."
-* #birth-certificate "Birth Certificate Number" "A unique identifier assigned by the Civil Registration Department under the Ministry of Interior and National Administration."
-* #mandate-number "Mandate Number" "A regulatory or legal identifier assigned by relevant government agencies."
-* #client-registry-number "Client Registry Number" "A unique identifier used for internal patient tracking within a Client Registry system."
-* #slade-health-id "Slade Health ID" "A unique health identifier assigned by Slade360 Health CRM for patient records."
-* #facility-registry-id "Facility Registry ID" "A unique identifier for each facility assigned by the Kenya Master Facility List (MFL) registry."
 * #vtmid "VTM ID" "dm+d identifier for a Virtual Therapeutic Moiety (VTM) concept."
 * #vtmidprev "Previous VTM ID" "Deprecated VTM identifier retained for traceability."
 * #isid "IS ID" "dm+d identifier for an Ingredient Substance (IS) concept."
@@ -52,9 +84,6 @@ Description: "A single code system enumerating the many local identifier types u
 * #appid "APP ID" "dm+d identifier for an Actual Product Pack (APP)."
 * #dbid "DB ID" "dm+d identifier referencing the primary key stored in our database."
 * #slade-concept-code "Slade Concept Code" "A unique drug identifier assigned by slade 360."
-
-//Standard identifer types
-* #SLADEID "Universal System Identifier" "A unique identifier assigned by the system by default"
 
 
 * #stat "STAT" "A unique identifier assigned for highest priority cases (e.g., emergency)"
@@ -143,11 +172,6 @@ Description: "A single code system enumerating the many local identifier types u
 * #insert "Insert" "Insert"
 * #implant "Implant" "Implant"
 * #infuse "Infuse" "Infuse"
-
-// Condition severities
-* #mild "Mild" "Mild"
-* #moderate "Moderate" "Moderate"
-* #severe "Severe" "Severe"
 
 // Encounter class
 * #chemo "Chemotherapy"
@@ -242,7 +266,7 @@ Description: "A single code system enumerating the many local identifier types u
 * #syrup "Syrup"
 
 CodeSystem: SGHIServiceRequestCS
-Id: sghi-service-request-cs
+Id: service-request-cs
 Title: "SGHI Service Request CodeSystem"
 Description: "A custom CodeSystem defining different elements of service requests."
 * ^status = #active
@@ -256,7 +280,7 @@ Description: "A custom CodeSystem defining different elements of service request
 * #referral "Referral"
 
 CodeSystem: SGHILOINCCodeSystem
-Id: sghi-loinc-codesystem
+Id: loinc-codesystem
 Title: "SGHI LOINC Code System"
 Description: "A a subset of LOINC codes used across SGHI's environment."
 * ^status = #active
@@ -279,7 +303,7 @@ Description: "A a subset of LOINC codes used across SGHI's environment."
 * #18776-5  "Plan Of Care" "LOINC Code For Plan Of Care"
 
 CodeSystem: SGHISpecialtyCodeSystem
-Id: sghi-specialtycodesystem
+Id: specialtycodesystem
 Title: "SGHI Specialty Code System"
 Description: "A Specialty Code System to be used in  SGHI's environment."
 * ^status = #active

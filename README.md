@@ -15,7 +15,7 @@ The **SGHI FHIR Profile Implementation Guide** provides a comprehensive set of t
 
 ## Table of Contents
 
-- [SGHI FHIR🔥 Profile Implementation Guide](#sghi-fhir-profile-implementation-guide)
+- [SGHI FHIR🔥 Profile Implementation Guide](#fhir-profile-implementation-guide)
   - [Overview](#overview)
   - [Key Features](#key-features)
   - [Table of Contents](#table-of-contents)

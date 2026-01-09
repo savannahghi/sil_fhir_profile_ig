@@ -1,6 +1,6 @@
 Profile: SGHIHumanName
 Parent: HumanName
-Id: sghi-human-name
+Id: human-name
 Title: "SGHI HumanName"
 Description: "A specialized human name data type with stricter cardinalities."
 
@@ -11,7 +11,7 @@ Description: "A specialized human name data type with stricter cardinalities."
 
 Profile: SGHIContactPoint
 Parent: ContactPoint
-Id: sghi-contact-point
+Id: contact-point
 Title: "SGHI ContactPoint"
 Description: "A custom contact point with stricter cardinality"
 * system 1..1
@@ -21,7 +21,7 @@ Description: "A custom contact point with stricter cardinality"
 // ensuring consistency across our IG
 Profile: SGHICodeableConcept
 Parent: CodeableConcept
-Id: sghi-codeableconcept
+Id: codeableconcept
 Title: "SGHI CodeableConcept"
 Description: "A CodeableConcept represents a value that is usually supplied by providing a reference to one or more terminologies or ontologies but may also be defined by the provision of text. This is a common pattern in healthcare data."
 
@@ -33,7 +33,7 @@ Description: "A CodeableConcept represents a value that is usually supplied by p
 
 Profile: SGHIReference
 Parent: Reference
-Id: sghi-reference
+Id: reference
 Title: "SGHI Reference"
 Description: "SGHI Reference"
 * reference 1..1
@@ -41,7 +41,7 @@ Description: "SGHI Reference"
 
 Profile: SGHIAnnotation
 Parent: Annotation
-Id: sghi-annotation
+Id: annotation
 Title: "SGHI Annotation"
 Description: "A text note which also contains information about who made the statement and when."
 * authorReference only SGHIReference
@@ -51,7 +51,7 @@ Description: "A text note which also contains information about who made the sta
 
 Profile: SGHICodeableReference
 Parent: CodeableReference
-Id: sghi-codeable-reference
+Id: codeable-reference
 Title: "SGHI CodeableReference"
 Description: "A reusable CodeableReference within SGHI systems"
 * concept only SGHICodeableConcept

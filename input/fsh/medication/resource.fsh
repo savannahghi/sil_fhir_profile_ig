@@ -1,9 +1,10 @@
 Profile: SGHIMedication
 Parent: Medication
-Id: sghi-medication
+Id: medication
 Title: "SGHI Medication"
 Description: "SGHI's Medication profile for Medication resource"
 * identifier 1..*
+  * type from SGHIDefaultIdentifierTypes (required)
   * insert CommonIdentifierRules
 
 * code 1..1

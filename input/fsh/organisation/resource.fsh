@@ -1,6 +1,6 @@
 Profile: SGHIOrganization
 Parent: Organization
-Id: sghi-organization
+Id: organization
 Title: "SGHI Organization"
 Description: "SGHI's profile for Organization"
 

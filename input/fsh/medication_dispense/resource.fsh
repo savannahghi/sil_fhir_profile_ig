@@ -1,10 +1,11 @@
 Profile: SGHIMedicationDispense
 Parent: MedicationDispense
-Id: sghi-medicationdispense
+Id: medicationdispense
 Title: "SGHI Medication Dispense"
 Description: "SGHI's profile for Medication Dispense resource"
 
 * identifier 1..*
+  * type from SGHIDefaultIdentifierTypes (required)
   * insert CommonIdentifierRules
 * status 1..1
 

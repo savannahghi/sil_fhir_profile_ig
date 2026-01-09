@@ -8,7 +8,7 @@ Description: "An example of a patient profile."
 * identifier[0].type[0].coding.code = #MR
 * identifier[0].type[0].coding.system = "http://terminology.hl7.org/CodeSystem/v2-0203"
 * active = true
-* meta[0].profile = "{{HAPI_FHIR_BASE_URL}}/StructureDefinition/sghi-patient"
+* meta[0].profile = "{{HAPI_FHIR_BASE_URL}}/StructureDefinition/patient"
 * name[0].given[0] = "James"
 * name[0].family = "Pond"
 * name[0].use = #official

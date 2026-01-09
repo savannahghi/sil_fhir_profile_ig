@@ -1,10 +1,11 @@
 Profile: SGHILocation
 Parent: Location
-Id: sghi-fhir-location
+Id: fhir-location
 Title: "SGHI Location"
 Description: "SGHI profile for location"
 
 * identifier 1..*
+  * type from SGHIDefaultIdentifierTypes (required)
   * insert CommonIdentifierRules
 * status 1..1 MS
 

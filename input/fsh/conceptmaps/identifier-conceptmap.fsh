@@ -7,7 +7,7 @@ Usage: #definition
 * version = "1.0.0"
 * status = #active
 * group[0].source = "https://fhir.slade360.co.ke/fhir/CodeSystem/legacy-identifier-types"
-* group[0].target = "https://fhir.slade360.co.ke/fhir/CodeSystem/sghi-identifier-codesystem"
+* group[0].target = "https://fhir.slade360.co.ke/fhir/CodeSystem/identifier-codesystem"
 
 * group[0].element[0].code = #HEALTH_ID
 * group[0].element[0].display = "Health ID"

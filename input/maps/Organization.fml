@@ -4,7 +4,7 @@
 /// status = "active"
 
 uses "http://hl7.org/fhir/4.0/StructureDefinition/Organization"                 alias OrganizationR4   as source
-uses "https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-organization"   alias SGHIOrganization as target
+uses "https://fhir.slade360.co.ke/fhir/StructureDefinition/organization"   alias SGHIOrganization as target
 
 imports "http://hl7.org/fhir/StructureMap/*4to5"
 
@@ -17,10 +17,10 @@ group SGHIOrganization(source src : OrganizationR4, target tgt : SGHIOrganizatio
     s.period -> t.period "copy-period";
 
     s.type as st -> t.type as tt then {
-      st.coding as sc where(sc.system = 'SladeCode') -> tt.coding = create('CodeableConcept') as tc, tc.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/sghi-identifier-codesystem', tc.code = 'slade-code', tc.display = 'Slade360 Code';
+      st.coding as sc where(sc.system = 'SladeCode') -> tt.coding = create('CodeableConcept') as tc, tc.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/identifier-codesystem', tc.code = 'slade-code', tc.display = 'Slade360 Code';
     };
 
-    s -> t.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/sghi-identifier-codesystem' "SetFixedIdentifierSystem";
+    s -> t.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/identifier-codesystem' "SetFixedIdentifierSystem";
   } "process-one-identifier";
 
   src.identifier as s_id -> tgt.identifier as t_id then {
@@ -29,10 +29,10 @@ group SGHIOrganization(source src : OrganizationR4, target tgt : SGHIOrganizatio
     s_id.period -> t_id.period;
     
     s_id.type as st -> t_id.type as tt then {
-      st.coding -> tt.coding = create('CodeableConcept') as tt, tt.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/sghi-identifier-codesystem', tt.code = 'fhir-id', tt.display = 'FHIR Id';
+      st.coding -> tt.coding = create('CodeableConcept') as tt, tt.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/identifier-codesystem', tt.code = 'fhir-id', tt.display = 'FHIR Id';
     };
 
-    s_id -> t_id.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/sghi-identifier-codesystem' "SetFixedIdentifierSystem";
+    s_id -> t_id.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/identifier-codesystem' "SetFixedIdentifierSystem";
   } "create the default FHIR ID identifier type";
 
   src.active               -> tgt.active;
@@ -49,7 +49,7 @@ group SGHIOrganization(source src : OrganizationR4, target tgt : SGHIOrganizatio
   } "create-hardcoded-text";
 
   src -> tgt.meta = create('Meta') as tm then {
-    src -> tm.profile = 'https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-organization' "set-profile-in-meta";
+    src -> tm.profile = 'https://fhir.slade360.co.ke/fhir/StructureDefinition/organization' "set-profile-in-meta";
   }  "create-hardcoded-profile";
 }
 

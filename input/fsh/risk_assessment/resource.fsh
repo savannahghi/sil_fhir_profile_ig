@@ -1,10 +1,11 @@
 Profile:        SGHIRiskAssessment
 Parent:         RiskAssessment
-Id:             sghi-riskassessment
+Id:             riskassessment
 Title:          "SGHI RiskAssessment"
 Description:    "An assessment of the likely outcome(s) for a patient or other subject as well as the likelihood of each outcome."
 
 * identifier 1..*
+  * type from SGHIDefaultIdentifierTypes (required)
   * insert CommonIdentifierRules
 
 * basis only SGHIReference

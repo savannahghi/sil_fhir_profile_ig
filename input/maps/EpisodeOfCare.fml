@@ -4,7 +4,7 @@
 /// status = "active"
 
 uses "http://hl7.org/fhir/4.0/StructureDefinition/EpisodeOfCare" alias EpisodeOfCareR4   as source
-uses "https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-episodeofcare" alias SGHIEpisodeOfCare as target
+uses "https://fhir.slade360.co.ke/fhir/StructureDefinition/episodeofcare" alias SGHIEpisodeOfCare as target
 
 imports "http://hl7.org/fhir/StructureMap/*4to5"
 
@@ -24,11 +24,11 @@ group SGHIEpisodeOfCare(source src : EpisodeOfCareR4, target tgt : SGHIEpisodeOf
     src -> tt_id.use = "official" "creating use";
     src -> tt_id.type as ty then {
       src -> ty.coding = create('CodeableConcept') as ty_c then {
-        src -> ty_c.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/sghi-identifier-codesystem' "creating coding";
+        src -> ty_c.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/identifier-codesystem' "creating coding";
         src -> ty_c.code = 'fhir-id' "creating code";
         src -> ty_c.display = 'FHIR Id' "creating display";
       } "creating identifier type"; 
-      src -> tt_id.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/sghi-identifier-codesystem' "creating system";
+      src -> tt_id.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/identifier-codesystem' "creating system";
       src.managingOrganization as sp -> tt_id.assigner = create('Reference') as t_assigner then {
         sp.reference -> t_assigner.reference;
         sp.display -> t_assigner.display;
@@ -49,7 +49,7 @@ group SGHIEpisodeOfCare(source src : EpisodeOfCareR4, target tgt : SGHIEpisodeOf
     s_meta.lastUpdated -> t_meta.lastUpdated;
     s_meta.language -> t_meta.language;
     s_meta.tags -> t_meta.tags;
-    src.meta where profile.exists().not() -> t_meta.profile =  'https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-episodeofcare' "set-profile-in-meta";
+    src.meta where profile.exists().not() -> t_meta.profile =  'https://fhir.slade360.co.ke/fhir/StructureDefinition/episodeofcare' "set-profile-in-meta";
   } "set profile in meta";
 
 

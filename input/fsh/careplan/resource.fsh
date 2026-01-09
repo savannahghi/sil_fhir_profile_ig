@@ -1,6 +1,6 @@
 Profile: SGHICarePlan
 Parent: CarePlan
-Id: sghi-careplan
+Id: careplan
 Title: "SGHI Care Plan"
 Description: "A profile on the R5 CarePlan resource to represent a patient's treatment or management plan, such as a chemotherapy regimen."
 
@@ -8,6 +8,7 @@ Description: "A profile on the R5 CarePlan resource to represent a patient's tre
 * intent 1..1
 
 * identifier 1..*
+  * type from SGHIDefaultIdentifierTypes (required)
   * insert CommonIdentifierRules
 * title 1..1 MS
 * description 1..1

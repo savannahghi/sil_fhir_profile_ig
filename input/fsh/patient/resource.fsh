@@ -1,18 +1,12 @@
 Profile: SGHIPatient
 Parent: Patient
-Id: sghi-patient
+Id: patient
 Title: "SGHI Patient"
 Description: "Demographics and other administrative information about an individual or animal receiving care or other health-related services."
 
 * identifier 1..*
-  * type only SGHICodeableConcept
-  * type from SGHIPatientIdentifierTypes (required)
-  * use from $identifier-use (required)
-  * value 1..1
-  * system 1..1
-  * assigner 1..1
-  * assigner only SGHIReference
-  * assigner only Reference(SGHIOrganization)
+  * type from SGHIPersonIdentifierTypes (required)
+  * insert CommonIdentifierRules
 
 * text 0..1
 * active 1..1

@@ -1,10 +1,11 @@
 Profile: SGHICondition
 Parent: Condition
-Id: sghi-condition
+Id: condition
 Title: "SGHI Condition"
 Description: "A clinical condition, problem, diagnosis, or other event, situation, issue, or clinical concept that has risen to a level of concern."
 
 * identifier 1..*
+  * type from SGHIDefaultIdentifierTypes (required)
   * insert CommonIdentifierRules
 
 * verificationStatus 1..1

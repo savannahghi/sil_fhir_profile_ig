@@ -1,9 +1,10 @@
 Profile: SGHIPractitioner
 Parent: Practitioner
-Id: sghi-practitioner
+Id: practitioner
 Title: "SGHI Practitioner"
 Description: "SGHI's Practitioner used in SGHI systems"
 * identifier 1..
+  * type from SGHIPersonIdentifierTypes (required)
   * insert CommonIdentifierRules
 * name 1..
 * name only SGHIHumanName

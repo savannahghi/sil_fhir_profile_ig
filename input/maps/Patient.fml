@@ -4,11 +4,11 @@
 /// status = "active"
 
 uses "http://hl7.org/fhir/4.0/StructureDefinition/Patient"                 alias PatientR4   as source
-uses "https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-patient"   alias SGHIPatient as target
-uses "https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-human-name"      alias SGHIHumanName      as produced
-uses "https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-contact-point"   alias SGHIContactPoint   as produced
-uses "https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-codeableconcept" alias SGHICodeableConcept as produced
-uses "https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-reference"       alias SGHIReference      as produced
+uses "https://fhir.slade360.co.ke/fhir/StructureDefinition/patient"   alias SGHIPatient as target
+uses "https://fhir.slade360.co.ke/fhir/StructureDefinition/human-name"      alias SGHIHumanName      as produced
+uses "https://fhir.slade360.co.ke/fhir/StructureDefinition/contact-point"   alias SGHIContactPoint   as produced
+uses "https://fhir.slade360.co.ke/fhir/StructureDefinition/codeableconcept" alias SGHICodeableConcept as produced
+uses "https://fhir.slade360.co.ke/fhir/StructureDefinition/reference"       alias SGHIReference      as produced
 
 imports "http://hl7.org/fhir/StructureMap/*4to5"
 
@@ -25,7 +25,7 @@ group SGHIPatient(source src : PatientR4, target tgt : SGHIPatient) extends Doma
       } "when-source-has-coding";
     } "map-identifier-type";
 
-    s -> t.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/sghi-identifier-codesystem' "SetFixedIdentifierSystem";
+    s -> t.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/identifier-codesystem' "SetFixedIdentifierSystem";
 
     src.managingOrganization as mo -> t.assigner = create('Reference') as t_assigner then {
       mo.reference -> t_assigner.reference "set-assigner-ref-from-mo";
@@ -40,10 +40,10 @@ group SGHIPatient(source src : PatientR4, target tgt : SGHIPatient) extends Doma
     s_id.period -> t_id.period;
     
     s_id.type as st -> t_id.type as tt then {
-      st.coding -> tt.coding = create('CodeableConcept') as tt, tt.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/sghi-identifier-codesystem', tt.code = 'fhir-id', tt.display = 'FHIR Id';
+      st.coding -> tt.coding = create('CodeableConcept') as tt, tt.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/identifier-codesystem', tt.code = 'fhir-id', tt.display = 'FHIR Id';
     };
 
-    s_id -> t_id.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/sghi-identifier-codesystem' "SetFixedIdentifierSystem";
+    s_id -> t_id.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/identifier-codesystem' "SetFixedIdentifierSystem";
   } "create the default FHIR ID identifier type";
 
   src.active               -> tgt.active;
@@ -69,7 +69,7 @@ group SGHIPatient(source src : PatientR4, target tgt : SGHIPatient) extends Doma
   } "create-hardcoded-text";
 
   src -> tgt.meta as t_meta then {
-    src -> t_meta.profile = 'https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-patient' "add-sghi-profile";
+    src -> t_meta.profile = 'https://fhir.slade360.co.ke/fhir/StructureDefinition/patient' "add-profile";
   } "add-profile-to-meta";
 }
 

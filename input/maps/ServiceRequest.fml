@@ -4,7 +4,7 @@
 /// status = "active"
 
 uses "http://hl7.org/fhir/4.0/StructureDefinition/ServiceRequest"                 alias ServiceRequestR4   as source
-uses "https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-servicerequest"   alias SGHIServiceRequest as target
+uses "https://fhir.slade360.co.ke/fhir/StructureDefinition/servicerequest"   alias SGHIServiceRequest as target
 
 group SGHIServiceRequest(source src : ServiceRequestR4, target tgt : SGHIServiceRequest) <<type+>> {
   src.id as uuid -> tgt.id = uuid;
@@ -28,11 +28,11 @@ group SGHIServiceRequest(source src : ServiceRequestR4, target tgt : SGHIService
   src.id as s_id -> tgt.identifier = create('Identifier') as t_ident then {
       s_id as uuid -> t_ident.value = uuid "copy-id";
       src -> t_ident.use = 'official' "set-use";
-      src -> t_ident.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/sghi-identifier-codesystem' "set-system";
+      src -> t_ident.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/identifier-codesystem' "set-system";
 
       src -> t_ident.type = create('CodeableConcept') as t_type then {
         src -> t_type.coding = create('Coding') as t_code then {
-          src -> t_code.system  = 'https://fhir.slade360.co.ke/fhir/CodeSystem/sghi-identifier-codesystem' "type-system";
+          src -> t_code.system  = 'https://fhir.slade360.co.ke/fhir/CodeSystem/identifier-codesystem' "type-system";
           src -> t_code.code    = 'fhir-id' "type-code";
           src -> t_code.display = 'FHIR Id' "type-display";
         } "init-coding";
@@ -47,7 +47,7 @@ group SGHIServiceRequest(source src : ServiceRequestR4, target tgt : SGHIService
     s_meta.lastUpdated as sl -> t_meta.lastUpdated = sl;
     s_meta.language as sl -> t_meta.language = sl;
     s_meta.tags as st -> t_meta.tags = st;
-    src.meta as sp where profile.exists().not() -> t_meta.profile =  'https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-servicerequest' "set-profile-in-meta";
+    src.meta as sp where profile.exists().not() -> t_meta.profile =  'https://fhir.slade360.co.ke/fhir/StructureDefinition/servicerequest' "set-profile-in-meta";
   } "set profile in meta";
 
   src where status != 'finished' then {
