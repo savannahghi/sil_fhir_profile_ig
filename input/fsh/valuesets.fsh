@@ -3,13 +3,31 @@ Id: patient-identifier-types
 Title: "SGHI Person Identifier Types"
 Description: "Identifier types used  to identify patient, practitioner, animal or a live actor in the healthcare context in SGHI's systems"
 * ^status = #active
-* include codes from system SGHIPersonIdentifierCodeSystem
+* include SGHIPersonIdentifierCodeSystem#national-id "National ID" 
+* include SGHIPersonIdentifierCodeSystem#passport-number "Passport Number"
+* include SGHIPersonIdentifierCodeSystem#military-id "Military ID" 
+* include SGHIPersonIdentifierCodeSystem#alien-id "Alien ID"
+* include SGHIPersonIdentifierCodeSystem#patient-number "Patient Number"
+* include SGHIPersonIdentifierCodeSystem#payer-member-number "Payer Member Number"
+* include SGHIPersonIdentifierCodeSystem#smart-member-number "Smart Member Number"
+* include SGHIPersonIdentifierCodeSystem#drchrono-id "Dr Chrono Chart ID"
+* include SGHIPersonIdentifierCodeSystem#erp-customer-id "ERP Customer ID"
+* include SGHIPersonIdentifierCodeSystem#ccc-number "Comprehensive Care Clinic Number"
+* include SGHIPersonIdentifierCodeSystem#refugee-id "Refugee ID"
+* include SGHIPersonIdentifierCodeSystem#birth-certificate "Birth Certificate Number"
+* include SGHIPersonIdentifierCodeSystem#client-registry-number "Client Registry Number"
+* include SGHIPersonIdentifierCodeSystem#slade-health-id "Slade Health ID"
 
 ValueSet: SGHIOrganizationIdentifierTypes
 Id: organization-identifier-types
 Title: "SGHI Organization Identifier Types"
 Description: "Identifier types used to identify an organization across in SIL's systems"
-* include codes from system SGHIOrganisationIdentifierCodeSystem
+* include SGHIOrganisationIdentifierCodeSystem#mfl-code "Master Facility List Code"
+* include SGHIOrganisationIdentifierCodeSystem#sha-slade-code "SHA Slade Code"
+* include SGHIOrganisationIdentifierCodeSystem#fid-code "Facility ID Code"
+* include SGHIOrganisationIdentifierCodeSystem#fr-code "Facility Registry Code"
+* include SGHIOrganisationIdentifierCodeSystem#kmpdc-registration-number "KMPDC Registration Number"
+* include SGHIOrganisationIdentifierCodeSystem#slade-code "Slade360 Code"
 
 ValueSet: SGHIDrugsIdentifierType
 Id: drugs-identifier-type
@@ -231,7 +249,7 @@ ValueSet: SGHIDefaultIdentifierTypes
 Id: default-identifier-types
 Title: "SGHI Default Identifier Types"
 Description: "Default identifier types used in SGHI's systems"
-* include codes from system SGHIDefaultIdentifierCodeSystem
+* include SGHIDefaultIdentifierCodeSystem#default-id "Default Resource Identifier"
 
 ValueSet: SGHIRouteOfAdministration
 Id: route-of-administration
@@ -264,7 +282,9 @@ Id: condition-severity
 Title: "condition-severity"
 Description: "Condition severity"
 * ^status = #active
-* include codes from system SGHIConditionSeverityCodeSystem
+* include SGHIConditionSeverityCodeSystem#severe "Severe"
+* include SGHIConditionSeverityCodeSystem#mild "Mild"
+* include SGHIConditionSeverityCodeSystem#moderate "Moderate"
 
 ValueSet: SGHISpecialtyVs
 Id: speciality
