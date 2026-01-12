@@ -1,6 +1,6 @@
 Profile: SGHIQuestionnaireResponse
 Parent: QuestionnaireResponse
-Id: sghi-questionnairesponse
+Id: questionnaireresponse
 Title: "SGHI QuestionnaireResponse"
 Description: "A QuestionnaireResponse captures the questions and answers to a Questionnaire"
 
