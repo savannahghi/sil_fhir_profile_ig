@@ -48,9 +48,8 @@ Description: "A booking of a healthcare event among patient(s), practitioner(s),
 * subject only Reference(SGHIPatient)
 
 * participant 1..*
-  * actor 1..1
   * actor only SGHIReference
-  * actor only Reference(SGHIPatient or SGHILocation or SGHIPractitionerRole)
+  * actor only Reference(SGHIPatient or SGHIPractitioner or SGHILocation or SGHIPractitionerRole)
   * type only SGHICodeableConcept
 
 * basedOn only SGHIReference
