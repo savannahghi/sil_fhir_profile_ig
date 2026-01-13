@@ -2,7 +2,7 @@ Profile: SGHIQuestionnaireResponse
 Parent: QuestionnaireResponse
 Id: sghi-questionnairesponse
 Title: "SGHI QuestionnaireResponse"
-Description: "A QuestionnaireResponse captures the questions and answers to a Questionnaire"
+Description: "A QuestionnaireResponse captures the questions and answers to a Questionnaire."
 
 * identifier 1..*
   * type from SGHIDefaultIdentifierTypes (required)
@@ -21,7 +21,7 @@ Description: "A QuestionnaireResponse captures the questions and answers to a Qu
 * source only Reference(SGHIOrganization or SGHIPatient or SGHIPractitioner)
 
 * authored 1..1
-* item 1..1
+* item 1..*
   * text 1..1
   * item
   * answer 1..*
