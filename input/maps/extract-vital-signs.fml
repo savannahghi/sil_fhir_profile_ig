@@ -225,7 +225,7 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
         qr -> oCC.code = cc(
           'http://loinc.org',
           '10154-3',
-          'Chief complaint Narrative'
+          'Chief complaint Narrative - Reported'
         ) "chiefComplaintCode";
 
         aCC.value as textVal -> oCC.valueString = textVal "chiefComplaintValue";

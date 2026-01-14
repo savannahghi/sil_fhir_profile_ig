@@ -32,7 +32,7 @@ Description: "Risk of harmful or undesirable physiological response which is spe
 
 * recordedDate 1..1
 
-* reaction 1..*
+* reaction 0..*
   * substance only SGHICodeableConcept
   * substance from AllLoincCodes (example)
   * description 1..1
