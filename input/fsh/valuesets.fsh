@@ -1,5 +1,5 @@
 ValueSet: SGHIPersonIdentifierTypes
-Id: patient-identifier-types
+Id: person-identifier-types
 Title: "SGHI Person Identifier Types"
 Description: "Identifier types used  to identify patient, practitioner, animal or a live actor in the healthcare context in SGHI's systems"
 * ^status = #active
