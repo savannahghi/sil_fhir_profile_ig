@@ -24,7 +24,7 @@ Description: "A booking of a healthcare event among patient(s), practitioner(s),
 
 * appointmentType 1..1
 
-* reason 1..*
+* reason 0..*
 * reason only SGHICodeableReference
 
 * reason from AllLoincCodes (required)
