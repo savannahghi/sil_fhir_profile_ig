@@ -27,6 +27,7 @@ Description: "A single code system enumerating severity levels for clinical cond
   * ^definition = "Indicates a clinical condition of intermediate severity requiring medical attention but not immediately life-threatening."
 
 CodeSystem: SGHIDefaultIdentifierCodeSystem
+Id: default-identifier-codesystem
 Description: "A single code system enumerating severity levels for clinical conditions within the SGHI ecosystem."
 * ^status = #active
 * #default-id "Default Resource Identifier"

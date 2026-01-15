@@ -17,6 +17,7 @@ Description: "Identifier types used  to identify patient, practitioner, animal o
 * include SGHIPersonIdentifierCodeSystem#birth-certificate "Birth Certificate Number"
 * include SGHIPersonIdentifierCodeSystem#client-registry-number "Client Registry Number"
 * include SGHIPersonIdentifierCodeSystem#slade-health-id "Slade Health ID"
+* include SGHIDefaultIdentifierCodeSystem#default-id "Default Resource Identifier"
 
 ValueSet: SGHIOrganizationIdentifierTypes
 Id: organization-identifier-types
