@@ -24,4 +24,3 @@ Description: "A QuestionnaireResponse captures the questions and answers to a Qu
 * item 1..*
   * text 1..1
   * item
-  * answer 1..*
