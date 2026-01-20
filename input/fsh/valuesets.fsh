@@ -269,7 +269,6 @@ Title: "All ICD-11 codes"
 Description: "All codes from ICD-11"
 * ^status = #active
 * include codes from system http://id.who.int/icd/release/11/mms
-* include SGHIDefaultIdentifierCodeSystem#default-id "Default Resource Identifier"
 
 ValueSet: ICHICodes
 Id: ICHICodes
