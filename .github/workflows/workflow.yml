@@ -54,39 +54,62 @@ jobs:
         run: |
           echo "Publishing to server: ${{ env.HAPI_FHIR_BASE_URL }}"
       
+          upload_resource() {
+            local file="$1"
+            local resource_type="$2"
+            local resource_id="$3"
+
+            echo "Uploading $file with resourceType=$resource_type, id=$resource_id"
+            
+            RESPONSE=$(curl -s -X PUT "${HAPI_FHIR_BASE_URL}/${resource_type}/${resource_id}" \
+              -H "Content-Type: application/fhir+json" --data-binary "@$file")
+
+            echo "Response: $RESPONSE"
+            STATUS_CODE=$(echo "$RESPONSE" | jq -r '.issue[0].severity // "unknown"')
+
+            if [ "$STATUS_CODE" != "unknown" ]; then
+              echo "Upload failed for $file: $STATUS_CODE"
+              exit 1
+            fi
+
+            RETRIEVED_RESOURCE=$(curl -s -X GET "${HAPI_FHIR_BASE_URL}/${resource_type}/${resource_id}" -H "Accept: application/fhir+json")
+            echo "Retrieved Resource after Upload: $RETRIEVED_RESOURCE"
+          }
+
+          echo "Publishing to server: ${{ env.HAPI_FHIR_BASE_URL }}"
+
+          echo "Uploading CodeSystems"
           for file in fsh-generated/resources/*.json; do
             if [ -f "$file" ]; then
               RESOURCE_TYPE=$(jq -r '.resourceType' "$file")
               RESOURCE_ID=$(jq -r '.id' "$file")
-
-              if [ "$RESOURCE_TYPE" = "StructureDefinition" ] || \
-                [ "$RESOURCE_TYPE" = "ConceptMap" ] || \
-                [ "$RESOURCE_TYPE" = "ValueSet" ] || \
-                [ "$RESOURCE_TYPE" = "CodeSystem" ]; then
-
-                echo "Uploading $file with resourceType=$RESOURCE_TYPE, id=$RESOURCE_ID"
-                
-                RESPONSE=$(curl -s -X PUT "${HAPI_FHIR_BASE_URL}/${RESOURCE_TYPE}/${RESOURCE_ID}" \
-                  -H "Content-Type: application/fhir+json" --data-binary "@$file")
-
-                echo "Response: $RESPONSE"
-                STATUS_CODE=$(echo "$RESPONSE" | jq -r '.issue[0].severity // "unknown"')
-
-                if [ "$STATUS_CODE" != "unknown" ]; then
-                  echo "Upload failed for $file: $STATUS_CODE"
-                  exit 1
-                fi
-
-                # Verify the update
-                RETRIEVED_RESOURCE=$(curl -s -X GET "${HAPI_FHIR_BASE_URL}/${RESOURCE_TYPE}/${RESOURCE_ID}" -H "Accept: application/fhir+json")
-                echo "Retrieved Resource after Upload: $RETRIEVED_RESOURCE"
-
-              else
-                echo "Skipping $file: resourceType $RESOURCE_TYPE is not a conformance resource."
+              if [ "$RESOURCE_TYPE" = "CodeSystem" ]; then
+                upload_resource "$file" "$RESOURCE_TYPE" "$RESOURCE_ID"
               fi
             fi
           done
 
+          echo "Uploading ValueSets"
+          for file in fsh-generated/resources/*.json; do
+            if [ -f "$file" ]; then
+              RESOURCE_TYPE=$(jq -r '.resourceType' "$file")
+              RESOURCE_ID=$(jq -r '.id' "$file")
+              if [ "$RESOURCE_TYPE" = "ValueSet" ]; then
+                upload_resource "$file" "$RESOURCE_TYPE" "$RESOURCE_ID"
+              fi
+            fi
+          done
+
+          echo "Uploading other Conformance Resources"
+          for file in fsh-generated/resources/*.json; do
+            if [ -f "$file" ]; then
+              RESOURCE_TYPE=$(jq -r '.resourceType' "$file")
+              RESOURCE_ID=$(jq -r '.id' "$file")
+              if [ "$RESOURCE_TYPE" = "StructureDefinition" ] || [ "$RESOURCE_TYPE" = "ConceptMap" ]; then
+                upload_resource "$file" "$RESOURCE_TYPE" "$RESOURCE_ID"
+              fi
+            fi
+          done
       
           echo "All conformance resources uploaded successfully."
       
