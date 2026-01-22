@@ -16,7 +16,7 @@ Description: "A clinical condition, problem, diagnosis, or other event, situatio
 
 * severity 1..1
 * severity only SGHICodeableConcept
-* severity from https://terminology.hl7.org/ValueSet-adverse-event-severity.html (required)
+* severity from https://terminology.hl7.org/ValueSet-adverse-event-severity (required)
 * severity ^binding.description = "Custom severity values intentionally override the HL7 preferred ConditionSeverity ValueSet."
 
 * subject only SGHIReference
