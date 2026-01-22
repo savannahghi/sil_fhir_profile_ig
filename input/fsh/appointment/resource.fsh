@@ -8,7 +8,7 @@ Description: "A booking of a healthcare event among patient(s), practitioner(s),
   * type from SGHIDefaultIdentifierTypes (required)
   * insert CommonIdentifierRules
 
-* specialty 1..*
+* specialty 0..*
 * specialty from SGHISpecialtyVs (required)
 * specialty only SGHICodeableConcept
 
