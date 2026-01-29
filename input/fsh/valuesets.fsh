@@ -293,17 +293,6 @@ Description: "Speciality"
 * ^status = #active
 * include codes from system SGHISpecialtyCodeSystem
 
-
-ValueSet: SGHIEncounterClassVs
-Id: encounter-class
-Title: "Encounter Class Value Sets"
-* ^status = #active
-* include codes from system http://terminology.hl7.org/ValueSet/encounter-class
-* include SGHIIdentifierCodeSystem#chemo "Chemotherapy"
-* include SGHIIdentifierCodeSystem#surg "Surgery"
-* include SGHIIdentifierCodeSystem#radio "Radiotherapy"
-
-
 ValueSet: SGHISpecimenMolecularMarkersVs
 Id: molecular-Markers
 Title: "Molecular Markers Value Sets"
