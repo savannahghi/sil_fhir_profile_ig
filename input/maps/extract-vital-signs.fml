@@ -288,7 +288,7 @@ group BuildBaseObs(source qr : QR, target obs : Observation, target entry) {
   qr.encounter as e -> obs.encounter = e "encounter";
   qr.authored as t -> obs.effectiveDateTime = t "effective";
 
-  // Category (vital signs) - defaukt
+  // Category (vital signs) - default
   qr -> obs.category = cc(
     'http://terminology.hl7.org/CodeSystem/observation-category',
     'vital-signs',
