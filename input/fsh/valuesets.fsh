@@ -257,11 +257,11 @@ Id: route-of-administration
 Title: "Route Of Administration"
 Description: "A ValueSet defining the possible routes of drug administration."
 * ^status = #active
-
-* include SGHIIdentifierCodeSystem#iv "Intravenous"
-* include SGHIIdentifierCodeSystem#im "Intramuscular"
-* include SGHIIdentifierCodeSystem#it "Intrathecal"
-* include SGHIIdentifierCodeSystem#ro "Oral"
+* include SGHIRouteOfAdministrationCodeSystem#iv "Intravenous"
+* include SGHIRouteOfAdministrationCodeSystem#im "Intramuscular"
+* include SGHIRouteOfAdministrationCodeSystem#it "Intrathecal"
+* include SGHIRouteOfAdministrationCodeSystem#o "Oral"
+* include SGHIRouteOfAdministrationCodeSystem#sc "Subcutaneous"
 
 ValueSet: ICD11Codes
 Id: ICD11Codes
@@ -431,5 +431,60 @@ Description: "A ValueSet that includes all codes from the LOINC code system."
 * include codes from system http://loinc.org
 
 
+ValueSet: SGHIDosageUnit
+Id: dosage-unit
+Title: "SGHI Dosage Units"
+Description: "A ValueSet defining the possible units of measurement for medication dosage in SGHI's systems."
+* ^status = #active
+* include SGHIDosageUnitCodeSystem#mg "Milligrams"
+* include SGHIDosageUnitCodeSystem#g "Grams"
+* include SGHIDosageUnitCodeSystem#ml "Milliliters"
+* include SGHIDosageUnitCodeSystem#dr "Drops"
+* include SGHIDosageUnitCodeSystem#puff "Puffs"
+* include SGHIDosageUnitCodeSystem#tab "Tablets"
+
+ValueSet: SGHIDosageFrequency
+Id: dosage-frequency
+Title: "SGHI Dosage Frequency"
+Description: "A ValueSet defining the possible frequencies for medication intake in SGHI's systems."
+* ^status = #active
+* include SGHIDosageFrequencyCodeSystem#OD "Once daily"
+* include SGHIDosageFrequencyCodeSystem#TW "Twice daily"
+* include SGHIDosageFrequencyCodeSystem#TID "Three times daily"
+* include SGHIDosageFrequencyCodeSystem#QID "Four times daily"
+* include SGHIDosageFrequencyCodeSystem#PRN "As Needed"
+* include SGHIDosageFrequencyCodeSystem#BT "At bedtime"
 
 
+ValueSet: SGHIEventTiming
+Id: event-timing
+Title: "SGHI Event Timing"
+Description: "A ValueSet defining the possible timing options for events in SGHI's systems."
+* ^status = #active
+* include SGHIEventTimingCodeSystem#MORN "Morning"
+* include SGHIEventTimingCodeSystem#MORN.early "Early Morning"
+* include SGHIEventTimingCodeSystem#MORN.late "Late Morning"
+* include SGHIEventTimingCodeSystem#NOON "Noon" 
+* include SGHIEventTimingCodeSystem#AFT "Afternoon"
+* include SGHIEventTimingCodeSystem#AFT.early "Early Afternoon"
+* include SGHIEventTimingCodeSystem#AFT.late "Late Afternoon"
+* include SGHIEventTimingCodeSystem#EVE "Evening"
+* include SGHIEventTimingCodeSystem#EVE.early "Early Evening"
+* include SGHIEventTimingCodeSystem#EVE.late "Late Evening"
+* include SGHIEventTimingCodeSystem#NIGHT "Night"
+* include SGHIEventTimingCodeSystem#PHS "After Sleep"
+* include SGHIEventTimingCodeSystem#IMD "Immediate"
+* include SGHIEventTimingCodeSystem#HS "At naptime"
+* include SGHIEventTimingCodeSystem#WAKE "Upon Waking up"
+* include SGHIEventTimingCodeSystem#C "Meals"
+* include SGHIEventTimingCodeSystem#CM "Breakfast"
+* include SGHIEventTimingCodeSystem#CD "Lunch time"
+* include SGHIEventTimingCodeSystem#CV "Dinner time"
+* include SGHIEventTimingCodeSystem#AC "Before Dinner"
+* include SGHIEventTimingCodeSystem#ACM "Before Breakfast"
+* include SGHIEventTimingCodeSystem#ACD "Before Lunch"
+* include SGHIEventTimingCodeSystem#ACV "Before Dinner"
+* include SGHIEventTimingCodeSystem#PC "After Meal"
+* include SGHIEventTimingCodeSystem#PCM "After Breakfast"
+* include SGHIEventTimingCodeSystem#PCD "After Lunch"
+* include SGHIEventTimingCodeSystem#PCV "After Dinner"
