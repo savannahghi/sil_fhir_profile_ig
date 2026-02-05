@@ -88,6 +88,70 @@ Description: "A single code system enumerating the many local identifier types u
 * #dbid "DB ID" "dm+d identifier referencing the primary key stored in our database."
 * #slade-concept-code "Slade Concept Code" "A unique drug identifier assigned by slade 360."
 
+CodeSystem: SGHIDosageUnitCodeSystem
+Id: dosage-unit
+Description: "A code system enumerating the different units of measurement used to specify medication dosages across SGHI's environment."
+* ^status = #active
+* #mg "Milligrams" "Milligrams (mg) is a unit of mass commonly used to specify the dosage of medications, particularly for solid forms like tablets and capsules."
+* #ml "Milliliters" "Milliliters (mL) is a unit of volume commonly used to specify the dosage of liquid medications, such as syrups and solutions."
+* #g "Grams" "Grams (g) is a unit of mass used to specify the dosage of medications"
+* #dr "Drops" "Drops (dr) is a unit of volume used to specify the dosage of liquid medications, particularly for eye drops and ear drops."
+* #tab "Tablets" "Tablets (tab) is a unit of count used to specify the dosage of medications in solid form, such as tablets and capsules."
+* #puff "Puffs" "Puffs (puff) is a unit of count used to specify the dosage of inhaled medications, such as those delivered via metered-dose inhalers (MDIs)."
+
+CodeSystem: SGHIDosageFrequencyCodeSystem
+Id: dosage-frequency
+Description: "A code system enumerating the different units of measurement used to specify medication intake frequency in a day."
+* ^status = #active
+* #OD "Once daily" "The medication is to be taken once a day"
+* #TW "Twice daily" "The medication is to be taken twice a day"
+* #TID "Three times daily" "The medication is to be taken thrice a day"
+* #QID "Four times daily" "The medication is to be taken four times a day"
+* #PRN "As Needed" "The medication is to be taken as needed"
+* #BT "At bedtime" "The medication is to be taken at bedtime"
+
+CodeSystem: SGHIRouteOfAdministrationCodeSystem
+Id: route-of-administration
+Description: "A code system enumerating the different route options used to specify medication administration routes across SGHI's environment."
+* ^status = #active
+* #o "Oral" "Administration of medication through the mouth."
+* #iv "Intravenous" "Administration of medication directly into a vein."
+* #im "Intramuscular" "Administration of medication into a muscle."
+* #it "Intrathecal" "Intrathecal"
+* #sc "Subcutaneous" "Administration of medication into the tissue layer between the skin and the muscle"
+
+CodeSystem: SGHIEventTimingCodeSystem
+Id: event-timing
+Description: "A code system enumerating the different options used to specify event timing across SGHI's environment."
+* ^status = #active
+* #MORN "Morning" "Event occurs during the morning. The exact time is unspecified and established by institution convention or patient interpretation."
+* #MORN.early "Early morning" "Event occurs during the early morning. The exact time is unspecified and established by institution convention or patient interpretation."
+* #MORN.late "Late morning" "Event occurs during the late morning. The exact time is unspecified and established by institution convention or patient interpretation."
+* #NOON "Noon" "Event occurs around 12:00pm. The exact time is unspecified and established by institution convention or patient interpretation."
+* #AFT "Afternoon" "Event occurs during the afternoon. The exact time is unspecified and established by institution convention or patient interpretation."
+* #AFT.early "Early afternoon" "Event occurs during the early afternoon. The exact time is unspecified and established by institution convention or patient interpretation."
+* #AFT.late "Late afternoon" "Event occurs during the late afternoon. The exact time is unspecified and established by institution convention or patient interpretation."
+* #EVE "Evening" "Event occurs during the evening. The exact time is unspecified and established by institution convention or patient interpretation."
+* #EVE.early "Early evening" "Event occurs during the early evening. The exact time is unspecified and established by institution convention or patient interpretation."
+* #EVE.late "Late evening" "Event occurs during the late evening. The exact time is unspecified and established by institution convention or patient interpretation."
+* #NIGHT "Night" "Event occurs during the night. The exact time is unspecified and established by institution convention or patient interpretation."
+* #PHS "After sleep" "Event occurs [offset] after subject goes to sleep. The exact time is unspecified and established by institution convention or patient interpretation."
+* #IMD "Immediately" "Event occurs a single time (with no repetitions) as soon as possible after the scheduled or actual start of the overall event."
+* #HS  "At nap time/bedtime" "Prior to beginning a regular period of extended sleep (this would exclude naps). Note that this might occur at different times of day depending on a person's regular sleep schedule."
+* #WAKE "Upon waking" "Upon waking up from a regular period of sleep, in order to start regular activities (this would exclude waking up from a nap or temporarily waking up during a period of sleep)"
+* #C   "Meal" "The event is to occur before, during, or after a meal."
+* #CM "Breakfast time" "The event is to occur before the morning meal."
+* #CD "Lunch time" "The event is to occur at lunch time."
+* #CV "Dinner time" "The event is to occur at dinner time."
+* #AC "Before Dinner" "The event is to occur before a meal."
+* #ACM "Before Breakfast" "The event is to occur before breakfast."
+* #ACD "Before Lunch" "The event is to occur before lunch."
+* #ACV "Before Dinner" "The event is to occur before dinner."
+* #PC "After Meal" "The event is to occur after meal."
+* #PCM "After Breakfast" "The event is to occur after breakfast."
+* #PCD "After Lunch" "The event is to occur after lunch."
+* #PCV "After Dinner" "The event is to occur after dinner."
+
 
 * #stat "STAT" "A unique identifier assigned for highest priority cases (e.g., emergency)"
 * #asap "ASAP" "As soon as possible, next highest priority after STAT"
@@ -181,11 +245,6 @@ Description: "A single code system enumerating the many local identifier types u
 * #surg "Surgery"
 * #radio "Radiotherapy"
 
-// Route of Administration
-* #iv "Intravenous" "Intravenous" 
-* #im "Intramuscular" "Intramuscular" 
-* #it "Intrathecal" "Intrathecal"
-* #ro "Oral" "Oral"
 
 // Molecular Markers
 * #braf "BRAF Mutation"
