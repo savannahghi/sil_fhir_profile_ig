@@ -201,6 +201,20 @@ Description: "ValueSet containing SGHI medication form codes"
 * include SGHIIdentifierCodeSystem#suspension "Suspension"
 * include SGHIIdentifierCodeSystem#syrup "Syrup"
 
+// TODO:: I am not certainly sure at this moment what altering the ocl system in the above (SGHIMedicationFormCodes) will break. I will review later
+ValueSet: SGHIMedicationForms
+Id: medication-form
+Title: "SGHI Medication Forms"
+Description: "ValueSet containing SGHI medication forms"
+* ^status = #active
+* include SGHIIdentifierCodeSystem#powder "Powder"
+* include SGHIIdentifierCodeSystem#tablets "Tablets"
+* include SGHIIdentifierCodeSystem#capsule "Capsule"
+* include SGHIIdentifierCodeSystem#solution "Solution"
+* include SGHIIdentifierCodeSystem#lozenge "Lozenge"
+* include SGHIIdentifierCodeSystem#suspension "Suspension"
+* include SGHIIdentifierCodeSystem#syrup "Syrup"
+
 ValueSet: SGHISubstanceCodes
 Id: substance-codes
 Title: "SGHI Substance Codes"

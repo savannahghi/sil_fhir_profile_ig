@@ -1,0 +1,229 @@
+map "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractMedicationRequest" = "ExtractMedicationRequest"
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/MedicationRequest" alias MedicationRequest as target
+uses "http://hl7.org/fhir/StructureDefinition/Medication" alias Medication as target
+
+group ExtractMedicationRequest(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+  
+  qr.item as prescriptionGroup where (linkId = 'prescription-form') then {
+    prescriptionGroup -> bundle.entry as entry, entry.resource = create('MedicationRequest') as medReq then {
+      qr -> medReq, entry then BuildMedicationRequest(qr, prescriptionGroup, medReq, entry) "buildMedReq";
+    } "createMedReq";
+  } "findPrescriptionGroup";
+}
+
+group BuildMedicationRequest(source qr : QR, source prescriptionGroup, target medReq : MedicationRequest, target entry) {
+  qr -> medReq.status = 'active' "setStatus";
+  qr -> medReq.intent = 'order'  "setIntent";
+  
+  // Subject from QuestionnaireResponse
+  qr.subject as s -> medReq.subject = s "setSubject";
+  
+  // Encounter from QuestionnaireResponse
+  qr.encounter as enc -> medReq.encounter = enc "setEncounter";
+  
+  // AuthoredOn from QuestionnaireResponse.authored
+  qr.authored as authored -> medReq.authoredOn = authored "setAuthoredOn";
+  
+  // Requester from QuestionnaireResponse.source (the Organization)
+  qr.source as src -> medReq.requester = src "setRequester";
+  
+  // Copy identifier from QuestionnaireResponse to MedicationRequest
+  qr.identifier first as qrIdent -> medReq.identifier = qrIdent "copyIdentifier";
+  
+  // Medication as CodeableReference from QR extension (using concept)
+  qr.extension first as ext then {
+    ext.valueCodeableConcept as medCC -> medReq.medication as med then {
+      medCC -> med.concept = medCC "setMedConcept";
+    } "accessMedication";
+  } "findMedicationExt";
+  
+  // Priority
+  prescriptionGroup.item as priorityItem where (linkId = 'priority') then {
+    priorityItem.answer first as priorityAns then {
+      priorityAns.valueCoding as priorityCoding then {
+        priorityCoding.code as pCode -> medReq.priority = pCode "setPriorityCode";
+      } "extractPriorityCode";
+    } "extractPriority";
+  } "findPriority";
+  
+  // Dosage Instruction
+  qr -> medReq.dosageInstruction = create('Dosage') as dosage then {
+    prescriptionGroup -> dosage then BuildDosage(prescriptionGroup, dosage) "buildDosage";
+  } "createDosage";
+  
+  // Substitution
+  prescriptionGroup.item as substItem where (linkId = 'substitutable') then {
+    substItem.answer first as substAns then {
+      substAns.valueBoolean as substBool -> medReq.substitution as subst then {
+        substBool -> subst.allowedBoolean = substBool "setSubstValue";
+      } "createSubst";
+    } "extractSubst";
+  } "findSubst";
+  
+  // Dispense Request
+  qr -> medReq.dispenseRequest as dispReq then {
+    prescriptionGroup -> dispReq then BuildDispenseRequest(qr, prescriptionGroup, dispReq) "buildDispReq";
+  } "createDispReq";
+  
+  // Set ID and FullUrl
+  qr -> medReq.id = uuid() then SetMedicationRequestFullUrl(medReq, entry) "setMedReqIdAndFullUrl";
+  
+  // Entry request for transaction bundle
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "reqMethod";
+    qr -> request.url = 'MedicationRequest' "reqUrl";
+  } "entryRequest";
+}
+
+group BuildDosage(source prescriptionGroup, target dosage : Dosage) {
+  prescriptionGroup -> dosage.timing as timing then {
+    prescriptionGroup -> timing.repeat as repeat then {
+      // Frequency (OD, BD, TID, QID)
+      prescriptionGroup.item as freqItem where (linkId = 'frequency') then {
+        freqItem.answer first as freqAns then {
+          freqAns.valueCoding as freqCoding where (code = 'OD') -> repeat.frequency = 1 "setFreqOD";
+          freqAns.valueCoding as freqCoding where (code = 'BD') -> repeat.frequency = 2 "setFreqBD";
+          freqAns.valueCoding as freqCoding where (code = 'TID') -> repeat.frequency = 3 "setFreqTID";
+          freqAns.valueCoding as freqCoding where (code = 'QID') -> repeat.frequency = 4 "setFreqQID";
+        } "extractFreq";
+      } "findFreq";
+      
+      // Period (1 day)
+      prescriptionGroup -> repeat.period = 1 "setPeriod";
+      prescriptionGroup -> repeat.periodUnit = 'd' "setPeriodUnit";
+      
+      // Duration
+      prescriptionGroup.item as durItem where (linkId = 'duration') then {
+        durItem.answer first as durAns then {
+          durAns.valueInteger as durValue -> repeat.duration = durValue "setDuration";
+        } "extractDuration";
+      } "findDuration";
+      
+      // Duration UOM - directly use the code from unitsofmeasure.org (h, d, wk, mo, a)
+      prescriptionGroup.item as durUomItem where (linkId = 'duration-uom') then {
+        durUomItem.answer first as durUomAns then {
+          durUomAns.valueCoding as durUomCoding then {
+            durUomCoding.code as durUomCode -> repeat.durationUnit = durUomCode "setDurationUnit";
+          } "extractDurUomCode";
+        } "extractDurUom";
+      } "findDurUom";
+      
+      // When to take - directly use the code (AC, PC, ACM, ACD, ACV, PCM, PCD, PCV, etc.)
+      prescriptionGroup.item as whenItem where (linkId = 'when-to-take') then {
+        whenItem.answer first as whenAns then {
+          whenAns.valueCoding as whenCoding then {
+            whenCoding.code as whenCode -> repeat.when = whenCode "setWhenCode";
+          } "extractWhenCode";
+        } "extractWhen";
+      } "findWhen";
+      
+      // Bounds Period from start-date and end-date
+      prescriptionGroup.item as startItem where (linkId = 'start-date') then {
+        startItem.answer first as startAns then {
+          startAns.valueDate as startDate -> repeat.boundsPeriod as boundsPeriod then {
+            startDate -> boundsPeriod.start = startDate "setBoundsStart";
+            prescriptionGroup.item as endItem where (linkId = 'end-date') then {
+              endItem.answer first as endAns then {
+                endAns.valueDate as endDate -> boundsPeriod.end = endDate "setBoundsEnd";
+              } "extractEndDate";
+            } "findEndDate";
+          } "createBoundsPeriod";
+        } "extractStartDate";
+      } "findStartDate";
+    } "accessRepeat";
+  } "accessTiming";
+  
+  // Route
+  prescriptionGroup.item as routeItem where (linkId = 'route') then {
+    routeItem.answer first as routeAns then {
+      routeAns.valueCoding as routeCoding -> dosage.route = create('CodeableConcept') as routeCC then {
+        routeCoding -> routeCC.coding = routeCoding "setRouteCoding";
+        routeCoding.display as disp -> routeCC.text = disp "setRouteText";
+      } "setRouteCC";
+    } "extractRoute";
+  } "findRoute";
+  
+  // Dose and Rate
+  prescriptionGroup.item as doseItem where (linkId = 'dose') then {
+    doseItem.answer first as doseAns then {
+      doseAns.valueInteger as doseValue -> dosage.doseAndRate as doseRate, doseRate.doseQuantity as doseQty then {
+        doseValue -> doseQty.value = doseValue "setDoseValue";
+        prescriptionGroup.item as doseUnitItem where (linkId = 'dosage-unit') then {
+          doseUnitItem.answer first as doseUnitAns then {
+            doseUnitAns.valueCoding as unitCoding then {
+              unitCoding.display as unitDisp -> doseQty.unit = unitDisp "setDoseUnit";
+              unitCoding.code as unitCode -> doseQty.code = unitCode "setDoseCode";
+              unitCoding.system as unitSys -> doseQty.system = unitSys "setDoseSystem";
+            } "extractUnitCoding";
+          } "extractDoseUnitAns";
+        } "findDoseUnit";
+      } "createDoseAndRate";
+    } "extractDoseAns";
+  } "findDose";
+  
+  // Dosage Instructions (patient instruction)
+  prescriptionGroup.item as instrItem where (linkId = 'dosage-instructions') then {
+    instrItem.answer first as instrAns then {
+      instrAns.valueString as instrText -> dosage.patientInstruction = instrText "setPatientInstruction";
+    } "extractInstr";
+  } "findDosageInstr";
+  
+  // Additional Instructions (text)
+  prescriptionGroup.item as addInstrItem where (linkId = 'additional-instructions') then {
+    addInstrItem.answer first as addInstrAns then {
+      addInstrAns.valueString as addInstrText -> dosage.text = addInstrText "setDosageText";
+    } "extractAddInstr";
+  } "findAddInstr";
+}
+
+group BuildDispenseRequest(source qr : QR, source prescriptionGroup, target dispReq) {
+  // Refills
+  prescriptionGroup.item as refillsItem where (linkId = 'refills') then {
+    refillsItem.answer first as refillsAns then {
+      refillsAns.valueInteger as refillsValue -> dispReq.numberOfRepeatsAllowed = refillsValue "setRefills";
+    } "extractRefills";
+  } "findRefills";
+  
+  // Validity Period from start-date and end-date
+  prescriptionGroup.item as startItem where (linkId = 'start-date') then {
+    startItem.answer first as startAns then {
+      startAns.valueDate as startDate -> dispReq.validityPeriod as validPeriod then {
+        startDate -> validPeriod.start = startDate "setValidityStart";
+        prescriptionGroup.item as endItem where (linkId = 'end-date') then {
+          endItem.answer first as endAns then {
+            endAns.valueDate as endDate -> validPeriod.end = endDate "setValidityEnd";
+          } "extractValidityEnd";
+        } "findValidityEnd";
+      } "createValidityPeriod";
+    } "extractValidityStart";
+  } "findValidityStart";
+  
+  // Expected Supply Duration
+  prescriptionGroup.item as durItem where (linkId = 'duration') then {
+    durItem.answer first as durAns then {
+      durAns.valueInteger as durValue -> dispReq.expectedSupplyDuration as supplyDur then {
+        durValue -> supplyDur.value = durValue "setSupplyDurValue";
+        prescriptionGroup.item as durUomItem where (linkId = 'duration-uom') then {
+          durUomItem.answer first as durUomAns then {
+            durUomAns.valueCoding as durUomCoding then {
+              durUomCoding.code as uomCode -> supplyDur.code = uomCode "setSupplyDurCode";
+              durUomCoding.display as uomDisplay -> supplyDur.unit = uomDisplay "setSupplyDurUnit";
+              durUomCoding.system as uomSystem -> supplyDur.system = uomSystem "setSupplyDurSystem";
+            } "extractSupplyDurUom";
+          } "extractSupplyDurUomAns";
+        } "findSupplyDurUom";
+      } "createSupplyDuration";
+    } "extractSupplyDuration";
+  } "findSupplyDuration";
+  
+  // Dispenser - from QuestionnaireResponse.source (Organization)
+  qr.source as src -> dispReq.dispenser = src "setDispenser";
+}
+
+group SetMedicationRequestFullUrl(source medReq : MedicationRequest, target entry) {
+  medReq.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/MedicationRequest/', id) "assignFullUrl";
+}
