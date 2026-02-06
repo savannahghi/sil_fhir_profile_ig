@@ -319,14 +319,6 @@ Description: "A code system enumerating the different options used to specify ev
 // Default Code!!!
 * #sghidefaultcode "SGHI Default Code"
 
-* #powder "Powder"
-* #tablets "Tablets"
-* #capsule "Capsule"
-* #solution "Solution"
-* #lozenge "Lozenge"
-* #suspension "Suspension"
-* #syrup "Syrup"
-
 CodeSystem: SGHIServiceRequestCS
 Id: service-request-cs
 Title: "SGHI Service Request CodeSystem"
@@ -431,3 +423,15 @@ Description: "A collection of FHIR R 4 codes formerly in used in R4"
 * #161360 "Referral"
 * #159623 "Specialist"
 * #1283   "Laboratory orders"
+
+CodeSystem: SGHIMedicationForm
+Id: medication-form
+Title: "SGHI Medication Form"
+Description: "A custom CodeSystem defining different forms in which medications come in"
+* #powder "Powder"
+* #tablets "Tablets"
+* #capsule "Capsule"
+* #solution "Solution"
+* #lozenge "Lozenge"
+* #suspension "Suspension"
+* #syrup "Syrup"

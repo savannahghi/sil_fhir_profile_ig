@@ -207,13 +207,13 @@ Id: medication-form
 Title: "SGHI Medication Forms"
 Description: "ValueSet containing SGHI medication forms"
 * ^status = #active
-* include SGHIIdentifierCodeSystem#powder "Powder"
-* include SGHIIdentifierCodeSystem#tablets "Tablets"
-* include SGHIIdentifierCodeSystem#capsule "Capsule"
-* include SGHIIdentifierCodeSystem#solution "Solution"
-* include SGHIIdentifierCodeSystem#lozenge "Lozenge"
-* include SGHIIdentifierCodeSystem#suspension "Suspension"
-* include SGHIIdentifierCodeSystem#syrup "Syrup"
+* include SGHIMedicationForm#powder "Powder"
+* include SGHIMedicationForm#tablets "Tablets"
+* include SGHIMedicationForm#capsule "Capsule"
+* include SGHIMedicationForm#solution "Solution"
+* include SGHIMedicationForm#lozenge "Lozenge"
+* include SGHIMedicationForm#suspension "Suspension"
+* include SGHIMedicationForm#syrup "Syrup"
 
 ValueSet: SGHISubstanceCodes
 Id: substance-codes
