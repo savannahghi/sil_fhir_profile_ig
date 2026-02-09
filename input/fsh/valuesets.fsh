@@ -460,7 +460,7 @@ Description: "A ValueSet defining the possible frequencies for medication intake
 
 
 ValueSet: SGHIEventTiming
-Id: event-timing
+Id: timing-of-event
 Title: "SGHI Event Timing"
 Description: "A ValueSet defining the possible timing options for events in SGHI's systems."
 * ^status = #active
