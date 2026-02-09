@@ -69,25 +69,6 @@ Description: "A code system different identifiers used to identify an animal, pa
 * #slade-health-id "Slade Health ID"
   * ^definition = "A unique health identifier assigned by Slade360 Health CRM for patient records."
 
-
-CodeSystem: SGHIIdentifierCodeSystem
-Id: identifier-codesystem
-Title: "SGHI Identifier Code System"
-Description: "A single code system enumerating the many local identifier types used across SGHI's environment."
-* ^status = #active
-* ^content = #supplement
-* #vtmid "VTM ID" "dm+d identifier for a Virtual Therapeutic Moiety (VTM) concept."
-* #vtmidprev "Previous VTM ID" "Deprecated VTM identifier retained for traceability."
-* #isid "IS ID" "dm+d identifier for an Ingredient Substance (IS) concept."
-* #isidprev "Previous IS ID" "Deprecated IS identifier retained for traceability."
-* #vpid  "VP ID" "dm+d identifier for a Virtual Product (VP) concept."
-* #vpidprev "Previous VP ID" "Deprecated VP identifier retained for traceability."
-* #vppid "VPP ID" "dm+d identifier for a Virtual Product Pack (VPP)."
-* #apid "AP ID" "dm+d identifier for an Actual Medicinal Product (AMP)."
-* #appid "APP ID" "dm+d identifier for an Actual Product Pack (APP)."
-* #dbid "DB ID" "dm+d identifier referencing the primary key stored in our database."
-* #slade-concept-code "Slade Concept Code" "A unique drug identifier assigned by slade 360."
-
 CodeSystem: SGHIDosageUnitCodeSystem
 Id: dosage-unit
 Description: "A code system enumerating the different units of measurement used to specify medication dosages across SGHI's environment."
@@ -152,6 +133,23 @@ Description: "A code system enumerating the different options used to specify ev
 * #PCD "After Lunch" "The event is to occur after lunch."
 * #PCV "After Dinner" "The event is to occur after dinner."
 
+CodeSystem: SGHIIdentifierCodeSystem
+Id: identifier-codesystem
+Title: "SGHI Identifier Code System"
+Description: "A single code system enumerating the many local identifier types used across SGHI's environment."
+* ^status = #active
+* ^content = #supplement
+* #vtmid "VTM ID" "dm+d identifier for a Virtual Therapeutic Moiety (VTM) concept."
+* #vtmidprev "Previous VTM ID" "Deprecated VTM identifier retained for traceability."
+* #isid "IS ID" "dm+d identifier for an Ingredient Substance (IS) concept."
+* #isidprev "Previous IS ID" "Deprecated IS identifier retained for traceability."
+* #vpid  "VP ID" "dm+d identifier for a Virtual Product (VP) concept."
+* #vpidprev "Previous VP ID" "Deprecated VP identifier retained for traceability."
+* #vppid "VPP ID" "dm+d identifier for a Virtual Product Pack (VPP)."
+* #apid "AP ID" "dm+d identifier for an Actual Medicinal Product (AMP)."
+* #appid "APP ID" "dm+d identifier for an Actual Product Pack (APP)."
+* #dbid "DB ID" "dm+d identifier referencing the primary key stored in our database."
+* #slade-concept-code "Slade Concept Code" "A unique drug identifier assigned by slade 360."
 
 * #stat "STAT" "A unique identifier assigned for highest priority cases (e.g., emergency)"
 * #asap "ASAP" "As soon as possible, next highest priority after STAT"
