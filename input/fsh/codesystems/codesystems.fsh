@@ -102,7 +102,7 @@ Description: "A code system enumerating the different route options used to spec
 * #sc "Subcutaneous" "Administration of medication into the tissue layer between the skin and the muscle"
 
 CodeSystem: SGHIEventTimingCodeSystem
-Id: event-timing
+Id: timing-of-event
 Description: "A code system enumerating the different options used to specify event timing across SGHI's environment."
 * ^status = #active
 * #MORN "Morning" "Event occurs during the morning. The exact time is unspecified and established by institution convention or patient interpretation."
