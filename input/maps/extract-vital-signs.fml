@@ -257,7 +257,7 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
     } "historyOfPIAns";
   } "historyOfPIRule";
 
-  // History of Past Illness
+  // History of Past Illness / Past Medical History
   qr.item as hPastCC where (linkId = '11349-8') then {
     hPastCC.answer first as aCC then {
       aCC -> bundle.entry as eCC, eCC.resource = create('Observation') as oCC then {
@@ -280,6 +280,75 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
       } "historyOfPastIObs";
     } "historyOfPastIAns";
   } "historyOfPastIRule";
+
+  // Family History
+  qr.item as hFH where (linkId = '8670-2') then {
+    hFH.answer first as aCC then {
+      aCC -> bundle.entry as eCC, eCC.resource = create('Observation') as oCC then {
+        qr -> oCC, eCC then BuildBaseObs(qr, oCC, eCC) "familyFHIBase";
+
+        qr -> oCC.category = cc(
+          'http://terminology.hl7.org/CodeSystem/observation-category',
+          'social-history',
+          'Social History'
+        ) "familyHICategory";
+
+        qr -> oCC.code = cc(
+          'http://loinc.org',
+          '8670-2',
+          'History of family member diseases'
+        ) "familyHICode";
+
+        aCC.value as textVal -> oCC.valueString = textVal "familyHIValue";
+      } "familyHIObs";
+    } "familyHIAns";
+  } "familyHIRule";
+  
+  // Social History
+  qr.item as hSH where (linkId = '29762-2') then {
+    hSH.answer first as aCC then {
+      aCC -> bundle.entry as eCC, eCC.resource = create('Observation') as oCC then {
+        qr -> oCC, eCC then BuildBaseObs(qr, oCC, eCC) "socialHistoryIBase";
+
+        qr -> oCC.category = cc(
+          'http://terminology.hl7.org/CodeSystem/observation-category',
+          'social-history',
+          'Social History'
+        ) "socialHistoryCategory";
+
+        qr -> oCC.code = cc(
+          'http://loinc.org',
+          '29762-2',
+          'Social history note'
+        ) "socialHistoryCode";
+
+        aCC.value as textVal -> oCC.valueString = textVal "socialHistoryIValue";
+      } "socialHistoryIObs";
+    } "socialHistoryIAns";
+  } "socialHistoryIRule";
+
+  // Medication History
+  qr.item as medicationH where (linkId = '10160-0') then {
+    medicationH.answer first as aCC then {
+      aCC -> bundle.entry as eCC, eCC.resource = create('Observation') as oCC then {
+        qr -> oCC, eCC then BuildBaseObs(qr, oCC, eCC) "medicationHIBase";
+
+        qr -> oCC.category = cc(
+          'http://terminology.hl7.org/CodeSystem/observation-category',
+          'therapy',
+          'Therapy'
+        ) "medicationHCategory";
+
+        qr -> oCC.code = cc(
+          'http://loinc.org',
+          '10160-0',
+          'History of Medication use Narrative'
+        ) "medicationHistoryCode";
+
+        aCC.value as textVal -> oCC.valueString = textVal "medicationHistoryIValue";
+      } "medicationHistoryIObs";
+    } "medicationHistoryIAns";
+  } "medicationHistoryIRule";
 }
 
 group BuildBaseObs(source qr : QR, target obs : Observation, target entry) {

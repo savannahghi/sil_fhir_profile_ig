@@ -16,7 +16,9 @@ group ExtractMedicationRequest(source qr : QR, target bundle : Bundle) {
 }
 
 group BuildMedicationRequest(source qr : QR, source prescriptionGroup, target medReq : MedicationRequest, target entry) {
-  qr -> medReq.status = 'active' "setStatus";
+  // status will always be draft until medication has been signed off
+  qr -> medReq.status = 'draft' "setStatus";
+  
   qr -> medReq.intent = 'order'  "setIntent";
   
   // Subject from QuestionnaireResponse
