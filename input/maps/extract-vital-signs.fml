@@ -12,6 +12,7 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
     itH.answer first as aH then {
       aH -> bundle.entry as eH, eH.resource = create('Observation') as oH then {
         qr -> oH, eH then BuildBaseObs(qr, oH, eH) "heightBase";
+        qr -> oH.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'vital-signs', 'Vital Signs') "categoryH";
         qr -> oH.code = cc('http://loinc.org', '8302-2', 'Body Height') "codeH";
 
         aH.value as hv -> oH.valueQuantity as vH then {
@@ -30,6 +31,7 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
     itW.answer first as aW then {
       aW -> bundle.entry as eW, eW.resource = create('Observation') as oW then {
         qr -> oW, eW then BuildBaseObs(qr, oW, eW) "weightBase";
+        qr -> oW.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'vital-signs', 'Vital Signs') "categoryW";
         qr -> oW.code = cc('http://loinc.org', '29463-7', 'Body Weight') "codeW";
 
         aW.value as hv -> oW.valueQuantity as vW then {
@@ -48,6 +50,7 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
     itBmi.answer first as aBmi then {
       aBmi -> bundle.entry as eBmi, eBmi.resource = create('Observation') as oBmi then {
         qr -> oBmi, eBmi then BuildBaseObs(qr, oBmi, eBmi) "bmiBase";
+        qr -> oBmi.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'vital-signs', 'Vital Signs') "categoryBmi";
         qr -> oBmi.code = cc('http://loinc.org', '39156-5', 'Body mass index (BMI) [Ratio]') "codeBmi";
 
         aBmi.value as hv -> oBmi.valueQuantity as vBmi then {
@@ -73,6 +76,7 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
     itP.answer first as aP then {
       aP -> bundle.entry as eP, eP.resource = create('Observation') as oP then {
         qr -> oP, eP then BuildBaseObs(qr, oP, eP) "pulseBase";
+        qr -> oP.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'vital-signs', 'Vital Signs') "categoryP";
         qr -> oP.code = cc('http://loinc.org', '8889-8', 'Heart rate by Pulse oximetry') "codeP";
 
         aP.value as hv -> oP.valueQuantity as vP then {
@@ -91,6 +95,7 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
     itBP.answer first as aPanel then {
       aPanel -> bundle.entry as eBP, eBP.resource = create('Observation') as oBP then {
         qr -> oBP, eBP then BuildBaseObs(qr, oBP, eBP) "bpBase";
+        qr -> oBP.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'vital-signs', 'Vital Signs') "categoryBP";
         qr -> oBP.code = cc('http://loinc.org', '55284-4', 'Blood pressure systolic and diastolic') "codeBP";
 
         // Systolic 8480-6
@@ -128,6 +133,7 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
     itT.answer first as aT then {
       aT -> bundle.entry as eT, eT.resource = create('Observation') as oT then {
         qr -> oT, eT then BuildBaseObs(qr, oT, eT) "tempBase";
+        qr -> oT.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'vital-signs', 'Vital Signs') "categoryT";
         qr -> oT.code = cc('http://loinc.org', '8310-5', 'Body Temperature') "codeT";
 
         aT.value as hv -> oT.valueQuantity as vT then {
@@ -153,6 +159,7 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
     itO2.answer first as aO2 then {
       aO2 -> bundle.entry as eO2, eO2.resource = create('Observation') as oO2 then {
         qr -> oO2, eO2 then BuildBaseObs(qr, oO2, eO2) "spo2Base";
+        qr -> oO2.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'vital-signs', 'Vital Signs') "categoryO2";
         qr -> oO2.code = cc('http://loinc.org', '20564-1', 'Oxygen saturation in Blood') "codeO2";
 
         aO2.value as hv -> oO2.valueQuantity as vO2 then {
@@ -178,6 +185,7 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
     itRR.answer first as aRR then {
       aRR -> bundle.entry as eRR, eRR.resource = create('Observation') as oRR then {
         qr -> oRR, eRR then BuildBaseObs(qr, oRR, eRR) "rrBase";
+        qr -> oRR.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'vital-signs', 'Vital Signs') "categoryRR";
         qr -> oRR.code = cc('http://loinc.org', '9279-1', 'Respiratory rate') "codeRR";
 
         aRR.value as hv -> oRR.valueQuantity as vRR then {
@@ -196,6 +204,7 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
     itMuac.answer first as aMuac then {
       aMuac -> bundle.entry as eMuac, eMuac.resource = create('Observation') as oMuac then {
         qr -> oMuac, eMuac then BuildBaseObs(qr, oMuac, eMuac) "muacBase";
+        qr -> oMuac.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'vital-signs', 'Vital Signs') "categoryMuac";
         qr -> oMuac.code = cc('http://loinc.org', '9847-5', 'Circumference') "codeMuac";
 
         aMuac.value as hv -> oMuac.valueQuantity as vMuac then {
@@ -356,13 +365,6 @@ group BuildBaseObs(source qr : QR, target obs : Observation, target entry) {
   qr.subject as s -> obs.subject = s "subject";
   qr.encounter as e -> obs.encounter = e "encounter";
   qr.authored as t -> obs.effectiveDateTime = t "effective";
-
-  // Category (vital signs) - default
-  qr -> obs.category = cc(
-    'http://terminology.hl7.org/CodeSystem/observation-category',
-    'vital-signs',
-    'Vital Signs'
-  ) "category";
 
   // Observation id and fullUrl
   qr -> obs.id = uuid() then
