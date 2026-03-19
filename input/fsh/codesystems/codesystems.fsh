@@ -433,3 +433,12 @@ Description: "A custom CodeSystem defining different forms in which medications 
 * #lozenge "Lozenge"
 * #suspension "Suspension"
 * #syrup "Syrup"
+
+CodeSystem: SGHIOrderFormsCodeSystem
+Id: order-forms
+Description: "A code system enumerating the different options used to specify order forms across SGHI's environment."
+* ^status = #active
+* #medication-order-form "Medication Order Form" "Medication order form."
+* #review-of-system "Review of Systems" "Review of systems form."
+* #vitals-form "Vitals Form" "Used to capture vitals information."
+* #patient-history-form "Patient History Form" "Used to capture patient history information."

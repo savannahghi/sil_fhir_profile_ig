@@ -491,3 +491,13 @@ Description: "A ValueSet defining the possible timing options for events in SGHI
 * include SGHIEventTimingCodeSystem#PCM "After Breakfast"
 * include SGHIEventTimingCodeSystem#PCD "After Lunch"
 * include SGHIEventTimingCodeSystem#PCV "After Dinner"
+
+ValueSet: SGHIOrderForms
+Id: order-forms
+Title: "SGHI Order Forms"
+Description: "A ValueSet defining the possible order forms in SGHI's systems."
+* ^status = #active
+* include SGHIOrderFormsCodeSystem#medication-order-form "Medication Order Form"
+* include SGHIOrderFormsCodeSystem#review-of-system "Review of Systems"
+* include SGHIOrderFormsCodeSystem#vitals-form "Vitals Form"
+* include SGHIOrderFormsCodeSystem#patient-history-form "Patient History Form"
