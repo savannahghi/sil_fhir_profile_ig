@@ -22,7 +22,7 @@ Description: "SGHI's profile for Medication Dispense resource"
 * subject only SGHIReference
 * subject only Reference(SGHIPatient)
 
-* location 1..1
+* location 0..1
 * location only SGHIReference
 * location only Reference(SGHILocation)
 
@@ -50,7 +50,7 @@ Description: "SGHI's profile for Medication Dispense resource"
 * dosageInstruction 1..*
 * dosageInstruction only SGHIDosage
 
-* substitution 1..1
+* substitution 0..1
   * wasSubstituted 1..1
   * type 1..1
   * type only SGHICodeableConcept
