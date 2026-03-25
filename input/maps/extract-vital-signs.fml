@@ -12,8 +12,20 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
     itH.answer first as aH then {
       aH -> bundle.entry as eH, eH.resource = create('Observation') as oH then {
         qr -> oH, eH then BuildBaseObs(qr, oH, eH) "heightBase";
-        qr -> oH.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'vital-signs', 'Vital Signs') "categoryH";
-        qr -> oH.code = cc('http://loinc.org', '8302-2', 'Body Height') "codeH";
+        qr -> oH.category as catH then {
+          qr -> catH.coding as catHCoding then {
+            qr -> catHCoding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "catHSys";
+            qr -> catHCoding.code = 'vital-signs' "catHCode";
+            qr -> catHCoding.display = 'Vital Signs' "catHDisplay";
+          } "catHCodingRule";
+        } "categoryH";
+        qr -> oH.code as codeH then {
+          qr -> codeH.coding as codeHCoding then {
+            qr -> codeHCoding.system = 'http://loinc.org' "codeHSys";
+            qr -> codeHCoding.code = '8302-2' "codeHCode";
+            qr -> codeHCoding.display = 'Body Height' "codeHDisplay";
+          } "codeHCodingRule";
+        } "codeH";
 
         aH.value as hv -> oH.valueQuantity as vH then {
           hv -> vH.value = hv "setVal";
@@ -31,8 +43,20 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
     itW.answer first as aW then {
       aW -> bundle.entry as eW, eW.resource = create('Observation') as oW then {
         qr -> oW, eW then BuildBaseObs(qr, oW, eW) "weightBase";
-        qr -> oW.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'vital-signs', 'Vital Signs') "categoryW";
-        qr -> oW.code = cc('http://loinc.org', '29463-7', 'Body Weight') "codeW";
+        qr -> oW.category as catW then {
+          qr -> catW.coding as catWCoding then {
+            qr -> catWCoding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "catWSys";
+            qr -> catWCoding.code = 'vital-signs' "catWCode";
+            qr -> catWCoding.display = 'Vital Signs' "catWDisplay";
+          } "catWCodingRule";
+        } "categoryW";
+        qr -> oW.code as codeW then {
+          qr -> codeW.coding as codeWCoding then {
+            qr -> codeWCoding.system = 'http://loinc.org' "codeWSys";
+            qr -> codeWCoding.code = '29463-7' "codeWCode";
+            qr -> codeWCoding.display = 'Body Weight' "codeWDisplay";
+          } "codeWCodingRule";
+        } "codeW";
 
         aW.value as hv -> oW.valueQuantity as vW then {
           hv -> vW.value = hv "setVal";
@@ -50,8 +74,20 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
     itBmi.answer first as aBmi then {
       aBmi -> bundle.entry as eBmi, eBmi.resource = create('Observation') as oBmi then {
         qr -> oBmi, eBmi then BuildBaseObs(qr, oBmi, eBmi) "bmiBase";
-        qr -> oBmi.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'vital-signs', 'Vital Signs') "categoryBmi";
-        qr -> oBmi.code = cc('http://loinc.org', '39156-5', 'Body mass index (BMI) [Ratio]') "codeBmi";
+        qr -> oBmi.category as catBmi then {
+          qr -> catBmi.coding as catBmiCoding then {
+            qr -> catBmiCoding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "catBmiSys";
+            qr -> catBmiCoding.code = 'vital-signs' "catBmiCode";
+            qr -> catBmiCoding.display = 'Vital Signs' "catBmiDisplay";
+          } "catBmiCodingRule";
+        } "categoryBmi";
+        qr -> oBmi.code as codeBmi then {
+          qr -> codeBmi.coding as codeBmiCoding then {
+            qr -> codeBmiCoding.system = 'http://loinc.org' "codeBmiSys";
+            qr -> codeBmiCoding.code = '39156-5' "codeBmiCode";
+            qr -> codeBmiCoding.display = 'Body mass index (BMI) [Ratio]' "codeBmiDisplay";
+          } "codeBmiCodingRule";
+        } "codeBmi";
 
         aBmi.value as hv -> oBmi.valueQuantity as vBmi then {
           hv -> vBmi.value = hv "setVal";
@@ -76,8 +112,20 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
     itP.answer first as aP then {
       aP -> bundle.entry as eP, eP.resource = create('Observation') as oP then {
         qr -> oP, eP then BuildBaseObs(qr, oP, eP) "pulseBase";
-        qr -> oP.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'vital-signs', 'Vital Signs') "categoryP";
-        qr -> oP.code = cc('http://loinc.org', '8889-8', 'Heart rate by Pulse oximetry') "codeP";
+        qr -> oP.category as catP then {
+          qr -> catP.coding as catPCoding then {
+            qr -> catPCoding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "catPSys";
+            qr -> catPCoding.code = 'vital-signs' "catPCode";
+            qr -> catPCoding.display = 'Vital Signs' "catPDisplay";
+          } "catPCodingRule";
+        } "categoryP";
+        qr -> oP.code as codeP then {
+          qr -> codeP.coding as codePCoding then {
+            qr -> codePCoding.system = 'http://loinc.org' "codePSys";
+            qr -> codePCoding.code = '8889-8' "codePCode";
+            qr -> codePCoding.display = 'Heart rate by Pulse oximetry' "codePDisplay";
+          } "codePCodingRule";
+        } "codeP";
 
         aP.value as hv -> oP.valueQuantity as vP then {
           hv -> vP.value = hv "setVal";
@@ -92,39 +140,61 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
 
   // Blood Pressure
   qr.item as itBP where (linkId = '55284-4') then {
-    itBP.answer first as aPanel then {
-      aPanel -> bundle.entry as eBP, eBP.resource = create('Observation') as oBP then {
-        qr -> oBP, eBP then BuildBaseObs(qr, oBP, eBP) "bpBase";
-        qr -> oBP.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'vital-signs', 'Vital Signs') "categoryBP";
-        qr -> oBP.code = cc('http://loinc.org', '55284-4', 'Blood pressure systolic and diastolic') "codeBP";
+    qr -> bundle.entry as eBP, eBP.resource = create('Observation') as oBP then {
+      qr -> oBP, eBP then BuildBaseObs(qr, oBP, eBP) "bpBase";
+      qr -> oBP.category as catBP then {
+        qr -> catBP.coding as catBPCoding then {
+          qr -> catBPCoding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "catBPSys";
+          qr -> catBPCoding.code = 'vital-signs' "catBPCode";
+          qr -> catBPCoding.display = 'Vital Signs' "catBPDisplay";
+        } "catBPCodingRule";
+      } "categoryBP";
+      qr -> oBP.code as codeBP then {
+        qr -> codeBP.coding as codeBPCoding then {
+          qr -> codeBPCoding.system = 'http://loinc.org' "codeBPSys";
+          qr -> codeBPCoding.code = '55284-4' "codeBPCode";
+          qr -> codeBPCoding.display = 'Blood pressure systolic and diastolic' "codeBPDisplay";
+        } "codeBPCodingRule";
+      } "codeBP";
 
-        // Systolic 8480-6
-        itBP.item as itSys where (linkId = '8480-6') then {
-          itSys.answer first as aSys -> oBP.component as cSys then {
-            aSys -> cSys.code = cc('http://loinc.org', '8480-6', 'Systolic blood pressure') "bpSysCode";
-            aSys.value as hv -> cSys.valueQuantity as vSys then {
-              hv -> vSys.value = hv "setVal";
-              qr -> vSys.system = 'http://unitsofmeasure.org' "setSys";
-              qr -> vSys.code   = 'mm[Hg]' "setCode";
-              qr -> vSys.unit   = 'millimeter of mercury' "setUnit";
-            } "bpSysVal";
-          } "bpSysComponent";
-        } "bpSysRule";
+      // Systolic 8480-6
+      itBP.item as itSys where (linkId = '8480-6') then {
+        itSys.answer first as aSys -> oBP.component as cSys then {
+          aSys -> cSys.code as bpSysCC then {
+            aSys -> bpSysCC.coding as bpSysCoding then {
+              aSys -> bpSysCoding.system = 'http://loinc.org' "bpSysCodingSystem";
+              aSys -> bpSysCoding.code = '8480-6' "bpSysCodingCode";
+              aSys -> bpSysCoding.display = 'Systolic blood pressure' "bpSysCodingDisplay";
+            } "bpSysCodingRule";
+          } "bpSysCode";
+          aSys.value as hv -> cSys.valueQuantity as vSys then {
+            hv -> vSys.value = hv "setVal";
+            qr -> vSys.system = 'http://unitsofmeasure.org' "setSys";
+            qr -> vSys.code   = 'mm[Hg]' "setCode";
+            qr -> vSys.unit   = 'millimeter of mercury' "setUnit";
+          } "bpSysVal";
+        } "bpSysComponent";
+      } "bpSysRule";
 
-        // Diastolic 8462-4
-        itBP.item as itDia where (linkId = '8462-4') then {
-          itDia.answer first as aDia -> oBP.component as cDia then {
-            aDia -> cDia.code = cc('http://loinc.org', '8462-4', 'Diastolic blood pressure') "bpDiaCode";
-            aDia.value as hv -> cDia.valueQuantity as vDia then {
-              hv -> vDia.value = hv "setVal";
-              qr -> vDia.system = 'http://unitsofmeasure.org' "setSys";
-              qr -> vDia.code   = 'mm[Hg]' "setCode";
-              qr -> vDia.unit   = 'millimeter of mercury' "setUnit";
-            } "bpDiaVal";
-          } "bpDiaComponent";
-        } "bpDiaRule";
-      } "bpObs";
-    } "bpAns";
+      // Diastolic 8462-4
+      itBP.item as itDia where (linkId = '8462-4') then {
+        itDia.answer first as aDia -> oBP.component as cDia then {
+          aDia -> cDia.code as bpDiaCC then {
+            aDia -> bpDiaCC.coding as bpDiaCoding then {
+              aDia -> bpDiaCoding.system = 'http://loinc.org' "bpDiaCodingSystem";
+              aDia -> bpDiaCoding.code = '8462-4' "bpDiaCodingCode";
+              aDia -> bpDiaCoding.display = 'Diastolic blood pressure' "bpDiaCodingDisplay";
+            } "bpDiaCodingRule";
+          } "bpDiaCode";
+          aDia.value as hv -> cDia.valueQuantity as vDia then {
+            hv -> vDia.value = hv "setVal";
+            qr -> vDia.system = 'http://unitsofmeasure.org' "setSys";
+            qr -> vDia.code   = 'mm[Hg]' "setCode";
+            qr -> vDia.unit   = 'millimeter of mercury' "setUnit";
+          } "bpDiaVal";
+        } "bpDiaComponent";
+      } "bpDiaRule";
+    } "bpObs";
   } "bpRule";
 
 
@@ -133,8 +203,20 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
     itT.answer first as aT then {
       aT -> bundle.entry as eT, eT.resource = create('Observation') as oT then {
         qr -> oT, eT then BuildBaseObs(qr, oT, eT) "tempBase";
-        qr -> oT.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'vital-signs', 'Vital Signs') "categoryT";
-        qr -> oT.code = cc('http://loinc.org', '8310-5', 'Body Temperature') "codeT";
+        qr -> oT.category as catT then {
+          qr -> catT.coding as catTCoding then {
+            qr -> catTCoding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "catTSys";
+            qr -> catTCoding.code = 'vital-signs' "catTCode";
+            qr -> catTCoding.display = 'Vital Signs' "catTDisplay";
+          } "catTCodingRule";
+        } "categoryT";
+        qr -> oT.code as codeT then {
+          qr -> codeT.coding as codeTCoding then {
+            qr -> codeTCoding.system = 'http://loinc.org' "codeTSys";
+            qr -> codeTCoding.code = '8310-5' "codeTCode";
+            qr -> codeTCoding.display = 'Body Temperature' "codeTDisplay";
+          } "codeTCodingRule";
+        } "codeT";
 
         aT.value as hv -> oT.valueQuantity as vT then {
           hv -> vT.value = hv "setVal";
@@ -159,8 +241,20 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
     itO2.answer first as aO2 then {
       aO2 -> bundle.entry as eO2, eO2.resource = create('Observation') as oO2 then {
         qr -> oO2, eO2 then BuildBaseObs(qr, oO2, eO2) "spo2Base";
-        qr -> oO2.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'vital-signs', 'Vital Signs') "categoryO2";
-        qr -> oO2.code = cc('http://loinc.org', '20564-1', 'Oxygen saturation in Blood') "codeO2";
+        qr -> oO2.category as catO2 then {
+          qr -> catO2.coding as catO2Coding then {
+            qr -> catO2Coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "catO2Sys";
+            qr -> catO2Coding.code = 'vital-signs' "catO2Code";
+            qr -> catO2Coding.display = 'Vital Signs' "catO2Display";
+          } "catO2CodingRule";
+        } "categoryO2";
+        qr -> oO2.code as codeO2 then {
+          qr -> codeO2.coding as codeO2Coding then {
+            qr -> codeO2Coding.system = 'http://loinc.org' "codeO2Sys";
+            qr -> codeO2Coding.code = '20564-1' "codeO2Code";
+            qr -> codeO2Coding.display = 'Oxygen saturation in Blood' "codeO2Display";
+          } "codeO2CodingRule";
+        } "codeO2";
 
         aO2.value as hv -> oO2.valueQuantity as vO2 then {
           hv -> vO2.value = hv "setVal";
@@ -185,8 +279,20 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
     itRR.answer first as aRR then {
       aRR -> bundle.entry as eRR, eRR.resource = create('Observation') as oRR then {
         qr -> oRR, eRR then BuildBaseObs(qr, oRR, eRR) "rrBase";
-        qr -> oRR.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'vital-signs', 'Vital Signs') "categoryRR";
-        qr -> oRR.code = cc('http://loinc.org', '9279-1', 'Respiratory rate') "codeRR";
+        qr -> oRR.category as catRR then {
+          qr -> catRR.coding as catRRCoding then {
+            qr -> catRRCoding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "catRRSys";
+            qr -> catRRCoding.code = 'vital-signs' "catRRCode";
+            qr -> catRRCoding.display = 'Vital Signs' "catRRDisplay";
+          } "catRRCodingRule";
+        } "categoryRR";
+        qr -> oRR.code as codeRR then {
+          qr -> codeRR.coding as codeRRCoding then {
+            qr -> codeRRCoding.system = 'http://loinc.org' "codeRRSys";
+            qr -> codeRRCoding.code = '9279-1' "codeRRCode";
+            qr -> codeRRCoding.display = 'Respiratory rate' "codeRRDisplay";
+          } "codeRRCodingRule";
+        } "codeRR";
 
         aRR.value as hv -> oRR.valueQuantity as vRR then {
           hv -> vRR.value = hv "setVal";
@@ -204,8 +310,20 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
     itMuac.answer first as aMuac then {
       aMuac -> bundle.entry as eMuac, eMuac.resource = create('Observation') as oMuac then {
         qr -> oMuac, eMuac then BuildBaseObs(qr, oMuac, eMuac) "muacBase";
-        qr -> oMuac.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'vital-signs', 'Vital Signs') "categoryMuac";
-        qr -> oMuac.code = cc('http://loinc.org', '9847-5', 'Circumference') "codeMuac";
+        qr -> oMuac.category as catMuac then {
+          qr -> catMuac.coding as catMuacCoding then {
+            qr -> catMuacCoding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "catMuacSys";
+            qr -> catMuacCoding.code = 'vital-signs' "catMuacCode";
+            qr -> catMuacCoding.display = 'Vital Signs' "catMuacDisplay";
+          } "catMuacCodingRule";
+        } "categoryMuac";
+        qr -> oMuac.code as codeMuac then {
+          qr -> codeMuac.coding as codeMuacCoding then {
+            qr -> codeMuacCoding.system = 'http://loinc.org' "codeMuacSys";
+            qr -> codeMuacCoding.code = '9847-5' "codeMuacCode";
+            qr -> codeMuacCoding.display = 'Circumference' "codeMuacDisplay";
+          } "codeMuacCodingRule";
+        } "codeMuac";
 
         aMuac.value as hv -> oMuac.valueQuantity as vMuac then {
           hv -> vMuac.value = hv "setVal";
@@ -224,18 +342,21 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
       aCC -> bundle.entry as eCC, eCC.resource = create('Observation') as oCC then {
         qr -> oCC, eCC then BuildBaseObs(qr, oCC, eCC) "chiefComplaintBase";
 
-        // Override category to social-history
-        qr -> oCC.category = cc(
-          'http://terminology.hl7.org/CodeSystem/observation-category',
-          'social-history',
-          'Social History'
-        ) "chiefComplaintCategory";
+        qr -> oCC.category as catCC then {
+          qr -> catCC.coding as catCCCoding then {
+            qr -> catCCCoding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "catCCSys";
+            qr -> catCCCoding.code = 'social-history' "catCCCode";
+            qr -> catCCCoding.display = 'Social History' "catCCDisplay";
+          } "catCCCodingRule";
+        } "chiefComplaintCategory";
 
-        qr -> oCC.code = cc(
-          'http://loinc.org',
-          '10154-3',
-          'Chief complaint Narrative - Reported'
-        ) "chiefComplaintCode";
+        qr -> oCC.code as codeCC then {
+          qr -> codeCC.coding as codeCCCoding then {
+            qr -> codeCCCoding.system = 'http://loinc.org' "codeCCSys";
+            qr -> codeCCCoding.code = '10154-3' "codeCCCode";
+            qr -> codeCCCoding.display = 'Chief complaint Narrative - Reported' "codeCCDisplay";
+          } "codeCCCodingRule";
+        } "chiefComplaintCode";
 
         aCC.value as textVal -> oCC.valueString = textVal "chiefComplaintValue";
       } "chiefComplaintObs";
@@ -248,18 +369,21 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
       aCC -> bundle.entry as eCC, eCC.resource = create('Observation') as oCC then {
         qr -> oCC, eCC then BuildBaseObs(qr, oCC, eCC) "historyOfPIBase";
 
-        // Override category to social-history
-        qr -> oCC.category = cc(
-          'http://terminology.hl7.org/CodeSystem/observation-category',
-          'social-history',
-          'Social History'
-        ) "historyOfPICategory";
+        qr -> oCC.category as catHPI then {
+          qr -> catHPI.coding as catHPICoding then {
+            qr -> catHPICoding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "catHPISys";
+            qr -> catHPICoding.code = 'social-history' "catHPICode";
+            qr -> catHPICoding.display = 'Social History' "catHPIDisplay";
+          } "catHPICodingRule";
+        } "historyOfPICategory";
 
-        qr -> oCC.code = cc(
-          'http://loinc.org',
-          '8684-3',
-          'History of Present illness'
-        ) "historyOfPICode";
+        qr -> oCC.code as codeHPI then {
+          qr -> codeHPI.coding as codeHPICoding then {
+            qr -> codeHPICoding.system = 'http://loinc.org' "codeHPISys";
+            qr -> codeHPICoding.code = '8684-3' "codeHPICode";
+            qr -> codeHPICoding.display = 'History of Present illness' "codeHPIDisplay";
+          } "codeHPICodingRule";
+        } "historyOfPICode";
 
         aCC.value as textVal -> oCC.valueString = textVal "historyOfPIValue";
       } "historyOfPIObs";
@@ -272,18 +396,21 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
       aCC -> bundle.entry as eCC, eCC.resource = create('Observation') as oCC then {
         qr -> oCC, eCC then BuildBaseObs(qr, oCC, eCC) "historyOfPastIBase";
 
-        // Override category to social-history
-        qr -> oCC.category = cc(
-          'http://terminology.hl7.org/CodeSystem/observation-category',
-          'social-history',
-          'Social History'
-        ) "historyOfPastICategory";
+        qr -> oCC.category as catPastI then {
+          qr -> catPastI.coding as catPastICoding then {
+            qr -> catPastICoding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "catPastISys";
+            qr -> catPastICoding.code = 'social-history' "catPastICode";
+            qr -> catPastICoding.display = 'Social History' "catPastIDisplay";
+          } "catPastICodingRule";
+        } "historyOfPastICategory";
 
-        qr -> oCC.code = cc(
-          'http://loinc.org',
-          '11349-8',
-          'History of Past illness'
-        ) "historyOfPastICode";
+        qr -> oCC.code as codePastI then {
+          qr -> codePastI.coding as codePastICoding then {
+            qr -> codePastICoding.system = 'http://loinc.org' "codePastISys";
+            qr -> codePastICoding.code = '11349-8' "codePastICode";
+            qr -> codePastICoding.display = 'History of Past illness' "codePastIDisplay";
+          } "codePastICodingRule";
+        } "historyOfPastICode";
 
         aCC.value as textVal -> oCC.valueString = textVal "historyOfPastIValue";
       } "historyOfPastIObs";
@@ -296,40 +423,48 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
       aCC -> bundle.entry as eCC, eCC.resource = create('Observation') as oCC then {
         qr -> oCC, eCC then BuildBaseObs(qr, oCC, eCC) "familyFHIBase";
 
-        qr -> oCC.category = cc(
-          'http://terminology.hl7.org/CodeSystem/observation-category',
-          'social-history',
-          'Social History'
-        ) "familyHICategory";
+        qr -> oCC.category as catFH then {
+          qr -> catFH.coding as catFHCoding then {
+            qr -> catFHCoding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "catFHSys";
+            qr -> catFHCoding.code = 'social-history' "catFHCode";
+            qr -> catFHCoding.display = 'Social History' "catFHDisplay";
+          } "catFHCodingRule";
+        } "familyHICategory";
 
-        qr -> oCC.code = cc(
-          'http://loinc.org',
-          '8670-2',
-          'History of family member diseases'
-        ) "familyHICode";
+        qr -> oCC.code as codeFH then {
+          qr -> codeFH.coding as codeFHCoding then {
+            qr -> codeFHCoding.system = 'http://loinc.org' "codeFHSys";
+            qr -> codeFHCoding.code = '8670-2' "codeFHCode";
+            qr -> codeFHCoding.display = 'History of family member diseases' "codeFHDisplay";
+          } "codeFHCodingRule";
+        } "familyHICode";
 
         aCC.value as textVal -> oCC.valueString = textVal "familyHIValue";
       } "familyHIObs";
     } "familyHIAns";
   } "familyHIRule";
-  
+
   // Social History
   qr.item as hSH where (linkId = '29762-2') then {
     hSH.answer first as aCC then {
       aCC -> bundle.entry as eCC, eCC.resource = create('Observation') as oCC then {
         qr -> oCC, eCC then BuildBaseObs(qr, oCC, eCC) "socialHistoryIBase";
 
-        qr -> oCC.category = cc(
-          'http://terminology.hl7.org/CodeSystem/observation-category',
-          'social-history',
-          'Social History'
-        ) "socialHistoryCategory";
+        qr -> oCC.category as catSH then {
+          qr -> catSH.coding as catSHCoding then {
+            qr -> catSHCoding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "catSHSys";
+            qr -> catSHCoding.code = 'social-history' "catSHCode";
+            qr -> catSHCoding.display = 'Social History' "catSHDisplay";
+          } "catSHCodingRule";
+        } "socialHistoryCategory";
 
-        qr -> oCC.code = cc(
-          'http://loinc.org',
-          '29762-2',
-          'Social history note'
-        ) "socialHistoryCode";
+        qr -> oCC.code as codeSH then {
+          qr -> codeSH.coding as codeSHCoding then {
+            qr -> codeSHCoding.system = 'http://loinc.org' "codeSHSys";
+            qr -> codeSHCoding.code = '29762-2' "codeSHCode";
+            qr -> codeSHCoding.display = 'Social history note' "codeSHDisplay";
+          } "codeSHCodingRule";
+        } "socialHistoryCode";
 
         aCC.value as textVal -> oCC.valueString = textVal "socialHistoryIValue";
       } "socialHistoryIObs";
@@ -342,17 +477,21 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
       aCC -> bundle.entry as eCC, eCC.resource = create('Observation') as oCC then {
         qr -> oCC, eCC then BuildBaseObs(qr, oCC, eCC) "medicationHIBase";
 
-        qr -> oCC.category = cc(
-          'http://terminology.hl7.org/CodeSystem/observation-category',
-          'therapy',
-          'Therapy'
-        ) "medicationHCategory";
+        qr -> oCC.category as catMedH then {
+          qr -> catMedH.coding as catMedHCoding then {
+            qr -> catMedHCoding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "catMedHSys";
+            qr -> catMedHCoding.code = 'therapy' "catMedHCode";
+            qr -> catMedHCoding.display = 'Therapy' "catMedHDisplay";
+          } "catMedHCodingRule";
+        } "medicationHCategory";
 
-        qr -> oCC.code = cc(
-          'http://loinc.org',
-          '10160-0',
-          'History of Medication use Narrative'
-        ) "medicationHistoryCode";
+        qr -> oCC.code as codeMedH then {
+          qr -> codeMedH.coding as codeMedHCoding then {
+            qr -> codeMedHCoding.system = 'http://loinc.org' "codeMedHSys";
+            qr -> codeMedHCoding.code = '10160-0' "codeMedHCode";
+            qr -> codeMedHCoding.display = 'History of Medication use Narrative' "codeMedHDisplay";
+          } "codeMedHCodingRule";
+        } "medicationHistoryCode";
 
         aCC.value as textVal -> oCC.valueString = textVal "medicationHistoryIValue";
       } "medicationHistoryIObs";
