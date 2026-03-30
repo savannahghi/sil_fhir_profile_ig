@@ -100,6 +100,12 @@ Description: "A code system enumerating the different route options used to spec
 * #im "Intramuscular" "Administration of medication into a muscle."
 * #it "Intrathecal" "Intrathecal"
 * #sc "Subcutaneous" "Administration of medication into the tissue layer between the skin and the muscle"
+* #sl "Sublingual" "Administration of medication under the tongue for absorption through the mucous membranes."
+* #in "Intranasal" "Administration of medication through the nasal passages for absorption through the mucous membranes."
+* #oc "Ocular" "Administration of medication to the eye, typically in the form of eye drops or ointments."
+* #ot "Otic" "Administration of medication to the ear, typically in the form of ear drops."
+* #vg "Vaginal" "Administration of medication into the vagina, typically in the form of suppositories, creams, or gels."
+* #rc "Rectal" "Administration of medication into the rectum, typically in the form of suppositories or enemas."
 
 CodeSystem: SGHIEventTimingCodeSystem
 Id: timing-of-event
