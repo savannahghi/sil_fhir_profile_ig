@@ -8,7 +8,7 @@ Description: "Identifier types used  to identify patient, practitioner, animal o
 * include SGHIPersonIdentifierCodeSystem#military-id "Military ID" 
 * include SGHIPersonIdentifierCodeSystem#alien-id "Alien ID"
 * include SGHIPersonIdentifierCodeSystem#patient-number "Patient Number"
-* include SGHIPersonIdentifierCodeSystem#payer-member-number "Payer Member Number"
+* include SGHIPersonIdentifierCodeSystem#payer-member-number "Insurance"
 * include SGHIPersonIdentifierCodeSystem#smart-member-number "Smart Member Number"
 * include SGHIPersonIdentifierCodeSystem#drchrono-id "Dr Chrono Chart ID"
 * include SGHIPersonIdentifierCodeSystem#erp-customer-id "ERP Customer ID"
@@ -507,3 +507,15 @@ Description: "A ValueSet defining the possible order forms in SGHI's systems."
 * include SGHIOrderFormsCodeSystem#review-of-system "Review of Systems"
 * include SGHIOrderFormsCodeSystem#vitals-form "Vitals Form"
 * include SGHIOrderFormsCodeSystem#patient-history-form "Patient History Form"
+
+ValueSet: SGHIRegistrySearchIdentifiers
+Id: registry-search-identifiers
+Title: "SGHI Registry Search Identifiers"
+Description: "A ValueSet defining the possible identifiers that can be used for searching in SGHI's registries."
+* ^status = #active
+* include SGHIPersonIdentifierCodeSystem#national-id "National ID"
+* include SGHIPersonIdentifierCodeSystem#military-id "Military ID"
+* include SGHIPersonIdentifierCodeSystem#alien-id "Alien ID"
+* include SGHIPersonIdentifierCodeSystem#refugee-id "Refugee ID"
+* include SGHIPersonIdentifierCodeSystem#birth-certificate "Birth Certificate Number"
+* include SGHIPersonIdentifierCodeSystem#payer-member-number "Insurance"
