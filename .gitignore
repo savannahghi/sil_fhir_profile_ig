@@ -12,3 +12,7 @@ structuremap.sh
 /logs
 application.yaml
 *.ndjson
+.vscode
+.idea
+.claude
+.venv
