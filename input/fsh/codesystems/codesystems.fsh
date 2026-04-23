@@ -448,3 +448,216 @@ Description: "A code system enumerating the different options used to specify or
 * #review-of-system "Review of Systems" "Review of systems form."
 * #vitals-form "Vitals Form" "Used to capture vitals information."
 * #patient-history-form "Patient History Form" "Used to capture patient history information."
+
+// ============================================================
+// Special Clinic Code System
+// Covers all local/custom codes used in ANC, PNC, CWC and
+// related special-clinic workflows that do not have a suitable
+// LOINC, SNOMED-CT or other standard code.
+// ============================================================
+CodeSystem: SGHISpecialClinicCodeSystem
+Id: special-clinic-codesystem
+Title: "SGHI Special Clinic Code System"
+Description: "A code system enumerating local codes used across ANC, PNC, CWC and other special-clinic workflows within SGHI's environment. Codes are used wherever a suitable LOINC, SNOMED-CT or HL7 code does not exist."
+* ^status = #active
+* ^content = #complete
+* ^version = "1.0"
+
+// --- Shared / Reusable ---
+* #not-applicable "Not Applicable" "Used when a concept does not apply in the current clinical context."
+
+// --- MUAC Nutritional Status ---
+* #muac-green "Green — Normal (≥23 cm)" "MUAC measurement indicating normal nutritional status (≥23 cm)."
+* #muac-yellow "Yellow — Moderate Acute Malnutrition (20–22.9 cm)" "MUAC measurement indicating moderate acute malnutrition (20–22.9 cm)."
+* #muac-red "Red — Severe Acute Malnutrition (<20 cm)" "MUAC measurement indicating severe acute malnutrition (<20 cm)."
+
+// --- Breast Examination Result ---
+* #breast-normal "Yes — Normal" "Breast examination result: normal findings."
+* #breast-abnormal "Yes — Abnormal" "Breast examination result: abnormal findings."
+* #not-done "Not Done" "The procedure or test was not performed."
+
+// --- FGM-Associated Complications ---
+* #fgm-scarring "Scarring" "FGM complication: scarring."
+* #fgm-keloid "Keloid formation" "FGM complication: keloid formation."
+* #fgm-dyspareunia "Dyspareunia" "FGM complication: dyspareunia (painful intercourse)."
+* #fgm-uti "Urinary tract infection" "FGM complication: urinary tract infection."
+
+// --- Blood Sugar Screening ---
+* #rbs-normal "RBS < 11.1 mmol/L — No Diabetes" "Random blood sugar below 11.1 mmol/L; no diabetes indicated."
+* #rbs-diabetes "RBS ≥ 11.1 mmol/L — Has Diabetes" "Random blood sugar at or above 11.1 mmol/L; diabetes indicated."
+* #rbs-not-done "No RBS Done" "Random blood sugar test was not performed."
+
+// --- Syphilis Test Type ---
+* #rpr "RPR (Rapid Plasma Reagin)" "Syphilis test: Rapid Plasma Reagin."
+* #vdrl "VDRL (Venereal Disease Research Laboratory)" "Syphilis test: Venereal Disease Research Laboratory."
+* #dual-testing "Dual Testing (RPR + VDRL)" "Syphilis test: combined RPR and VDRL testing."
+
+// --- TB Screening Result ---
+* #presumed-tb "Presumed TB" "Clinically or radiologically suspected TB, not yet confirmed."
+* #no-tb-signs "No Signs of TB" "No clinical signs of tuberculosis detected."
+* #on-tb-treatment "Already on TB Treatment" "Patient is already receiving TB treatment."
+
+// --- HIV Status ---
+* #hiv-known-positive "Known Positive — Status before 1st ANC (KP)" "HIV-positive status known prior to the first ANC visit."
+
+// --- HIV Testing Type at Visit ---
+* #hiv-initial-test "Initial Test (I)" "First HIV test performed at this visit."
+* #hiv-retest "Retest (R)" "HIV retest performed at this visit."
+
+// --- Final HIV Result at Visit ---
+* #hiv-previously-positive "Previously Positive (PrevP)" "Patient was previously known to be HIV-positive."
+* #hiv-previously-negative "Previously Negative (PrevN)" "Patient was previously known to be HIV-negative."
+
+// --- ARV / HAART Status ---
+* #arv-yes "Yes — On ARV/HAART" "Patient is currently on antiretroviral or HAART therapy."
+* #arv-no "No — Not on ARV/HAART" "Patient is not on antiretroviral or HAART therapy."
+* #arv-revisit "Revisit (already on treatment)" "Patient is revisiting and is already on ARV/HAART treatment."
+
+// --- Partner HIV Testing Status ---
+* #partner-tested "Yes — Partner Tested" "The patient's partner has been tested for HIV."
+* #partner-not-tested "No — Partner Not Tested" "The patient's partner has not been tested for HIV."
+* #partner-not-present "Not Applicable (Partner Not Present)" "Partner was not present; HIV testing status not applicable."
+* #partner-known-positive "Known Positive (KP)" "Partner is known to be HIV-positive."
+
+// --- Family Planning Methods ---
+* #fp-iud "IUD (Intrauterine Device)" "Family planning method: intrauterine device."
+* #fp-implants "Implants (Subdermal)" "Family planning method: subdermal implants."
+* #fp-btl "BTL (Bilateral Tubal Ligation)" "Family planning method: bilateral tubal ligation."
+* #fp-counselled-no-method "Counselled — No Method Selected" "Patient was counselled on family planning but did not select a method."
+* #fp-cocp "Combined oral contraceptive pills" "Family planning method: combined oral contraceptive pills."
+* #fp-pop "Progestin only contraceptive pills" "Family planning method: progestin-only contraceptive pills."
+* #fp-injectables "Injectables" "Family planning method: injectable contraceptives."
+* #fp-male-condom "Male condom" "Family planning method: male condom."
+* #fp-female-sterilization "Female sterilization" "Family planning method: female sterilization."
+* #fp-vasectomy "Vasectomy" "Family planning method: vasectomy."
+* #fp-fam "Fertility awareness-based methods" "Family planning method: fertility awareness-based methods."
+* #fp-ec "Emergency contraception" "Family planning method: emergency contraception."
+
+// --- ANC Comorbidities ---
+* #anc-hypertension "Hypertension" "ANC comorbidity: hypertension."
+* #anc-diabetes "Diabetes Mellitus" "ANC comorbidity: diabetes mellitus."
+* #anc-epilepsy "Epilepsy" "ANC comorbidity: epilepsy."
+* #anc-malaria "Malaria in Pregnancy" "ANC comorbidity: malaria in pregnancy."
+* #anc-sti-rti "STIs / RTIs" "ANC comorbidity: sexually or reproductively transmitted infections."
+* #anc-other "Other (Specify)" "ANC comorbidity: other, to be specified."
+
+// --- IPT Dose ---
+* #ipt-dose-1 "IPT Dose 1 (SP)" "Intermittent Preventive Treatment dose 1 (Sulfadoxine-Pyrimethamine)."
+* #ipt-dose-2 "IPT Dose 2 (SP)" "Intermittent Preventive Treatment dose 2 (Sulfadoxine-Pyrimethamine)."
+* #ipt-dose-3 "IPT Dose 3 (SP)" "Intermittent Preventive Treatment dose 3 (Sulfadoxine-Pyrimethamine)."
+
+// --- Tetanus Toxoid Dose ---
+* #tt-dose-1 "TT Dose 1" "Tetanus toxoid dose 1."
+* #tt-dose-2 "TT Dose 2" "Tetanus toxoid dose 2."
+* #tt-dose-3 "TT Dose 3" "Tetanus toxoid dose 3."
+* #tt-dose-4 "TT Dose 4" "Tetanus toxoid dose 4."
+* #tt-dose-5 "TT Dose 5" "Tetanus toxoid dose 5."
+* #tt-none "None / Not Applicable" "No tetanus toxoid dose administered; not applicable."
+
+// --- ANC Supplementation ---
+* #supp-ifa "Combined Iron and Folic Acid (IFA)" "Supplementation: combined iron and folic acid."
+* #supp-iron-only "Iron Supplement Only" "Supplementation: iron only."
+* #supp-folate-only "Folate Supplement Only" "Supplementation: folate only."
+* #supp-iron-folate-sep "Iron + Folate (Separately)" "Supplementation: iron and folate given as separate supplements."
+* #supp-calcium "Calcium Supplement" "Supplementation: calcium."
+
+// --- Referral Source / Destination ---
+* #referral-community-unit "Community Unit" "Referral source or destination: community health unit."
+* #referral-another-facility "Another Health Facility" "Referral source or destination: another health facility."
+
+// --- Place of Delivery ---
+* #delivery-facility "Facility" "Baby delivered in a health facility."
+* #delivery-home "Home" "Baby delivered at home."
+* #delivery-bba "BBA (Born Before Arrival)" "Baby born before arrival at a health facility."
+
+// --- Mode of Delivery ---
+* #delivery-svd "SVD (Spontaneous Vaginal Delivery)" "Spontaneous vaginal delivery."
+* #delivery-cs "CS (Caesarean Section)" "Caesarean section delivery."
+* #delivery-breech "Breech" "Breech delivery."
+* #delivery-avd "AVD (Assisted Vaginal Delivery)" "Assisted vaginal delivery."
+
+// --- PNC Visit Timing ---
+* #pnc-0-48h "0–48 hours postpartum" "PNC visit occurring within 48 hours of delivery."
+* #pnc-3d-6w "3 days to 6 weeks postpartum" "PNC visit occurring between 3 days and 6 weeks after delivery."
+* #pnc-gt-6w "More than 6 weeks postpartum" "PNC visit occurring more than 6 weeks after delivery."
+
+// --- Pallor Severity ---
+* #pallor-mild "Mild" "Mild pallor."
+* #pallor-moderate "Moderate" "Moderate pallor."
+* #pallor-severe "Severe" "Severe pallor."
+* #pallor-absent "Absent" "No pallor detected."
+
+// --- Breast State (PNC) ---
+* #breast-state-normal "Normal" "Breast state: normal."
+* #breast-cracked-nipple "Cracked nipple" "Breast state: cracked nipple."
+* #breast-engorged "Engorged" "Breast state: breast engorgement."
+* #breast-mastitis "Mastitis" "Breast state: mastitis."
+
+// --- Uterus State ---
+* #uterus-contracted "Contracted" "Uterus is contracted."
+* #uterus-not-contracted "Not contracted" "Uterus is not contracted."
+* #uterus-other "Other (specify)" "Uterus state: other, to be specified."
+
+// --- PPH Status ---
+* #pph-present "Present" "Postpartum haemorrhage is present."
+* #pph-absent "Absent" "Postpartum haemorrhage is absent."
+
+// --- C-Section Site State ---
+* #cs-site-bleeding "Bleeding" "C-section site state: bleeding."
+* #cs-site-normal "Normal" "C-section site state: normal."
+* #cs-site-infected "Infected" "C-section site state: infected."
+* #cs-site-gaping "Gaping" "C-section site state: gaping."
+
+// --- Lochia State ---
+* #lochia-normal "Normal" "Lochia state: normal."
+* #lochia-foul-smelling "Foul smelling" "Lochia state: foul smelling."
+* #lochia-excessive "Excessive" "Lochia state: excessive."
+
+// --- Episiotomy State ---
+* #episiotomy-repaired "Repaired" "Episiotomy state: repaired."
+* #episiotomy-gaping "Gaping" "Episiotomy state: gaping."
+* #episiotomy-infected "Infected" "Episiotomy state: infected."
+* #episiotomy-healed "Healed" "Episiotomy state: healed."
+
+// --- Cervical Cancer Screening Result ---
+* #cx-normal "Normal (1)" "Cervical cancer screening result: normal."
+* #cx-suspected "Suspected (2)" "Cervical cancer screening result: suspected."
+* #cx-confirmed "Confirmed (3)" "Cervical cancer screening result: confirmed."
+* #cx-not-done "Not Done (4)" "Cervical cancer screening was not performed."
+
+// --- Weight-for-Age Category ---
+* #wfa-normal "Normal (1)" "Weight-for-age: normal."
+* #wfa-underweight "Underweight (2)" "Weight-for-age: underweight."
+* #wfa-severe-underweight "Severe Underweight (3)" "Weight-for-age: severe underweight."
+* #wfa-overweight "Overweight (4)" "Weight-for-age: overweight."
+* #wfa-obese "Obese (5)" "Weight-for-age: obese."
+
+// --- Height/Length-for-Age Category ---
+* #hfa-normal "Normal (1)" "Height/length-for-age: normal."
+* #hfa-stunted "Stunted (2)" "Height/length-for-age: stunted."
+* #hfa-severely-stunted "Severely Stunted (3)" "Height/length-for-age: severely stunted."
+
+// --- Vitamin A Supplementation Status ---
+* #vita-6-11m "Supplemented — 6 to 11 months (1)" "Vitamin A supplementation given to a child aged 6–11 months."
+* #vita-12-59m "Supplemented — 12 to 59 months (2)" "Vitamin A supplementation given to a child aged 12–59 months."
+* #vita-not-supplemented "Not supplemented (3)" "Vitamin A supplementation not given."
+
+// --- Developmental Milestones ---
+* #milestone-head-control "Head control (1)" "Developmental milestone: head control."
+* #milestone-sitting "Sitting (2)" "Developmental milestone: sitting."
+* #milestone-talking "Talking (3)" "Developmental milestone: talking."
+
+// --- CWC Danger Signs ---
+* #cwc-danger-no-breastfeed "Unable to breastfeed (1)" "CWC danger sign: child is unable to breastfeed."
+* #cwc-danger-no-drink "Unable to drink (2)" "CWC danger sign: child is unable to drink."
+* #cwc-danger-vomits-all "Vomits everything (3)" "CWC danger sign: child vomits everything."
+* #cwc-danger-bloody-diarrhoea "Bloody diarrhoea (4)" "CWC danger sign: bloody diarrhoea."
+* #cwc-danger-oedema "Oedema (5)" "CWC danger sign: oedema."
+* #cwc-danger-convulsions "Convulsions (6)" "CWC danger sign: convulsions."
+
+// --- Disability / Congenital Deformity ---
+* #disability-present "Disability / Congenital deformity present (1)" "A disability or congenital deformity is present."
+
+// --- CWC Follow-Up Service Type ---
+* #cwc-followup-nutrition "Nutrition services (1)" "CWC follow-up: nutrition services."
+* #cwc-followup-rehabilitation "Rehabilitation services (2)" "CWC follow-up: rehabilitation services."

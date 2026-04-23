@@ -519,3 +519,331 @@ Description: "A ValueSet defining the possible identifiers that can be used for 
 * include SGHIPersonIdentifierCodeSystem#refugee-id "Refugee ID"
 * include SGHIPersonIdentifierCodeSystem#birth-certificate "Birth Certificate Number"
 * include SGHIPersonIdentifierCodeSystem#payer-member-number "Insurance"
+
+// ============================================================
+// Special Clinic ValueSets (ANC / PNC / CWC)
+// All codes sourced from SGHISpecialClinicCodeSystem
+// ============================================================
+
+ValueSet: SGHIMUACNutritionalStatus
+Id: muac-nutritional-status
+Title: "SGHI MUAC Nutritional Status"
+Description: "A ValueSet for Mid-Upper Arm Circumference (MUAC) nutritional status categories used in special-clinic workflows."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#muac-green "Green — Normal (≥23 cm)"
+* include SGHISpecialClinicCodeSystem#muac-yellow "Yellow — Moderate Acute Malnutrition (20–22.9 cm)"
+* include SGHISpecialClinicCodeSystem#muac-red "Red — Severe Acute Malnutrition (<20 cm)"
+
+ValueSet: SGHIBreastExaminationResult
+Id: breast-examination-result
+Title: "SGHI Breast Examination Result"
+Description: "A ValueSet for breast examination results recorded during ANC visits."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#breast-normal "Yes — Normal"
+* include SGHISpecialClinicCodeSystem#breast-abnormal "Yes — Abnormal"
+* include SGHISpecialClinicCodeSystem#not-done "Not Done"
+
+ValueSet: SGHIFGMComplications
+Id: fgm-complications
+Title: "SGHI FGM-Associated Complications"
+Description: "A ValueSet enumerating complications associated with Female Genital Mutilation (FGM)."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#fgm-scarring "Scarring"
+* include SGHISpecialClinicCodeSystem#fgm-keloid "Keloid formation"
+* include SGHISpecialClinicCodeSystem#fgm-dyspareunia "Dyspareunia"
+* include SGHISpecialClinicCodeSystem#fgm-uti "Urinary tract infection"
+
+ValueSet: SGHIBloodSugarScreening
+Id: blood-sugar-screening
+Title: "SGHI Blood Sugar Screening Result"
+Description: "A ValueSet for random blood sugar (RBS) screening results used in ANC workflows."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#rbs-normal "RBS < 11.1 mmol/L — No Diabetes"
+* include SGHISpecialClinicCodeSystem#rbs-diabetes "RBS ≥ 11.1 mmol/L — Has Diabetes"
+* include SGHISpecialClinicCodeSystem#rbs-not-done "No RBS Done"
+
+ValueSet: SGHISyphilisTestType
+Id: syphilis-test-type
+Title: "SGHI Syphilis Test Type"
+Description: "A ValueSet for the type of syphilis test performed during ANC screening."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#rpr "RPR (Rapid Plasma Reagin)"
+* include SGHISpecialClinicCodeSystem#vdrl "VDRL (Venereal Disease Research Laboratory)"
+* include SGHISpecialClinicCodeSystem#dual-testing "Dual Testing (RPR + VDRL)"
+
+ValueSet: SGHITBScreeningResult
+Id: tb-screening-result
+Title: "SGHI TB Screening Result"
+Description: "A ValueSet for tuberculosis (TB) screening results in special-clinic workflows."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#presumed-tb "Presumed TB"
+* include SGHISpecialClinicCodeSystem#no-tb-signs "No Signs of TB"
+* include SGHISpecialClinicCodeSystem#on-tb-treatment "Already on TB Treatment"
+
+ValueSet: SGHIHIVTestingType
+Id: hiv-testing-type
+Title: "SGHI HIV Testing Type"
+Description: "A ValueSet indicating whether the HIV test at a visit is an initial test or a retest."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#hiv-initial-test "Initial Test (I)"
+* include SGHISpecialClinicCodeSystem#hiv-retest "Retest (R)"
+
+ValueSet: SGHIFinalHIVResult
+Id: final-hiv-result
+Title: "SGHI Final HIV Result"
+Description: "A ValueSet for the final HIV result at an ANC visit, capturing previously known status."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#hiv-previously-positive "Previously Positive (PrevP)"
+* include SGHISpecialClinicCodeSystem#hiv-previously-negative "Previously Negative (PrevN)"
+* include SGHISpecialClinicCodeSystem#hiv-known-positive "Known Positive — Status before 1st ANC (KP)"
+
+ValueSet: SGHIARVHAARTStatus
+Id: arv-haart-status
+Title: "SGHI ARV / HAART Status"
+Description: "A ValueSet indicating a patient's current antiretroviral (ARV) or HAART therapy status."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#arv-yes "Yes — On ARV/HAART"
+* include SGHISpecialClinicCodeSystem#arv-no "No — Not on ARV/HAART"
+* include SGHISpecialClinicCodeSystem#arv-revisit "Revisit (already on treatment)"
+
+ValueSet: SGHIPartnerHIVTestingStatus
+Id: partner-hiv-testing-status
+Title: "SGHI Partner HIV Testing Status"
+Description: "A ValueSet capturing the HIV testing status of the patient's partner."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#partner-tested "Yes — Partner Tested"
+* include SGHISpecialClinicCodeSystem#partner-not-tested "No — Partner Not Tested"
+* include SGHISpecialClinicCodeSystem#partner-not-present "Not Applicable (Partner Not Present)"
+* include SGHISpecialClinicCodeSystem#partner-known-positive "Known Positive (KP)"
+
+ValueSet: SGHIFamilyPlanningMethods
+Id: family-planning-methods
+Title: "SGHI Family Planning Methods"
+Description: "A ValueSet enumerating family planning methods offered or selected in special-clinic workflows."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#fp-iud "IUD (Intrauterine Device)"
+* include SGHISpecialClinicCodeSystem#fp-implants "Implants (Subdermal)"
+* include SGHISpecialClinicCodeSystem#fp-btl "BTL (Bilateral Tubal Ligation)"
+* include SGHISpecialClinicCodeSystem#fp-counselled-no-method "Counselled — No Method Selected"
+* include SGHISpecialClinicCodeSystem#fp-cocp "Combined oral contraceptive pills"
+* include SGHISpecialClinicCodeSystem#fp-pop "Progestin only contraceptive pills"
+* include SGHISpecialClinicCodeSystem#fp-injectables "Injectables"
+* include SGHISpecialClinicCodeSystem#fp-male-condom "Male condom"
+* include SGHISpecialClinicCodeSystem#fp-female-sterilization "Female sterilization"
+* include SGHISpecialClinicCodeSystem#fp-vasectomy "Vasectomy"
+* include SGHISpecialClinicCodeSystem#fp-fam "Fertility awareness-based methods"
+* include SGHISpecialClinicCodeSystem#fp-ec "Emergency contraception"
+
+ValueSet: SGHIANCComorbidities
+Id: anc-comorbidities
+Title: "SGHI ANC Comorbidities"
+Description: "A ValueSet of comorbid conditions recorded during Antenatal Care (ANC) visits."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#anc-hypertension "Hypertension"
+* include SGHISpecialClinicCodeSystem#anc-diabetes "Diabetes Mellitus"
+* include SGHISpecialClinicCodeSystem#anc-epilepsy "Epilepsy"
+* include SGHISpecialClinicCodeSystem#anc-malaria "Malaria in Pregnancy"
+* include SGHISpecialClinicCodeSystem#anc-sti-rti "STIs / RTIs"
+* include SGHISpecialClinicCodeSystem#anc-other "Other (Specify)"
+
+ValueSet: SGHIIPTDose
+Id: ipt-dose
+Title: "SGHI IPT Dose"
+Description: "A ValueSet for Intermittent Preventive Treatment (IPT) doses administered during ANC."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#ipt-dose-1 "IPT Dose 1 (SP)"
+* include SGHISpecialClinicCodeSystem#ipt-dose-2 "IPT Dose 2 (SP)"
+* include SGHISpecialClinicCodeSystem#ipt-dose-3 "IPT Dose 3 (SP)"
+
+ValueSet: SGHITetanusToxoidDose
+Id: tetanus-toxoid-dose
+Title: "SGHI Tetanus Toxoid Dose"
+Description: "A ValueSet for tetanus toxoid (TT) doses administered during ANC."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#tt-dose-1 "TT Dose 1"
+* include SGHISpecialClinicCodeSystem#tt-dose-2 "TT Dose 2"
+* include SGHISpecialClinicCodeSystem#tt-dose-3 "TT Dose 3"
+* include SGHISpecialClinicCodeSystem#tt-dose-4 "TT Dose 4"
+* include SGHISpecialClinicCodeSystem#tt-dose-5 "TT Dose 5"
+* include SGHISpecialClinicCodeSystem#tt-none "None / Not Applicable"
+
+ValueSet: SGHIANCSupplementation
+Id: anc-supplementation
+Title: "SGHI ANC Supplementation"
+Description: "A ValueSet for nutritional supplements prescribed or dispensed during Antenatal Care."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#supp-ifa "Combined Iron and Folic Acid (IFA)"
+* include SGHISpecialClinicCodeSystem#supp-iron-only "Iron Supplement Only"
+* include SGHISpecialClinicCodeSystem#supp-folate-only "Folate Supplement Only"
+* include SGHISpecialClinicCodeSystem#supp-iron-folate-sep "Iron + Folate (Separately)"
+* include SGHISpecialClinicCodeSystem#supp-calcium "Calcium Supplement"
+
+ValueSet: SGHIReferralSourceDestination
+Id: referral-source-destination
+Title: "SGHI Referral Source / Destination"
+Description: "A ValueSet for the source or destination of a patient referral in special-clinic workflows."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#referral-community-unit "Community Unit"
+* include SGHISpecialClinicCodeSystem#referral-another-facility "Another Health Facility"
+
+ValueSet: SGHIPlaceOfDelivery
+Id: place-of-delivery
+Title: "SGHI Place of Delivery"
+Description: "A ValueSet indicating where the baby was delivered."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#delivery-facility "Facility"
+* include SGHISpecialClinicCodeSystem#delivery-home "Home"
+* include SGHISpecialClinicCodeSystem#delivery-bba "BBA (Born Before Arrival)"
+
+ValueSet: SGHIModeOfDelivery
+Id: mode-of-delivery
+Title: "SGHI Mode of Delivery"
+Description: "A ValueSet for the mode of delivery recorded in PNC and ANC workflows."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#delivery-svd "SVD (Spontaneous Vaginal Delivery)"
+* include SGHISpecialClinicCodeSystem#delivery-cs "CS (Caesarean Section)"
+* include SGHISpecialClinicCodeSystem#delivery-breech "Breech"
+* include SGHISpecialClinicCodeSystem#delivery-avd "AVD (Assisted Vaginal Delivery)"
+
+ValueSet: SGHIPNCVisitTiming
+Id: pnc-visit-timing
+Title: "SGHI PNC Visit Timing"
+Description: "A ValueSet for the timing of Postnatal Care (PNC) visits relative to delivery."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#pnc-0-48h "0–48 hours postpartum"
+* include SGHISpecialClinicCodeSystem#pnc-3d-6w "3 days to 6 weeks postpartum"
+* include SGHISpecialClinicCodeSystem#pnc-gt-6w "More than 6 weeks postpartum"
+
+ValueSet: SGHIPallorSeverity
+Id: pallor-severity
+Title: "SGHI Pallor Severity"
+Description: "A ValueSet for pallor severity assessed during PNC or ANC examinations."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#pallor-mild "Mild"
+* include SGHISpecialClinicCodeSystem#pallor-moderate "Moderate"
+* include SGHISpecialClinicCodeSystem#pallor-severe "Severe"
+* include SGHISpecialClinicCodeSystem#pallor-absent "Absent"
+
+ValueSet: SGHIBreastStatePNC
+Id: breast-state-pnc
+Title: "SGHI Breast State (PNC)"
+Description: "A ValueSet for the state of the breasts assessed during Postnatal Care visits."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#breast-state-normal "Normal"
+* include SGHISpecialClinicCodeSystem#breast-cracked-nipple "Cracked nipple"
+* include SGHISpecialClinicCodeSystem#breast-engorged "Engorged"
+* include SGHISpecialClinicCodeSystem#breast-mastitis "Mastitis"
+
+ValueSet: SGHIUterusState
+Id: uterus-state
+Title: "SGHI Uterus State"
+Description: "A ValueSet for the state of the uterus assessed during Postnatal Care visits."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#uterus-contracted "Contracted"
+* include SGHISpecialClinicCodeSystem#uterus-not-contracted "Not contracted"
+* include SGHISpecialClinicCodeSystem#uterus-other "Other (specify)"
+
+ValueSet: SGHIPPHStatus
+Id: pph-status
+Title: "SGHI PPH Status"
+Description: "A ValueSet indicating the presence or absence of postpartum haemorrhage (PPH)."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#pph-present "Present"
+* include SGHISpecialClinicCodeSystem#pph-absent "Absent"
+
+ValueSet: SGHICSectionSiteState
+Id: cs-section-site-state
+Title: "SGHI C-Section Site State"
+Description: "A ValueSet for the state of the caesarean section wound site during PNC follow-up."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#cs-site-bleeding "Bleeding"
+* include SGHISpecialClinicCodeSystem#cs-site-normal "Normal"
+* include SGHISpecialClinicCodeSystem#cs-site-infected "Infected"
+* include SGHISpecialClinicCodeSystem#cs-site-gaping "Gaping"
+
+ValueSet: SGHILochiaState
+Id: lochia-state
+Title: "SGHI Lochia State"
+Description: "A ValueSet for the state of lochia (postpartum vaginal discharge) assessed during PNC."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#lochia-normal "Normal"
+* include SGHISpecialClinicCodeSystem#lochia-foul-smelling "Foul smelling"
+* include SGHISpecialClinicCodeSystem#lochia-excessive "Excessive"
+
+ValueSet: SGHIEpisiotomyState
+Id: episiotomy-state
+Title: "SGHI Episiotomy State"
+Description: "A ValueSet for the healing state of an episiotomy wound assessed during PNC."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#episiotomy-repaired "Repaired"
+* include SGHISpecialClinicCodeSystem#episiotomy-gaping "Gaping"
+* include SGHISpecialClinicCodeSystem#episiotomy-infected "Infected"
+* include SGHISpecialClinicCodeSystem#episiotomy-healed "Healed"
+
+ValueSet: SGHICervicalCancerScreeningResult
+Id: cervical-cancer-screening-result
+Title: "SGHI Cervical Cancer Screening Result"
+Description: "A ValueSet for cervical cancer screening (VIA/VILI) results recorded in special-clinic workflows."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#cx-normal "Normal (1)"
+* include SGHISpecialClinicCodeSystem#cx-suspected "Suspected (2)"
+* include SGHISpecialClinicCodeSystem#cx-confirmed "Confirmed (3)"
+* include SGHISpecialClinicCodeSystem#cx-not-done "Not Done (4)"
+
+ValueSet: SGHIWeightForAgeCategory
+Id: weight-for-age-category
+Title: "SGHI Weight-for-Age Category"
+Description: "A ValueSet for weight-for-age nutritional status categories used in Child Welfare Clinic (CWC) workflows."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#wfa-normal "Normal (1)"
+* include SGHISpecialClinicCodeSystem#wfa-underweight "Underweight (2)"
+* include SGHISpecialClinicCodeSystem#wfa-severe-underweight "Severe Underweight (3)"
+* include SGHISpecialClinicCodeSystem#wfa-overweight "Overweight (4)"
+* include SGHISpecialClinicCodeSystem#wfa-obese "Obese (5)"
+
+ValueSet: SGHIHeightForAgeCategory
+Id: height-for-age-category
+Title: "SGHI Height/Length-for-Age Category"
+Description: "A ValueSet for height/length-for-age growth categories used in Child Welfare Clinic (CWC) workflows."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#hfa-normal "Normal (1)"
+* include SGHISpecialClinicCodeSystem#hfa-stunted "Stunted (2)"
+* include SGHISpecialClinicCodeSystem#hfa-severely-stunted "Severely Stunted (3)"
+
+ValueSet: SGHIVitaminASupplementationStatus
+Id: vitamin-a-supplementation-status
+Title: "SGHI Vitamin A Supplementation Status"
+Description: "A ValueSet for Vitamin A supplementation status in children attending the Child Welfare Clinic."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#vita-6-11m "Supplemented — 6 to 11 months (1)"
+* include SGHISpecialClinicCodeSystem#vita-12-59m "Supplemented — 12 to 59 months (2)"
+* include SGHISpecialClinicCodeSystem#vita-not-supplemented "Not supplemented (3)"
+
+ValueSet: SGHIDevelopmentalMilestones
+Id: developmental-milestones
+Title: "SGHI Developmental Milestones"
+Description: "A ValueSet for developmental milestones assessed during Child Welfare Clinic (CWC) visits."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#milestone-head-control "Head control (1)"
+* include SGHISpecialClinicCodeSystem#milestone-sitting "Sitting (2)"
+* include SGHISpecialClinicCodeSystem#milestone-talking "Talking (3)"
+
+ValueSet: SGHICWCDangerSigns
+Id: cwc-danger-signs
+Title: "SGHI CWC Danger Signs"
+Description: "A ValueSet for danger signs assessed in children during Child Welfare Clinic visits."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#cwc-danger-no-breastfeed "Unable to breastfeed (1)"
+* include SGHISpecialClinicCodeSystem#cwc-danger-no-drink "Unable to drink (2)"
+* include SGHISpecialClinicCodeSystem#cwc-danger-vomits-all "Vomits everything (3)"
+* include SGHISpecialClinicCodeSystem#cwc-danger-bloody-diarrhoea "Bloody diarrhoea (4)"
+* include SGHISpecialClinicCodeSystem#cwc-danger-oedema "Oedema (5)"
+* include SGHISpecialClinicCodeSystem#cwc-danger-convulsions "Convulsions (6)"
+
+ValueSet: SGHICWCFollowUpService
+Id: cwc-followup-service
+Title: "SGHI CWC Follow-Up Service Type"
+Description: "A ValueSet for follow-up service types offered at the Child Welfare Clinic."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#cwc-followup-nutrition "Nutrition services (1)"
+* include SGHISpecialClinicCodeSystem#cwc-followup-rehabilitation "Rehabilitation services (2)"
