@@ -188,6 +188,47 @@ Description: "A single code system enumerating the many local identifier types u
 * #virtual "Virtual" "A location that is virtual in nature, such as a conference call or virtual meeting space."
 
 
+CodeSystem: SGHIVisitTypeCodeSystem
+Id: visit-type-codesystem
+Title: "SGHI Visit Type Code System"
+Description: "A code system enumerating the different visit types used across SGHI's environment."
+* ^status = #active
+* ^content = #complete
+* #AMB "Ambulatory" "A healthcare encounter where the patient is not admitted to a hospital or equivalent facility and receives care on a non-resident basis."
+* #IMP "Inpatient" "A healthcare encounter where the patient is admitted to a hospital or equivalent facility, assigned to a location where patients generally stay at least overnight and provided with room, board, and continuous nursing service."
+* #EMER "Emergency" "A healthcare encounter that takes place at a dedicated healthcare service delivery location where the patient receives immediate evaluation and treatment."
+* #FLD "Field" "A healthcare encounter that takes place outside of a traditional healthcare facility, such as in a mobile clinic or during a home visit."
+* #VR "Virtual" "A healthcare encounter that takes place in a virtual environment, such as through telemedicine or a virtual consultation."
+* #HH "Home Health" "A healthcare encounter that takes place in a patient's home, typically involving healthcare services provided by visiting nurses or other healthcare professionals."
+* #ACUTE "Acute" "A healthcare encounter that is characterized by a sudden onset and severe symptoms."
+* #NONAC "Inpatient Non-Acute" "A healthcare encounter where the patient is admitted for care that does not require the intensity of an acute setting, such as rehabilitation or long-term care."
+* #OBSENC "Observation Encounter" "A healthcare encounter where the patient is under observation to determine the need for further treatment or admission."
+* #PRENC "Pre-Admission" "A healthcare encounter that occurs prior to a scheduled admission for tests or evaluations."
+* #SS "Short Stay" "A healthcare encounter intended to be of short duration, typically less than 24 hours, but requiring more than basic outpatient care."
+* #CHEMO "Chemotherapy" "A visit specifically for the administration of chemotherapy treatments."
+* #RADIO "Radiotherapy" "A visit specifically for the administration of radiotherapy treatments."
+* #SURG "Surgery" "A visit for a surgical procedure, whether minor or major."
+* #imaging_only "Imaging visit" "A visit exclusively for diagnostic imaging services such as X-rays, MRIs, or CT scans."
+* #vaccination "Vaccination visit" "A visit primarily for the administration of vaccines."
+* #lab_only "Laboratory visit" "A visit exclusively for the collection of specimens or performing laboratory tests."
+* #pharmacy_only "Pharmacy visit" "A visit to a pharmacy for the purpose of picking up or consulting on medications."
+* #community_outreach "Community outreach visit" "A healthcare encounter that occurs in a community setting as part of an outreach program."
+* #phone_consultation "Phone consultation" "A healthcare encounter conducted over the telephone."
+* #inpatient_review "Inpatient review" "A visit to a patient currently admitted in an inpatient setting for the purpose of progress review."
+* #teleconsultation "Teleconsultation" "A healthcare encounter conducted via video conferencing or other telecommunication technologies."
+* #trauma "Trauma visit" "A visit for the evaluation and treatment of physical injuries caused by external force."
+* #home_visit "Home visit" "A visit by a healthcare provider to a patient's place of residence."
+* #day_case "Day case / same-day admission" "A visit where the patient is admitted and discharged on the same day for a procedure or treatment."
+* #procedure_visit "Outpatient procedure visit" "A visit for a specific outpatient procedure that does not require overnight stay."
+* #urgent_care "Urgent care visit" "A visit for a medical condition that requires prompt attention but is not a life-threatening emergency."
+* #chronic_care "Chronic care visit" "A visit for the ongoing management of a chronic disease or condition."
+* #preventive "Preventive / wellness visit" "A visit focused on disease prevention and health maintenance, such as annual check-ups."
+* #inpatient_admission "Inpatient admission" "A visit for the purpose of admitting a patient to an inpatient facility."
+* #outpatient_consultation "Outpatient consultation" "A visit for a consultation with a specialist or general practitioner in an outpatient setting."
+* #emergency_visit "Emergency visit" "A visit for immediate medical attention due to an acute illness or injury."
+* #follow_up "Follow-up visit" "A visit to review the progress of a patient after a previous encounter or treatment."
+
+
 
 // Service Request Categories
 * #26436-6 "Laboratory studies (set)" "Laboratory studies (set)"
