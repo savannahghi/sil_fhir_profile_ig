@@ -847,3 +847,168 @@ Description: "A ValueSet for follow-up service types offered at the Child Welfar
 * ^status = #active
 * include SGHISpecialClinicCodeSystem#cwc-followup-nutrition "Nutrition services (1)"
 * include SGHISpecialClinicCodeSystem#cwc-followup-rehabilitation "Rehabilitation services (2)"
+
+ValueSet: SGHICervicalCancerVisitType
+Id: cervical-cancer-visit-type
+Title: "SGHI Cervical Cancer Visit Type"
+Description: "A ValueSet for the type of cervical cancer clinic visit."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#cx-visit-initial-screening "Initial screening"
+* include SGHISpecialClinicCodeSystem#cx-visit-routine-screening "Routine screening"
+* include SGHISpecialClinicCodeSystem#cx-visit-treatment "Treatment visit"
+* include SGHISpecialClinicCodeSystem#cx-visit-post-treatment "Post-treatment visit"
+* include SGHISpecialClinicCodeSystem#cx-visit-post-treatment-complications "Post-treatment complications"
+
+ValueSet: SGHIVIATestResult
+Id: via-test-result
+Title: "SGHI VIA / VILI / HPV Test Result"
+Description: "A ValueSet for VIA, VILI, and HPV test results in cervical cancer screening."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#via-positive "Positive"
+* include SGHISpecialClinicCodeSystem#via-negative "Negative"
+* include SGHISpecialClinicCodeSystem#via-suspicious-cancer "Suspicious for cancer"
+
+ValueSet: SGHIPapSmearResult
+Id: pap-smear-result
+Title: "SGHI Pap Smear Result"
+Description: "A ValueSet for Pap smear results in cervical cancer screening."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#pap-normal "Normal"
+* include SGHISpecialClinicCodeSystem#pap-ascus "ASCUS/ASC-H (Atypical squamous cells of undetermined significance, high grade lesion not excluded)"
+* include SGHISpecialClinicCodeSystem#pap-lsil "LSIL (Low grade squamous intraepithelial lesion)"
+* include SGHISpecialClinicCodeSystem#pap-hsil "HSIL/CIS (High grade squamous intraepithelial lesion)"
+* include SGHISpecialClinicCodeSystem#pap-agus "AGUS (Atypical glandular cells of undetermined significance)"
+* include SGHISpecialClinicCodeSystem#pap-invasive-cancer "Invasive cancer"
+* include SGHISpecialClinicCodeSystem#pap-other "Other, please specify"
+
+ValueSet: SGHIColposcopyResult
+Id: colposcopy-result
+Title: "SGHI Colposcopy / Cervicography Result"
+Description: "A ValueSet for colposcopy and cervicography findings."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#colpo-satisfactory "Satisfactory"
+* include SGHISpecialClinicCodeSystem#colpo-unsatisfactory "Unsatisfactory"
+* include SGHISpecialClinicCodeSystem#colpo-normal "Normal"
+* include SGHISpecialClinicCodeSystem#colpo-acetowhite "Acetowhite"
+* include SGHISpecialClinicCodeSystem#colpo-leukoplakia "Leukoplakia"
+* include SGHISpecialClinicCodeSystem#colpo-punctuation "Punctuation"
+* include SGHISpecialClinicCodeSystem#colpo-abnormal-vessels "Abnormal vessels"
+* include SGHISpecialClinicCodeSystem#colpo-mosaicism "Mosaicism"
+
+ValueSet: SGHICervicalCancerActivityToday
+Id: cervical-cancer-activity-today
+Title: "SGHI Cervical Cancer Activity Performed Today"
+Description: "A ValueSet for the cervical cancer-related activity performed during today's visit."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#cx-activity-screening-cryo-done "Screening today, with cryotherapy done today"
+* include SGHISpecialClinicCodeSystem#cx-activity-screening-cryo-postponed "Screening done today, with cryotherapy postponed"
+* include SGHISpecialClinicCodeSystem#cx-activity-treated-postponed-case "Treated a previously screened and postponed case"
+
+ValueSet: SGHIChronicCareFollowUpCondition
+Id: chronic-care-followup-condition
+Title: "SGHI Chronic Care Follow-Up Condition"
+Description: "A ValueSet for conditions managed during a chronic care follow-up visit."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#chronic-dm "Diabetes mellitus (DM)"
+* include SGHISpecialClinicCodeSystem#chronic-htn "Hypertension (HTN)"
+* include SGHISpecialClinicCodeSystem#chronic-dm-htn "Both DM and HTN"
+* include SGHISpecialClinicCodeSystem#chronic-asthma "Asthma"
+* include SGHISpecialClinicCodeSystem#chronic-arthritis "Arthritis"
+* include SGHISpecialClinicCodeSystem#chronic-other "Other"
+
+ValueSet: SGHILabelledScale0To10
+Id: labelled-scale-0-to-10
+Title: "SGHI 0–10 Labelled Scale"
+Description: "A ValueSet for a generic 0–10 labelled scale used for symptom severity or functional status."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#scale-0-none "0 = None / Best possible"
+* include SGHISpecialClinicCodeSystem#scale-1-3-mild "1–3 = Mild / Manageable"
+* include SGHISpecialClinicCodeSystem#scale-4-6-moderate "4–6 = Moderate (affects daily activities)"
+* include SGHISpecialClinicCodeSystem#scale-7-9-severe "7–9 = Severe"
+* include SGHISpecialClinicCodeSystem#scale-10-worst "10 = Worst / Completely limited"
+
+ValueSet: SGHIPainScale0To10
+Id: pain-scale-0-to-10
+Title: "SGHI Pain Scale 0–10 Labelled"
+Description: "A ValueSet for the 0–10 labelled pain scale."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#pain-0-none "0 = No pain"
+* include SGHISpecialClinicCodeSystem#pain-1-3-mild "1–3 = Mild pain (annoying but manageable)"
+* include SGHISpecialClinicCodeSystem#pain-4-6-moderate "4–6 = Moderate pain (affects daily activities)"
+* include SGHISpecialClinicCodeSystem#pain-10-worst "10 = Worst pain"
+
+ValueSet: SGHIEyeComplications
+Id: eye-complications
+Title: "SGHI Eye Complications"
+Description: "A ValueSet for eye-related complications in chronic disease follow-up."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#eye-swelling "Eye swelling"
+* include SGHISpecialClinicCodeSystem#eye-impaired-vision "Impaired vision"
+* include SGHISpecialClinicCodeSystem#eye-double-vision "Double vision"
+
+ValueSet: SGHIRenalComplications
+Id: renal-complications
+Title: "SGHI Renal Complications"
+Description: "A ValueSet for renal complications in chronic disease follow-up."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#renal-urine-volume "Volume of urine"
+* include SGHISpecialClinicCodeSystem#renal-facial-oedema "Facial oedema"
+* include SGHISpecialClinicCodeSystem#renal-pedal-oedema "Pedal oedema"
+
+ValueSet: SGHICardiacComplications
+Id: cardiac-complications
+Title: "SGHI Cardiac Complications"
+Description: "A ValueSet for cardiac complications in chronic disease follow-up."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#cardiac-chest-pain "Chest pain"
+* include SGHISpecialClinicCodeSystem#cardiac-difficulty-breathing "Difficulty in breathing"
+* include SGHISpecialClinicCodeSystem#cardiac-orthopnea "Orthopnea"
+* include SGHISpecialClinicCodeSystem#cardiac-pnd "Paroxysmal nocturnal dyspnea"
+
+ValueSet: SGHIMusculoskeletalComplications
+Id: musculoskeletal-complications
+Title: "SGHI Musculoskeletal Complications"
+Description: "A ValueSet for musculoskeletal complications in chronic disease follow-up."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#msk-lower-limb-swelling "Lower limb swelling"
+* include SGHISpecialClinicCodeSystem#msk-numbness "Numbness"
+* include SGHISpecialClinicCodeSystem#msk-burning-sensation "Burning sensation in hands and feet"
+
+ValueSet: SGHICNSComplications
+Id: cns-complications
+Title: "SGHI CNS Complications"
+Description: "A ValueSet for central nervous system complications in chronic disease follow-up."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#cns-headaches "Headaches"
+* include SGHISpecialClinicCodeSystem#cns-tia "Transient ischaemic attacks"
+
+ValueSet: SGHIPhysicalHealthSymptoms
+Id: physical-health-symptoms
+Title: "SGHI Physical Health Symptoms"
+Description: "A ValueSet for physical health symptoms reported during a clinical encounter."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#phys-sleepy "Sleepy"
+* include SGHISpecialClinicCodeSystem#phys-breathing-difficulties "Breathing difficulties"
+* include SGHISpecialClinicCodeSystem#phys-low-energy "Low energy"
+* include SGHISpecialClinicCodeSystem#phys-no-appetite "No appetite"
+* include SGHISpecialClinicCodeSystem#phys-pain "Pain"
+
+ValueSet: SGHIEmotionalHealthSymptoms
+Id: emotional-health-symptoms
+Title: "SGHI Emotional Health Symptoms"
+Description: "A ValueSet for emotional health symptoms reported during a clinical encounter."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#emot-sad "Sad"
+* include SGHISpecialClinicCodeSystem#emot-stressed "Stressed"
+* include SGHISpecialClinicCodeSystem#emot-anxiety "Anxiety"
+* include SGHISpecialClinicCodeSystem#emot-worry "Worry"
+* include SGHISpecialClinicCodeSystem#emot-mood-swings "Mood swings"
+
+ValueSet: SGHIFistulaType
+Id: fistula-type
+Title: "SGHI Fistula Type"
+Description: "A ValueSet for fistula types used in gynaecological and obstetric workflows."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#vvf "VVF (Vesicovaginal fistula)"
+* include SGHISpecialClinicCodeSystem#rvf "RVF (Rectovaginal fistula)"
+* include SGHISpecialClinicCodeSystem#vvr "VVR (Vesicovaginal Reflux)"

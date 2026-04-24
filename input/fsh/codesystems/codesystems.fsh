@@ -661,3 +661,104 @@ Description: "A code system enumerating local codes used across ANC, PNC, CWC an
 // --- CWC Follow-Up Service Type ---
 * #cwc-followup-nutrition "Nutrition services (1)" "CWC follow-up: nutrition services."
 * #cwc-followup-rehabilitation "Rehabilitation services (2)" "CWC follow-up: rehabilitation services."
+
+// --- Cervical Cancer Visit Type ---
+* #cx-visit-initial-screening "Initial screening" "Cervical cancer visit type: initial screening."
+* #cx-visit-routine-screening "Routine screening" "Cervical cancer visit type: routine screening."
+* #cx-visit-treatment "Treatment visit" "Cervical cancer visit type: treatment visit."
+* #cx-visit-post-treatment "Post-treatment visit" "Cervical cancer visit type: post-treatment visit."
+* #cx-visit-post-treatment-complications "Post-treatment complications" "Cervical cancer visit type: post-treatment complications."
+
+// --- VIA / VILI / HPV Test Result ---
+* #via-positive "Positive" "VIA/VILI/HPV test result: positive."
+* #via-negative "Negative" "VIA/VILI/HPV test result: negative."
+* #via-suspicious-cancer "Suspicious for cancer" "VIA/VILI/HPV test result: suspicious for cancer."
+
+// --- Pap Smear Result ---
+* #pap-normal "Normal" "Pap smear result: normal."
+* #pap-ascus "ASCUS/ASC-H (Atypical squamous cells of undetermined significance, high grade lesion not excluded)" "Pap smear result: ASCUS/ASC-H."
+* #pap-lsil "LSIL (Low grade squamous intraepithelial lesion)" "Pap smear result: LSIL."
+* #pap-hsil "HSIL/CIS (High grade squamous intraepithelial lesion)" "Pap smear result: HSIL/CIS."
+* #pap-agus "AGUS (Atypical glandular cells of undetermined significance)" "Pap smear result: AGUS."
+* #pap-invasive-cancer "Invasive cancer" "Pap smear result: invasive cancer."
+* #pap-other "Other, please specify" "Pap smear result: other, to be specified."
+
+// --- Colposcopy / Cervicography Result ---
+* #colpo-satisfactory "Satisfactory" "Colposcopy/cervicography result: satisfactory."
+* #colpo-unsatisfactory "Unsatisfactory" "Colposcopy/cervicography result: unsatisfactory."
+* #colpo-normal "Normal" "Colposcopy/cervicography result: normal."
+* #colpo-acetowhite "Acetowhite" "Colposcopy/cervicography result: acetowhite."
+* #colpo-leukoplakia "Leukoplakia" "Colposcopy/cervicography result: leukoplakia."
+* #colpo-punctuation "Punctuation" "Colposcopy/cervicography result: punctuation."
+* #colpo-abnormal-vessels "Abnormal vessels" "Colposcopy/cervicography result: abnormal vessels."
+* #colpo-mosaicism "Mosaicism" "Colposcopy/cervicography result: mosaicism."
+
+// --- Cervical Cancer Activity Performed Today ---
+* #cx-activity-screening-cryo-done "Screening today, with cryotherapy done today" "Cervical cancer activity: screening and cryotherapy both performed today."
+* #cx-activity-screening-cryo-postponed "Screening done today, with cryotherapy postponed" "Cervical cancer activity: screening done today, cryotherapy postponed."
+* #cx-activity-treated-postponed-case "Treated a previously screened and postponed case" "Cervical cancer activity: treated a previously screened and postponed case."
+
+// --- Chronic Care Follow-Up Condition ---
+* #chronic-dm "Diabetes mellitus (DM)" "Chronic care follow-up condition: diabetes mellitus."
+* #chronic-htn "Hypertension (HTN)" "Chronic care follow-up condition: hypertension."
+* #chronic-dm-htn "Both DM and HTN" "Chronic care follow-up condition: both diabetes mellitus and hypertension."
+* #chronic-asthma "Asthma" "Chronic care follow-up condition: asthma."
+* #chronic-arthritis "Arthritis" "Chronic care follow-up condition: arthritis."
+* #chronic-other "Other" "Chronic care follow-up condition: other."
+
+// --- 0–10 Labelled Scale ---
+* #scale-0-none "0 = None / Best possible" "0–10 labelled scale: 0 = none / best possible."
+* #scale-1-3-mild "1–3 = Mild / Manageable" "0–10 labelled scale: 1–3 = mild / manageable."
+* #scale-4-6-moderate "4–6 = Moderate (affects daily activities)" "0–10 labelled scale: 4–6 = moderate, affects daily activities."
+* #scale-7-9-severe "7–9 = Severe" "0–10 labelled scale: 7–9 = severe."
+* #scale-10-worst "10 = Worst / Completely limited" "0–10 labelled scale: 10 = worst / completely limited."
+
+// --- Pain Scale 0–10 Labelled ---
+* #pain-0-none "0 = No pain" "Pain scale: 0 = no pain."
+* #pain-1-3-mild "1–3 = Mild pain (annoying but manageable)" "Pain scale: 1–3 = mild pain, annoying but manageable."
+* #pain-4-6-moderate "4–6 = Moderate pain (affects daily activities)" "Pain scale: 4–6 = moderate pain, affects daily activities."
+* #pain-10-worst "10 = Worst pain" "Pain scale: 10 = worst pain."
+
+// --- Eye Complications ---
+* #eye-swelling "Eye swelling" "Eye complication: eye swelling."
+* #eye-impaired-vision "Impaired vision" "Eye complication: impaired vision."
+* #eye-double-vision "Double vision" "Eye complication: double vision."
+
+// --- Renal Complications ---
+* #renal-urine-volume "Volume of urine" "Renal complication: abnormal volume of urine."
+* #renal-facial-oedema "Facial oedema" "Renal complication: facial oedema."
+* #renal-pedal-oedema "Pedal oedema" "Renal complication: pedal oedema."
+
+// --- Cardiac Complications ---
+* #cardiac-chest-pain "Chest pain" "Cardiac complication: chest pain."
+* #cardiac-difficulty-breathing "Difficulty in breathing" "Cardiac complication: difficulty in breathing."
+* #cardiac-orthopnea "Orthopnea" "Cardiac complication: orthopnea."
+* #cardiac-pnd "Paroxysmal nocturnal dyspnea" "Cardiac complication: paroxysmal nocturnal dyspnea."
+
+// --- Musculoskeletal Complications ---
+* #msk-lower-limb-swelling "Lower limb swelling" "Musculoskeletal complication: lower limb swelling."
+* #msk-numbness "Numbness" "Musculoskeletal complication: numbness."
+* #msk-burning-sensation "Burning sensation in hands and feet" "Musculoskeletal complication: burning sensation in hands and feet."
+
+// --- CNS Complications ---
+* #cns-headaches "Headaches" "CNS complication: headaches."
+* #cns-tia "Transient ischaemic attacks" "CNS complication: transient ischaemic attacks."
+
+// --- Physical Health Symptoms ---
+* #phys-sleepy "Sleepy" "Physical health symptom: sleepy."
+* #phys-breathing-difficulties "Breathing difficulties" "Physical health symptom: breathing difficulties."
+* #phys-low-energy "Low energy" "Physical health symptom: low energy."
+* #phys-no-appetite "No appetite" "Physical health symptom: no appetite."
+* #phys-pain "Pain" "Physical health symptom: pain."
+
+// --- Emotional Health Symptoms ---
+* #emot-sad "Sad" "Emotional health symptom: sad."
+* #emot-stressed "Stressed" "Emotional health symptom: stressed."
+* #emot-anxiety "Anxiety" "Emotional health symptom: anxiety."
+* #emot-worry "Worry" "Emotional health symptom: worry."
+* #emot-mood-swings "Mood swings" "Emotional health symptom: mood swings."
+
+// --- Fistula Type ---
+* #vvf "VVF (Vesicovaginal fistula)" "Fistula type: vesicovaginal fistula."
+* #rvf "RVF (Rectovaginal fistula)" "Fistula type: rectovaginal fistula."
+* #vvr "VVR (Vesicovaginal Reflux)" "Fistula type: vesicovaginal reflux."

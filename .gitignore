@@ -16,3 +16,4 @@ application.yaml
 .idea
 .claude
 .venv
+_build.*
