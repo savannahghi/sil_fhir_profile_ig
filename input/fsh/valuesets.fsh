@@ -1051,3 +1051,22 @@ Description: "A ValueSet defining the possible visit types in SGHI's systems."
 * include SGHIVisitTypeCodeSystem#outpatient_consultation "Outpatient consultation"
 * include SGHIVisitTypeCodeSystem#emergency_visit "Emergency visit"
 * include SGHIVisitTypeCodeSystem#follow_up "Follow-up visit"
+
+ValueSet: SGHIGeneralResult
+Id: general-result
+Title: "SGHI General Result"
+Description: "A ValueSet for a general positive / negative / not-applicable result used across clinical workflows."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#result-positive "Positive"
+* include SGHISpecialClinicCodeSystem#result-negative "Negative"
+* include SGHISpecialClinicCodeSystem#result-not-applicable "Not Applicable"
+
+ValueSet: SGHIHIVRapidTestResult
+Id: hiv-rapid-test-result
+Title: "SGHI HIV Rapid Test Result"
+Description: "A ValueSet for HIV rapid test results: Positive (P), Negative (N), Invalid (I), and Not Applicable (NA)."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#hiv-rapid-positive "Positive (P)"
+* include SGHISpecialClinicCodeSystem#hiv-rapid-negative "Negative (N)"
+* include SGHISpecialClinicCodeSystem#hiv-rapid-invalid "Invalid (I)"
+* include SGHISpecialClinicCodeSystem#hiv-rapid-not-applicable "Not Applicable (NA)"

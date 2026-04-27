@@ -803,3 +803,14 @@ Description: "A code system enumerating local codes used across ANC, PNC, CWC an
 * #vvf "VVF (Vesicovaginal fistula)" "Fistula type: vesicovaginal fistula."
 * #rvf "RVF (Rectovaginal fistula)" "Fistula type: rectovaginal fistula."
 * #vvr "VVR (Vesicovaginal Reflux)" "Fistula type: vesicovaginal reflux."
+
+// --- General Result (Positive / Negative / Not Applicable) ---
+* #result-positive "Positive" "General test or examination result: positive."
+* #result-negative "Negative" "General test or examination result: negative."
+* #result-not-applicable "Not Applicable" "General test or examination result: not applicable in the current clinical context."
+
+// --- HIV Rapid Test Result ---
+* #hiv-rapid-positive "Positive (P)" "HIV rapid test result: positive."
+* #hiv-rapid-negative "Negative (N)" "HIV rapid test result: negative."
+* #hiv-rapid-invalid "Invalid (I)" "HIV rapid test result: invalid — the test did not produce a readable result."
+* #hiv-rapid-not-applicable "Not Applicable (NA)" "HIV rapid test result: not applicable."
