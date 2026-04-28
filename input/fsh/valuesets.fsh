@@ -1070,3 +1070,15 @@ Description: "A ValueSet for HIV rapid test results: Positive (P), Negative (N),
 * include SGHISpecialClinicCodeSystem#hiv-rapid-negative "Negative (N)"
 * include SGHISpecialClinicCodeSystem#hiv-rapid-invalid "Invalid (I)"
 * include SGHISpecialClinicCodeSystem#hiv-rapid-not-applicable "Not Applicable (NA)"
+
+
+ValueSet: SGHICervicalCancerScreeningMethod
+Id: cervical-cancer-screening-method
+Title: "SGHI Cervical Cancer Screening Method"
+Description: "A ValueSet for the method of cervical cancer screening performed during a visit."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#VIA "VIA (Visual Inspection with Acetic Acid)"
+* include SGHISpecialClinicCodeSystem#VILI "VILI (Visual Inspection with Lugol's Iodine)"
+* include SGHISpecialClinicCodeSystem#HPV "HPV DNA Testing"
+* include SGHISpecialClinicCodeSystem#PAP-SMEAR "Pap Smear"
+* include SGHISpecialClinicCodeSystem#ND "Not Done / Not Applicable"

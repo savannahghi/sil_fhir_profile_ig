@@ -814,3 +814,11 @@ Description: "A code system enumerating local codes used across ANC, PNC, CWC an
 * #hiv-rapid-negative "Negative (N)" "HIV rapid test result: negative."
 * #hiv-rapid-invalid "Invalid (I)" "HIV rapid test result: invalid — the test did not produce a readable result."
 * #hiv-rapid-not-applicable "Not Applicable (NA)" "HIV rapid test result: not applicable."
+
+
+// --- Cervical Cancer Screening Method ---
+* #VIA "VIA (Visual Inspection with Acetic Acid)" "Cervical cancer screening method: VIA."
+* #VILI "VILI (Visual Inspection with Lugol's Iodine)" "Cervical cancer screening method: VILI."
+* #HPV "HPV DNA Testing" "Cervical cancer screening method: HPV DNA testing."
+* #PAP-SMEAR "Pap Smear" "Cervical cancer screening method: Pap smear."
+* #ND "Not Done" "Cervical cancer screening method: not done."
