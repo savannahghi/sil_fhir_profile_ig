@@ -822,3 +822,33 @@ Description: "A code system enumerating local codes used across ANC, PNC, CWC an
 * #HPV "HPV DNA Testing" "Cervical cancer screening method: HPV DNA testing."
 * #PAP-SMEAR "Pap Smear" "Cervical cancer screening method: Pap smear."
 * #ND "Not Done" "Cervical cancer screening method: not done."
+
+// --- Uterotonic Given ---
+* #uterotonic-oxytocin "Oxytocin" "Uterotonic drug: oxytocin."
+* #uterotonic-carbetocin "Carbetocin" "Uterotonic drug: carbetocin."
+* #uterotonic-none "None" "No uterotonic administered."
+
+// --- Vaginal Examination Result ---
+* #vaginal-exam-normal "Normal" "Vaginal examination result: normal findings."
+* #vaginal-exam-esiotomy "Episiotomy" "Vaginal examination result: episiotomy."
+* #vaginal-exam-tear "Vaginal tear" "Vaginal examination result: vaginal tear."
+* #vaginal-exam-fgm "FGM" "Vaginal examination result: Female Genital Mutilation."
+* #vaginal-exam-warts "Vaginal warts" "Vaginal examination result: vaginal warts."
+
+// --- Mother's Baby Status After Delivery ---
+* #mother-baby-alive "Alive" "Mother's baby is alive after delivery."
+* #mother-baby-dead "Dead" "Mother's baby is dead after delivery."
+
+// --- Delivery Complications ---
+* #delivery-comp-aph "APH (Ante Partum Haemorrhage)" "Delivery complication: Ante Partum Haemorrhage."
+* #delivery-comp-pph "PPH (Post Partum Haemorrhage)" "Delivery complication: Post Partum Haemorrhage."
+* #delivery-comp-eclampsia "Eclampsia" "Delivery complication: Eclampsia."
+* #delivery-comp-ruptured-uterus "Ruptured Uterus" "Delivery complication: Ruptured Uterus."
+* #delivery-comp-obstructed-labour "Obstructed Labour" "Delivery complication: Obstructed Labour."
+* #delivery-comp-sepsis "Sepsis" "Delivery complication: Sepsis."
+* #delivery-comp-none "None" "No delivery complications."
+
+// --- Birth Outcome ---
+* #birth-outcome-lb "Live Birth" "Live birth outcome."
+* #birth-outcome-fsb "Fresh Still Birth" "Fresh stillbirth outcome."
+* #birth-outcome-msb "Macerated Still Birth" "Macerated stillbirth outcome."

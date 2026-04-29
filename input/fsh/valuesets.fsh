@@ -1082,3 +1082,53 @@ Description: "A ValueSet for the method of cervical cancer screening performed d
 * include SGHISpecialClinicCodeSystem#HPV "HPV DNA Testing"
 * include SGHISpecialClinicCodeSystem#PAP-SMEAR "Pap Smear"
 * include SGHISpecialClinicCodeSystem#ND "Not Done / Not Applicable"
+
+ValueSet: SGHIUterotonicGiven
+Id: uterotonic-given
+Title: "SGHI Uterotonic Given"
+Description: "A ValueSet for uterotonic drugs administered during delivery."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#uterotonic-oxytocin "Oxytocin"
+* include SGHISpecialClinicCodeSystem#uterotonic-carbetocin "Carbetocin"
+* include SGHISpecialClinicCodeSystem#uterotonic-none "None"
+
+ValueSet: SGHIVaginalExaminationResult
+Id: vaginal-examination-result
+Title: "SGHI Vaginal Examination Result"
+Description: "A ValueSet for vaginal examination results recorded during labor and delivery."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#vaginal-exam-normal "Normal"
+* include SGHISpecialClinicCodeSystem#vaginal-exam-esiotomy "Episiotomy"
+* include SGHISpecialClinicCodeSystem#vaginal-exam-tear "Vaginal tear"
+* include SGHISpecialClinicCodeSystem#vaginal-exam-fgm "FGM"
+* include SGHISpecialClinicCodeSystem#vaginal-exam-warts "Vaginal warts"
+
+ValueSet: SGHIMothersBabyStatus
+Id: mothers-baby-status
+Title: "SGHI Mother's Baby Status After Delivery"
+Description: "A ValueSet for the status of the baby after delivery."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#mother-baby-alive "Alive"
+* include SGHISpecialClinicCodeSystem#mother-baby-dead "Dead"
+
+ValueSet: SGHIDeliveryComplications
+Id: delivery-complications
+Title: "SGHI Delivery Complications"
+Description: "A ValueSet for complications that occurred during delivery."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#delivery-comp-aph "APH (Ante Partum Haemorrhage)"
+* include SGHISpecialClinicCodeSystem#delivery-comp-pph "PPH (Post Partum Haemorrhage)"
+* include SGHISpecialClinicCodeSystem#delivery-comp-eclampsia "Eclampsia"
+* include SGHISpecialClinicCodeSystem#delivery-comp-ruptured-uterus "Ruptured Uterus"
+* include SGHISpecialClinicCodeSystem#delivery-comp-obstructed-labour "Obstructed Labour"
+* include SGHISpecialClinicCodeSystem#delivery-comp-sepsis "Sepsis"
+* include SGHISpecialClinicCodeSystem#delivery-comp-none "None"
+
+ValueSet: SGHIBirthOutcome
+Id: birth-outcome
+Title: "SGHI Birth Outcome"
+Description: "A ValueSet for the outcome of the birth."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#birth-outcome-lb "Live Birth"
+* include SGHISpecialClinicCodeSystem#birth-outcome-fsb "Fresh Still Birth"
+* include SGHISpecialClinicCodeSystem#birth-outcome-msb "Macerated Still Birth"
