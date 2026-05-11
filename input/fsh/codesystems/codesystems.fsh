@@ -497,7 +497,7 @@ Description: "A code system enumerating the different options used to specify or
 // LOINC, SNOMED-CT or other standard code.
 // ============================================================
 CodeSystem: SGHISpecialClinicCodeSystem
-Id: special-clinic-codesystem
+Id: special-clinic-code-system
 Title: "SGHI Special Clinic Code System"
 Description: "A code system enumerating local codes used across ANC, PNC, CWC and other special-clinic workflows within SGHI's environment. Codes are used wherever a suitable LOINC, SNOMED-CT or HL7 code does not exist."
 * ^status = #active
