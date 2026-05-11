@@ -4,6 +4,8 @@ on: [push]
 
 env:
   HAPI_FHIR_BASE_URL: ${{ secrets.HAPI_FHIR_BASE_URL }}
+  HAPI_USERNAME: ${{ secrets.HAPI_USERNAME }}
+  HAPI_PASSWORD: ${{ secrets.HAPI_PASSWORD }}
   MATCHBOX_BASE_URL: ${{ secrets.MATCHBOX_BASE_URL }}
 
 jobs:
@@ -55,16 +57,21 @@ jobs:
       - name: Publish FHIR Artifacts to HAPI FHIR
         run: |
           echo "Publishing to server: ${{ env.HAPI_FHIR_BASE_URL }}"
-      
+
+          # Create basic auth header from username and password
+          AUTH_HEADER=$(echo -n "${HAPI_USERNAME}:${HAPI_PASSWORD}" | base64 | tr -d '\n')
+
           upload_resource() {
             local file="$1"
             local resource_type="$2"
             local resource_id="$3"
 
             echo "Uploading $file with resourceType=$resource_type, id=$resource_id"
-            
+
             RESPONSE=$(curl -s -X PUT "${HAPI_FHIR_BASE_URL}/${resource_type}/${resource_id}" \
-              -H "Content-Type: application/fhir+json" --data-binary "@$file")
+              -H "Content-Type: application/fhir+json" \
+              -H "Authorization: Basic ${AUTH_HEADER}" \
+              --data-binary "@$file")
 
             echo "Response: $RESPONSE"
             STATUS_CODE=$(echo "$RESPONSE" | jq -r '.issue[0].severity // "unknown"')
@@ -74,11 +81,9 @@ jobs:
               exit 1
             fi
 
-            RETRIEVED_RESOURCE=$(curl -s -X GET "${HAPI_FHIR_BASE_URL}/${resource_type}/${resource_id}" -H "Accept: application/fhir+json")
+            RETRIEVED_RESOURCE=$(curl -s -X GET "${HAPI_FHIR_BASE_URL}/${resource_type}/${resource_id}" -H "Accept: application/fhir+json" -H "Authorization: Basic ${AUTH_HEADER}")
             echo "Retrieved Resource after Upload: $RETRIEVED_RESOURCE"
           }
-
-          echo "Publishing to server: ${{ env.HAPI_FHIR_BASE_URL }}"
 
           echo "Uploading CodeSystems"
           for file in fsh-generated/resources/*.json; do
@@ -137,7 +142,9 @@ jobs:
               echo "Uploading $file (StructureMap/$RESOURCE_ID)"
 
               RESPONSE=$(curl -s -X PUT "${MATCHBOX_BASE_URL}/StructureMap/${RESOURCE_ID}" \
-                -H "Content-Type: application/fhir+json" --data-binary "@$file")
+                -H "Content-Type: application/fhir+json" \
+                -H "Authorization: Basic ${AUTH_HEADER}" \
+                --data-binary "@$file")
 
               echo "Response: $RESPONSE"
               STATUS_CODE=$(echo "$RESPONSE" | jq -r '.issue[0].severity // "unknown"')
