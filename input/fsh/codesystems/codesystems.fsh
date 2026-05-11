@@ -580,6 +580,8 @@ Description: "A code system enumerating local codes used across ANC, PNC, CWC an
 * #anc-epilepsy "Epilepsy" "ANC comorbidity: epilepsy."
 * #anc-malaria "Malaria in Pregnancy" "ANC comorbidity: malaria in pregnancy."
 * #anc-sti-rti "STIs / RTIs" "ANC comorbidity: sexually or reproductively transmitted infections."
+* #anc-sickle-cell "Sickle Cell Disease" "ANC comorbidity: sickle cell disease."
+* #anc-cml "Chronic Myelogenous Leukemia (CML)" "ANC comorbidity: chronic myelogenous leukemia."
 * #anc-other "Other (Specify)" "ANC comorbidity: other, to be specified."
 
 // --- IPT Dose ---
@@ -599,6 +601,7 @@ Description: "A code system enumerating local codes used across ANC, PNC, CWC an
 * #supp-ifa "Combined Iron and Folic Acid (IFA)" "Supplementation: combined iron and folic acid."
 * #supp-iron-only "Iron Supplement Only" "Supplementation: iron only."
 * #supp-folate-only "Folate Supplement Only" "Supplementation: folate only."
+* #supp-ferrous-sulphate-folic-acid "Ferrous sulphate + Folic Acid" "Supplementation: ferrous sulphate and folic acid."
 * #supp-iron-folate-sep "Iron + Folate (Separately)" "Supplementation: iron and folate given as separate supplements."
 * #supp-calcium "Calcium Supplement" "Supplementation: calcium."
 
@@ -852,3 +855,16 @@ Description: "A code system enumerating local codes used across ANC, PNC, CWC an
 * #birth-outcome-lb "Live Birth" "Live birth outcome."
 * #birth-outcome-fsb "Fresh Still Birth" "Fresh stillbirth outcome."
 * #birth-outcome-msb "Macerated Still Birth" "Macerated stillbirth outcome."
+
+// --- Review of Systems - Body Systems ---
+* #ros-respiratory "Respiratory" "Review of Systems: Respiratory system."
+* #ros-cardiovascular "Cardiovascular" "Review of Systems: Cardiovascular system."
+* #ros-nervous "Nervous" "Review of Systems: Nervous system."
+* #ros-abdominal "Abdominal" "Review of Systems: Abdominal system."
+* #ros-endocrine "Endocrine" "Review of Systems: Endocrine system."
+* #ros-ent "ENT" "Review of Systems: Ear, Nose, Throat (ENT)."
+* #ros-ophthalmic "Ophthalmic" "Review of Systems: Ophthalmic (Eye)."
+* #ros-genitourinary "Genitourinary" "Review of Systems: Genitourinary system."
+* #ros-musculoskeletal "Musculoskeletal" "Review of Systems: Musculoskeletal system."
+* #ros-skin "Skin" "Review of Systems: Skin."
+* #ros-reproductive "Reproductive" "Review of Systems: Reproductive system."

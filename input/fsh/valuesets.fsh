@@ -644,6 +644,8 @@ Description: "A ValueSet of comorbid conditions recorded during Antenatal Care (
 * include SGHISpecialClinicCodeSystem#anc-epilepsy "Epilepsy"
 * include SGHISpecialClinicCodeSystem#anc-malaria "Malaria in Pregnancy"
 * include SGHISpecialClinicCodeSystem#anc-sti-rti "STIs / RTIs"
+* include SGHISpecialClinicCodeSystem#anc-sickle-cell "Sickle Cell Disease"
+* include SGHISpecialClinicCodeSystem#anc-cml "Chronic Myelogenous Leukemia (CML)"
 * include SGHISpecialClinicCodeSystem#anc-other "Other (Specify)"
 
 ValueSet: SGHIIPTDose
@@ -675,6 +677,7 @@ Description: "A ValueSet for nutritional supplements prescribed or dispensed dur
 * include SGHISpecialClinicCodeSystem#supp-ifa "Combined Iron and Folic Acid (IFA)"
 * include SGHISpecialClinicCodeSystem#supp-iron-only "Iron Supplement Only"
 * include SGHISpecialClinicCodeSystem#supp-folate-only "Folate Supplement Only"
+* include SGHISpecialClinicCodeSystem#supp-ferrous-sulphate-folic-acid "Ferrous sulphate + Folic Acid"
 * include SGHISpecialClinicCodeSystem#supp-iron-folate-sep "Iron + Folate (Separately)"
 * include SGHISpecialClinicCodeSystem#supp-calcium "Calcium Supplement"
 
@@ -1132,3 +1135,20 @@ Description: "A ValueSet for the outcome of the birth."
 * include SGHISpecialClinicCodeSystem#birth-outcome-lb "Live Birth"
 * include SGHISpecialClinicCodeSystem#birth-outcome-fsb "Fresh Still Birth"
 * include SGHISpecialClinicCodeSystem#birth-outcome-msb "Macerated Still Birth"
+
+ValueSet: SGHIReviewOfBodySystems
+Id: review-of-body-systems
+Title: "SGHI Review of Body Systems"
+Description: "A ValueSet for body systems covered in the Review of Systems (ROS) assessment."
+* ^status = #active
+* include SGHISpecialClinicCodeSystem#ros-respiratory "Respiratory"
+* include SGHISpecialClinicCodeSystem#ros-cardiovascular "Cardiovascular"
+* include SGHISpecialClinicCodeSystem#ros-nervous "Nervous"
+* include SGHISpecialClinicCodeSystem#ros-abdominal "Abdominal"
+* include SGHISpecialClinicCodeSystem#ros-endocrine "Endocrine"
+* include SGHISpecialClinicCodeSystem#ros-ent "ENT"
+* include SGHISpecialClinicCodeSystem#ros-ophthalmic "Ophthalmic"
+* include SGHISpecialClinicCodeSystem#ros-genitourinary "Genitourinary"
+* include SGHISpecialClinicCodeSystem#ros-musculoskeletal "Musculoskeletal"
+* include SGHISpecialClinicCodeSystem#ros-skin "Skin"
+* include SGHISpecialClinicCodeSystem#ros-reproductive "Reproductive"
