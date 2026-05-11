@@ -32,7 +32,13 @@ group BuildMedicationRequest(source qr : QR, source prescriptionGroup, target me
   
   // Requester from QuestionnaireResponse.source (the Organization)
   qr.source as src -> medReq.requester = src "setRequester";
-  
+
+  // Performer from QuestionnaireResponse.source (the Organization)
+  qr.source as src -> medReq.performer = create('Reference') as perf then {
+    src.reference as ref -> perf.reference = ref "perfRef";
+    src.display as disp -> perf.display = disp "perfDisplay";
+  } "performer";
+
   // Copy identifier from QuestionnaireResponse to MedicationRequest
   qr.identifier first as qrIdent -> medReq.identifier = qrIdent "copyIdentifier";
   

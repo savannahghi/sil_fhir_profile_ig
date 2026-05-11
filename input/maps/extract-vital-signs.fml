@@ -505,6 +505,12 @@ group BuildBaseObs(source qr : QR, target obs : Observation, target entry) {
   qr.encounter as e -> obs.encounter = e "encounter";
   qr.authored as t -> obs.effectiveDateTime = t "effective";
 
+  // Performer from QuestionnaireResponse.source
+  qr.source as src -> obs.performer = create('Reference') as perf then {
+    src.reference as ref -> perf.reference = ref "perfRef";
+    src.display as disp -> perf.display = disp "perfDisplay";
+  } "performer";
+
   // Observation id and fullUrl
   qr -> obs.id = uuid() then
     SetObservationFullUrl(obs, entry) "setObsIdAndFullUrl";
