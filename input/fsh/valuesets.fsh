@@ -53,11 +53,11 @@ Id: contact-relationship
 Title: "SGHI Contact Relationship Types"
 Description: "Contact relationship types used in SGHI systems"
 * ^experimental = false
-* include #N "Next-of-Kin" from system $v2-0131
-* include #C "Emergency Contact" from system $v2-0131
-* include #S "Spouse" from system $v2-0131
-* include #E "Employer" from system $v2-0131
-* include #CP "Contact Person" from system $v2-0131
+* include #N "Next-of-Kin" from system http://hl7.org/fhir/CodeSystem/v2-0131
+* include #C "Emergency Contact" from system http://hl7.org/fhir/CodeSystem/v2-0131
+* include #S "Spouse" from system http://hl7.org/fhir/CodeSystem/v2-0131
+* include #E "Employer" from system http://hl7.org/fhir/CodeSystem/v2-0131
+* include #CP "Contact Person" from system http://hl7.org/fhir/CodeSystem/v2-0131
 
 ValueSet: SGHIActPriority
 Id: encounter-act-priority
@@ -97,16 +97,16 @@ Id: contact-point-use
 Title: "SGHI Contact Point Use"
 Description: "Code used to indicate contact use"
 * ^status = #active
-* include http://hl7.org/fhir/ValueSet/contact-point-use#work
-* include http://hl7.org/fhir/ValueSet/contact-point-use#mobile
+* include http://hl7.org/fhir/CodeSystem/contact-point-use#work
+* include http://hl7.org/fhir/CodeSystem/contact-point-use#mobile
 
 ValueSet: SGHIContactSystem
 Id: contact-system
 Title: "SGHI Contact System"
 Description: "Code used to indicate what communications system is required to make use of the contact."
 * ^status = #active
-* include http://hl7.org/fhir/ValueSet/contact-point-system#phone
-* include http://hl7.org/fhir/ValueSet/contact-point-system#email
+* include http://hl7.org/fhir/CodeSystem/contact-point-system#phone
+* include http://hl7.org/fhir/CodeSystem/contact-point-system#email
 
 ValueSet: SGHILocationForm
 Id: location-form
@@ -192,7 +192,7 @@ Id: medication-form-codes
 Title: "SGHI Medication Form Codes"
 Description: "ValueSet containing SGHI medication form codes"
 * ^status = #active
-* include codes from system https://ocl-testing-api.savannahghi.org/fhir/ValueSet/DoseForm
+* include codes from system http://hl7.org/fhir/CodeSystem/dose-form
 * include SGHIIdentifierCodeSystem#powder "Powder"
 * include SGHIIdentifierCodeSystem#tablets "Tablets"
 * include SGHIIdentifierCodeSystem#capsule "Capsule"
