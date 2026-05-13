@@ -698,6 +698,7 @@ Description: "A code system enumerating local codes used across ANC, PNC, CWC an
 * #cwc-danger-bloody-diarrhoea "Bloody diarrhoea (4)" "CWC danger sign: bloody diarrhoea."
 * #cwc-danger-oedema "Oedema (5)" "CWC danger sign: oedema."
 * #cwc-danger-convulsions "Convulsions (6)" "CWC danger sign: convulsions."
+* #cwc-danger-none "None" "No CWC danger signs present."
 
 // --- Disability / Congenital Deformity ---
 * #disability-present "Disability / Congenital deformity present (1)" "A disability or congenital deformity is present."

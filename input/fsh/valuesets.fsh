@@ -842,6 +842,7 @@ Description: "A ValueSet for danger signs assessed in children during Child Welf
 * include SGHISpecialClinicCodeSystem#cwc-danger-bloody-diarrhoea "Bloody diarrhoea (4)"
 * include SGHISpecialClinicCodeSystem#cwc-danger-oedema "Oedema (5)"
 * include SGHISpecialClinicCodeSystem#cwc-danger-convulsions "Convulsions (6)"
+* include SGHISpecialClinicCodeSystem#cwc-danger-none "None"
 
 ValueSet: SGHICWCFollowUpService
 Id: cwc-followup-service
