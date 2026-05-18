@@ -37,7 +37,7 @@ Description: "SGHI's profile for Medication Dispense resource"
 * type 1..1
 * type only SGHICodeableConcept
 
-* destination 1..1
+* destination 0..1
 * destination only SGHIReference
 * destination only Reference(SGHILocation)
 
