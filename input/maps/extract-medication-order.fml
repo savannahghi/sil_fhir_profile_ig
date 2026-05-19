@@ -46,6 +46,8 @@ group BuildMedicationRequest(source qr : QR, source prescriptionGroup, target me
   qr.extension first as ext then {
     ext.valueCodeableConcept as medCC -> medReq.medication as med then {
       medCC -> med.concept = medCC "setMedConcept";
+      medCC.coding first as medCoding -> med.concept.coding = medCoding "setMedCoding";
+      medCoding.system as medSys -> med.concept.coding.system = medSys "setMedCodingSystem";
     } "accessMedication";
   } "findMedicationExt";
   
@@ -54,6 +56,7 @@ group BuildMedicationRequest(source qr : QR, source prescriptionGroup, target me
     priorityItem.answer first as priorityAns then {
       priorityAns.valueCoding as priorityCoding then {
         priorityCoding.code as pCode -> medReq.priority = pCode "setPriorityCode";
+        priorityCoding.system as pSys -> medReq.priority.system = pSys "setPrioritySystem";
       } "extractPriorityCode";
     } "extractPriority";
   } "findPriority";
@@ -97,6 +100,7 @@ group BuildDosage(source prescriptionGroup, target dosage : Dosage) {
           freqAns.valueCoding as freqCoding where (code = 'BD') -> repeat.frequency = 2 "setFreqBD";
           freqAns.valueCoding as freqCoding where (code = 'TID') -> repeat.frequency = 3 "setFreqTID";
           freqAns.valueCoding as freqCoding where (code = 'QID') -> repeat.frequency = 4 "setFreqQID";
+          freqCoding.system as freqSys -> repeat.frequency.system = freqSys "setFreqSystem";
         } "extractFreq";
       } "findFreq";
       
@@ -116,6 +120,7 @@ group BuildDosage(source prescriptionGroup, target dosage : Dosage) {
         durUomItem.answer first as durUomAns then {
           durUomAns.valueCoding as durUomCoding then {
             durUomCoding.code as durUomCode -> repeat.durationUnit = durUomCode "setDurationUnit";
+            durUomCoding.system as durUomSys -> repeat.durationUnit.system = durUomSys "setDurationUnitSystem";
           } "extractDurUomCode";
         } "extractDurUom";
       } "findDurUom";
@@ -125,6 +130,7 @@ group BuildDosage(source prescriptionGroup, target dosage : Dosage) {
         whenItem.answer first as whenAns then {
           whenAns.valueCoding as whenCoding then {
             whenCoding.code as whenCode -> repeat.when = whenCode "setWhenCode";
+            whenCoding.system as whenSys -> repeat.when.system = whenSys "setWhenSystem";
           } "extractWhenCode";
         } "extractWhen";
       } "findWhen";
@@ -150,6 +156,7 @@ group BuildDosage(source prescriptionGroup, target dosage : Dosage) {
     routeItem.answer first as routeAns then {
       routeAns.valueCoding as routeCoding -> dosage.route = create('CodeableConcept') as routeCC then {
         routeCoding -> routeCC.coding = routeCoding "setRouteCoding";
+        routeCoding.system as routeSys -> routeCC.coding.system = routeSys "setRouteSystem";
         routeCoding.display as disp -> routeCC.text = disp "setRouteText";
       } "setRouteCC";
     } "extractRoute";
