@@ -850,6 +850,7 @@ Description: "A code system enumerating local codes used across ANC, PNC, CWC an
 * #phys-low-energy "Low energy" "Physical health symptom: low energy."
 * #phys-no-appetite "No appetite" "Physical health symptom: no appetite."
 * #phys-pain "Pain" "Physical health symptom: pain."
+* #phys-normal "Normal" "Physical health symptom: normal."
 
 // --- Emotional Health Symptoms ---
 * #emot-sad "Sad" "Emotional health symptom: sad."

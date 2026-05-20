@@ -1051,6 +1051,7 @@ Description: "A ValueSet for physical health symptoms reported during a clinical
 * include SGHISpecialClinicCodeSystem#phys-low-energy "Low energy"
 * include SGHISpecialClinicCodeSystem#phys-no-appetite "No appetite"
 * include SGHISpecialClinicCodeSystem#phys-pain "Pain"
+* include SGHISpecialClinicCodeSystem#phys-normal "Normal"
 
 ValueSet: SGHIEmotionalHealthSymptoms
 Id: emotional-health-symptoms
