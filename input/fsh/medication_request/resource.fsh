@@ -75,7 +75,7 @@ Description: "A comprehensive Dosage profile for SGHI prescriptions, ensuring st
 * route from SGHIRouteOfAdministration (required)
 * doseAndRate 1..*
 * doseAndRate.type only SGHICodeableConcept
-* doseAndRate.doseQuantity.system = "http://unitsofmeasure.org" (exactly)
+* doseAndRate.doseQuantity from CombinedDosageUnitVS (required)
 * doseAndRate.doseRange.low.system = "http://unitsofmeasure.org" (exactly)
 * doseAndRate.doseRange.high.system = "http://unitsofmeasure.org" (exactly)
 * doseAndRate.rate[x] only Ratio or Range

@@ -1209,3 +1209,11 @@ Description: "A ValueSet for body systems covered in the Review of Systems (ROS)
 * include SGHISpecialClinicCodeSystem#ros-musculoskeletal "Musculoskeletal"
 * include SGHISpecialClinicCodeSystem#ros-skin "Skin"
 * include SGHISpecialClinicCodeSystem#ros-reproductive "Reproductive"
+
+
+ValueSet: CombinedDosageUnitVS
+Id: combined-dosage-unit-vs
+Title: "Combined Dosage Unit ValueSet"
+Description: "Includes codes from both SGHIDosageUnitCodeSystem and UCUM."
+* include codes from system SGHIDosageUnitCodeSystem
+* include codes from system http://unitsofmeasure.org
