@@ -506,6 +506,7 @@ Description: "A ValueSet defining the possible units of measurement for medicati
 * include SGHIDosageUnitCodeSystem#dr "Drops"
 * include SGHIDosageUnitCodeSystem#puff "Puffs"
 * include SGHIDosageUnitCodeSystem#tab "Tablets"
+* include codes from system http://unitsofmeasure.org
 
 ValueSet: SGHIDosageFrequency
 Id: dosage-frequency
@@ -1210,10 +1211,3 @@ Description: "A ValueSet for body systems covered in the Review of Systems (ROS)
 * include SGHISpecialClinicCodeSystem#ros-skin "Skin"
 * include SGHISpecialClinicCodeSystem#ros-reproductive "Reproductive"
 
-
-ValueSet: CombinedDosageUnitVS
-Id: combined-dosage-unit-vs
-Title: "Combined Dosage Unit ValueSet"
-Description: "Includes codes from both SGHIDosageUnitCodeSystem and UCUM."
-* include codes from system SGHIDosageUnitCodeSystem
-* include codes from system http://unitsofmeasure.org
