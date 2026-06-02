@@ -126,8 +126,9 @@ group BuildDosage(source prescriptionGroup, target dosage : Dosage) {
       } "findDurUom";
       
       // When to take - directly use the code (AC, PC, ACM, ACD, ACV, PCM, PCD, PCV, etc.)
+      // Handles both single answer and array of answers
       prescriptionGroup.item as whenItem where (linkId = 'when-to-take') then {
-        whenItem.answer first as whenAns then {
+        whenItem.answer as whenAns then {
           whenAns.valueCoding as whenCoding then {
             whenCoding.code as whenCode -> repeat.when = whenCode "setWhenCode";
             whenCoding.system as whenSys -> repeat.when.system = whenSys "setWhenSystem";
