@@ -270,6 +270,7 @@ Description: "ValueSet containing SGHI medication forms"
 * include SGHIMedicationForm#ear-spray "Ear Spray"
 * include SGHIMedicationForm#ear-ointment "Ear Ointment"
 
+
 ValueSet: SGHISubstanceCodes
 Id: substance-codes
 Title: "SGHI Substance Codes"
@@ -337,6 +338,7 @@ Description: "A ValueSet defining the possible routes of drug administration."
 * include SGHIRouteOfAdministrationCodeSystem#ot "Otic"
 * include SGHIRouteOfAdministrationCodeSystem#vg "Vaginal"
 * include SGHIRouteOfAdministrationCodeSystem#rc "Rectal"
+* include SGHIRouteOfAdministrationCodeSystem#tp "Topical"
 
 ValueSet: ICD11Codes
 Id: ICD11Codes
