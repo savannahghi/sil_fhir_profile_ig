@@ -106,6 +106,7 @@ Description: "A code system enumerating the different route options used to spec
 * #ot "Otic" "Administration of medication to the ear, typically in the form of ear drops."
 * #vg "Vaginal" "Administration of medication into the vagina, typically in the form of suppositories, creams, or gels."
 * #rc "Rectal" "Administration of medication into the rectum, typically in the form of suppositories or enemas."
+* #tp "Topical" "Administration of medication to the skin, typically in the form of creams, ointments, or patches."
 
 CodeSystem: SGHIEventTimingCodeSystem
 Id: timing-of-event
