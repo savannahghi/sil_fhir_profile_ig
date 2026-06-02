@@ -45,9 +45,9 @@ Description: "SGHI's profile for Medication Dispense resource"
 * receiver only SGHIReference
 * receiver only Reference(SGHIPatient)
 
-* renderedDosageInstruction 1..1
+* renderedDosageInstruction 0..1
 
-* dosageInstruction 1..*
+* dosageInstruction 0..*
 * dosageInstruction only SGHIDosage
 
 * substitution 0..1
