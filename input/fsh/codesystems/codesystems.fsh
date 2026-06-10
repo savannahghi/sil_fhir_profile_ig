@@ -228,6 +228,18 @@ Description: "A code system enumerating the different visit types used across SG
 * #outpatient_consultation "Outpatient consultation" "A visit for a consultation with a specialist or general practitioner in an outpatient setting."
 * #emergency_visit "Emergency visit" "A visit for immediate medical attention due to an acute illness or injury."
 * #follow_up "Follow-up visit" "A visit to review the progress of a patient after a previous encounter or treatment."
+* #general_outpatient "General Outpatient" "A general outpatient visit for routine consultation and care not associated with a specialized clinic or program."
+* #cwc "CWC (Child Welfare Clinic)" "A visit to a Child Welfare Clinic for child health services such as growth monitoring, immunization, and developmental assessment."
+* #anc "ANC (Antenatal Care)" "A visit for antenatal care provided to a pregnant woman during pregnancy."
+* #pnc "PNC (Postnatal Care)" "A visit for postnatal care provided to a mother and newborn after delivery."
+* #fp "FP (Family Planning)" "A visit for family planning services, including contraceptive counseling and provision."
+* #ccc "CCC (Comprehensive Care Centre)" "A visit to a Comprehensive Care Centre, typically for HIV care and treatment services."
+* #chronic-care-dm-htn "Chronic Care (DM/HTN)" "A visit for the ongoing management of chronic conditions such as diabetes mellitus (DM) and hypertension (HTN)."
+* #nutrition "Nutrition" "A visit for nutrition assessment, counseling, or support services."
+* #otc-prescription "OTC/Prescription" "A visit for the provision of over-the-counter (OTC) or prescription medications."
+* #first-aid-emergency "First Aid and Emergency" "A visit for first aid and emergency care services."
+* #healthy-schools "Healthy Schools" "A visit provided as part of a school health program promoting the health and wellbeing of students."
+* #healthy-factories "Healthy Factories" "A visit provided as part of an occupational or workplace health program promoting the health and wellbeing of workers."
 
 
 
