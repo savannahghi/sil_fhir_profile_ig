@@ -1114,6 +1114,18 @@ Description: "A ValueSet defining the possible visit types in SGHI's systems."
 * include SGHIVisitTypeCodeSystem#outpatient_consultation "Outpatient consultation"
 * include SGHIVisitTypeCodeSystem#emergency_visit "Emergency visit"
 * include SGHIVisitTypeCodeSystem#follow_up "Follow-up visit"
+* include SGHIVisitTypeCodeSystem#general_outpatient "General Outpatient"
+* include SGHIVisitTypeCodeSystem#cwc "CWC (Child Welfare Clinic)"
+* include SGHIVisitTypeCodeSystem#anc "ANC (Antenatal Care)"
+* include SGHIVisitTypeCodeSystem#pnc "PNC (Postnatal Care)"
+* include SGHIVisitTypeCodeSystem#fp "FP (Family Planning)"
+* include SGHIVisitTypeCodeSystem#ccc "CCC (Comprehensive Care Centre)"
+* include SGHIVisitTypeCodeSystem#chronic-care-dm-htn "Chronic Care (DM/HTN)"
+* include SGHIVisitTypeCodeSystem#nutrition "Nutrition"
+* include SGHIVisitTypeCodeSystem#otc-prescription "OTC/Prescription"
+* include SGHIVisitTypeCodeSystem#first-aid-emergency "First Aid and Emergency"
+* include SGHIVisitTypeCodeSystem#healthy-schools "Healthy Schools"
+* include SGHIVisitTypeCodeSystem#healthy-factories "Healthy Factories"
 
 ValueSet: SGHIGeneralResult
 Id: general-result
