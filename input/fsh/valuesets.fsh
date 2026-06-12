@@ -1225,3 +1225,13 @@ Description: "A ValueSet for body systems covered in the Review of Systems (ROS)
 * include SGHISpecialClinicCodeSystem#ros-skin "Skin"
 * include SGHISpecialClinicCodeSystem#ros-reproductive "Reproductive"
 
+ValueSet: SGHIVisitCategory
+Id: visit-category
+Title: "SGHI Visit Category"
+Description: "A ValueSet defining the possible visit categories in SGHI's systems."
+* ^status = #active
+* include SGHIVisitCategoryCodeSystem#New "New"
+* include SGHIVisitCategoryCodeSystem#Review "Review"
+* include SGHIVisitCategoryCodeSystem#Returning "Returning"
+
+
