@@ -938,3 +938,13 @@ Description: "A code system enumerating local codes used across ANC, PNC, CWC an
 * #ros-musculoskeletal "Musculoskeletal" "Review of Systems: Musculoskeletal system."
 * #ros-skin "Skin" "Review of Systems: Skin."
 * #ros-reproductive "Reproductive" "Review of Systems: Reproductive system."
+
+CodeSystem: SGHIVisitCategoryCodeSystem
+Id: visit-category-codesystem
+Title: "SGHI Visit Category Code System"
+Description: "A code system enumerating the different category types used across SGHI's environment."
+* ^status = #active
+* ^content = #complete
+* #New "New" "A first-time visit by a patient who has not been seen before"
+* #Review "Review" "A follow-up visit to assess progress or review a previous consultation"
+* #Returning "Returning" "A patient who has been seen before but is coming back after a period of absence"
