@@ -10,6 +10,9 @@ Description: "An association between a patient and an organization / healthcare 
 
 * statusHistory 1..
 
+* type 0..1
+* type from SGHIVisitType (required)
+
 * period 1..1
 * patient 1..1
 
