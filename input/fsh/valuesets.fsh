@@ -1126,6 +1126,16 @@ Description: "A ValueSet defining the possible visit types in SGHI's systems."
 * include SGHIVisitTypeCodeSystem#first-aid-emergency "First Aid and Emergency"
 * include SGHIVisitTypeCodeSystem#healthy-schools "Healthy Schools"
 * include SGHIVisitTypeCodeSystem#healthy-factories "Healthy Factories"
+* include SGHIVisitTypeCodeSystem#ent-clinic "E.N.T. Clinic"
+* include SGHIVisitTypeCodeSystem#eye-clinic "Eye Clinic"
+* include SGHIVisitTypeCodeSystem#tb-leprosy "TB and Leprosy"
+* include SGHIVisitTypeCodeSystem#psychiatry "Psychiatry"
+* include SGHIVisitTypeCodeSystem#orthopaedic-clinic "Orthopaedic Clinic"
+* include SGHIVisitTypeCodeSystem#occupational-therapy-clinic "Occupational Therapy Clinic"
+* include SGHIVisitTypeCodeSystem#physiotherapy-clinic "Physiotherapy Clinic"
+* include SGHIVisitTypeCodeSystem#medical-clinics "Medical Clinics"
+* include SGHIVisitTypeCodeSystem#surgical-clinics "Surgical Clinics"
+* include SGHIVisitTypeCodeSystem#paediatrics "Paediatrics"
 
 ValueSet: SGHIGeneralResult
 Id: general-result

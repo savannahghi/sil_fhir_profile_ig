@@ -240,6 +240,16 @@ Description: "A code system enumerating the different visit types used across SG
 * #first-aid-emergency "First Aid and Emergency" "A visit for first aid and emergency care services."
 * #healthy-schools "Healthy Schools" "A visit provided as part of a school health program promoting the health and wellbeing of students."
 * #healthy-factories "Healthy Factories" "A visit provided as part of an occupational or workplace health program promoting the health and wellbeing of workers."
+* #ent-clinic "E.N.T. Clinic" "A visit to an Ear, Nose, and Throat (ENT) clinic for the diagnosis and treatment of otorhinolaryngological conditions."
+* #eye-clinic "Eye Clinic" "A visit to an eye clinic for the diagnosis and treatment of ophthalmic conditions."
+* #tb-leprosy "TB and Leprosy" "A visit for the screening, diagnosis, treatment, or follow-up of tuberculosis (TB) and leprosy."
+* #psychiatry "Psychiatry" "A visit to a psychiatry clinic for the assessment and management of mental health conditions."
+* #orthopaedic-clinic "Orthopaedic Clinic" "A visit to an orthopaedic clinic for the diagnosis and treatment of musculoskeletal conditions."
+* #occupational-therapy-clinic "Occupational Therapy Clinic" "A visit to an occupational therapy clinic to support participation in daily activities and functional independence."
+* #physiotherapy-clinic "Physiotherapy Clinic" "A visit to a physiotherapy clinic for physical rehabilitation and management of movement disorders."
+* #medical-clinics "Medical Clinics" "A visit to a general or specialised medical clinic for the diagnosis and management of medical conditions."
+* #surgical-clinics "Surgical Clinics" "A visit to a surgical clinic for surgical assessment, consultation, or follow-up."
+* #paediatrics "Paediatrics" "A visit to a paediatrics clinic for the diagnosis and treatment of conditions affecting infants, children, and adolescents."
 
 
 
