@@ -958,3 +958,14 @@ Description: "A code system enumerating the different category types used across
 * #New "New" "A first-time visit by a patient who has not been seen before"
 * #Review "Review" "A follow-up visit to assess progress or review a previous consultation"
 * #Returning "Returning" "A patient who has been seen before but is coming back after a period of absence"
+
+CodeSystem: SGHICancerStageCodeSystem
+Id: cancer-stage-codesystem
+Title: "SGHI Cancer Stage Code System"
+Description: "A code system enumerating the different cancer stages used across SGHI's environment."
+* ^status = #active
+* ^content = #complete
+* #stage1 "Stage 1" "Cancer is localized to a small area and has not spread to lymph nodes or other tissues"
+* #stage2 "Stage 2" "Cancer has grown but has not spread beyond the local area"
+* #stage3 "Stage 3" "Cancer has grown larger and may have spread to nearby lymph nodes or tissues"
+* #stage4 "Stage 4" "Cancer has spread to other organs or parts of the body (metastatic)"

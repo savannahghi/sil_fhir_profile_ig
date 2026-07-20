@@ -471,15 +471,15 @@ Description: "Laterality Value Sets"
 * include SGHIIdentifierCodeSystem#unknown "Unknown"
 
 
-ValueSet: SGHICancerStagesVs
+ValueSet: SGHICancerStages
 Id: cancer-stages
 Title: "Cancer Stages Value Sets"
 Description: "Cancer Stages Value Sets"
 * ^status = #active
-* include SGHIIdentifierCodeSystem#stage1 "Stage 1"
-* include SGHIIdentifierCodeSystem#stage2 "Stage 2"
-* include SGHIIdentifierCodeSystem#stage3 "Stage 3"
-* include SGHIIdentifierCodeSystem#stage4 "Stage 4"
+* include SGHICancerStageCodeSystem#stage1 "Stage 1"
+* include SGHICancerStageCodeSystem#stage2 "Stage 2"
+* include SGHICancerStageCodeSystem#stage3 "Stage 3"
+* include SGHICancerStageCodeSystem#stage4 "Stage 4"
 
 
 ValueSet: SGHIDefaultCodeVs
