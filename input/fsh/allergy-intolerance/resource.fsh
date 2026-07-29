@@ -20,7 +20,6 @@ Description: "Risk of harmful or undesirable physiological response which is spe
 
 * code only SGHICodeableConcept
 * code 1..1
-* code from AllLoincCodes (example)
 
 * encounter 1..1
 * encounter only SGHIReference
@@ -34,14 +33,11 @@ Description: "Risk of harmful or undesirable physiological response which is spe
 
 * reaction 0..*
   * substance only SGHICodeableConcept
-  * substance from AllLoincCodes (example)
   * description 1..1
   * severity 1..1
   * manifestation only SGHICodeableReference
   * manifestation only CodeableReference(SGHIObservation)
-  * manifestation from AllLoincCodes (example)
   * exposureRoute only SGHICodeableConcept
-  * exposureRoute from AllLoincCodes (example)
 
 * onset[x] only dateTime
 * onsetDateTime 1..1
