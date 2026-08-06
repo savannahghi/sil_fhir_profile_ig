@@ -10,3 +10,5 @@ Alias: $v2-0276 = http://terminology.hl7.org/CodeSystem/v2-0276
 Alias: $v3-ActPriority = http://terminology.hl7.org/CodeSystem/v3-ActPriority
 Alias: $v3-ParticipationType = http://terminology.hl7.org/CodeSystem/v3-ParticipationType
 Alias: $identifier-type-cs = http://terminology.hl7.org/CodeSystem/v2-0203
+Alias: $v3-ObservationInterpretation = http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation
+Alias: $referencerange-meaning = http://terminology.hl7.org/CodeSystem/referencerange-meaning

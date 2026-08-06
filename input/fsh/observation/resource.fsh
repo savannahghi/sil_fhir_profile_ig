@@ -31,7 +31,20 @@ Description: "Measurements and simple assertions made about a patient, device or
 * effectiveInstant 1..1
 
 * issued 1..1
+
 * interpretation 0..*
+* interpretation from SGHIObservationInterpretation (extensible)
+* interpretation only SGHICodeableConcept
+
+// referenceRange carries the normal band and the critical thresholds as separate
+// entries, told apart by type; component mirrors it for panels such as blood
+// pressure, where each component is flagged against its own range.
+* referenceRange.type from SGHIReferenceRangeMeaning (extensible)
+* referenceRange.type only SGHICodeableConcept
+* component.interpretation from SGHIObservationInterpretation (extensible)
+* component.interpretation only SGHICodeableConcept
+* component.referenceRange.type from SGHIReferenceRangeMeaning (extensible)
+* component.referenceRange.type only SGHICodeableConcept
 
 * basedOn only SGHIReference
 * basedOn only Reference(SGHIServiceRequest or SGHIMedicationRequest)

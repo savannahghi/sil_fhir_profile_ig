@@ -1245,3 +1245,24 @@ Description: "A ValueSet defining the possible visit categories in SGHI's system
 * include SGHIVisitCategoryCodeSystem#Returning "Returning"
 
 
+
+ValueSet: SGHIObservationInterpretation
+Id: observation-interpretation
+Title: "SGHI Observation Interpretation"
+Description: "Interpretation codes used to flag an observation's value against its reference range. Screening and triage flagging only, not diagnostic criteria."
+* ^status = #active
+* include $v3-ObservationInterpretation#LL "Critically low"
+* include $v3-ObservationInterpretation#L "Low"
+* include $v3-ObservationInterpretation#N "Normal"
+* include $v3-ObservationInterpretation#H "High"
+* include $v3-ObservationInterpretation#HH "Critically high"
+* include $v3-ObservationInterpretation#A "Abnormal"
+
+ValueSet: SGHIReferenceRangeMeaning
+Id: referencerange-meaning
+Title: "SGHI Reference Range Meaning"
+Description: "Qualifies what a reference range on an observation represents, distinguishing the normal band from the critical thresholds that trigger escalation."
+* ^status = #active
+* include $referencerange-meaning#normal "Normal Range"
+* include $referencerange-meaning#critical "Critical Range"
+* include $referencerange-meaning#treatment "Treatment Range"
