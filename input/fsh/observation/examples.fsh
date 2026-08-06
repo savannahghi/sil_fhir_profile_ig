@@ -46,10 +46,10 @@ Description: "A blood pressure panel extracted from a vitals questionnaire respo
 * issued = "2025-02-10T08:00:00Z"
 
 // Panel-level interpretation is the worst of the component tiers: the systolic
-// reading is critically high, so the panel reads HH even though diastolic is high.
+// reading is critical high, so the panel reads HH even though diastolic is high.
 * interpretation[0].coding[0].system = $v3-ObservationInterpretation
 * interpretation[0].coding[0].code = #HH
-* interpretation[0].coding[0].display = "Critically high"
+* interpretation[0].coding[0].display = "Critical high"
 
 * component[0].code.coding[0].system = "http://loinc.org"
 * component[0].code.coding[0].code = #8480-6
@@ -60,7 +60,7 @@ Description: "A blood pressure panel extracted from a vitals questionnaire respo
 * component[0].valueQuantity.unit = "millimeter of mercury"
 * component[0].interpretation[0].coding[0].system = $v3-ObservationInterpretation
 * component[0].interpretation[0].coding[0].code = #HH
-* component[0].interpretation[0].coding[0].display = "Critically high"
+* component[0].interpretation[0].coding[0].display = "Critical high"
 * component[0].referenceRange[0].low.value = 90
 * component[0].referenceRange[0].low.system = "http://unitsofmeasure.org"
 * component[0].referenceRange[0].low.code = #mm[Hg]
@@ -135,14 +135,21 @@ Description: "A body temperature vital sign carrying both the normal band and th
 * referenceRange[0].type.coding[0].system = $referencerange-meaning
 * referenceRange[0].type.coding[0].code = #normal
 * referenceRange[0].type.coding[0].display = "Normal Range"
-* referenceRange[1].low.value = 35.0
-* referenceRange[1].low.system = "http://unitsofmeasure.org"
-* referenceRange[1].low.code = #Cel
-* referenceRange[1].low.unit = "degree Celsius"
-* referenceRange[1].high.value = 40.0
+// Each critical band is one-sided: bounded above for critical low, below for
+// critical high. One entry carrying both thresholds would assert the critical
+// range lies between them, which is the opposite of what it means.
+// referencerange-meaning has no code for either band, so both use SGHI codes.
+* referenceRange[1].high.value = 34.9
 * referenceRange[1].high.system = "http://unitsofmeasure.org"
 * referenceRange[1].high.code = #Cel
 * referenceRange[1].high.unit = "degree Celsius"
-* referenceRange[1].type.coding[0].system = $referencerange-meaning
-* referenceRange[1].type.coding[0].code = #critical
-* referenceRange[1].type.coding[0].display = "Critical Range"
+* referenceRange[1].type.coding[0].system = $sghi-referencerange-band
+* referenceRange[1].type.coding[0].code = #critical-low
+* referenceRange[1].type.coding[0].display = "Critical low"
+* referenceRange[2].low.value = 40.0
+* referenceRange[2].low.system = "http://unitsofmeasure.org"
+* referenceRange[2].low.code = #Cel
+* referenceRange[2].low.unit = "degree Celsius"
+* referenceRange[2].type.coding[0].system = $sghi-referencerange-band
+* referenceRange[2].type.coding[0].code = #critical-high
+* referenceRange[2].type.coding[0].display = "Critical high"

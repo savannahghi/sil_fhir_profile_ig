@@ -1251,18 +1251,25 @@ Id: observation-interpretation
 Title: "SGHI Observation Interpretation"
 Description: "Interpretation codes used to flag an observation's value against its reference range. Screening and triage flagging only, not diagnostic criteria."
 * ^status = #active
-* include $v3-ObservationInterpretation#LL "Critically low"
+* include $v3-ObservationInterpretation#LL "Critical low"
 * include $v3-ObservationInterpretation#L "Low"
 * include $v3-ObservationInterpretation#N "Normal"
 * include $v3-ObservationInterpretation#H "High"
-* include $v3-ObservationInterpretation#HH "Critically high"
+* include $v3-ObservationInterpretation#HH "Critical high"
 * include $v3-ObservationInterpretation#A "Abnormal"
 
+// referencerange-meaning has no concept for the critical-low and
+// critical-high bands, so this set combines the HL7 codes that do exist with
+// two SGHI-defined ones. Consumers need a code to escalate on, not a label to
+// parse, and the binding is extensible precisely for gaps like this.
 ValueSet: SGHIReferenceRangeMeaning
 Id: referencerange-meaning
 Title: "SGHI Reference Range Meaning"
-Description: "Qualifies what a reference range on an observation represents, distinguishing the normal band from the critical thresholds that trigger escalation."
+Description: "Qualifies what a reference range on an observation represents."
 * ^status = #active
 * include $referencerange-meaning#normal "Normal Range"
-* include $referencerange-meaning#critical "Critical Range"
+* include $referencerange-meaning#recommended "Recommended Range"
 * include $referencerange-meaning#treatment "Treatment Range"
+* include $referencerange-meaning#therapeutic "Therapeutic Desired Level"
+* include SGHIReferenceRangeBandCodeSystem#critical-low "Critical low"
+* include SGHIReferenceRangeBandCodeSystem#critical-high "Critical high"
