@@ -969,3 +969,11 @@ Description: "A code system enumerating the different cancer stages used across 
 * #stage2 "Stage 2" "Cancer has grown but has not spread beyond the local area"
 * #stage3 "Stage 3" "Cancer has grown larger and may have spread to nearby lymph nodes or tissues"
 * #stage4 "Stage 4" "Cancer has spread to other organs or parts of the body (metastatic)"
+CodeSystem: SGHIReferenceRangeBandCodeSystem
+Id: referencerange-band-codesystem
+Title: "SGHI Reference Range Band Code System"
+Description: "Qualifies the critical bands of a vital-sign reference range. HL7's referencerange-meaning has no concept for either, and a machine-readable code is needed so consumers can colour or escalate a band without parsing its label."
+* ^status = #active
+* ^content = #complete
+* #critical-low "Critical low" "Values at or below this range's upper bound warrant immediate escalation"
+* #critical-high "Critical high" "Values at or above this range's lower bound warrant immediate escalation"

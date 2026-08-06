@@ -12,3 +12,4 @@ Alias: $v3-ParticipationType = http://terminology.hl7.org/CodeSystem/v3-Particip
 Alias: $identifier-type-cs = http://terminology.hl7.org/CodeSystem/v2-0203
 Alias: $v3-ObservationInterpretation = http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation
 Alias: $referencerange-meaning = http://terminology.hl7.org/CodeSystem/referencerange-meaning
+Alias: $sghi-referencerange-band = https://fhir.slade360.co.ke/fhir/CodeSystem/referencerange-band-codesystem
