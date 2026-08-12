@@ -21,11 +21,21 @@ build:
 	sed -i.bak "s|$(LOCAL_CANONICAL)|https://fhir.slade360.co.ke/fhir|g" sushi-config.yaml
 	rm -f sushi-config.yaml.bak
 
+# tx.fhir.org delegates ICD-11 MMS (http://id.who.int/icd/release/11/mms) to a
+# WHO-hosted server that does not accept code systems in the tx-resource
+# parameter, so the publisher refuses it and the build dies before it validates
+# anything. This IG binds to ICD-11 and there is no conformant alternative
+# server, so the delegation is authorised explicitly. The trade-off is real:
+# ICD-11 code validation comes from a server the publisher cannot fully trust.
+# The flag lives here rather than in _genonce.sh because _updatePublisher.sh
+# overwrites that script with the upstream copy on every run.
+PUBLISHER_FLAGS = -authorise-non-conformant-tx-servers
+
 .PHONY: ig
 ig:
 	@echo "Generating FHIR Implementation Guide(s)..."
-	./_updatePublisher.sh 
-	./_genonce.sh
+	./_updatePublisher.sh
+	./_genonce.sh $(PUBLISHER_FLAGS)
 	@echo "FHIR IG generation complete."
 
 .PHONY: publish-local
