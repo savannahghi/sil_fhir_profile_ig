@@ -291,11 +291,8 @@ ValueSet: SGHIPractitionerSpecialtyValueSet
 Id: practitioner-specialty-value-set
 Title: "SGHI Practitioner Value Set"
 Description: "Custom practioner specialty value set"
-* include #408467006 "Adult mental illness"  from system SGHIIdentifierCodeSystem
-* include #394577000 "Anesthetics"  from system SGHIIdentifierCodeSystem
-* include #394578005 "Audiological medicine"  from system SGHIIdentifierCodeSystem
-* include #421661004 "Blood banking and transfusion medicine"  from system SGHIIdentifierCodeSystem
-* include #408462000 "Burns care"  from system SGHIIdentifierCodeSystem
+* include codes from system SGHIPractitionerSpecialtyCodeSystem
+
 
 ValueSet: SGHIBodySiteValueSet
 Id: body-site-value-set
