@@ -160,6 +160,7 @@ Description: "A single code system enumerating the many local identifier types u
 
 * #stat "STAT" "A unique identifier assigned for highest priority cases (e.g., emergency)"
 * #asap "ASAP" "As soon as possible, next highest priority after STAT"
+* #urgent "Urgent" "Calls for prompt action, ahead of routine work but behind STAT. Mirrors v3-ActPriority#UR, and is the middle band the admission queue sorts on."
 * #routine "Routine" "Routine service, do at usual work hours"
 * #preop "PREOP" "Used to indicate that a service is to be performed prior to a scheduled surgery"
 * #elective "Elective" "Low priority. Beneficial to the patient but not essential for survival"
@@ -167,11 +168,13 @@ Description: "A single code system enumerating the many local identifier types u
 * #outpatient "Ambulatory (Out Patient)" "A comprehensive term for health care provided in a healthcare facility on a nonresident basis."
 * #emergency "Emergency" "A patient encounter that takes place at a dedicated healthcare service delivery location where the patient receives immediate evaluation and treatment."
 * #closed "Closed" "Closed"
-* #housekeeping "Housekeeping" "Housekeeping"
+* #housekeeping "Housekeeping" "Being cleaned between patients, and not offered at allocation. This is the concept a bed board labels 'cleaning'."
 * #occupied "Occupied" "Occupied"
-* #unoccupied "Unoccupied" "Unoccupied"
+* #unoccupied "Unoccupied" "Free and offered at allocation. This is the concept a bed board labels 'available'."
 * #contaminated "Contaminated" "Contaminated"
 * #isolated "Isolated" "Isolated"
+* #reserved "Reserved" "Physically free but held for a named patient or admission, and so not offered to anyone else at allocation."
+* #maintenance "Maintenance" "Out of service for repair rather than cleaning, and not offered at allocation."
 * #instance "Instance" "The Location resource represents a specific instance of a location (e.g., Operating Theatre 1A)."
 * #kind "Kind" "The Location represents a class of locations (e.g., Any Operating Theatre)."
 * #work "Work" "An office contact point. First choice for business-related contacts during business hours."
@@ -1047,3 +1050,268 @@ Description: "Qualifies the critical bands of a vital-sign reference range. HL7'
 * ^content = #complete
 * #critical-low "Critical low" "Values at or below this range's upper bound warrant immediate escalation"
 * #critical-high "Critical high" "Values at or above this range's lower bound warrant immediate escalation"
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Inpatient admission
+//
+// One code system for the admission workflow, in the same spirit as
+// SGHIIdentifierCodeSystem and SGHISpecialClinicCodeSystem: a single system that
+// many narrow value sets slice. Concepts that already had a home elsewhere are
+// NOT repeated here — clinical priority stays in SGHIIdentifierCodeSystem, bed
+// state in SGHIIdentifierCodeSystem, admitting service in
+// SGHIPractitionerSpecialtyCodeSystem, and apparent sex in HL7's
+// administrative-gender.
+//
+// Codes are shared across axes wherever they mean the same thing. #high-dependency
+// says "high dependency" whether it is the care a patient needs, the class of a
+// room, or the bed a patient asked for, so it is one concept in three value sets
+// rather than three near-identical codes.
+// ─────────────────────────────────────────────────────────────────────────────
+CodeSystem: SGHIAdmissionCodeSystem
+Id: admission-codesystem
+Title: "SGHI Admission Code System"
+Description: "A code system enumerating the concepts used to request, triage, place and track an inpatient admission across SGHI's environment."
+* ^status = #active
+* ^experimental = false
+* ^content = #complete
+* ^caseSensitive = true
+* ^property[0].code = #care-rank
+* ^property[0].uri = "https://fhir.slade360.co.ke/fhir/concept-properties#care-rank"
+* ^property[0].type = #integer
+* ^property[0].description = "Ordinal intensity of a level of care. A request outranking what a ward can nurse is a warning, not a block."
+* ^property[1].code = #ours-to-fix
+* ^property[1].uri = "https://fhir.slade360.co.ke/fhir/concept-properties#ours-to-fix"
+* ^property[1].type = #boolean
+* ^property[1].description = "True where the outcome was within the hospital's control, and so worth counting and acting on."
+
+// Admission type
+* #emergency "Emergency" "An unplanned admission for a patient needing immediate care."
+* #elective "Elective" "A planned admission, usually booked in advance."
+* #transfer-in "Transfer in" "An admission of a patient arriving from another facility or ward on a referral."
+* #maternity "Maternity" "An admission for labour, delivery or antenatal care."
+* #newborn "Newborn" "An admission of a baby born in, or brought in with, the mother whose stay it attaches to."
+* #day-case "Day case" "An admission expected to be admitted and discharged the same day."
+
+// Admission source — only the two HL7's admit-source has no concept for.
+* #inter-ward-transfer "Inter-ward transfer" "The patient came from another ward within this facility."
+* #direct-admission "Direct admission" "The patient was admitted directly, without passing through an emergency or outpatient department."
+
+// Level of care, also used as room class and bed preference
+* #general "General" "Ward-level nursing care."
+  * ^property[0].code = #care-rank
+  * ^property[0].valueInteger = 1
+* #high-dependency "High dependency" "Closer monitoring and nursing than a general ward provides, short of intensive care."
+  * ^property[0].code = #care-rank
+  * ^property[0].valueInteger = 2
+* #intensive-care "Intensive care" "Organ support and continuous monitoring."
+  * ^property[0].code = #care-rank
+  * ^property[0].valueInteger = 3
+
+// Room class
+* #semi-private "Semi private" "A room shared by a small number of patients."
+* #private "Private" "A single-occupancy room."
+* #isolation "Isolation" "A room that isolates a patient for infection control."
+* #delivery "Delivery" "A room equipped for labour and delivery."
+* #procedure "Procedure" "A room equipped for bedside procedures."
+* #amenity "Amenity" "A room offering additional comfort beyond clinical need."
+* #resuscitation "Resuscitation" "A bay equipped for resuscitation."
+* #open-bay "Open bay" "A bed that belongs to no room."
+
+// Ward type. The rest of the classification reuses concepts already defined
+// above: #general, #maternity, #newborn, #intensive-care, #high-dependency,
+// #isolation and #amenity all say the same thing about a ward as they do about
+// a room, a level of care or an admission.
+* #paediatric "Paediatric" "A ward that nurses children."
+* #theatre-recovery "Theatre recovery" "A post-anaesthetic recovery area, where a patient is monitored after theatre before returning to a ward."
+
+// Bed preference, carried from the admission request
+* #near-nurses-station "Near the nurses' station" "A bed within close sight of the nursing station."
+* #side-room "Side room / privacy" "A side room, asked for on privacy grounds."
+* #step-free "Ground floor / step-free" "A bed reachable without stairs."
+
+// Who pays
+* #self-pay "Cash" "The patient pays directly."
+* #insurance "Insurance" "A payer covers the admission, subject to eligibility and benefits."
+
+// Payment channel
+* #mpesa "M-PESA" "Mobile money."
+* #cash "Cash" "Physical cash."
+* #card "Card" "Debit or credit card."
+* #bank-transfer "Bank transfer" "Transfer from a bank account."
+* #wallet "Wallet" "A stored-value wallet held for the patient."
+
+// Admitting without a deposit
+* #no-deposit-emergency "Emergency admission, collect after stabilisation" "An unresolved payer holds the bill, never the bed."
+* #no-deposit-charity "Charity or sponsored patient" "A charity or sponsor is expected to settle the account."
+* #no-deposit-waived "Deposit waived by an administrator" "An administrator has waived the deposit."
+* #no-deposit-corporate "Corporate account on file" "A corporate account will be billed."
+
+// Pre-authorisation
+* #preauth-draft "Draft" "Prepared but not sent to the payer."
+* #preauth-pending "Pending" "Submitted and awaiting the payer's decision."
+* #preauth-approved "Approved" "Approved, carrying a reference and an approved amount."
+* #preauth-declined "Declined" "Declined, carrying a reason."
+
+// Consent basis recorded on admission
+* #consent-by-patient "Given by the patient" "The patient consented for themselves."
+* #consent-by-guardian "Given by a guardian or next of kin" "A guardian or next of kin consented on the patient's behalf."
+* #consent-emergency "Treated under emergency provisions" "Treatment proceeded under emergency provisions without consent."
+
+// Unidentified patient
+* #identified "Identified" "The patient can be named and matched to a record."
+* #unidentified "Not identified" "The patient cannot yet be named. A patient with no name is still admissible."
+* #age-infant "Infant" "Apparent age band: infant."
+* #age-child "Child" "Apparent age band: child."
+* #age-teenager "Teenager" "Apparent age band: teenager."
+* #age-young-adult "Young adult" "Apparent age band: young adult."
+* #age-middle-aged "Middle aged" "Apparent age band: middle aged."
+* #age-elderly "Elderly" "Apparent age band: elderly."
+
+// How the patient arrived
+* #arrived-ambulance "By ambulance" "Brought in by ambulance."
+* #arrived-carried "Carried in" "Carried in."
+* #arrived-walked-collapsed "Walked in and collapsed" "Walked in under their own power and collapsed."
+* #arrived-police "Police" "Brought in by police."
+* #arrived-bystanders "Brought by bystanders" "Brought in by members of the public."
+
+// Left outstanding on an emergency admission
+* #deferred-identity "Identity and health ID" "Identity and health ID, once someone can confirm them."
+* #deferred-next-of-kin "Next of kin and contact details" "Next of kin and contact details."
+* #deferred-billing "Billing type, payer and eligibility" "Billing type, payer and eligibility."
+* #deferred-diagnosis "Full admitting diagnosis and care plan" "Full admitting diagnosis and care plan."
+
+// Break-glass access to a record you are not assigned to
+* #break-glass-unconscious "Patient cannot consent" "The patient is unable to consent to access."
+* #break-glass-life-threat "Immediate threat to life" "Access is needed to answer an immediate threat to life."
+* #break-glass-covering "Covering another clinician" "Accessing while covering for the assigned clinician."
+* #break-glass-identity "Confirming identity" "Access is needed to confirm who the patient is."
+
+// Disposition from a consultation
+* #refer "Refer" "Refer the patient onward rather than admit."
+* #admit "Admit" "Admit the patient."
+* #admit-now "Admit now" "Admit immediately."
+* #book-for-date "Book for a date" "Book the admission for a future date."
+
+// Cancelling an admission request
+* #admitted-in-error "Admitted in error" "The admission should not have been raised."
+* #duplicate-admission "Duplicate admission" "A duplicate of another request."
+  * ^property[0].code = #ours-to-fix
+  * ^property[0].valueBoolean = true
+* #patient-declined "Patient declined admission" "The patient declined to be admitted."
+* #treated-and-sent-home "Treated and sent home instead" "The patient was treated and discharged without admission."
+* #moved-to-another-facility "Moved to another facility" "The patient was moved to another facility."
+* #ward-cannot-receive "Ward cannot receive the patient" "The receiving ward could not take the patient."
+
+// No longer needs admission
+* #improved "Treated and improved" "The patient improved and no longer needs admitting."
+  * ^property[0].code = #ours-to-fix
+  * ^property[0].valueBoolean = false
+* #referred-out "Referred out instead" "The patient was referred elsewhere instead."
+  * ^property[0].code = #ours-to-fix
+  * ^property[0].valueBoolean = false
+* #went-elsewhere "Went to another hospital" "The patient went to another hospital while waiting."
+  * ^property[0].code = #ours-to-fix
+  * ^property[0].valueBoolean = true
+* #refused "Patient refused admission" "The patient refused admission."
+  * ^property[0].code = #ours-to-fix
+  * ^property[0].valueBoolean = false
+* #died-waiting "Died while waiting" "The patient died before a bed was found. A closed record, not a reversible decision."
+  * ^property[0].code = #ours-to-fix
+  * ^property[0].valueBoolean = true
+
+// Deferring a booked elective admission
+* #defer-no-bed "No bed available" "Deferred because no bed was available."
+* #defer-patient-not-ready "Patient not ready" "Deferred because the patient was not ready."
+* #defer-theatre "Surgeon or theatre unavailable" "Deferred because the surgeon or theatre was unavailable."
+* #defer-payer "Payer approval outstanding" "Deferred pending payer approval."
+* #defer-patient-requested "Patient requested" "Deferred at the patient's request."
+
+// Where the patient is while they wait, so the ward knows where to fetch them from
+* #at-emergency-department "Emergency department" "Waiting in the emergency department."
+* #at-outpatient "Outpatient area" "Waiting in an outpatient area."
+* #at-corridor-trolley "Corridor trolley" "Waiting on a trolley in a corridor."
+* #at-another-ward "Another ward" "Waiting on another ward."
+* #at-home "At home" "Waiting at home."
+* #at-theatre "In theatre" "In theatre."
+* #at-another-facility "Another facility" "At another facility."
+
+// Readiness of a queued request
+* #ready "Ready" "Nothing outstanding."
+* #needs-attention "Needs attention" "Something is outstanding but the admission can proceed."
+* #not-ready "Not ready" "Blocked until something is resolved."
+
+// Admission lifecycle
+* #requested "Waiting admission" "Requested and waiting for a bed or a decision."
+* #scheduled "Scheduled" "Booked for a future date and not yet arrived."
+* #admitted "Admitted" "Admitted. A patient admitted before a bed is free waits under 'needs bed', which is a view over this state rather than a state of its own."
+* #discharge-pending "Discharge pending" "Discharge decided and in progress."
+* #discharged "Discharged" "The stay has ended."
+* #cancelled "Cancelled" "The request left the queue without an admission."
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Payer benefits
+//
+// Mirrors the scheme, benefit and intervention codes the payment step reads.
+// The SHA-* intervention codes are the Social Health Authority's own; they are
+// carried here so the IG can bind to them, not claimed as SGHI concepts.
+// ─────────────────────────────────────────────────────────────────────────────
+CodeSystem: SGHIPayerBenefitCodeSystem
+Id: payer-benefit-codesystem
+Title: "SGHI Payer Benefit Code System"
+Description: "Payer schemes, benefit packages, tariff rules and the Social Health Authority intervention codes read when admitting an insured patient."
+* ^status = #active
+* ^experimental = false
+* ^content = #complete
+* ^caseSensitive = true
+* ^property[0].code = #requires-preauthorisation
+* ^property[0].uri = "https://fhir.slade360.co.ke/fhir/concept-properties#requires-preauthorisation"
+* ^property[0].type = #boolean
+* ^property[0].description = "True where the payer requires pre-authorisation before the intervention is delivered."
+* ^property[1].code = #emergency-benefit
+* ^property[1].uri = "https://fhir.slade360.co.ke/fhir/concept-properties#emergency-benefit"
+* ^property[1].type = #boolean
+* ^property[1].description = "True where the intervention is funded from the emergency fund rather than a benefit package."
+
+// Scheme — what the cover is capped in, which changes everything downstream
+* #sha "Social Health Authority" "A public scheme capped in bed-days per household per year, pooled across the household."
+* #private "Private insurance" "A private scheme capped in shillings."
+
+// Benefit packages
+* #benefit-inpatient "Inpatient management" "The SHA inpatient benefit package."
+* #benefit-corporate-inpatient "Corporate inpatient" "A private corporate inpatient benefit package."
+
+// Tariff rule
+* #per-night "Per night" "The tariff is claimed for each night of stay."
+* #per-episode "Per episode" "The tariff is claimed once for the episode."
+
+// SHA interventions
+* #SHA-IP-MED-01 "Medical inpatient management" "General medical inpatient management, claimed per night."
+  * ^property[0].code = #requires-preauthorisation
+  * ^property[0].valueBoolean = true
+  * ^property[1].code = #emergency-benefit
+  * ^property[1].valueBoolean = false
+* #SHA-IP-HDU-02 "High dependency care" "High dependency inpatient care, claimed per night."
+  * ^property[0].code = #requires-preauthorisation
+  * ^property[0].valueBoolean = true
+  * ^property[1].code = #emergency-benefit
+  * ^property[1].valueBoolean = false
+* #SHA-MAT-ND-01 "Normal delivery" "Normal delivery, claimed per episode."
+  * ^property[0].code = #requires-preauthorisation
+  * ^property[0].valueBoolean = false
+  * ^property[1].code = #emergency-benefit
+  * ^property[1].valueBoolean = false
+* #SHA-MAT-CS-02 "Caesarean section" "Caesarean section, claimed per episode."
+  * ^property[0].code = #requires-preauthorisation
+  * ^property[0].valueBoolean = true
+  * ^property[1].code = #emergency-benefit
+  * ^property[1].valueBoolean = false
+* #SHA-EMC-STB-01 "Emergency stabilisation and treatment" "Emergency stabilisation, claimed per episode from the emergency fund."
+  * ^property[0].code = #requires-preauthorisation
+  * ^property[0].valueBoolean = false
+  * ^property[1].code = #emergency-benefit
+  * ^property[1].valueBoolean = true
+* #SHA-EMC-CRIT-02 "Emergency critical care, first 24 hours" "Emergency critical care for the first 24 hours, claimed per night from the emergency fund."
+  * ^property[0].code = #requires-preauthorisation
+  * ^property[0].valueBoolean = false
+  * ^property[1].code = #emergency-benefit
+  * ^property[1].valueBoolean = true

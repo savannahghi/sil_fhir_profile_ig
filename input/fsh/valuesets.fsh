@@ -63,10 +63,25 @@ ValueSet: SGHIActPriority
 Id: encounter-act-priority
 Title: "SGHI Encounter Priority"
 Description: "Urgency of an encounter"
-* include SGHIIdentifierCodeSystem#stat 
+* include SGHIIdentifierCodeSystem#stat
 * include SGHIIdentifierCodeSystem#asap
-* include SGHIIdentifierCodeSystem#preop 
+* include SGHIIdentifierCodeSystem#urgent
+* include SGHIIdentifierCodeSystem#routine
+* include SGHIIdentifierCodeSystem#preop
 * include SGHIIdentifierCodeSystem#elective
+
+// Admissions sorts its queue on three of the priorities above and has no ASAP
+// band. Rather than a second, near-identical priority code system, this is the
+// subset of SGHIActPriority that the admission screens offer.
+ValueSet: SGHIAdmissionPriority
+Id: admission-priority
+Title: "SGHI Admission Priority"
+Description: "Clinical priority of an admission request. Orders the admission queue and the bed board. A narrower set than SGHIActPriority: admissions has no ASAP band."
+* ^status = #active
+* ^experimental = false
+* include SGHIIdentifierCodeSystem#stat "STAT"
+* include SGHIIdentifierCodeSystem#urgent "Urgent"
+* include SGHIIdentifierCodeSystem#routine "Routine"
 
 ValueSet: SGHIDiagnosticConclusionICD11
 Id: diagnostic-conclusion-icd11
@@ -74,6 +89,11 @@ Title: "SGHI Diagnostic Conclusion ICD-11"
 Description: "ICD-11 codes used for diagnostic conclusions in SGHI"
 * include codes from system http://id.who.int/icd/release/11/mms
 
+// The first six mirror HL7 v2-0116. Bed management additionally needs to say a
+// bed is held for someone (reserved) or out for repair rather than cleaning
+// (maintenance), neither of which v2-0116 has. Note the two synonyms a bed board
+// uses: 'available' is #unoccupied and 'cleaning' is #housekeeping — the same
+// concepts under operational names, so they are not duplicated as codes.
 ValueSet: SGHIBedStatus
 Id: bed-status
 Title: "SGHI Bed Status"
@@ -84,6 +104,18 @@ Description: "Codes that can be used to indicate the operating status of an orga
 * include #unoccupied "Unoccupied" from system SGHIIdentifierCodeSystem
 * include #contaminated "Contaminated" from system SGHIIdentifierCodeSystem
 * include #isolated "Isolated" from system SGHIIdentifierCodeSystem
+* include #reserved "Reserved" from system SGHIIdentifierCodeSystem
+* include #maintenance "Maintenance" from system SGHIIdentifierCodeSystem
+
+// Only a free bed is offered when allocating. Every other state is excluded,
+// which is why this is its own set rather than a filter applied at the screen.
+ValueSet: SGHIAllocatableBedStatus
+Id: allocatable-bed-status
+Title: "SGHI Allocatable Bed Status"
+Description: "The bed states offered when allocating a bed on admission. Only an unoccupied bed qualifies; occupied, reserved, housekeeping, maintenance, contaminated, isolated and closed beds are all withheld."
+* ^status = #active
+* ^experimental = false
+* include SGHIIdentifierCodeSystem#unoccupied "Unoccupied"
 
 ValueSet: SGHILocationMode
 Id: location-mode
@@ -1270,3 +1302,387 @@ Description: "Qualifies what a reference range on an observation represents."
 * include $referencerange-meaning#therapeutic "Therapeutic Desired Level"
 * include SGHIReferenceRangeBandCodeSystem#critical-low "Critical low"
 * include SGHIReferenceRangeBandCodeSystem#critical-high "Critical high"
+
+// ═════════════════════════════════════════════════════════════════════════════
+// Inpatient admission
+//
+// Where a concept already had a home it is bound there rather than recoded:
+//   clinical priority   -> SGHIActPriority / SGHIAdmissionPriority
+//   bed state           -> SGHIBedStatus / SGHIAllocatableBedStatus
+//   admitting service   -> SGHIPractitionerSpecialtyCodeSystem
+//   apparent sex        -> HL7 administrative-gender
+//   ward / room / bed   -> SGHILocationForm
+// Only the concepts with no existing home live in SGHIAdmissionCodeSystem.
+// ═════════════════════════════════════════════════════════════════════════════
+
+ValueSet: SGHIAdmissionType
+Id: admission-type
+Title: "SGHI Admission Type"
+Description: "The kind of admission being requested. Changing it on an in-flight request requires a stated reason."
+* ^status = #active
+* ^experimental = false
+* include SGHIAdmissionCodeSystem#emergency "Emergency"
+* include SGHIAdmissionCodeSystem#elective "Elective"
+* include SGHIAdmissionCodeSystem#transfer-in "Transfer in"
+* include SGHIAdmissionCodeSystem#maternity "Maternity"
+* include SGHIAdmissionCodeSystem#newborn "Newborn"
+* include SGHIAdmissionCodeSystem#day-case "Day case"
+
+// The subset a consultation can raise. A consultation cannot originate a
+// transfer in, a newborn or a day case, so those three are withheld here.
+ValueSet: SGHIConsultationAdmissionType
+Id: consultation-admission-type
+Title: "SGHI Consultation Admission Type"
+Description: "The admission types that can be requested from a consultation."
+* ^status = #active
+* ^experimental = false
+* include SGHIAdmissionCodeSystem#emergency "Emergency"
+* include SGHIAdmissionCodeSystem#elective "Elective"
+* include SGHIAdmissionCodeSystem#maternity "Maternity"
+
+// HL7 covers three of the five. Inter-ward transfer and direct admission have no
+// admit-source concept, so they come from the SGHI system alongside them.
+ValueSet: SGHIAdmissionSource
+Id: admission-source
+Title: "SGHI Admission Source"
+Description: "Where the patient was immediately before this admission."
+* ^status = #active
+* ^experimental = false
+* include $admit-source#emd "From accident/emergency department"
+* include $admit-source#outp "From outpatient department"
+* include $admit-source#hosp-trans "Transferred from other hospital"
+* include SGHIAdmissionCodeSystem#inter-ward-transfer "Inter-ward transfer"
+* include SGHIAdmissionCodeSystem#direct-admission "Direct admission"
+
+ValueSet: SGHILevelOfCare
+Id: level-of-care
+Title: "SGHI Level of Care"
+Description: "The intensity of nursing and monitoring an admission needs. Ranked by the care-rank property: a request outranking what a ward can nurse warns rather than blocks."
+* ^status = #active
+* ^experimental = false
+* include SGHIAdmissionCodeSystem#general "General"
+* include SGHIAdmissionCodeSystem#high-dependency "High dependency"
+* include SGHIAdmissionCodeSystem#intensive-care "Intensive care"
+
+// The four services an admission can be sent to. These are existing practitioner
+// specialties, not new concepts, so this is a subset of a system already in the IG.
+ValueSet: SGHIAdmittingService
+Id: admitting-service
+Title: "SGHI Admitting Service"
+Description: "The clinical service taking responsibility for an admitted patient. A subset of the SGHI practitioner specialties, each mapped to a ward."
+* ^status = #active
+* ^experimental = false
+* include SGHIPractitionerSpecialtyCodeSystem#internal-medicine "Internal medicine"
+* include SGHIPractitionerSpecialtyCodeSystem#general-surgery "General surgery"
+* include SGHIPractitionerSpecialtyCodeSystem#obstetrics-and-gynaecology "Obstetrics and gynaecology"
+* include SGHIPractitionerSpecialtyCodeSystem#paediatrics-and-child-health "Paediatrics"
+
+// What a ward is for, as distinct from the class of a room inside it and from
+// the level of care a patient needs. Seven of the nine are concepts already
+// defined for those other axes and are bound here rather than recoded; only
+// #paediatric and #theatre-recovery are specific to wards.
+ValueSet: SGHIWardType
+Id: ward-type
+Title: "SGHI Ward Type"
+Description: "The kind of ward a bed sits in. Used to route an admission to a ward that can nurse the level of care asked for."
+* ^status = #active
+* ^experimental = false
+* include SGHIAdmissionCodeSystem#general "General"
+* include SGHIAdmissionCodeSystem#maternity "Maternity"
+* include SGHIAdmissionCodeSystem#paediatric "Paediatric"
+* include SGHIAdmissionCodeSystem#newborn "Newborn unit"
+* include SGHIAdmissionCodeSystem#intensive-care "Intensive care"
+* include SGHIAdmissionCodeSystem#high-dependency "High dependency"
+* include SGHIAdmissionCodeSystem#isolation "Isolation"
+* include SGHIAdmissionCodeSystem#amenity "Amenity"
+* include SGHIAdmissionCodeSystem#theatre-recovery "Theatre recovery"
+
+ValueSet: SGHIRoomClass
+Id: room-class
+Title: "SGHI Room Class"
+Description: "The class of a room, used to filter free beds when allocating. A bed belonging to no room is an open bay."
+* ^status = #active
+* ^experimental = false
+* include SGHIAdmissionCodeSystem#general "General"
+* include SGHIAdmissionCodeSystem#semi-private "Semi private"
+* include SGHIAdmissionCodeSystem#private "Private"
+* include SGHIAdmissionCodeSystem#isolation "Isolation"
+* include SGHIAdmissionCodeSystem#delivery "Delivery"
+* include SGHIAdmissionCodeSystem#procedure "Procedure"
+* include SGHIAdmissionCodeSystem#amenity "Amenity"
+* include SGHIAdmissionCodeSystem#high-dependency "HDU"
+* include SGHIAdmissionCodeSystem#resuscitation "Resuscitation"
+* include SGHIAdmissionCodeSystem#intensive-care "Intensive care"
+* include SGHIAdmissionCodeSystem#open-bay "Open bay"
+
+ValueSet: SGHIBedPreference
+Id: bed-preference
+Title: "SGHI Bed Preference"
+Description: "A preference carried from the admission request. Absent means no preference; it is not a code."
+* ^status = #active
+* ^experimental = false
+* include SGHIAdmissionCodeSystem#isolation "Isolation room"
+* include SGHIAdmissionCodeSystem#near-nurses-station "Near the nurses' station"
+* include SGHIAdmissionCodeSystem#high-dependency "High-dependency bed"
+* include SGHIAdmissionCodeSystem#side-room "Side room / privacy"
+* include SGHIAdmissionCodeSystem#step-free "Ground floor / step-free"
+
+ValueSet: SGHIPayerType
+Id: payer-type
+Title: "SGHI Payer Type"
+Description: "Who settles the admission. An unresolved payer holds the bill, never the bed: payment does not block admitting."
+* ^status = #active
+* ^experimental = false
+* include SGHIAdmissionCodeSystem#self-pay "Cash"
+* include SGHIAdmissionCodeSystem#insurance "Insurance"
+
+ValueSet: SGHIPaymentChannel
+Id: payment-channel
+Title: "SGHI Payment Channel"
+Description: "How a cash deposit was taken."
+* ^status = #active
+* ^experimental = false
+* include SGHIAdmissionCodeSystem#mpesa "M-PESA"
+* include SGHIAdmissionCodeSystem#cash "Cash"
+* include SGHIAdmissionCodeSystem#card "Card"
+* include SGHIAdmissionCodeSystem#bank-transfer "Bank transfer"
+* include SGHIAdmissionCodeSystem#wallet "Wallet"
+
+ValueSet: SGHINoDepositReason
+Id: no-deposit-reason
+Title: "SGHI No Deposit Reason"
+Description: "Why a patient was admitted without taking a deposit."
+* ^status = #active
+* ^experimental = false
+* include SGHIAdmissionCodeSystem#no-deposit-emergency "Emergency admission, collect after stabilisation"
+* include SGHIAdmissionCodeSystem#no-deposit-charity "Charity or sponsored patient"
+* include SGHIAdmissionCodeSystem#no-deposit-waived "Deposit waived by an administrator"
+* include SGHIAdmissionCodeSystem#no-deposit-corporate "Corporate account on file"
+
+ValueSet: SGHIPreauthorisationStatus
+Id: preauthorisation-status
+Title: "SGHI Preauthorisation Status"
+Description: "State of a pre-authorisation request to a payer. An admission may proceed with one still pending."
+* ^status = #active
+* ^experimental = false
+* include SGHIAdmissionCodeSystem#preauth-draft "Draft"
+* include SGHIAdmissionCodeSystem#preauth-pending "Pending"
+* include SGHIAdmissionCodeSystem#preauth-approved "Approved"
+* include SGHIAdmissionCodeSystem#preauth-declined "Declined"
+
+ValueSet: SGHIPayerScheme
+Id: payer-scheme
+Title: "SGHI Payer Scheme"
+Description: "The kind of scheme behind a cover, which decides what the cover is capped in."
+* ^status = #active
+* ^experimental = false
+* include SGHIPayerBenefitCodeSystem#sha "Social Health Authority"
+* include SGHIPayerBenefitCodeSystem#private "Private insurance"
+
+ValueSet: SGHIBenefitPackage
+Id: benefit-package
+Title: "SGHI Benefit Package"
+Description: "The benefit package an admission is claimed against. Not asked for an emergency SHA episode, which routes to the emergency fund instead."
+* ^status = #active
+* ^experimental = false
+* include SGHIPayerBenefitCodeSystem#benefit-inpatient "Inpatient management"
+* include SGHIPayerBenefitCodeSystem#benefit-corporate-inpatient "Corporate inpatient"
+
+ValueSet: SGHITariffRule
+Id: tariff-rule
+Title: "SGHI Tariff Rule"
+Description: "Whether an intervention is claimed for each night or once for the episode."
+* ^status = #active
+* ^experimental = false
+* include SGHIPayerBenefitCodeSystem#per-night "Per night"
+* include SGHIPayerBenefitCodeSystem#per-episode "Per episode"
+
+ValueSet: SGHISHAIntervention
+Id: sha-intervention
+Title: "SGHI SHA Intervention"
+Description: "Social Health Authority intervention codes claimable on an inpatient admission. Each carries whether it needs pre-authorisation and whether it draws on the emergency fund."
+* ^status = #active
+* ^experimental = false
+* include SGHIPayerBenefitCodeSystem#SHA-IP-MED-01 "Medical inpatient management"
+* include SGHIPayerBenefitCodeSystem#SHA-IP-HDU-02 "High dependency care"
+* include SGHIPayerBenefitCodeSystem#SHA-MAT-ND-01 "Normal delivery"
+* include SGHIPayerBenefitCodeSystem#SHA-MAT-CS-02 "Caesarean section"
+* include SGHIPayerBenefitCodeSystem#SHA-EMC-STB-01 "Emergency stabilisation and treatment"
+* include SGHIPayerBenefitCodeSystem#SHA-EMC-CRIT-02 "Emergency critical care, first 24 hours"
+
+ValueSet: SGHIAdmissionConsentBasis
+Id: admission-consent-basis
+Title: "SGHI Admission Consent Basis"
+Description: "On whose authority treatment proceeds. Absent means not recorded yet, which is a real and expected state on admission."
+* ^status = #active
+* ^experimental = false
+* include SGHIAdmissionCodeSystem#consent-by-patient "Given by the patient"
+* include SGHIAdmissionCodeSystem#consent-by-guardian "Given by a guardian or next of kin"
+* include SGHIAdmissionCodeSystem#consent-emergency "Treated under emergency provisions"
+
+// Apparent sex on an unidentified patient is administrative gender observed
+// rather than asserted. HL7's #unknown is where 'unclear' lands; a separate
+// local code would say the same thing in a system nothing else understands.
+ValueSet: SGHIApparentSex
+Id: apparent-sex
+Title: "SGHI Apparent Sex"
+Description: "Apparent sex of a patient who cannot identify themselves. Recorded as an observation of appearance, not an assertion about the person."
+* ^status = #active
+* ^experimental = false
+* include $administrative-gender#female "Female"
+* include $administrative-gender#male "Male"
+* include $administrative-gender#unknown "Unclear"
+
+ValueSet: SGHIApparentAgeBand
+Id: apparent-age-band
+Title: "SGHI Apparent Age Band"
+Description: "Estimated age band of a patient who cannot identify themselves."
+* ^status = #active
+* ^experimental = false
+* include SGHIAdmissionCodeSystem#age-infant "Infant"
+* include SGHIAdmissionCodeSystem#age-child "Child"
+* include SGHIAdmissionCodeSystem#age-teenager "Teenager"
+* include SGHIAdmissionCodeSystem#age-young-adult "Young adult"
+* include SGHIAdmissionCodeSystem#age-middle-aged "Middle aged"
+* include SGHIAdmissionCodeSystem#age-elderly "Elderly"
+
+ValueSet: SGHIArrivalMode
+Id: arrival-mode
+Title: "SGHI Arrival Mode"
+Description: "How the patient physically arrived, as recorded on the emergency admission screen."
+* ^status = #active
+* ^experimental = false
+* include SGHIAdmissionCodeSystem#arrived-ambulance "By ambulance"
+* include SGHIAdmissionCodeSystem#arrived-carried "Carried in"
+* include SGHIAdmissionCodeSystem#arrived-walked-collapsed "Walked in collapsed"
+
+ValueSet: SGHIArrivalSource
+Id: arrival-source
+Title: "SGHI Arrival Source"
+Description: "Who brought an unidentified patient in. Wider than SGHIArrivalMode, which records the manner of arrival rather than the party responsible for it."
+* ^status = #active
+* ^experimental = false
+* include SGHIAdmissionCodeSystem#arrived-ambulance "Ambulance"
+* include SGHIAdmissionCodeSystem#arrived-police "Police"
+* include SGHIAdmissionCodeSystem#arrived-bystanders "Brought by bystanders"
+* include SGHIAdmissionCodeSystem#arrived-walked-collapsed "Walked in and collapsed"
+
+ValueSet: SGHIEmergencyAdmissionDeferredItem
+Id: emergency-admission-deferred-item
+Title: "SGHI Emergency Admission Deferred Item"
+Description: "What an emergency admission leaves outstanding. The stay carries these until someone closes them."
+* ^status = #active
+* ^experimental = false
+* include SGHIAdmissionCodeSystem#deferred-identity "Identity and health ID"
+* include SGHIAdmissionCodeSystem#deferred-next-of-kin "Next of kin and contact details"
+* include SGHIAdmissionCodeSystem#deferred-billing "Billing type, payer and eligibility"
+* include SGHIAdmissionCodeSystem#deferred-diagnosis "Full admitting diagnosis and care plan"
+
+ValueSet: SGHIBreakGlassReason
+Id: break-glass-reason
+Title: "SGHI Break-Glass Reason"
+Description: "Why a clinician opened a record they are not assigned to. Recorded, not prevented."
+* ^status = #active
+* ^experimental = false
+* include SGHIAdmissionCodeSystem#break-glass-unconscious "Patient cannot consent"
+* include SGHIAdmissionCodeSystem#break-glass-life-threat "Immediate threat to life"
+* include SGHIAdmissionCodeSystem#break-glass-covering "Covering another clinician"
+* include SGHIAdmissionCodeSystem#break-glass-identity "Confirming identity"
+
+ValueSet: SGHIConsultationDisposition
+Id: consultation-disposition
+Title: "SGHI Consultation Disposition"
+Description: "What a consultation decided to do with the patient."
+* ^status = #active
+* ^experimental = false
+* include SGHIAdmissionCodeSystem#refer "Refer"
+* include SGHIAdmissionCodeSystem#admit "Admit"
+
+ValueSet: SGHIAdmissionTiming
+Id: admission-timing
+Title: "SGHI Admission Timing"
+Description: "Whether an admission raised from a consultation happens now or is booked for a date."
+* ^status = #active
+* ^experimental = false
+* include SGHIAdmissionCodeSystem#admit-now "Admit now"
+* include SGHIAdmissionCodeSystem#book-for-date "Book for a date"
+
+ValueSet: SGHICancelAdmissionReason
+Id: cancel-admission-reason
+Title: "SGHI Cancel Admission Reason"
+Description: "Why an admission request was cancelled."
+* ^status = #active
+* ^experimental = false
+* include SGHIAdmissionCodeSystem#admitted-in-error "Admitted in error"
+* include SGHIAdmissionCodeSystem#duplicate-admission "Duplicate admission"
+* include SGHIAdmissionCodeSystem#patient-declined "Patient declined admission"
+* include SGHIAdmissionCodeSystem#treated-and-sent-home "Treated and sent home instead"
+* include SGHIAdmissionCodeSystem#moved-to-another-facility "Moved to another facility"
+* include SGHIAdmissionCodeSystem#ward-cannot-receive "Ward cannot receive the patient"
+
+// The ours-to-fix property on each code marks the outcomes that were within the
+// hospital's control, which are the ones worth counting.
+ValueSet: SGHIAdmissionNoLongerNeededReason
+Id: admission-no-longer-needed-reason
+Title: "SGHI Admission No Longer Needed Reason"
+Description: "Why a queued admission is no longer needed. Reasons carrying ours-to-fix = true are the ones the hospital could have prevented."
+* ^status = #active
+* ^experimental = false
+* include SGHIAdmissionCodeSystem#improved "Treated and improved"
+* include SGHIAdmissionCodeSystem#referred-out "Referred out instead"
+* include SGHIAdmissionCodeSystem#went-elsewhere "Went to another hospital"
+* include SGHIAdmissionCodeSystem#refused "Patient refused admission"
+* include SGHIAdmissionCodeSystem#died-waiting "Died while waiting"
+* include SGHIAdmissionCodeSystem#duplicate-admission "Duplicate or raised in error"
+
+ValueSet: SGHIElectiveDeferralReason
+Id: elective-deferral-reason
+Title: "SGHI Elective Deferral Reason"
+Description: "Why a booked elective admission was deferred."
+* ^status = #active
+* ^experimental = false
+* include SGHIAdmissionCodeSystem#defer-no-bed "No bed available"
+* include SGHIAdmissionCodeSystem#defer-patient-not-ready "Patient not ready"
+* include SGHIAdmissionCodeSystem#defer-theatre "Surgeon or theatre unavailable"
+* include SGHIAdmissionCodeSystem#defer-payer "Payer approval outstanding"
+* include SGHIAdmissionCodeSystem#defer-patient-requested "Patient requested"
+
+ValueSet: SGHIWaitingPatientLocation
+Id: waiting-patient-location
+Title: "SGHI Waiting Patient Location"
+Description: "Where a patient waiting for a bed physically is, so the ward knows where to fetch them from."
+* ^status = #active
+* ^experimental = false
+* include SGHIAdmissionCodeSystem#at-emergency-department "Emergency department"
+* include SGHIAdmissionCodeSystem#at-outpatient "Outpatient area"
+* include SGHIAdmissionCodeSystem#at-corridor-trolley "Corridor trolley"
+* include SGHIAdmissionCodeSystem#at-another-ward "Another ward"
+* include SGHIAdmissionCodeSystem#at-home "At home"
+* include SGHIAdmissionCodeSystem#at-theatre "In theatre"
+* include SGHIAdmissionCodeSystem#at-another-facility "Another facility"
+
+ValueSet: SGHIAdmissionReadiness
+Id: admission-readiness
+Title: "SGHI Admission Readiness"
+Description: "Whether a queued admission request is ready to proceed."
+* ^status = #active
+* ^experimental = false
+* include SGHIAdmissionCodeSystem#ready "Ready"
+* include SGHIAdmissionCodeSystem#needs-attention "Needs attention"
+* include SGHIAdmissionCodeSystem#not-ready "Not ready"
+
+// The six declared states. The lists add tabs for 'needs bed' and 'waiting
+// admission', which are views over #admitted with no bed and over #requested
+// respectively, not states in their own right.
+ValueSet: SGHIAdmissionState
+Id: admission-state
+Title: "SGHI Admission State"
+Description: "Lifecycle of an admission, from the request through to discharge or cancellation."
+* ^status = #active
+* ^experimental = false
+* include SGHIAdmissionCodeSystem#requested "Waiting admission"
+* include SGHIAdmissionCodeSystem#scheduled "Scheduled"
+* include SGHIAdmissionCodeSystem#admitted "Admitted"
+* include SGHIAdmissionCodeSystem#discharge-pending "Discharge pending"
+* include SGHIAdmissionCodeSystem#discharged "Discharged"
+* include SGHIAdmissionCodeSystem#cancelled "Cancelled"
