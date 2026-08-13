@@ -14,12 +14,9 @@ Description: "SGHI's Practitioner used in SGHI systems"
 * telecom.use from SGHIContactPointUse
 * birthDate 1..1
 * qualification 1..
-* qualification.identifier 1..
-  * insert CommonIdentifierRules
+* qualification.identifier 0..
 * qualification.code 1..1
 * qualification.code only SGHICodeableConcept
-* qualification.period 1..1
-* qualification.issuer 1..1
-* qualification.issuer only SGHIReference
-* qualification.issuer only Reference(SGHIOrganization)
+* qualification.period 0..1
+* qualification.issuer 0..1
 
