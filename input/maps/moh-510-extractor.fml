@@ -1,0 +1,989 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractMOH510ImmunisationRegister"
+/// name = "ExtractMOH510ImmunisationRegister"
+/// title = "MOH 510 Immunisation Permanent Register Extraction"
+/// status = "active"
+/// description = "Extracts a transaction Bundle from a QuestionnaireResponse to the Kenya MOH 510 Immunisation Permanent Register: guardian RelatedPersons, growth-monitoring Observations, one Immunization per antigen dose for sections L-Y/AA-AB/AD, Vitamin A MedicationAdministrations for section Z, danger-signs and education Observations, and an Appointment for the next scheduled visit. It creates no Patient, Encounter or EpisodeOfCare -- the register is launched from inside a visit the EMR has already opened, so all three arrive as context on the QuestionnaireResponse and are referenced rather than minted. QuestionnaireResponse.subject and .encounter are therefore both required."
+/// experimental = "true"
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/RelatedPerson" alias RelatedPerson as target
+uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Observation as target
+uses "http://hl7.org/fhir/StructureDefinition/Immunization" alias Immunization as target
+uses "http://hl7.org/fhir/StructureDefinition/MedicationAdministration" alias MedicationAdministration as target
+uses "http://hl7.org/fhir/StructureDefinition/Appointment" alias Appointment as target
+
+group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  // ---------------------------------------------------------------- A-K
+  qr.item as gReg where linkId = 'IMM-group-registration' then {
+
+    // No Patient is emitted. The child is registered before the register entry
+    // is filled, so the patient already exists and arrives as
+    // QuestionnaireResponse.subject -- every resource below references it.
+    // Sections C (child number), D (name), E (sex), F (date of birth) and
+    // J (address) are the paper form transcribing demographics the EMR already
+    // holds, so they are deliberately not extracted: creating a Patient here
+    // would mint a duplicate record, and a blind PUT would clobber fields the
+    // form does not carry. Reconciling them belongs in registration, not here.
+    //
+    // This makes QuestionnaireResponse.subject mandatory for extraction --
+    // without it Immunization.patient (1..1) cannot be populated.
+
+    gReg.item as itH where linkId = 'IMM-RG-H-father-name' then {
+      itH.answer first as aH then {
+        aH -> bundle.entry as eFat, eFat.resource = create('RelatedPerson') as fat then {
+          qr -> fat, eFat then BuildRelatedPerson(qr, itH, fat, eFat) "fatherBase";
+          qr -> fat.relationship as relF then {
+            qr -> relF.coding as relFc then {
+              qr -> relFc.system = 'http://terminology.hl7.org/CodeSystem/v3-RoleCode' "fatRelSystem";
+              qr -> relFc.code = 'FTH' "fatRelCode";
+              qr -> relFc.display = 'father' "fatRelDisplay";
+            } "fatherRelCoding";
+          } "fatherRelationship";
+          aH.value as v -> fat.name as nF then {
+            v -> nF.text = v "fatherNameText";
+          } "fatherName";
+          gReg.item as itKf where linkId = '42077-8' then {
+            itKf.answer first as aKf then {
+              aKf.value as v -> fat.telecom as tcF then {
+                qr -> tcF.system = 'phone' "fatPhoneSystem";
+                v -> tcF.value = v "fatPhoneValue";
+              } "fatherTelecom";
+            } "fatherPhoneAnswer";
+          } "fatherPhoneRule";
+        } "fatherResource";
+      } "fatherAnswer";
+    } "fatherRule";
+
+    gReg.item as itI where linkId = 'IMM-RG-I-mother-name' then {
+      itI.answer first as aI then {
+        aI -> bundle.entry as eMot, eMot.resource = create('RelatedPerson') as mot then {
+          qr -> mot, eMot then BuildRelatedPerson(qr, itI, mot, eMot) "motherBase";
+          qr -> mot.relationship as relM then {
+            qr -> relM.coding as relMc then {
+              qr -> relMc.system = 'http://terminology.hl7.org/CodeSystem/v3-RoleCode' "motRelSystem";
+              qr -> relMc.code = 'MTH' "motRelCode";
+              qr -> relMc.display = 'mother' "motRelDisplay";
+            } "motherRelCoding";
+          } "motherRelationship";
+          aI.value as v -> mot.name as nM then {
+            v -> nM.text = v "motherNameText";
+          } "motherName";
+          gReg.item as itKm where linkId = '42077-8' then {
+            itKm.answer first as aKm then {
+              aKm.value as v -> mot.telecom as tcM then {
+                qr -> tcM.system = 'phone' "motPhoneSystem";
+                v -> tcM.value = v "motPhoneValue";
+              } "motherTelecom";
+            } "motherPhoneAnswer";
+          } "motherPhoneRule";
+        } "motherResource";
+      } "motherAnswer";
+    } "motherRule";
+
+    // No Encounter and no EpisodeOfCare are emitted either. The register is
+    // launched from inside a visit the EMR has already opened, so both arrive
+    // as context: QuestionnaireResponse.encounter carries the Encounter, and
+    // the episode association hangs off that Encounter where the EMR put it.
+    // Creating them here would mint a second visit alongside the real one.
+    //
+    // That leaves sections A (date of visit), B (register serial) and G (date
+    // first seen) unextracted, for the same reason C-F and J are: the EMR owns
+    // the visit record and the child's registration. Every clinical resource
+    // below hangs off qr.encounter, so the whole page still lands on the right
+    // visit.
+  } "registrationGroup";
+
+  // ------------------------------------------------------ Growth monitoring
+  qr.item as gGrow where linkId = 'IMM-group-growth' then {
+
+    gGrow.item as itW where linkId = 'IMM-GM-Q1-weight' then {
+      itW.answer first as aW then {
+        aW -> bundle.entry as eW, eW.resource = create('Observation') as obW then {
+          qr -> obW, eW then BuildObsBase(qr, obW, eW) "weightBase";
+          qr -> obW then VitalSignsCategory(qr, obW) "weightCategory";
+          qr -> obW.code as cdW then {
+            qr -> cdW.coding as ccW then {
+              qr -> ccW.system = 'http://loinc.org' "wSystem";
+              qr -> ccW.code = '29463-7' "wCode";
+              qr -> ccW.display = 'Body weight' "wDisplay";
+            } "weightCodeCoding";
+          } "weightCode";
+          aW.value as dv -> obW.value = create('Quantity') as qW then {
+            dv -> qW.value = dv "wQtyValue";
+            qr -> qW.system = 'http://unitsofmeasure.org' "wQtySystem";
+            qr -> qW.code = 'kg' "wQtyCode";
+            qr -> qW.unit = 'kilogram' "wQtyUnit";
+          } "weightValue";
+        } "weightObservation";
+      } "weightAnswer";
+    } "weightRule";
+
+    gGrow.item as itH2 where linkId = 'IMM-GM-Q2-height' then {
+      itH2.answer first as aH2 then {
+        aH2 -> bundle.entry as eH2, eH2.resource = create('Observation') as obH2 then {
+          qr -> obH2, eH2 then BuildObsBase(qr, obH2, eH2) "heightBase";
+          qr -> obH2 then VitalSignsCategory(qr, obH2) "heightCategory";
+          qr -> obH2.code as cdH2 then {
+            qr -> cdH2.coding as ccH2 then {
+              qr -> ccH2.system = 'http://loinc.org' "hSystem";
+              qr -> ccH2.code = '8302-2' "hCode";
+              qr -> ccH2.display = 'Body height' "hDisplay";
+            } "heightCodeCoding";
+          } "heightCode";
+          aH2.value as dv -> obH2.value = create('Quantity') as qH2 then {
+            dv -> qH2.value = dv "hQtyValue";
+            qr -> qH2.system = 'http://unitsofmeasure.org' "hQtySystem";
+            qr -> qH2.code = 'cm' "hQtyCode";
+            qr -> qH2.unit = 'centimeter' "hQtyUnit";
+          } "heightValue";
+        } "heightObservation";
+      } "heightAnswer";
+    } "heightRule";
+
+    gGrow.item as itMu where linkId = 'IMM-GM-Q3-muac' then {
+      itMu.answer first as aMu then {
+        aMu -> bundle.entry as eMu, eMu.resource = create('Observation') as obMu then {
+          qr -> obMu, eMu then BuildObsBase(qr, obMu, eMu) "muacBase";
+          qr -> obMu then VitalSignsCategory(qr, obMu) "muacCategory";
+          qr -> obMu.code as cdMu then {
+            qr -> cdMu.coding as ccMu then {
+              qr -> ccMu.system = 'http://loinc.org' "muSystem";
+              qr -> ccMu.code = '9847-5' "muCode";
+              qr -> ccMu.display = 'Circumference site' "muDisplay";
+            } "muacCodeCoding";
+          } "muacCode";
+          qr -> obMu then SetCodedValue(itMu, obMu) "muacValue";
+        } "muacObservation";
+      } "muacAnswer";
+    } "muacRule";
+
+    gGrow.item as itWfa where linkId = 'IMM-GM-Q4-weight-category' then {
+      itWfa.answer first as aWfa then {
+        aWfa -> bundle.entry as eWfa, eWfa.resource = create('Observation') as obWfa then {
+          qr -> obWfa, eWfa then BuildObsBase(qr, obWfa, eWfa) "wfaBase";
+          qr -> obWfa then VitalSignsCategory(qr, obWfa) "wfaCategory";
+          qr -> obWfa.code as cdWfa then {
+            qr -> cdWfa.coding as ccWfa then {
+              qr -> ccWfa.system = 'http://loinc.org' "wfaSystem";
+              qr -> ccWfa.code = '77606-2' "wfaCode";
+              qr -> ccWfa.display = 'Weight-for-age percentile' "wfaDisplay";
+            } "wfaCodeCoding";
+          } "wfaCode";
+          qr -> obWfa then SetCodedValue(itWfa, obWfa) "wfaValue";
+        } "wfaObservation";
+      } "wfaAnswer";
+    } "wfaRule";
+
+    gGrow.item as itHfa where linkId = 'IMM-GM-Q5-height-category' then {
+      itHfa.answer first as aHfa then {
+        aHfa -> bundle.entry as eHfa, eHfa.resource = create('Observation') as obHfa then {
+          qr -> obHfa, eHfa then BuildObsBase(qr, obHfa, eHfa) "hfaBase";
+          qr -> obHfa then VitalSignsCategory(qr, obHfa) "hfaCategory";
+          qr -> obHfa.code as cdHfa then {
+            qr -> cdHfa.coding as ccHfa then {
+              qr -> ccHfa.system = 'http://loinc.org' "hfaSystem";
+              qr -> ccHfa.code = '59576-9' "hfaCode";
+              qr -> ccHfa.display = 'Height-for-age percentile' "hfaDisplay";
+            } "hfaCodeCoding";
+          } "hfaCode";
+          qr -> obHfa then SetCodedValue(itHfa, obHfa) "hfaValue";
+        } "hfaObservation";
+      } "hfaAnswer";
+    } "hfaRule";
+  } "growthGroup";
+
+  // ------------------------------------------------------------- L-Y vaccines
+  qr.item as gVax where linkId = 'IMM-group-vaccines' then {
+
+    gVax.item as itL where linkId = 'IMM-VAX-L-bcg' then {
+      itL.answer first as aL then {
+        aL -> bundle.entry as eL, eL.resource = create('Immunization') as imL then {
+          qr -> imL, eL then BuildImm(qr, itL, aL, imL, eL) "bcgBase";
+          qr -> imL.vaccineCode as vcL then {
+            qr -> vcL.coding as vccL then {
+              qr -> vccL.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/kepi-antigen' "bcgSystem";
+              qr -> vccL.code = 'bcg' "bcgCode";
+              qr -> vccL.display = 'BCG' "bcgDisplay";
+            } "bcgCoding";
+            qr -> vcL.text = 'BCG' "bcgText";
+          } "bcgVaccineCode";
+          qr -> imL.protocolApplied as paL then {
+            qr -> paL.series = 'BCG' "bcgSeries";
+            qr -> paL.doseNumber = '1' "bcgDose";
+          } "bcgProtocol";
+        } "bcgImmunization";
+      } "bcgAnswer";
+    } "bcgRule";
+
+    gVax.item as itM where linkId = 'IMM-VAX-M-polio-birth' then {
+      itM.answer first as aM then {
+        aM -> bundle.entry as eM, eM.resource = create('Immunization') as imM then {
+          qr -> imM, eM then BuildImm(qr, itM, aM, imM, eM) "opv0Base";
+          qr -> imM.vaccineCode as vcM then {
+            qr -> vcM.coding as vccM then {
+              qr -> vccM.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/kepi-antigen' "opv0System";
+              qr -> vccM.code = 'bopv' "opv0Code";
+              qr -> vccM.display = 'Bivalent oral poliovirus vaccine' "opv0Display";
+            } "opv0Coding";
+            qr -> vcM.text = 'Polio birth dose (bOPV)' "opv0Text";
+          } "opv0VaccineCode";
+          qr -> imM.protocolApplied as paM then {
+            qr -> paM.series = 'Polio (bOPV)' "opv0Series";
+            qr -> paM.doseNumber = '0' "opv0Dose";
+          } "opv0Protocol";
+        } "opv0Immunization";
+      } "opv0Answer";
+    } "opv0Rule";
+
+    gVax.item as itN where linkId = 'IMM-VAX-N-opv1' then {
+      itN.answer first as aN then {
+        aN -> bundle.entry as eN, eN.resource = create('Immunization') as imN then {
+          qr -> imN, eN then BuildImm(qr, itN, aN, imN, eN) "opv1Base";
+          qr -> imN.vaccineCode as vcN then {
+            qr -> vcN.coding as vccN then {
+              qr -> vccN.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/kepi-antigen' "opv1System";
+              qr -> vccN.code = 'bopv' "opv1Code";
+              qr -> vccN.display = 'Bivalent oral poliovirus vaccine' "opv1Display";
+            } "opv1Coding";
+            qr -> vcN.text = 'OPV 1' "opv1Text";
+          } "opv1VaccineCode";
+          qr -> imN.protocolApplied as paN then {
+            qr -> paN.series = 'Polio (bOPV)' "opv1Series";
+            qr -> paN.doseNumber = '1' "opv1Dose";
+          } "opv1Protocol";
+        } "opv1Immunization";
+      } "opv1Answer";
+    } "opv1Rule";
+
+    gVax.item as itO where linkId = 'IMM-VAX-O-opv2' then {
+      itO.answer first as aO then {
+        aO -> bundle.entry as eO, eO.resource = create('Immunization') as imO then {
+          qr -> imO, eO then BuildImm(qr, itO, aO, imO, eO) "opv2Base";
+          qr -> imO.vaccineCode as vcO then {
+            qr -> vcO.coding as vccO then {
+              qr -> vccO.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/kepi-antigen' "opv2System";
+              qr -> vccO.code = 'bopv' "opv2Code";
+              qr -> vccO.display = 'Bivalent oral poliovirus vaccine' "opv2Display";
+            } "opv2Coding";
+            qr -> vcO.text = 'OPV 2' "opv2Text";
+          } "opv2VaccineCode";
+          qr -> imO.protocolApplied as paO then {
+            qr -> paO.series = 'Polio (bOPV)' "opv2Series";
+            qr -> paO.doseNumber = '2' "opv2Dose";
+          } "opv2Protocol";
+        } "opv2Immunization";
+      } "opv2Answer";
+    } "opv2Rule";
+
+    gVax.item as itP where linkId = 'IMM-VAX-P-opv3' then {
+      itP.answer first as aP then {
+        aP -> bundle.entry as eP, eP.resource = create('Immunization') as imP then {
+          qr -> imP, eP then BuildImm(qr, itP, aP, imP, eP) "opv3Base";
+          qr -> imP.vaccineCode as vcP then {
+            qr -> vcP.coding as vccP then {
+              qr -> vccP.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/kepi-antigen' "opv3System";
+              qr -> vccP.code = 'bopv' "opv3Code";
+              qr -> vccP.display = 'Bivalent oral poliovirus vaccine' "opv3Display";
+            } "opv3Coding";
+            qr -> vcP.text = 'OPV 3' "opv3Text";
+          } "opv3VaccineCode";
+          qr -> imP.protocolApplied as paP then {
+            qr -> paP.series = 'Polio (bOPV)' "opv3Series";
+            qr -> paP.doseNumber = '3' "opv3Dose";
+          } "opv3Protocol";
+        } "opv3Immunization";
+      } "opv3Answer";
+    } "opv3Rule";
+
+    // IPV carries its own antigen code: the questionnaire reuses the OPV LOINC
+    // code for both, which would collapse two distinct vaccines into one.
+    gVax.item as itQ where linkId = 'IMM-VAX-Q-ipv' then {
+      itQ.answer first as aQ then {
+        aQ -> bundle.entry as eQ, eQ.resource = create('Immunization') as imQ then {
+          qr -> imQ, eQ then BuildImm(qr, itQ, aQ, imQ, eQ) "ipvBase";
+          qr -> imQ.vaccineCode as vcQ then {
+            qr -> vcQ.coding as vccQ then {
+              qr -> vccQ.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/kepi-antigen' "ipvSystem";
+              qr -> vccQ.code = 'ipv' "ipvCode";
+              qr -> vccQ.display = 'Inactivated poliovirus vaccine' "ipvDisplay";
+            } "ipvCoding";
+            qr -> vcQ.text = 'IPV' "ipvText";
+          } "ipvVaccineCode";
+          qr -> imQ.protocolApplied as paQ then {
+            qr -> paQ.series = 'Polio (IPV)' "ipvSeries";
+            qr -> paQ.doseNumber = '1' "ipvDose";
+          } "ipvProtocol";
+        } "ipvImmunization";
+      } "ipvAnswer";
+    } "ipvRule";
+
+    gVax.item as itR where linkId = 'IMM-VAX-R-penta1' then {
+      itR.answer first as aR then {
+        aR -> bundle.entry as eR, eR.resource = create('Immunization') as imR then {
+          qr -> imR, eR then BuildImm(qr, itR, aR, imR, eR) "penta1Base";
+          qr -> imR.vaccineCode as vcR then {
+            qr -> vcR.coding as vccR then {
+              qr -> vccR.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/kepi-antigen' "penta1System";
+              qr -> vccR.code = 'penta' "penta1Code";
+              qr -> vccR.display = 'DTP-HepB-Hib (pentavalent) vaccine' "penta1Display";
+            } "penta1Coding";
+            qr -> vcR.text = 'Pentavalent 1' "penta1Text";
+          } "penta1VaccineCode";
+          qr -> imR.protocolApplied as paR then {
+            qr -> paR.series = 'Pentavalent' "penta1Series";
+            qr -> paR.doseNumber = '1' "penta1Dose";
+          } "penta1Protocol";
+        } "penta1Immunization";
+      } "penta1Answer";
+    } "penta1Rule";
+
+    gVax.item as itS where linkId = 'IMM-VAX-S-penta2' then {
+      itS.answer first as aS then {
+        aS -> bundle.entry as eS, eS.resource = create('Immunization') as imS then {
+          qr -> imS, eS then BuildImm(qr, itS, aS, imS, eS) "penta2Base";
+          qr -> imS.vaccineCode as vcS then {
+            qr -> vcS.coding as vccS then {
+              qr -> vccS.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/kepi-antigen' "penta2System";
+              qr -> vccS.code = 'penta' "penta2Code";
+              qr -> vccS.display = 'DTP-HepB-Hib (pentavalent) vaccine' "penta2Display";
+            } "penta2Coding";
+            qr -> vcS.text = 'Pentavalent 2' "penta2Text";
+          } "penta2VaccineCode";
+          qr -> imS.protocolApplied as paS then {
+            qr -> paS.series = 'Pentavalent' "penta2Series";
+            qr -> paS.doseNumber = '2' "penta2Dose";
+          } "penta2Protocol";
+        } "penta2Immunization";
+      } "penta2Answer";
+    } "penta2Rule";
+
+    gVax.item as itT where linkId = 'IMM-VAX-T-penta3' then {
+      itT.answer first as aT then {
+        aT -> bundle.entry as eT, eT.resource = create('Immunization') as imT then {
+          qr -> imT, eT then BuildImm(qr, itT, aT, imT, eT) "penta3Base";
+          qr -> imT.vaccineCode as vcT then {
+            qr -> vcT.coding as vccT then {
+              qr -> vccT.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/kepi-antigen' "penta3System";
+              qr -> vccT.code = 'penta' "penta3Code";
+              qr -> vccT.display = 'DTP-HepB-Hib (pentavalent) vaccine' "penta3Display";
+            } "penta3Coding";
+            qr -> vcT.text = 'Pentavalent 3' "penta3Text";
+          } "penta3VaccineCode";
+          qr -> imT.protocolApplied as paT then {
+            qr -> paT.series = 'Pentavalent' "penta3Series";
+            qr -> paT.doseNumber = '3' "penta3Dose";
+          } "penta3Protocol";
+        } "penta3Immunization";
+      } "penta3Answer";
+    } "penta3Rule";
+
+    gVax.item as itU where linkId = 'IMM-VAX-U-pcv1' then {
+      itU.answer first as aU then {
+        aU -> bundle.entry as eU, eU.resource = create('Immunization') as imU then {
+          qr -> imU, eU then BuildImm(qr, itU, aU, imU, eU) "pcv1Base";
+          qr -> imU.vaccineCode as vcU then {
+            qr -> vcU.coding as vccU then {
+              qr -> vccU.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/kepi-antigen' "pcv1System";
+              qr -> vccU.code = 'pcv10' "pcv1Code";
+              qr -> vccU.display = 'Pneumococcal conjugate vaccine (PCV10)' "pcv1Display";
+            } "pcv1Coding";
+            qr -> vcU.text = 'PCV10 1' "pcv1Text";
+          } "pcv1VaccineCode";
+          qr -> imU.protocolApplied as paU then {
+            qr -> paU.series = 'PCV10' "pcv1Series";
+            qr -> paU.doseNumber = '1' "pcv1Dose";
+          } "pcv1Protocol";
+        } "pcv1Immunization";
+      } "pcv1Answer";
+    } "pcv1Rule";
+
+    gVax.item as itV where linkId = 'IMM-VAX-V-pcv2' then {
+      itV.answer first as aV then {
+        aV -> bundle.entry as eV, eV.resource = create('Immunization') as imV then {
+          qr -> imV, eV then BuildImm(qr, itV, aV, imV, eV) "pcv2Base";
+          qr -> imV.vaccineCode as vcV then {
+            qr -> vcV.coding as vccV then {
+              qr -> vccV.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/kepi-antigen' "pcv2System";
+              qr -> vccV.code = 'pcv10' "pcv2Code";
+              qr -> vccV.display = 'Pneumococcal conjugate vaccine (PCV10)' "pcv2Display";
+            } "pcv2Coding";
+            qr -> vcV.text = 'PCV10 2' "pcv2Text";
+          } "pcv2VaccineCode";
+          qr -> imV.protocolApplied as paV then {
+            qr -> paV.series = 'PCV10' "pcv2Series";
+            qr -> paV.doseNumber = '2' "pcv2Dose";
+          } "pcv2Protocol";
+        } "pcv2Immunization";
+      } "pcv2Answer";
+    } "pcv2Rule";
+
+    gVax.item as itW2 where linkId = 'IMM-VAX-W-pcv3' then {
+      itW2.answer first as aW2 then {
+        aW2 -> bundle.entry as eW2, eW2.resource = create('Immunization') as imW2 then {
+          qr -> imW2, eW2 then BuildImm(qr, itW2, aW2, imW2, eW2) "pcv3Base";
+          qr -> imW2.vaccineCode as vcW2 then {
+            qr -> vcW2.coding as vccW2 then {
+              qr -> vccW2.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/kepi-antigen' "pcv3System";
+              qr -> vccW2.code = 'pcv10' "pcv3Code";
+              qr -> vccW2.display = 'Pneumococcal conjugate vaccine (PCV10)' "pcv3Display";
+            } "pcv3Coding";
+            qr -> vcW2.text = 'PCV10 3' "pcv3Text";
+          } "pcv3VaccineCode";
+          qr -> imW2.protocolApplied as paW2 then {
+            qr -> paW2.series = 'PCV10' "pcv3Series";
+            qr -> paW2.doseNumber = '3' "pcv3Dose";
+          } "pcv3Protocol";
+        } "pcv3Immunization";
+      } "pcv3Answer";
+    } "pcv3Rule";
+
+    gVax.item as itX where linkId = 'IMM-VAX-X-rota1' then {
+      itX.answer first as aX then {
+        aX -> bundle.entry as eX, eX.resource = create('Immunization') as imX then {
+          qr -> imX, eX then BuildImm(qr, itX, aX, imX, eX) "rota1Base";
+          qr -> imX.vaccineCode as vcX then {
+            qr -> vcX.coding as vccX then {
+              qr -> vccX.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/kepi-antigen' "rota1System";
+              qr -> vccX.code = 'rota' "rota1Code";
+              qr -> vccX.display = 'Rotavirus vaccine' "rota1Display";
+            } "rota1Coding";
+            qr -> vcX.text = 'Rota 1' "rota1Text";
+          } "rota1VaccineCode";
+          qr -> imX.protocolApplied as paX then {
+            qr -> paX.series = 'Rotavirus' "rota1Series";
+            qr -> paX.doseNumber = '1' "rota1Dose";
+          } "rota1Protocol";
+        } "rota1Immunization";
+      } "rota1Answer";
+    } "rota1Rule";
+
+    gVax.item as itY where linkId = 'IMM-VAX-Y-rota2' then {
+      itY.answer first as aY then {
+        aY -> bundle.entry as eY, eY.resource = create('Immunization') as imY then {
+          qr -> imY, eY then BuildImm(qr, itY, aY, imY, eY) "rota2Base";
+          qr -> imY.vaccineCode as vcY then {
+            qr -> vcY.coding as vccY then {
+              qr -> vccY.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/kepi-antigen' "rota2System";
+              qr -> vccY.code = 'rota' "rota2Code";
+              qr -> vccY.display = 'Rotavirus vaccine' "rota2Display";
+            } "rota2Coding";
+            qr -> vcY.text = 'Rota 2' "rota2Text";
+          } "rota2VaccineCode";
+          qr -> imY.protocolApplied as paY then {
+            qr -> paY.series = 'Rotavirus' "rota2Series";
+            qr -> paY.doseNumber = '2' "rota2Dose";
+          } "rota2Protocol";
+        } "rota2Immunization";
+      } "rota2Answer";
+    } "rota2Rule";
+  } "vaccineGroup";
+
+  // ------------------------------------------------- Z Vitamin A supplements
+  qr.item as gSup where linkId = 'IMM-group-supplementation' then {
+
+    gSup.item as itZ where linkId = '55876-9' then {
+      itZ.answer first as aZ then {
+        aZ -> bundle.entry as eZ, eZ.resource = create('MedicationAdministration') as maZ then {
+          qr -> maZ, eZ then BuildMedAdmin(qr, itZ, aZ, maZ, eZ) "vitA100Base";
+          qr -> maZ.medication as mcrZ then {
+            qr -> mcrZ.concept as mccZ then {
+              qr -> mccZ.coding as mcoZ then {
+                qr -> mcoZ.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/kepi-supplement' "vitA100System";
+                qr -> mcoZ.code = 'vitamin-a-100000' "vitA100Code";
+                qr -> mcoZ.display = 'Vitamin A 100,000 IU' "vitA100Display";
+              } "vitA100Coding";
+              qr -> mccZ.text = 'Vitamin A 100,000 IU (6-11 months)' "vitA100Text";
+            } "vitA100Concept";
+          } "vitA100Medication";
+          qr -> maZ.dosage as dosZ then {
+            qr -> dosZ.dose as dqZ then {
+              qr -> dqZ.value = 100000 "vitA100DoseValue";
+              qr -> dqZ.system = 'http://unitsofmeasure.org' "vitA100DoseSystem";
+              qr -> dqZ.code = '[IU]' "vitA100DoseCode";
+              qr -> dqZ.unit = 'international unit' "vitA100DoseUnit";
+            } "vitA100Dose";
+          } "vitA100Dosage";
+        } "vitA100Resource";
+      } "vitA100Answer";
+    } "vitA100Rule";
+
+    gSup.item as itZ2 where linkId = '0v8mpdt' then {
+      itZ2.answer first as aZ2 then {
+        aZ2 -> bundle.entry as eZ2, eZ2.resource = create('MedicationAdministration') as maZ2 then {
+          qr -> maZ2, eZ2 then BuildMedAdmin(qr, itZ2, aZ2, maZ2, eZ2) "vitA200Base";
+          qr -> maZ2.medication as mcrZ2 then {
+            qr -> mcrZ2.concept as mccZ2 then {
+              qr -> mccZ2.coding as mcoZ2 then {
+                qr -> mcoZ2.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/kepi-supplement' "vitA200System";
+                qr -> mcoZ2.code = 'vitamin-a-200000' "vitA200Code";
+                qr -> mcoZ2.display = 'Vitamin A 200,000 IU' "vitA200Display";
+              } "vitA200Coding";
+              qr -> mccZ2.text = 'Vitamin A 200,000 IU (12 months onwards)' "vitA200Text";
+            } "vitA200Concept";
+          } "vitA200Medication";
+          qr -> maZ2.dosage as dosZ2 then {
+            qr -> dosZ2.dose as dqZ2 then {
+              qr -> dqZ2.value = 200000 "vitA200DoseValue";
+              qr -> dqZ2.system = 'http://unitsofmeasure.org' "vitA200DoseSystem";
+              qr -> dqZ2.code = '[IU]' "vitA200DoseCode";
+              qr -> dqZ2.unit = 'international unit' "vitA200DoseUnit";
+            } "vitA200Dose";
+          } "vitA200Dosage";
+        } "vitA200Resource";
+      } "vitA200Answer";
+    } "vitA200Rule";
+  } "supplementationGroup";
+
+  // ------------------------------------------------------ AA-AB MR1 + Yellow Fever
+  qr.item as gMrYf where linkId = 'IMM-group-mr-yf' then {
+
+    gMrYf.item as itAa where linkId = 'IMM-VAX-AA-mr1' then {
+      itAa.answer first as aAa then {
+        aAa -> bundle.entry as eAa, eAa.resource = create('Immunization') as imAa then {
+          qr -> imAa, eAa then BuildImm(qr, itAa, aAa, imAa, eAa) "mr1Base";
+          qr -> imAa.vaccineCode as vcAa then {
+            qr -> vcAa.coding as vccAa then {
+              qr -> vccAa.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/kepi-antigen' "mr1System";
+              qr -> vccAa.code = 'mr' "mr1Code";
+              qr -> vccAa.display = 'Measles-rubella vaccine' "mr1Display";
+            } "mr1Coding";
+            qr -> vcAa.text = 'MR 1' "mr1Text";
+          } "mr1VaccineCode";
+          qr -> imAa.protocolApplied as paAa then {
+            qr -> paAa.series = 'Measles-Rubella' "mr1Series";
+            qr -> paAa.doseNumber = '1' "mr1Dose";
+          } "mr1Protocol";
+        } "mr1Immunization";
+      } "mr1Answer";
+    } "mr1Rule";
+
+    gMrYf.item as itAb where linkId = 'IMM-VAX-AB-yf' then {
+      itAb.answer first as aAb then {
+        aAb -> bundle.entry as eAb, eAb.resource = create('Immunization') as imAb then {
+          qr -> imAb, eAb then BuildImm(qr, itAb, aAb, imAb, eAb) "yfBase";
+          qr -> imAb.vaccineCode as vcAb then {
+            qr -> vcAb.coding as vccAb then {
+              qr -> vccAb.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/kepi-antigen' "yfSystem";
+              qr -> vccAb.code = 'yf' "yfCode";
+              qr -> vccAb.display = 'Yellow fever vaccine' "yfDisplay";
+            } "yfCoding";
+            qr -> vcAb.text = 'Yellow Fever' "yfText";
+          } "yfVaccineCode";
+          qr -> imAb.protocolApplied as paAb then {
+            qr -> paAb.series = 'Yellow Fever' "yfSeries";
+            qr -> paAb.doseNumber = '1' "yfDose";
+          } "yfProtocol";
+        } "yfImmunization";
+      } "yfAnswer";
+    } "yfRule";
+  } "mrYfGroup";
+
+  // ------------------------------------------------------------- AC FIC date
+  qr.item as gFic where linkId = 'IMM-group-fic' then {
+    gFic.item as itAc where linkId = 'IMM-FIC-AC-date' then {
+      itAc.answer first as aAc then {
+        aAc -> bundle.entry as eAc, eAc.resource = create('Observation') as obAc then {
+          qr -> obAc, eAc then BuildObsBase(qr, obAc, eAc) "ficBase";
+          qr -> obAc then SurveyCategory(qr, obAc) "ficCategory";
+          qr -> obAc.code as cdAc then {
+            qr -> cdAc.coding as ccAc then {
+              qr -> ccAc.system = 'http://loinc.org' "ficSystem";
+              qr -> ccAc.code = '11369-6' "ficCode";
+              qr -> ccAc.display = 'Immunisation completion status' "ficDisplay";
+            } "ficCodeCoding";
+            qr -> cdAc.text = 'Fully Immunised Child (FIC) completion date' "ficCodeText";
+          } "ficCode";
+          aAc.value as dv -> obAc.value = cast(dv, 'dateTime') "ficValue";
+        } "ficObservation";
+      } "ficAnswer";
+    } "ficRule";
+  } "ficGroup";
+
+  // ------------------------------------------------------------------ AD MR2
+  qr.item as gMr2 where linkId = 'IMM-group-mr2' then {
+    gMr2.item as itAd where linkId = 'IMM-VAX-AD-mr2' then {
+      itAd.answer first as aAd then {
+        aAd -> bundle.entry as eAd, eAd.resource = create('Immunization') as imAd then {
+          qr -> imAd, eAd then BuildImm(qr, itAd, aAd, imAd, eAd) "mr2Base";
+          qr -> imAd.vaccineCode as vcAd then {
+            qr -> vcAd.coding as vccAd then {
+              qr -> vccAd.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/kepi-antigen' "mr2System";
+              qr -> vccAd.code = 'mr' "mr2Code";
+              qr -> vccAd.display = 'Measles-rubella vaccine' "mr2Display";
+            } "mr2Coding";
+            qr -> vcAd.text = 'MR 2' "mr2Text";
+          } "mr2VaccineCode";
+          qr -> imAd.protocolApplied as paAd then {
+            qr -> paAd.series = 'Measles-Rubella' "mr2Series";
+            qr -> paAd.doseNumber = '2' "mr2Dose";
+          } "mr2Protocol";
+        } "mr2Immunization";
+      } "mr2Answer";
+    } "mr2Rule";
+  } "mr2Group";
+
+  // ------------------------------------------------------------- Danger signs
+  qr.item as gDs where linkId = 'IMM-group-danger-signs' then {
+
+    gDs.item as itD1 where linkId = 'IMM-DS-Q1-fever' then {
+      itD1.answer first as aD1 then {
+        aD1 -> bundle.entry as eD1, eD1.resource = create('Observation') as obD1 then {
+          qr -> obD1, eD1 then BuildObsBase(qr, obD1, eD1) "feverBase";
+          qr -> obD1 then SurveyCategory(qr, obD1) "feverCategory";
+          qr -> obD1.code as cdD1 then {
+            qr -> cdD1.coding as ccD1 then {
+              qr -> ccD1.system = 'http://loinc.org' "feverSystem";
+              qr -> ccD1.code = '8310-5' "feverCode";
+              qr -> ccD1.display = 'Body temperature' "feverDisplay";
+            } "feverCodeCoding";
+            qr -> cdD1.text = 'Fever reported' "feverCodeText";
+          } "feverCode";
+          qr -> obD1 then SetCodedValue(itD1, obD1) "feverValue";
+        } "feverObservation";
+      } "feverAnswer";
+    } "feverRule";
+
+    gDs.item as itD2 where linkId = 'IMM-DS-Q2-feeding' then {
+      itD2.answer first as aD2 then {
+        aD2 -> bundle.entry as eD2, eD2.resource = create('Observation') as obD2 then {
+          qr -> obD2, eD2 then BuildObsBase(qr, obD2, eD2) "feedingBase";
+          qr -> obD2 then SurveyCategory(qr, obD2) "feedingCategory";
+          qr -> obD2.code as cdD2 then {
+            qr -> cdD2.coding as ccD2 then {
+              qr -> ccD2.system = 'http://loinc.org' "feedingSystem";
+              qr -> ccD2.code = '75890-1' "feedingCode";
+              qr -> ccD2.display = 'Feeding status' "feedingDisplay";
+            } "feedingCodeCoding";
+            // Polarity is inverted relative to the other danger signs: "Yes"
+            // here is reassuring, not alarming.
+            qr -> cdD2.text = 'Child is feeding' "feedingCodeText";
+          } "feedingCode";
+          qr -> obD2 then SetCodedValue(itD2, obD2) "feedingValue";
+        } "feedingObservation";
+      } "feedingAnswer";
+    } "feedingRule";
+
+    gDs.item as itD3 where linkId = 'IMM-DS-Q3-convulsions' then {
+      itD3.answer first as aD3 then {
+        aD3 -> bundle.entry as eD3, eD3.resource = create('Observation') as obD3 then {
+          qr -> obD3, eD3 then BuildObsBase(qr, obD3, eD3) "convulsionsBase";
+          qr -> obD3 then SurveyCategory(qr, obD3) "convulsionsCategory";
+          qr -> obD3.code as cdD3 then {
+            qr -> cdD3.coding as ccD3 then {
+              qr -> ccD3.system = 'http://loinc.org' "convulsionsSystem";
+              qr -> ccD3.code = '31398-4' "convulsionsCode";
+              qr -> ccD3.display = 'Convulsions' "convulsionsDisplay";
+            } "convulsionsCodeCoding";
+          } "convulsionsCode";
+          qr -> obD3 then SetCodedValue(itD3, obD3) "convulsionsValue";
+        } "convulsionsObservation";
+      } "convulsionsAnswer";
+    } "convulsionsRule";
+
+    gDs.item as itD4 where linkId = 'IMM-DS-Q4-cough' then {
+      itD4.answer first as aD4 then {
+        aD4 -> bundle.entry as eD4, eD4.resource = create('Observation') as obD4 then {
+          qr -> obD4, eD4 then BuildObsBase(qr, obD4, eD4) "coughBase";
+          qr -> obD4 then SurveyCategory(qr, obD4) "coughCategory";
+          qr -> obD4.code as cdD4 then {
+            qr -> cdD4.coding as ccD4 then {
+              qr -> ccD4.system = 'http://loinc.org' "coughSystem";
+              qr -> ccD4.code = '28238-4' "coughCode";
+              qr -> ccD4.display = 'Cough' "coughDisplay";
+            } "coughCodeCoding";
+          } "coughCode";
+          qr -> obD4 then SetCodedValue(itD4, obD4) "coughValue";
+        } "coughObservation";
+      } "coughAnswer";
+    } "coughRule";
+
+    // The questionnaire declares this SNOMED CT concept id under the LOINC
+    // system; emitted here against the SNOMED CT system it actually belongs to.
+    gDs.item as itD5 where linkId = 'IMM-DS-Q5-diarrhoea' then {
+      itD5.answer first as aD5 then {
+        aD5 -> bundle.entry as eD5, eD5.resource = create('Observation') as obD5 then {
+          qr -> obD5, eD5 then BuildObsBase(qr, obD5, eD5) "diarrhoeaBase";
+          qr -> obD5 then SurveyCategory(qr, obD5) "diarrhoeaCategory";
+          qr -> obD5.code as cdD5 then {
+            qr -> cdD5.coding as ccD5 then {
+              qr -> ccD5.system = 'http://snomed.info/sct' "diarrhoeaSystem";
+              qr -> ccD5.code = '28229008' "diarrhoeaCode";
+              qr -> ccD5.display = 'Diarrhoea' "diarrhoeaDisplay";
+            } "diarrhoeaCodeCoding";
+          } "diarrhoeaCode";
+          qr -> obD5 then SetCodedValue(itD5, obD5) "diarrhoeaValue";
+        } "diarrhoeaObservation";
+      } "diarrhoeaAnswer";
+    } "diarrhoeaRule";
+
+    gDs.item as itD6 where linkId = 'IMM-DS-Q6-vomiting' then {
+      itD6.answer first as aD6 then {
+        aD6 -> bundle.entry as eD6, eD6.resource = create('Observation') as obD6 then {
+          qr -> obD6, eD6 then BuildObsBase(qr, obD6, eD6) "vomitingBase";
+          qr -> obD6 then SurveyCategory(qr, obD6) "vomitingCategory";
+          qr -> obD6.code as cdD6 then {
+            qr -> cdD6.coding as ccD6 then {
+              qr -> ccD6.system = 'http://snomed.info/sct' "vomitingSystem";
+              qr -> ccD6.code = '21522001' "vomitingCode";
+              qr -> ccD6.display = 'Vomiting' "vomitingDisplay";
+            } "vomitingCodeCoding";
+          } "vomitingCode";
+          qr -> obD6 then SetCodedValue(itD6, obD6) "vomitingValue";
+        } "vomitingObservation";
+      } "vomitingAnswer";
+    } "vomitingRule";
+
+    gDs.item as itD7 where linkId = 'IMM-DS-Q7-notes' then {
+      itD7.answer first as aD7 then {
+        aD7 -> bundle.entry as eD7, eD7.resource = create('Observation') as obD7 then {
+          qr -> obD7, eD7 then BuildObsBase(qr, obD7, eD7) "dsNotesBase";
+          qr -> obD7 then SurveyCategory(qr, obD7) "dsNotesCategory";
+          qr -> obD7.code as cdD7 then {
+            qr -> cdD7.coding as ccD7 then {
+              qr -> ccD7.system = 'http://loinc.org' "dsNotesSystem";
+              qr -> ccD7.code = '48767-8' "dsNotesCode";
+              qr -> ccD7.display = 'Annotation comment' "dsNotesDisplay";
+            } "dsNotesCodeCoding";
+            qr -> cdD7.text = 'Danger signs clinical notes' "dsNotesCodeText";
+          } "dsNotesCode";
+          aD7.value as v -> obD7.value = v "dsNotesValue";
+        } "dsNotesObservation";
+      } "dsNotesAnswer";
+    } "dsNotesRule";
+  } "dangerSignsGroup";
+
+  // ---------------------------------------------------------- Patient education
+  qr.item as gEd where linkId = 'IMM-group-education' then {
+
+    gEd.item as itE1 where linkId = 'IMM-ED-Q1-education-given' then {
+      itE1.answer first as aE1 then {
+        aE1 -> bundle.entry as eE1, eE1.resource = create('Observation') as obE1 then {
+          qr -> obE1, eE1 then BuildObsBase(qr, obE1, eE1) "eduGivenBase";
+          qr -> obE1 then SurveyCategory(qr, obE1) "eduGivenCategory";
+          qr -> obE1.code as cdE1 then {
+            qr -> cdE1.coding as ccE1 then {
+              qr -> ccE1.system = 'http://loinc.org' "eduGivenSystem";
+              qr -> ccE1.code = '61144-2' "eduGivenCode";
+              qr -> ccE1.display = 'Patient education provided' "eduGivenDisplay";
+            } "eduGivenCodeCoding";
+          } "eduGivenCode";
+          qr -> obE1 then SetCodedValue(itE1, obE1) "eduGivenValue";
+        } "eduGivenObservation";
+      } "eduGivenAnswer";
+    } "eduGivenRule";
+
+    gEd.item as itE2 where linkId = 'IMM-ED-Q2-topics' then {
+      itE2.answer first as aE2 then {
+        aE2 -> bundle.entry as eE2, eE2.resource = create('Observation') as obE2 then {
+          qr -> obE2, eE2 then BuildObsBase(qr, obE2, eE2) "eduTopicsBase";
+          qr -> obE2 then SurveyCategory(qr, obE2) "eduTopicsCategory";
+          qr -> obE2.code as cdE2 then {
+            qr -> cdE2.coding as ccE2 then {
+              qr -> ccE2.system = 'http://loinc.org' "eduTopicsSystem";
+              qr -> ccE2.code = '61144-2' "eduTopicsCode";
+              qr -> ccE2.display = 'Education topics covered' "eduTopicsDisplay";
+            } "eduTopicsCodeCoding";
+            qr -> cdE2.text = 'Education topics covered' "eduTopicsCodeText";
+          } "eduTopicsCode";
+          aE2.value as v -> obE2.value = v "eduTopicsValue";
+        } "eduTopicsObservation";
+      } "eduTopicsAnswer";
+    } "eduTopicsRule";
+
+    gEd.item as itE3 where linkId = 'IMM-ED-Q3-next-visit' then {
+      itE3.answer first as aE3 then {
+        aE3 -> bundle.entry as eE3, eE3.resource = create('Observation') as obE3 then {
+          qr -> obE3, eE3 then BuildObsBase(qr, obE3, eE3) "nextVisitToldBase";
+          qr -> obE3 then SurveyCategory(qr, obE3) "nextVisitToldCategory";
+          qr -> obE3.code as cdE3 then {
+            qr -> cdE3.coding as ccE3 then {
+              qr -> ccE3.system = 'http://loinc.org' "nextVisitToldSystem";
+              qr -> ccE3.code = '57177-3' "nextVisitToldCode";
+              qr -> ccE3.display = 'Follow-up plan' "nextVisitToldDisplay";
+            } "nextVisitToldCodeCoding";
+            qr -> cdE3.text = 'Next visit date communicated to caregiver' "nextVisitToldCodeText";
+          } "nextVisitToldCode";
+          qr -> obE3 then SetCodedValue(itE3, obE3) "nextVisitToldValue";
+        } "nextVisitToldObservation";
+      } "nextVisitToldAnswer";
+    } "nextVisitToldRule";
+
+    // Appointment.start is an instant, so a date-only answer is carried on
+    // requestedPeriod instead.
+    gEd.item as itE4 where linkId = 'IMM-ED-Q4-next-visit-date' then {
+      itE4.answer first as aE4 then {
+        aE4 -> bundle.entry as eE4, eE4.resource = create('Appointment') as appt then {
+          // One proposed appointment per (child, requested date).
+          aE4.value as dvAp -> appt.identifier as idAp then {
+            qr -> idAp.system = 'https://fhir.slade360.co.ke/fhir/Identifier/moh510-register-cell' "apptCellSystem";
+            dvAp -> idAp.value = append('IMM-ED-Q4-next-visit-date@', dvAp) "apptCellValue";
+          } "apptCellIdentifier";
+          qr.subject as subjAp then {
+            subjAp.reference as prefAp then {
+              aE4.value as dvAp2 -> eE4.request as rqAp then {
+                qr -> rqAp.method = 'POST' "apptReqMethod";
+                qr -> rqAp.url = 'Appointment' "apptReqUrl";
+                qr -> rqAp.ifNoneExist = append('actor=', prefAp, '&identifier=https://fhir.slade360.co.ke/fhir/Identifier/moh510-register-cell|IMM-ED-Q4-next-visit-date@', dvAp2) "apptIfNoneExist";
+              } "apptReq";
+            } "apptPatientRef";
+          } "apptSubject";
+          qr -> appt.id = uuid() "apptId";
+          qr -> appt.status = 'proposed' "apptStatus";
+          qr -> appt.description = 'Next scheduled immunisation visit (MOH 510)' "apptDescription";
+          qr.subject as s -> appt.subject = s "apptSubject";
+          qr -> appt.participant as prt then {
+            qr -> prt.status = 'needs-action' "apptParticipantStatus";
+            qr.subject as s -> prt.actor = s "apptParticipantActor";
+          } "apptParticipant";
+          aE4.value as dv -> appt.requestedPeriod as rp then {
+            dv -> rp.start = cast(dv, 'dateTime') "apptRequestedStart";
+          } "apptRequestedPeriod";
+        } "appointmentResource";
+      } "nextVisitDateAnswer";
+    } "nextVisitDateRule";
+  } "educationGroup";
+
+  // ---------------------------------------------------------------- AE Remarks
+  qr.item as gRem where linkId = 'IMM-group-remarks' then {
+    gRem.item as itAe where linkId = '48767-8' then {
+      itAe.answer first as aAe then {
+        aAe -> bundle.entry as eAe, eAe.resource = create('Observation') as obAe then {
+          qr -> obAe, eAe then BuildObsBase(qr, obAe, eAe) "remarksBase";
+          qr -> obAe then SurveyCategory(qr, obAe) "remarksCategory";
+          qr -> obAe.code as cdAe then {
+            qr -> cdAe.coding as ccAe then {
+              qr -> ccAe.system = 'http://loinc.org' "remarksSystem";
+              qr -> ccAe.code = '48767-8' "remarksCode";
+              qr -> ccAe.display = 'Annotation comment' "remarksDisplay";
+            } "remarksCodeCoding";
+            qr -> cdAe.text = 'MOH 510 register remarks' "remarksCodeText";
+          } "remarksCode";
+          aAe.value as v -> obAe.value = v "remarksValue";
+        } "remarksObservation";
+      } "remarksAnswer";
+    } "remarksRule";
+  } "remarksGroup";
+}
+
+// ---------------------------------------------------------------- helper groups
+
+// Plain POST, deliberately not a conditional create. These are per-visit facts,
+// so the key would have to be (cell, visit) -- and qr.authored carries a
+// "+03:00" offset that cannot go into an ifNoneExist query string unencoded.
+// Consequence: extracting the SAME response twice duplicates its Observations.
+// Populate never fills these sections, so the populate/extract loop is
+// unaffected; only a repeated submission of one response is.
+group BuildObsBase(source qr : QR, target obs : Observation, target entry) {
+  qr -> entry.request as rq then {
+    qr -> rq.method = 'POST' "obsReqMethod";
+    qr -> rq.url = 'Observation' "obsReqUrl";
+  } "obsReq";
+  qr -> obs.id = uuid() "obsId";
+  qr -> obs.status = 'final' "obsStatus";
+  qr.subject as s -> obs.subject = s "obsSubject";
+  qr.encounter as e -> obs.encounter = e "obsEncounter";
+  qr.authored as t -> obs.effective = t "obsEffective";
+  // qr.id is already type-qualified ("QuestionnaireResponse/1008") when the
+  // response is read from the server, so prepending the type -- or using
+  // reference() -- yields a doubled reference.
+  qr.id as qid -> obs.derivedFrom = create('Reference') as dr then {
+    qid -> dr.reference = qid "obsDerivedRef";
+  } "obsDerivedFrom";
+}
+
+// A register cell -- (child, column) -- is the natural key for everything below.
+// The paper form has exactly one BCG box per child, so re-submitting a
+// pre-populated form must not add a second one. Each resource therefore carries
+// its linkId as a business identifier and is emitted as a conditional create.
+group BuildImm(source qr : QR, source it, source a, target imm : Immunization, target entry) {
+  it.linkId as lk -> imm.identifier as idc then {
+    qr -> idc.system = 'https://fhir.slade360.co.ke/fhir/Identifier/moh510-register-cell' "immCellSystem";
+    lk -> idc.value = lk "immCellValue";
+  } "immCellIdentifier";
+  qr.subject as subjImm then {
+    subjImm.reference as pref then {
+      it.linkId as lk2 -> entry.request as rq then {
+        qr -> rq.method = 'POST' "immReqMethod";
+        qr -> rq.url = 'Immunization' "immReqUrl";
+        qr -> rq.ifNoneExist = append('patient=', pref, '&identifier=https://fhir.slade360.co.ke/fhir/Identifier/moh510-register-cell|', lk2) "immIfNoneExist";
+      } "immReq";
+    } "immPatientRef";
+  } "immSubject";
+  qr -> imm.id = uuid() "immId";
+  qr -> imm.status = 'completed' "immStatus";
+  // Register entries are transcribed from the child's card, so the recording
+  // facility is not necessarily the administering one.
+  qr -> imm.primarySource = false "immPrimarySource";
+  qr.subject as s -> imm.patient = s "immPatient";
+  qr.encounter as e -> imm.encounter = e "immEncounter";
+  a.value as dv -> imm.occurrence = cast(dv, 'dateTime') "immOccurrence";
+}
+
+group BuildMedAdmin(source qr : QR, source it, source a, target ma : MedicationAdministration, target entry) {
+  it.linkId as lk -> ma.identifier as idc then {
+    qr -> idc.system = 'https://fhir.slade360.co.ke/fhir/Identifier/moh510-register-cell' "maCellSystem";
+    lk -> idc.value = lk "maCellValue";
+  } "maCellIdentifier";
+  qr.subject as subjMa then {
+    subjMa.reference as pref then {
+      it.linkId as lk2 -> entry.request as rq then {
+        qr -> rq.method = 'POST' "maReqMethod";
+        qr -> rq.url = 'MedicationAdministration' "maReqUrl";
+        qr -> rq.ifNoneExist = append('subject=', pref, '&identifier=https://fhir.slade360.co.ke/fhir/Identifier/moh510-register-cell|', lk2) "maIfNoneExist";
+      } "maReq";
+    } "maPatientRef";
+  } "maSubject";
+  qr -> ma.id = uuid() "maId";
+  qr -> ma.status = 'completed' "maStatus";
+  qr.subject as s -> ma.subject = s "maSubject";
+  qr.encounter as e -> ma.encounter = e "maEncounter";
+  a.value as dv -> ma.occurence = cast(dv, 'dateTime') "maOccurence";
+}
+
+group BuildRelatedPerson(source qr : QR, source it, target rp : RelatedPerson, target entry) {
+  it.linkId as lk -> rp.identifier as idc then {
+    qr -> idc.system = 'https://fhir.slade360.co.ke/fhir/Identifier/moh510-register-cell' "rpCellSystem";
+    lk -> idc.value = lk "rpCellValue";
+  } "rpCellIdentifier";
+  qr.subject as subjRp then {
+    subjRp.reference as pref then {
+      it.linkId as lk2 -> entry.request as rq then {
+        qr -> rq.method = 'POST' "rpReqMethod";
+        qr -> rq.url = 'RelatedPerson' "rpReqUrl";
+        qr -> rq.ifNoneExist = append('patient=', pref, '&identifier=https://fhir.slade360.co.ke/fhir/Identifier/moh510-register-cell|', lk2) "rpIfNoneExist";
+      } "rpReq";
+    } "rpPatientRef";
+  } "rpSubject";
+  qr -> rp.id = uuid() "rpId";
+  qr -> rp.active = true "rpActive";
+  qr.subject as s -> rp.patient = s "rpPatient";
+}
+
+group VitalSignsCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as c then {
+      qr -> c.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "vsCatSystem";
+      qr -> c.code = 'vital-signs' "vsCatCode";
+      qr -> c.display = 'Vital Signs' "vsCatDisplay";
+    } "vsCatCoding";
+  } "vsCat";
+}
+
+group SurveyCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as c then {
+      qr -> c.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "svCatSystem";
+      qr -> c.code = 'survey' "svCatCode";
+      qr -> c.display = 'Survey' "svCatDisplay";
+    } "svCatCoding";
+  } "svCat";
+}
+
+group SetCodedValue(source it : Element, target obs : Observation) {
+  it.answer as a -> obs.value = create('CodeableConcept') as c then {
+    a.value as coding -> c.coding = coding as nc "copyCoding";
+  } "setCodedValue";
+}

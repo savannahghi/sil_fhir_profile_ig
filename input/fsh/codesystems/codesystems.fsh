@@ -1315,3 +1315,26 @@ Description: "Payer schemes, benefit packages, tariff rules and the Social Healt
   * ^property[0].valueBoolean = false
   * ^property[1].code = #emergency-benefit
   * ^property[1].valueBoolean = true
+
+
+CodeSystem: SGHIKEPIAntigenCodeSystem
+Id: kepi-antigen
+Title: "SGHI KEPI Antigen"
+Description: "Antigens administered under the Kenya Expanded Programme on Immunisation, as recorded on the MOH 510 Immunisation Permanent Register. One concept per antigen: the dose within a series is carried separately on Immunization.protocolApplied.doseNumber, which is what keeps IPV distinct from bivalent OPV and separates the three pentavalent doses. Pending a mapping to CVX or the national antigen list."
+* ^status = #active
+* #bcg "BCG" "Bacille Calmette-Guerin vaccine, given at birth against tuberculosis."
+* #bopv "Bivalent oral poliovirus vaccine" "Live attenuated oral polio vaccine containing types 1 and 3. Given as a birth dose and at 6, 10 and 14 weeks."
+* #ipv "Inactivated poliovirus vaccine" "Injectable inactivated polio vaccine, given at 14 weeks alongside the third bivalent oral dose. A distinct product from bOPV despite the register sharing one item code between them."
+* #penta "DTP-HepB-Hib (pentavalent) vaccine" "Combined diphtheria, tetanus, pertussis, hepatitis B and Haemophilus influenzae type b vaccine. Given at 6, 10 and 14 weeks."
+* #pcv10 "Pneumococcal conjugate vaccine (PCV10)" "Ten-valent pneumococcal conjugate vaccine, given at 6, 10 and 14 weeks."
+* #rota "Rotavirus vaccine" "Oral rotavirus vaccine, given at 6 and 10 weeks."
+* #mr "Measles-rubella vaccine" "Combined measles and rubella vaccine. First dose at 9 months, second between 18 months and 2 years."
+* #yf "Yellow fever vaccine" "Yellow fever vaccine, given at 9 months in yellow-fever-risk counties only, which is why it is excluded from the Fully Immunised Child milestone."
+
+CodeSystem: SGHIKEPISupplementCodeSystem
+Id: kepi-supplement
+Title: "SGHI KEPI Supplement"
+Description: "Micronutrient supplements recorded alongside immunisation on the MOH 510 Immunisation Permanent Register. Held apart from the antigen code system because a supplement is not a vaccine and must not count towards the Fully Immunised Child milestone."
+* ^status = #active
+* #vitamin-a-100000 "Vitamin A 100,000 IU" "Vitamin A supplement at 100,000 international units, given once between 6 and 11 months."
+* #vitamin-a-200000 "Vitamin A 200,000 IU" "Vitamin A supplement at 200,000 international units, given from 12 months onwards."

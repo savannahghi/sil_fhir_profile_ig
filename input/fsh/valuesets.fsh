@@ -1686,3 +1686,29 @@ Description: "Lifecycle of an admission, from the request through to discharge o
 * include SGHIAdmissionCodeSystem#discharge-pending "Discharge pending"
 * include SGHIAdmissionCodeSystem#discharged "Discharged"
 * include SGHIAdmissionCodeSystem#cancelled "Cancelled"
+
+// ---------------------------------------------------------------------------
+// Kenya Expanded Programme on Immunisation (KEPI)
+// ---------------------------------------------------------------------------
+
+ValueSet: SGHIKEPIAntigen
+Id: kepi-antigen
+Title: "SGHI KEPI Antigen"
+Description: "Antigens recorded on the MOH 510 Immunisation Permanent Register. Bound by Immunization.vaccineCode on resources extracted from the register."
+* ^status = #active
+* include SGHIKEPIAntigenCodeSystem#bcg "BCG"
+* include SGHIKEPIAntigenCodeSystem#bopv "Bivalent oral poliovirus vaccine"
+* include SGHIKEPIAntigenCodeSystem#ipv "Inactivated poliovirus vaccine"
+* include SGHIKEPIAntigenCodeSystem#penta "DTP-HepB-Hib (pentavalent) vaccine"
+* include SGHIKEPIAntigenCodeSystem#pcv10 "Pneumococcal conjugate vaccine (PCV10)"
+* include SGHIKEPIAntigenCodeSystem#rota "Rotavirus vaccine"
+* include SGHIKEPIAntigenCodeSystem#mr "Measles-rubella vaccine"
+* include SGHIKEPIAntigenCodeSystem#yf "Yellow fever vaccine"
+
+ValueSet: SGHIKEPISupplement
+Id: kepi-supplement
+Title: "SGHI KEPI Supplement"
+Description: "Micronutrient supplements recorded alongside immunisation on the MOH 510 register. Bound by MedicationAdministration.medication.concept on resources extracted from section Z."
+* ^status = #active
+* include SGHIKEPISupplementCodeSystem#vitamin-a-100000 "Vitamin A 100,000 IU"
+* include SGHIKEPISupplementCodeSystem#vitamin-a-200000 "Vitamin A 200,000 IU"
