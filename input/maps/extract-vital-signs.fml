@@ -497,6 +497,33 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
       } "medicationHistoryIObs";
     } "medicationHistoryIAns";
   } "medicationHistoryIRule";
+
+  // Risk Factors
+  qr.item as riskF where (linkId = '46467-7') then {
+    riskF.answer first as aCC then {
+      aCC -> bundle.entry as eCC, eCC.resource = create('Observation') as oCC then {
+        qr -> oCC, eCC then BuildBaseObs(qr, oCC, eCC) "riskFactorsBase";
+
+        qr -> oCC.category as catRF then {
+          qr -> catRF.coding as catRFCoding then {
+            qr -> catRFCoding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "catRFSys";
+            qr -> catRFCoding.code = 'social-history' "catRFCode";
+            qr -> catRFCoding.display = 'Social History' "catRFDisplay";
+          } "catRFCodingRule";
+        } "riskFactorsCategory";
+
+        qr -> oCC.code as codeRF then {
+          qr -> codeRF.coding as codeRFCoding then {
+            qr -> codeRFCoding.system = 'http://loinc.org' "codeRFSys";
+            qr -> codeRFCoding.code = '46467-7' "codeRFCode";
+            qr -> codeRFCoding.display = 'Risk factors' "codeRFDisplay";
+          } "codeRFCodingRule";
+        } "riskFactorsCode";
+
+        aCC.value as textVal -> oCC.valueString = textVal "riskFactorsValue";
+      } "riskFactorsObs";
+    } "riskFactorsAns";
+  } "riskFactorsRule";
 }
 
 group BuildBaseObs(source qr : QR, target obs : Observation, target entry) {
