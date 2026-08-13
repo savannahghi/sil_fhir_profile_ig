@@ -1,28 +1,17 @@
-@ECHO OFF
-SET publisher_jar=publisher.jar
-SET input_cache_path=%CD%\input-cache
 
-ECHO Checking internet connection...
-powershell -Command "try { $r=[System.Net.WebRequest]::Create('https://tx.fhir.org/r4/metadata'); $r.Timeout=4000; $r.GetResponse().Close(); exit 0 } catch { exit 1 }"
-IF %ERRORLEVEL% EQU 0 GOTO isonline
-ECHO We're offline...
-SET txoption=-tx n/a
-GOTO igpublish
-
-:isonline
-ECHO We're online
-SET txoption=
-
-:igpublish
-
-SET JAVA_TOOL_OPTIONS=-Dfile.encoding=UTF-8
-
-IF EXIST "%input_cache_path%\%publisher_jar%" (
-	JAVA -jar "%input_cache_path%\%publisher_jar%" -ig . %txoption% %*
-) ELSE If exist "..\%publisher_jar%" (
-	JAVA -jar "..\%publisher_jar%" -ig . %txoption% %*
-) ELSE (
-	ECHO IG Publisher NOT FOUND in input-cache or parent folder.  Please run _updatePublisher.  Aborting...
-)
-
-PAUSE
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+  <head>
+    <title>503 Backend.max_conn reached</title>
+  </head>
+  <body>
+    <h1>Error 503 Backend.max_conn reached</h1>
+    <p>Backend.max_conn reached</p>
+    <h3>Error 54113</h3>
+    <p>Details: cache-jnb7021-JNB 1786637484 2531983896</p>
+    <hr>
+    <p>Varnish cache server</p>
+  </body>
+</html>
