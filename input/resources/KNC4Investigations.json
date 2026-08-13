@@ -26,7 +26,7 @@
   "status": "active",
   "content": "fragment",
   "description": "First Version",
-  "count": 2584,
+  "count": 25,
   "property": [
     {
       "code": "conceptclass",
@@ -63,23 +63,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "INVESTIGATIONS",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "INVESTIGATIONS"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "TEXT",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "TEXT"
         }
       ]
     },
@@ -98,23 +86,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "INVESTIGATIONS",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "INVESTIGATIONS"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "TEXT",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "TEXT"
         }
       ]
     },
@@ -133,23 +109,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "INVESTIGATIONS",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "INVESTIGATIONS"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "TEXT",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "TEXT"
         }
       ]
     },
@@ -168,23 +132,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "INVESTIGATIONS",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "INVESTIGATIONS"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "TEXT",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "TEXT"
         }
       ]
     },
@@ -203,23 +155,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "INVESTIGATIONS",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "INVESTIGATIONS"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "TEXT",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "TEXT"
         }
       ]
     },
@@ -238,23 +178,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "INVESTIGATIONS",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "INVESTIGATIONS"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "TEXT",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "TEXT"
         }
       ]
     },
@@ -273,23 +201,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "INVESTIGATIONS",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "INVESTIGATIONS"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "TEXT",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "TEXT"
         }
       ]
     },
@@ -308,23 +224,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "INVESTIGATIONS",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "INVESTIGATIONS"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "TEXT",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "TEXT"
         }
       ]
     },
@@ -343,23 +247,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "INVESTIGATIONS",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "INVESTIGATIONS"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "TEXT",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "TEXT"
         }
       ]
     },
@@ -378,23 +270,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "INVESTIGATIONS",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "INVESTIGATIONS"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "TEXT",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "TEXT"
         }
       ]
     },
@@ -413,23 +293,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "INVESTIGATIONS",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "INVESTIGATIONS"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "TEXT",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "TEXT"
         }
       ]
     },
@@ -448,23 +316,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "INVESTIGATIONS",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "INVESTIGATIONS"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "TEXT",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "TEXT"
         }
       ]
     },
@@ -483,23 +339,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "INVESTIGATIONS",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "INVESTIGATIONS"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "TEXT",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "TEXT"
         }
       ]
     },
@@ -518,23 +362,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "INVESTIGATIONS",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "INVESTIGATIONS"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "TEXT",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "TEXT"
         }
       ]
     },
@@ -553,23 +385,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "INVESTIGATIONS",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "INVESTIGATIONS"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "TEXT",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "TEXT"
         }
       ]
     },
@@ -588,23 +408,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "INVESTIGATIONS",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "INVESTIGATIONS"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "TEXT",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "TEXT"
         }
       ]
     },
@@ -623,23 +431,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "INVESTIGATIONS",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "INVESTIGATIONS"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "TEXT",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "TEXT"
         }
       ]
     },
@@ -658,23 +454,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "INVESTIGATIONS",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "INVESTIGATIONS"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "TEXT",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "TEXT"
         }
       ]
     },
@@ -693,23 +477,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "INVESTIGATIONS",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "INVESTIGATIONS"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "TEXT",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "TEXT"
         }
       ]
     },
@@ -728,23 +500,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "INVESTIGATIONS",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "INVESTIGATIONS"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "TEXT",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "TEXT"
         }
       ]
     },
@@ -763,23 +523,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "INVESTIGATIONS",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "INVESTIGATIONS"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "TEXT",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "TEXT"
         }
       ]
     },
@@ -798,23 +546,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "INVESTIGATIONS",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "INVESTIGATIONS"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "TEXT",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "TEXT"
         }
       ]
     },
@@ -833,23 +569,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "INVESTIGATIONS",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "INVESTIGATIONS"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "TEXT",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "TEXT"
         }
       ]
     },
@@ -868,23 +592,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "INVESTIGATIONS",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "INVESTIGATIONS"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "TEXT",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "TEXT"
         }
       ]
     },
@@ -903,23 +615,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "INVESTIGATIONS",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "INVESTIGATIONS"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "TEXT",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "TEXT"
         }
       ]
     }

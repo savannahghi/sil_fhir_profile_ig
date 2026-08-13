@@ -23,29 +23,29 @@ group SGHIOrganization(source src : OrganizationR4, target tgt : SGHIOrganizatio
     s -> t.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/identifier-codesystem' "SetFixedIdentifierSystem";
   } "process-one-identifier";
 
-  src.identifier as s_id -> tgt.identifier as t_id then {
-    s_id.use -> t_id.use "copy-use";
-    src.id as uuid -> t_id.value = uuid;
-    s_id.period -> t_id.period;
+  src.identifier as sId -> tgt.identifier as tId then {
+    sId.use -> tId.use "copy-use";
+    src.id as uuid -> tId.value = uuid;
+    sId.period -> tId.period;
     
-    s_id.type as st -> t_id.type as tt then {
+    sId.type as st -> tId.type as tt then {
       st.coding -> tt.coding = create('CodeableConcept') as tt, tt.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/identifier-codesystem', tt.code = 'fhir-id', tt.display = 'FHIR Id';
     };
 
-    s_id -> t_id.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/identifier-codesystem' "SetFixedIdentifierSystem";
-  } "create the default FHIR ID identifier type";
+    sId -> tId.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/identifier-codesystem' "SetFixedIdentifierSystem";
+  } "create-the-default-FHIR-ID-identifier-type";
 
   src.active               -> tgt.active;
   src.name                 -> tgt.name;
 
-  src -> tgt.contact = create('ExtendedContactDetail') as t_contact then {
-    src.telecom as s_contact -> t_contact.telecom as t_contact then SGHIContactPointMap(s_contact, t_contact) "set-contact";
+  src -> tgt.contact = create('ExtendedContactDetail') as tContact then {
+    src.telecom as sContact -> tContact.telecom as tContact then SGHIContactPointMap(sContact, tContact) "set-contact";
   } "create-contact";
 
 
-  src -> tgt.text = create('Narrative') as tgt_n then {
-    src -> tgt_n.status = 'generated' "set-text-status";
-    src -> tgt_n.div = '<div xmlns="http://www.w3.org/1999/xhtml"><h1>Generated text</h1></div>' "set-text-div";
+  src -> tgt.text = create('Narrative') as tgtN then {
+    src -> tgtN.status = 'generated' "set-text-status";
+    src -> tgtN.div = '<div xmlns="http://www.w3.org/1999/xhtml"><h1>Generated text</h1></div>' "set-text-div";
   } "create-hardcoded-text";
 
   src -> tgt.meta = create('Meta') as tm then {

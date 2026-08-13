@@ -26,7 +26,7 @@
   "status": "draft",
   "content": "fragment",
   "description": "Based on ICD102019-covid",
-  "count": 12587,
+  "count": 25,
   "property": [
     {
       "code": "conceptclass",
@@ -63,23 +63,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "Chapter",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "Chapter"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "None",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "None"
         }
       ]
     },
@@ -98,23 +86,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "Chapter",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "Chapter"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "None",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "None"
         }
       ]
     },
@@ -133,23 +109,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "Chapter",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "Chapter"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "None",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "None"
         }
       ]
     },
@@ -168,23 +132,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "Chapter",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "Chapter"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "None",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "None"
         }
       ]
     },
@@ -203,23 +155,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "Chapter",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "Chapter"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "None",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "None"
         }
       ]
     },
@@ -238,23 +178,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "Chapter",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "Chapter"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "None",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "None"
         }
       ]
     },
@@ -273,23 +201,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "Chapter",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "Chapter"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "None",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "None"
         }
       ]
     },
@@ -308,23 +224,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "Chapter",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "Chapter"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "None",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "None"
         }
       ]
     },
@@ -343,23 +247,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "Chapter",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "Chapter"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "None",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "None"
         }
       ]
     },
@@ -378,23 +270,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "Chapter",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "Chapter"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "None",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "None"
         }
       ]
     },
@@ -413,23 +293,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "Chapter",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "Chapter"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "None",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "None"
         }
       ]
     },
@@ -448,23 +316,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "Chapter",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "Chapter"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "None",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "None"
         }
       ]
     },
@@ -483,23 +339,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "Chapter",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "Chapter"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "None",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "None"
         }
       ]
     },
@@ -518,23 +362,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "Chapter",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "Chapter"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "None",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "None"
         }
       ]
     },
@@ -553,23 +385,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "Chapter",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "Chapter"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "None",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "None"
         }
       ]
     },
@@ -588,23 +408,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "Chapter",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "Chapter"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "None",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "None"
         }
       ]
     },
@@ -623,23 +431,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "Chapter",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "Chapter"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "None",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "None"
         }
       ]
     },
@@ -658,23 +454,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "Chapter",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "Chapter"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "None",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "None"
         }
       ]
     },
@@ -693,23 +477,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "Chapter",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "Chapter"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "None",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "None"
         }
       ]
     },
@@ -728,23 +500,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "Chapter",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "Chapter"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "None",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "None"
         }
       ]
     },
@@ -763,23 +523,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "Chapter",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "Chapter"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "None",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "None"
         }
       ]
     },
@@ -798,23 +546,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "Chapter",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "Chapter"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "None",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "None"
         }
       ]
     },
@@ -833,23 +569,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "Code",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "Code"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "None",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "None"
         }
       ]
     },
@@ -868,23 +592,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "Group",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "Group"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "None",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "None"
         }
       ]
     },
@@ -903,23 +615,11 @@
       "property": [
         {
           "code": "conceptclass",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "Code",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "Code"
         },
         {
           "code": "datatype",
-          "valueCode": "",
-          "valueCoding": {},
-          "valueString": "None",
-          "valueInteger": 0,
-          "valueBoolean": false,
-          "valueDateTime": "",
-          "valueDecimal": 0
+          "valueString": "None"
         }
       ]
     }
