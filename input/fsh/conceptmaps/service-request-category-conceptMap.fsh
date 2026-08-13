@@ -7,7 +7,6 @@ Title: "R4 to R5 Category Map"
 * status = #draft
 
 * group[0].target = "https://fhir.slade360.co.ke/fhir/CodeSystem/service-request-cs"
-* group[0].source = "*"
 
 * group[0].element[0].code = #161360
 * group[0].element[0].display = "Referral"

@@ -4,7 +4,6 @@ Usage: #example
 Title: "SGHI Medication resource example"
 Description: "An example of SGHI Medication resource Example"
 
-* meta.profile = "{{HAPI_FHIR_BASE_URL}}/StructureDefinition/medication"
 
 * identifier[0]
   * use = #official

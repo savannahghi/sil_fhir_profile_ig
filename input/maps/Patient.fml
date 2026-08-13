@@ -27,24 +27,24 @@ group SGHIPatient(source src : PatientR4, target tgt : SGHIPatient) extends Doma
 
     s -> t.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/identifier-codesystem' "SetFixedIdentifierSystem";
 
-    src.managingOrganization as mo -> t.assigner = create('Reference') as t_assigner then {
-      mo.reference -> t_assigner.reference "set-assigner-ref-from-mo";
-      mo.display   -> t_assigner.display   "set-assigner-display-from-mo";
+    src.managingOrganization as mo -> t.assigner = create('Reference') as tAssigner then {
+      mo.reference -> tAssigner.reference "set-assigner-ref-from-mo";
+      mo.display   -> tAssigner.display   "set-assigner-display-from-mo";
     } "create-and-populate-assigner";
 
   } "process-one-identifier";
 
-  src.identifier as s_id -> tgt.identifier as t_id then {
-    s_id.use -> t_id.use "copy-use";
-    src.id as uuid -> t_id.value = uuid;
-    s_id.period -> t_id.period;
+  src.identifier as sId -> tgt.identifier as tId then {
+    sId.use -> tId.use "copy-use";
+    src.id as uuid -> tId.value = uuid;
+    sId.period -> tId.period;
     
-    s_id.type as st -> t_id.type as tt then {
+    sId.type as st -> tId.type as tt then {
       st.coding -> tt.coding = create('CodeableConcept') as tt, tt.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/identifier-codesystem', tt.code = 'fhir-id', tt.display = 'FHIR Id';
     };
 
-    s_id -> t_id.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/identifier-codesystem' "SetFixedIdentifierSystem";
-  } "create the default FHIR ID identifier type";
+    sId -> tId.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/identifier-codesystem' "SetFixedIdentifierSystem";
+  } "create-the-default-FHIR-ID-identifier-type";
 
   src.active               -> tgt.active;
   src.name first as s      -> tgt.name as t then SGHIHumanNameMap(s,t);
@@ -63,19 +63,19 @@ group SGHIPatient(source src : PatientR4, target tgt : SGHIPatient) extends Doma
   src.generalPractitioner  -> tgt.generalPractitioner;
   src.link as s            -> tgt.link as t then SGHIPatientLink(s,t);
 
-  src -> tgt.text = create('Narrative') as t_text then {
-    src -> t_text.status = 'generated' "set-text-status";
-    src -> t_text.div = '<div xmlns="http://www.w3.org/1999/xhtml"><h1>Generated text</h1></div>' "set-text-div";
+  src -> tgt.text = create('Narrative') as tText then {
+    src -> tText.status = 'generated' "set-text-status";
+    src -> tText.div = '<div xmlns="http://www.w3.org/1999/xhtml"><h1>Generated text</h1></div>' "set-text-div";
   } "create-hardcoded-text";
 
-  src -> tgt.meta as t_meta then {
-    src -> t_meta.profile = 'https://fhir.slade360.co.ke/fhir/StructureDefinition/patient' "add-profile";
+  src -> tgt.meta as tMeta then {
+    src -> tMeta.profile = 'https://fhir.slade360.co.ke/fhir/StructureDefinition/patient' "add-profile";
   } "add-profile-to-meta";
 }
 
-group TranslateLegacyIdentifier(source legacy_code : string,target result : CodeableConcept) {
-    legacy_code -> result.coding = translate(legacy_code,"https://fhir.slade360.co.ke/fhir/ConceptMap/LegacyIdentifierToSGHI","Coding") "translate-to-coding";
-    legacy_code -> result.text "set-text";
+group TranslateLegacyIdentifier(source legacyCode : string,target result : CodeableConcept) {
+    legacyCode -> result.coding = translate(legacyCode,"https://fhir.slade360.co.ke/fhir/ConceptMap/LegacyIdentifierToSGHI","Coding") "translate-to-coding";
+    legacyCode -> result.text "set-text";
 }
 
 group SGHIHumanNameMap(source src, target tgt) extends HumanName {

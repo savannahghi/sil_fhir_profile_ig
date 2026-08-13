@@ -13,13 +13,13 @@ group SGHIDocumentReference(source src : DocumentReferenceR4, target tgt : SGHID
   src.active               -> tgt.active;
   src.language -> tgt.language;
 
-  src -> tgt.meta as t_meta then {
-    src -> t_meta.profile = 'https://fhir.slade360.co.ke/fhir/StructureDefinition/documentreference' "add-profile";
+  src -> tgt.meta as tMeta then {
+    src -> tMeta.profile = 'https://fhir.slade360.co.ke/fhir/StructureDefinition/documentreference' "add-profile";
   } "add-to-meta";
 
-  src where text.exists().not() -> tgt.text = create('Narrative') as t_text then {
-    src -> t_text.status = 'generated' "set-text-status";
-    src -> t_text.div = '<div xmlns="http://www.w3.org/1999/xhtml"><h1>Generated text</h1></div>' "set-text-div";
+  src where text.exists().not() -> tgt.text = create('Narrative') as tText then {
+    src -> tText.status = 'generated' "set-text-status";
+    src -> tText.div = '<div xmlns="http://www.w3.org/1999/xhtml"><h1>Generated text</h1></div>' "set-text-div";
   } "create-hardcoded-text";
 
   src -> tgt.text = create('Narrative') as ttt then {
@@ -27,24 +27,24 @@ group SGHIDocumentReference(source src : DocumentReferenceR4, target tgt : SGHID
       st.status as s -> ttt.status = s;
       st.div as d -> ttt.div = ('<div xmlns="http://www.w3.org/1999/xhtml"><p>' + d + '</p></div>') "wrap-text-in-html";
     };
-  } "setting text";
+  } "setting-text";
 
-  src.id as s_id -> tgt.identifier = create('Identifier') as t_ident then {
-      s_id as uuid -> t_ident.value = uuid "copy-id";
-      src -> t_ident.use = 'official' "set-use";
-      src -> t_ident.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/identifier-codesystem' "set-system";
+  src.id as sId -> tgt.identifier = create('Identifier') as tIdent then {
+      sId as uuid -> tIdent.value = uuid "copy-id";
+      src -> tIdent.use = 'official' "set-use";
+      src -> tIdent.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/identifier-codesystem' "set-system";
 
-      src -> t_ident.type = create('CodeableConcept') as t_type then {
-        src -> t_type.coding = create('Coding') as t_code then {
-          src -> t_code.system  = 'https://fhir.slade360.co.ke/fhir/CodeSystem/identifier-codesystem' "type-system";
-          src -> t_code.code    = 'fhir-id' "type-code";
-          src -> t_code.display = 'FHIR Id' "type-display";
+      src -> tIdent.type = create('CodeableConcept') as tType then {
+        src -> tType.coding = create('Coding') as tCode then {
+          src -> tCode.system  = 'https://fhir.slade360.co.ke/fhir/CodeSystem/identifier-codesystem' "type-system";
+          src -> tCode.code    = 'fhir-id' "type-code";
+          src -> tCode.display = 'FHIR Id' "type-display";
         } "init-coding";
       } "init-type";
 
       src.meta as sm then {
-        sm.tag last as st -> t_ident.assigner = create('Reference') as ta then TransformAssigner(st, ta); 
-      } "setting owner";
+        sm.tag last as st -> tIdent.assigner = create('Reference') as ta then TransformAssigner(st, ta); 
+      } "setting-owner";
   } "add-fhir-id-identifier";
 
   src.context as sctx then {
@@ -71,11 +71,11 @@ group SGHIDocumentReference(source src : DocumentReferenceR4, target tgt : SGHID
 
   src where type.exists().not() -> tgt.type = create('CodeableConcept') as tconcept then {
     src -> tconcept.coding = create('Coding') as tcoding then {
-      src -> tcoding.system = 'https://fhir.slade360.co.ke/fhir/ConceptMap/CIELtoFHIRCategoryCodeBindingsMap' "setting system";
-      src -> tcoding.code = 'referral' "setting code";
-      src -> tcoding.display = 'Referral' "setting display";
-    }"setting coding";
-  }"setting default type";
+      src -> tcoding.system = 'https://fhir.slade360.co.ke/fhir/ConceptMap/CIELtoFHIRCategoryCodeBindingsMap' "setting-system";
+      src -> tcoding.code = 'referral' "setting-code";
+      src -> tcoding.display = 'Referral' "setting-display";
+    }"setting-coding";
+  }"setting-default-type";
 
 
   src.subject as sb -> tgt.subject as tb then TransformReference(sb, tb);
@@ -87,16 +87,16 @@ group SGHIDocumentReference(source src : DocumentReferenceR4, target tgt : SGHID
   src where author.exists().not() then {
     src.meta as sm then {
       sm.tag last as st -> tgt.author = create('Reference') as ta then TransformAssigner(st, ta); 
-    }"setting author";
-  }"setting author";
+    }"setting-author";
+  }"setting-author";
 
   src.custodian as scd -> tgt.custodian as tcd then TransformReference(scd, tcd);
 
   src where custodian.exists().not() then {
     src.meta as sm then {
       sm.tag last as st -> tgt.custodian = create('Reference') as ta then TransformAssigner(st, ta); 
-    } "setting custodian";
-  } "set custodian";
+    } "setting-custodian";
+  } "set-custodian";
 
   src.content as sct -> tgt.content = create('BackboneElement') as tct then {
     sct.attachment as sa -> tct.attachment as ta then {
@@ -109,7 +109,7 @@ group SGHIDocumentReference(source src : DocumentReferenceR4, target tgt : SGHID
 
 group TransformAssigner(source src, target tgt) <<types>> {
   src.code as code -> tgt.reference = append("Organization/", code);
-  src where display.exists().not() -> tgt.display = 'Unknown display' "setting default display";
+  src where display.exists().not() -> tgt.display = 'Unknown display' "setting-default-display";
   src.display -> tgt.display;
   src.code -> tgt.id;
 }
@@ -119,7 +119,7 @@ group TransformReference(source src, target tgt) <<types>> {
   src.reference -> tgt.reference;
   src.display -> tgt.display;
   src.text -> tgt.display;
-  src where display.exists().not() -> tgt.display = 'Unknown display' "setting display";
+  src where display.exists().not() -> tgt.display = 'Unknown display' "setting-display";
 }
 
 group TransformCoding(source src, target tgt) <<types>> {
