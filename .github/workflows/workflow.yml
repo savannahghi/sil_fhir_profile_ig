@@ -52,11 +52,36 @@ jobs:
         run: |
           sushi -s .
 
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      # Not ./_updatePublisher.sh: it prompts for confirmation, and with no TTY on the
+      # runner every `read` returns empty, so it skips `mkdir input-cache`, prints
+      # "cancelled publisher update" and still exits 0 - leaving _genonce.sh with no jar.
+      # Fetching the jar directly also avoids `-y`, which overwrites the repo's own
+      # _*.sh scripts with whatever HL7 published that day.
+      - name: Download IG Publisher
+        run: |
+          mkdir -p input-cache
+          curl -fL --retry 3 \
+            https://github.com/HL7/fhir-ig-publisher/releases/latest/download/publisher.jar \
+            -o input-cache/publisher.jar
+          test -s input-cache/publisher.jar
+
       - name: Generate FHIR IG and Snapshots
         run: |
           echo "Generating FHIR Implementation Guide and snapshots..."
-          ./_updatePublisher.sh
           ./_genonce.sh
+
+          # _genonce.sh exits 0 even when it cannot find the publisher and aborts,
+          # so check for real output rather than trusting its status.
+          if [ ! -d output ]; then
+            echo "IG Publisher produced no output/ directory."
+            exit 1
+          fi
           echo "IG generation and snapshot creation complete."
 
       # StructureMaps are compiled from input/maps/*.fml by the IG Publisher, not by
