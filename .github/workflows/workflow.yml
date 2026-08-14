@@ -71,9 +71,20 @@ jobs:
             -o input-cache/publisher.jar
           test -s input-cache/publisher.jar
 
+      # The publisher shells out to `jekyll` to render the IG's HTML pages and fails hard
+      # if it is missing. Ruby ships with the ubuntu runner image, so the gem is enough.
+      - name: Install Jekyll
+        run: |
+          sudo gem install jekyll
+          jekyll --version
+
       - name: Generate FHIR IG and Snapshots
         run: |
           echo "Generating FHIR Implementation Guide and snapshots..."
+
+          # The publisher writes output/package.tgz before anything else creates output/,
+          # which logs "Error generating combined package ... (No such file or directory)".
+          mkdir -p output
 
           # Three ValueSets in input/fsh/valuesets.fsh include all codes from the WHO
           # ICD-11 / ICHI systems. To validate them the publisher resolves
