@@ -186,6 +186,13 @@ Description: "A single code system enumerating the many local identifier types u
 * #ward "Ward" "A section of a medical facility that may contain rooms and other types of location."
 * #room "Room" "A space that is allocated as a room."
 * #bed "Bed" "A space that is allocated for sleeping or laying on."
+// Kinds of bed. A cot and an incubator are both still #bed as far as
+// SGHILocationForm is concerned; these say which kind of bed it is, so the bed
+// board can offer a newborn an incubator and a child a cot. The fourth kind, a
+// bay, is the #open-bay concept already defined in SGHIAdmissionCodeSystem
+// rather than a second code saying the same thing.
+* #cot "Cot" "A bed with raised sides, for an infant or a young child."
+* #incubator "Incubator" "A temperature- and humidity-controlled enclosure for a newborn."
 * #vehicle "Vehicle" "A means of transportation, e.g., mobile clinics."
 * #house "House" "A residential dwelling where a person/patient may reside."
 * #area "Area" "A defined physical boundary of something, such as a flood risk zone or region."
