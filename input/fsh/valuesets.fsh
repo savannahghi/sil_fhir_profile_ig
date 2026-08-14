@@ -149,9 +149,25 @@ Description: "Physical form of the location, e.g. building, room, vehicle, road,
 * include #ward "Ward" from system SGHIIdentifierCodeSystem
 * include #room "Room" from system SGHIIdentifierCodeSystem 
 * include #bed "Bed" from system SGHIIdentifierCodeSystem
-* include #vehicle "Vehicle" from system SGHIIdentifierCodeSystem 
-* include #area "Area" from system SGHIIdentifierCodeSystem 
+* include #vehicle "Vehicle" from system SGHIIdentifierCodeSystem
+* include #area "Area" from system SGHIIdentifierCodeSystem
 * include #virtual "Virtual" from system SGHIIdentifierCodeSystem
+
+// SGHILocationForm says a location is a bed; this says which kind of bed, which
+// is what allocation actually needs — a newborn takes an incubator, a child a
+// cot, and a patient in open ward space a bay. 'Bay' is the existing #open-bay
+// concept, a space belonging to no room, relabelled here for the bed axis in the
+// same way #high-dependency reads as 'HDU' in SGHIRoomClass.
+ValueSet: SGHIBedKind
+Id: bed-kind
+Title: "SGHI Bed Kind"
+Description: "The kind of bed a location represents, as distinct from its form, its class of room and its operational status."
+* ^status = #active
+* ^experimental = false
+* include SGHIIdentifierCodeSystem#cot "Cot"
+* include SGHIIdentifierCodeSystem#incubator "Incubator"
+* include SGHIAdmissionCodeSystem#open-bay "Bay"
+* include SGHIIdentifierCodeSystem#bed "Bed"
 
 ValueSet: SGHIServiceRequestCategory
 Id: service-request-category
@@ -1312,6 +1328,7 @@ Description: "Qualifies what a reference range on an observation represents."
 //   admitting service   -> SGHIPractitionerSpecialtyCodeSystem
 //   apparent sex        -> HL7 administrative-gender
 //   ward / room / bed   -> SGHILocationForm
+//   kind of bed         -> SGHIBedKind
 // Only the concepts with no existing home live in SGHIAdmissionCodeSystem.
 // ═════════════════════════════════════════════════════════════════════════════
 
