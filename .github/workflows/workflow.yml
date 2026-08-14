@@ -138,16 +138,21 @@ jobs:
 
             ensure_auth
 
-            RESPONSE=$(curl -s -X PUT "${HAPI_FHIR_BASE_URL}/${resource_type}/${resource_id}" \
+            # Judge success on the HTTP status, not the response body. A 4xx/5xx whose
+            # body carries no .issue array used to read as success, and a 200 whose body
+            # is an informational OperationOutcome used to read as failure.
+            RESPONSE=$(curl -s -w '\n%{http_code}' -X PUT "${HAPI_FHIR_BASE_URL}/${resource_type}/${resource_id}" \
               -H "Content-Type: application/fhir+json" \
               -H "${AUTH_HEADER}" \
               --data-binary "@$file")
 
-            echo "Response: $RESPONSE"
-            STATUS_CODE=$(echo "$RESPONSE" | jq -r '.issue[0].severity // "unknown"')
+            STATUS_CODE=$(echo "$RESPONSE" | tail -n 1)
+            BODY=$(echo "$RESPONSE" | sed '$d')
 
-            if [ "$STATUS_CODE" != "unknown" ]; then
-              echo "Upload failed for $file: $STATUS_CODE"
+            echo "Response (HTTP $STATUS_CODE): $BODY"
+
+            if [ "$STATUS_CODE" != "200" ] && [ "$STATUS_CODE" != "201" ]; then
+              echo "Upload failed for $file: HTTP $STATUS_CODE"
               exit 1
             fi
 
@@ -187,62 +192,30 @@ jobs:
               fi
             fi
           done
-      
-          echo "All conformance resources uploaded successfully."
 
-  publish-structure-maps:
-    if: ${{ github.ref == 'refs/heads/main' }}
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Check Repository
-        uses: actions/checkout@v4
-
-      - name: Install Dependencies
-        run: sudo apt-get update && sudo apt-get install -y jq
-
-      - name: Publish StructureMaps to Matchbox
-        run: |
-          echo "Publishing StructureMaps to Matchbox server: ${{ env.MATCHBOX_BASE_URL }}"
-
-          # This job declares no environment, so it only sees repository-level
-          # secrets — the OIDC_* names below resolve to empty unless they are also
-          # defined at repository level, in which case basic auth is used.
-          if [ -n "${OIDC_TOKEN_URL}" ] && [ -n "${OIDC_CLIENT_ID}" ] && [ -n "${OIDC_CLIENT_SECRET}" ]; then
-            TOKEN=$(curl -s -X POST "${OIDC_TOKEN_URL}" \
-              -H "Content-Type: application/x-www-form-urlencoded" \
-              -d grant_type=client_credentials \
-              --data-urlencode "client_id=${OIDC_CLIENT_ID}" \
-              --data-urlencode "client_secret=${OIDC_CLIENT_SECRET}" | jq -r '.access_token // empty')
-            if [ -z "$TOKEN" ]; then
-              echo "Failed to obtain access token from ${OIDC_TOKEN_URL}"
-              exit 1
-            fi
-            AUTH_HEADER="Authorization: Bearer ${TOKEN}"
-          else
-            AUTH_HEADER="Authorization: Basic $(echo -n "${HAPI_USERNAME}:${HAPI_PASSWORD}" | base64 | tr -d '\n')"
-          fi
-
+          # StructureMaps are compiled from input/maps/*.fml by the IG Publisher
+          # (./_genonce.sh above), so they land in output/ and never appear in
+          # fsh-generated/. Uploaded last because they reference the profiles
+          # published in the previous step.
+          echo "Uploading StructureMaps"
+          STRUCTURE_MAP_COUNT=0
           for file in output/StructureMap-*.json; do
             if [ -f "$file" ]; then
+              RESOURCE_TYPE=$(jq -r '.resourceType' "$file")
               RESOURCE_ID=$(jq -r '.id' "$file")
-
-              echo "Uploading $file (StructureMap/$RESOURCE_ID)"
-
-              RESPONSE=$(curl -s -X PUT "${MATCHBOX_BASE_URL}/StructureMap/${RESOURCE_ID}" \
-                -H "Content-Type: application/fhir+json" \
-                -H "${AUTH_HEADER}" \
-                --data-binary "@$file")
-
-              echo "Response: $RESPONSE"
-              STATUS_CODE=$(echo "$RESPONSE" | jq -r '.issue[0].severity // "unknown"')
-
-              if [ "$STATUS_CODE" != "unknown" ]; then
-                echo "Upload failed for $file: $STATUS_CODE"
-                exit 1
+              if [ "$RESOURCE_TYPE" = "StructureMap" ]; then
+                upload_resource "$file" "$RESOURCE_TYPE" "$RESOURCE_ID"
+                STRUCTURE_MAP_COUNT=$((STRUCTURE_MAP_COUNT + 1))
               fi
             fi
           done
 
-          echo "All StructureMaps uploaded successfully."
-      
+          # An unmatched glob leaves the pattern unexpanded and the loop body never
+          # runs, so without this the step would report success having uploaded nothing.
+          if [ "$STRUCTURE_MAP_COUNT" -eq 0 ]; then
+            echo "No StructureMaps found in output/ - did ./_genonce.sh produce them?"
+            exit 1
+          fi
+          echo "Uploaded ${STRUCTURE_MAP_COUNT} StructureMaps."
+
+          echo "All conformance resources uploaded successfully."
