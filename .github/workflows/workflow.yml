@@ -74,7 +74,14 @@ jobs:
       - name: Generate FHIR IG and Snapshots
         run: |
           echo "Generating FHIR Implementation Guide and snapshots..."
-          ./_genonce.sh
+
+          # Three ValueSets in input/fsh/valuesets.fsh include all codes from the WHO
+          # ICD-11 / ICHI systems. To validate them the publisher resolves
+          # http://id.who.int/icd/release/11/mms through HL7's tx-server registry, which
+          # routes to a WHO-hosted server that does not accept code systems in the
+          # tx-resource parameter. The publisher rejects such servers unless authorised.
+          # _genonce.sh forwards extra arguments straight to the publisher jar.
+          ./_genonce.sh -authorise-non-conformant-tx-servers
 
           # _genonce.sh exits 0 even when it cannot find the publisher and aborts,
           # so check for real output rather than trusting its status.
