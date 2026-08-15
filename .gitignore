@@ -18,3 +18,4 @@ application.yaml
 .venv
 _build.*
 .playwright*
+sil-templates/*
