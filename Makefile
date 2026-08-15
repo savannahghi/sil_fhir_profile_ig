@@ -2,6 +2,12 @@
 
 # Commands
 SUSHI_CMD = sushi
+# --snapshot is not optional for anything that can end up on a FHIR server.
+# SUSHI emits a differential-only StructureDefinition by default, and HAPI
+# accepts one happily but cannot validate against it: every resource that names
+# the profile in meta.profile then fails with "StructureDefinition <url> has no
+# snapshot - validation is against the snapshot, so it must be provided".
+SUSHI_FLAGS = --snapshot
 LOCAL_CANONICAL = http://localhost:8080/fhir
 
 .PHONY: help
@@ -16,7 +22,7 @@ help:
 build:
 	@echo "Replacing default canonical with local canonical: $(LOCAL_CANONICAL)"
 	sed -i.bak "s|https://fhir.slade360.co.ke/fhir|$(LOCAL_CANONICAL)|g" sushi-config.yaml
-	$(SUSHI_CMD) .
+	$(SUSHI_CMD) $(SUSHI_FLAGS) .
 	@echo "Local SUSHI build complete. Canonical set to $(LOCAL_CANONICAL)."
 	sed -i.bak "s|$(LOCAL_CANONICAL)|https://fhir.slade360.co.ke/fhir|g" sushi-config.yaml
 	rm -f sushi-config.yaml.bak
@@ -42,7 +48,7 @@ ig:
 publish-local:
 	@echo "Replacing default canonical with local canonical: $(LOCAL_CANONICAL)"
 	sed -i.bak "s|https://fhir.slade360.co.ke/fhir|$(LOCAL_CANONICAL)|g" sushi-config.yaml
-	$(SUSHI_CMD) .
+	$(SUSHI_CMD) $(SUSHI_FLAGS) .
 	@echo "Publishing to Local HAPI FHIR at $(LOCAL_CANONICAL)"
 	@for file in fsh-generated/resources/*.json; do \
 	  if [ -f "$$file" ]; then \
@@ -51,6 +57,12 @@ publish-local:
 	    if [ "$$RESOURCE_TYPE" = "StructureDefinition" ] || \
 	       [ "$$RESOURCE_TYPE" = "ValueSet" ] || \
 	       [ "$$RESOURCE_TYPE" = "CodeSystem" ]; then \
+	      if [ "$$RESOURCE_TYPE" = "StructureDefinition" ] && \
+	         [ "$$(jq -r '(.snapshot.element // []) | length' "$$file")" -lt 1 ]; then \
+	        echo "Refusing to upload $$file: StructureDefinition has no snapshot."; \
+	        echo "Rebuild with '$(SUSHI_CMD) $(SUSHI_FLAGS) .' before publishing."; \
+	        exit 1; \
+	      fi; \
 	      echo "Uploading $$file (Type: $$RESOURCE_TYPE, ID: $$RESOURCE_ID)"; \
 	      STATUS_CODE=$$(curl -s -o /dev/null -w "%{http_code}" \
 	        -X PUT "$(LOCAL_CANONICAL)/$$RESOURCE_TYPE/$$RESOURCE_ID" \

@@ -189,6 +189,22 @@ jobs:
             local resource_type="$2"
             local resource_id="$3"
 
+            # A differential-only StructureDefinition uploads cleanly and then breaks
+            # every writer: HAPI resolves the profile named in meta.profile, finds no
+            # snapshot, and fails the resource with "StructureDefinition <url> has no
+            # snapshot - validation is against the snapshot, so it must be provided".
+            # Snapshots come from the `-s` on the SUSHI build above, which nothing else
+            # enforces, so refuse to publish a profile that lost them.
+            if [ "$resource_type" = "StructureDefinition" ]; then
+              local snapshot_elements
+              snapshot_elements=$(jq -r '(.snapshot.element // []) | length' "$file")
+              if [ "$snapshot_elements" -lt 1 ]; then
+                echo "Refusing to upload $file: StructureDefinition has no snapshot."
+                echo "The SUSHI build must run with -s/--snapshot."
+                exit 1
+              fi
+            fi
+
             echo "Uploading $file with resourceType=$resource_type, id=$resource_id"
 
             ensure_auth
