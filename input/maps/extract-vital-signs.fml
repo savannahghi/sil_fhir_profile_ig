@@ -27,7 +27,7 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
           } "codeHCodingRule";
         } "codeH";
 
-        aH.value as hv -> oH.valueQuantity as vH then {
+        aH.value as hv -> oH.value = create('Quantity') as vH then {
           hv -> vH.value = hv "setVal";
           qr -> vH.system = 'http://unitsofmeasure.org' "setSys";
           qr -> vH.code   = 'cm' "setCode";
@@ -58,7 +58,7 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
           } "codeWCodingRule";
         } "codeW";
 
-        aW.value as hv -> oW.valueQuantity as vW then {
+        aW.value as hv -> oW.value = create('Quantity') as vW then {
           hv -> vW.value = hv "setVal";
           qr -> vW.system = 'http://unitsofmeasure.org' "setSys";
           qr -> vW.code   = 'kg' "setCode";
@@ -89,7 +89,7 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
           } "codeBmiCodingRule";
         } "codeBmi";
 
-        aBmi.value as hv -> oBmi.valueQuantity as vBmi then {
+        aBmi.value as hv -> oBmi.value = create('Quantity') as vBmi then {
           hv -> vBmi.value = hv "setVal";
           qr -> vBmi.system = 'http://unitsofmeasure.org' "setSys";
           qr -> vBmi.code   = 'kg/m2' "setCode";
@@ -127,7 +127,7 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
           } "codePCodingRule";
         } "codeP";
 
-        aP.value as hv -> oP.valueQuantity as vP then {
+        aP.value as hv -> oP.value = create('Quantity') as vP then {
           hv -> vP.value = hv "setVal";
           qr -> vP.system = 'http://unitsofmeasure.org' "setSys";
           qr -> vP.code   = '/min' "setCode";
@@ -167,7 +167,7 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
               aSys -> bpSysCoding.display = 'Systolic blood pressure' "bpSysCodingDisplay";
             } "bpSysCodingRule";
           } "bpSysCode";
-          aSys.value as hv -> cSys.valueQuantity as vSys then {
+          aSys.value as hv -> cSys.value = create('Quantity') as vSys then {
             hv -> vSys.value = hv "setVal";
             qr -> vSys.system = 'http://unitsofmeasure.org' "setSys";
             qr -> vSys.code   = 'mm[Hg]' "setCode";
@@ -186,7 +186,7 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
               aDia -> bpDiaCoding.display = 'Diastolic blood pressure' "bpDiaCodingDisplay";
             } "bpDiaCodingRule";
           } "bpDiaCode";
-          aDia.value as hv -> cDia.valueQuantity as vDia then {
+          aDia.value as hv -> cDia.value = create('Quantity') as vDia then {
             hv -> vDia.value = hv "setVal";
             qr -> vDia.system = 'http://unitsofmeasure.org' "setSys";
             qr -> vDia.code   = 'mm[Hg]' "setCode";
@@ -218,7 +218,7 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
           } "codeTCodingRule";
         } "codeT";
 
-        aT.value as hv -> oT.valueQuantity as vT then {
+        aT.value as hv -> oT.value = create('Quantity') as vT then {
           hv -> vT.value = hv "setVal";
           qr -> vT.system = 'http://unitsofmeasure.org' "setSys";
           qr -> vT.code   = 'Cel' "setCode";
@@ -256,7 +256,7 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
           } "codeO2CodingRule";
         } "codeO2";
 
-        aO2.value as hv -> oO2.valueQuantity as vO2 then {
+        aO2.value as hv -> oO2.value = create('Quantity') as vO2 then {
           hv -> vO2.value = hv "setVal";
           qr -> vO2.system = 'http://unitsofmeasure.org' "setSys";
           qr -> vO2.code   = '%' "setCode";
@@ -294,7 +294,7 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
           } "codeRRCodingRule";
         } "codeRR";
 
-        aRR.value as hv -> oRR.valueQuantity as vRR then {
+        aRR.value as hv -> oRR.value = create('Quantity') as vRR then {
           hv -> vRR.value = hv "setVal";
           qr -> vRR.system = 'http://unitsofmeasure.org' "setSys";
           qr -> vRR.code   = '/min' "setCode";
@@ -325,7 +325,7 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
           } "codeMuacCodingRule";
         } "codeMuac";
 
-        aMuac.value as hv -> oMuac.valueQuantity as vMuac then {
+        aMuac.value as hv -> oMuac.value = create('Quantity') as vMuac then {
           hv -> vMuac.value = hv "setVal";
           qr -> vMuac.system = 'http://unitsofmeasure.org' "setSys";
           qr -> vMuac.code   = 'mm' "setCode";
@@ -358,7 +358,7 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
           } "codeCCCodingRule";
         } "chiefComplaintCode";
 
-        aCC.value as textVal -> oCC.valueString = textVal "chiefComplaintValue";
+        aCC.value as textVal -> oCC.value = textVal "chiefComplaintValue";
       } "chiefComplaintObs";
     } "chiefComplaintAns";
   } "chiefComplaintRule";
@@ -385,7 +385,7 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
           } "codeHPICodingRule";
         } "historyOfPICode";
 
-        aCC.value as textVal -> oCC.valueString = textVal "historyOfPIValue";
+        aCC.value as textVal -> oCC.value = textVal "historyOfPIValue";
       } "historyOfPIObs";
     } "historyOfPIAns";
   } "historyOfPIRule";
@@ -412,7 +412,7 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
           } "codePastICodingRule";
         } "historyOfPastICode";
 
-        aCC.value as textVal -> oCC.valueString = textVal "historyOfPastIValue";
+        aCC.value as textVal -> oCC.value = textVal "historyOfPastIValue";
       } "historyOfPastIObs";
     } "historyOfPastIAns";
   } "historyOfPastIRule";
@@ -439,7 +439,7 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
           } "codeFHCodingRule";
         } "familyHICode";
 
-        aCC.value as textVal -> oCC.valueString = textVal "familyHIValue";
+        aCC.value as textVal -> oCC.value = textVal "familyHIValue";
       } "familyHIObs";
     } "familyHIAns";
   } "familyHIRule";
@@ -466,7 +466,7 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
           } "codeSHCodingRule";
         } "socialHistoryCode";
 
-        aCC.value as textVal -> oCC.valueString = textVal "socialHistoryIValue";
+        aCC.value as textVal -> oCC.value = textVal "socialHistoryIValue";
       } "socialHistoryIObs";
     } "socialHistoryIAns";
   } "socialHistoryIRule";
@@ -493,7 +493,7 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
           } "codeMedHCodingRule";
         } "medicationHistoryCode";
 
-        aCC.value as textVal -> oCC.valueString = textVal "medicationHistoryIValue";
+        aCC.value as textVal -> oCC.value = textVal "medicationHistoryIValue";
       } "medicationHistoryIObs";
     } "medicationHistoryIAns";
   } "medicationHistoryIRule";
@@ -520,17 +520,163 @@ group ExtractVitalSigns(source qr : QR, target bundle : Bundle) {
           } "codeRFCodingRule";
         } "riskFactorsCode";
 
-        aCC.value as textVal -> oCC.valueString = textVal "riskFactorsValue";
+        aCC.value as textVal -> oCC.value = textVal "riskFactorsValue";
       } "riskFactorsObs";
     } "riskFactorsAns";
   } "riskFactorsRule";
+
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // Admissions observation templates.
+  //
+  // These forms carry the design's own field ids as linkIds rather than the LOINC
+  // codes the rules above match on, so the linkId and the Observation.code are
+  // stated separately. Everything they produce is category `exam` - a reading
+  // taken at the bedside as part of assessing the patient, not a lab result and
+  // not a vital sign.
+  // ───────────────────────────────────────────────────────────────────────────
+
+  // Pain score - pain at rest
+  qr.item as itPar where (linkId = 'painAtRest') then {
+    itPar.answer first as aPar then {
+      aPar -> bundle.entry as ePar, ePar.resource = create('Observation') as oPar then {
+        qr -> oPar, ePar then BuildBaseObs(qr, oPar, ePar) "painAtRestBase";
+        qr -> oPar then SetExamCategory(qr, oPar) "painAtRestCategory";
+        qr -> oPar.code as codePar then {
+          qr -> codePar.coding as codeParCoding then {
+            qr -> codeParCoding.system = 'http://loinc.org' "codeParSys";
+            qr -> codeParCoding.code = '99302-2' "codeParCode";
+            qr -> codeParCoding.display = 'Verbal complaints while at rest' "codeParDisplay";
+          } "codeParCodingRule";
+        } "codePar";
+
+        aPar.value as pv -> oPar.value = pv "valPar";
+
+        qr -> oPar then SetPainBodySite(qr, oPar) "painAtRestSite";
+      } "painAtRestObs";
+    } "painAtRestAns";
+  } "painAtRestRule";
+
+
+  // Pain score - pain on movement
+  qr.item as itPom where (linkId = 'painOnMovement') then {
+    itPom.answer first as aPom then {
+      aPom -> bundle.entry as ePom, ePom.resource = create('Observation') as oPom then {
+        qr -> oPom, ePom then BuildBaseObs(qr, oPom, ePom) "painOnMovementBase";
+        qr -> oPom then SetExamCategory(qr, oPom) "painOnMovementCategory";
+        qr -> oPom.code as codePom then {
+          qr -> codePom.coding as codePomCoding then {
+            qr -> codePomCoding.system = 'http://loinc.org' "codePomSys";
+            qr -> codePomCoding.code = '99294-1' "codePomCode";
+            qr -> codePomCoding.display = 'Verbal complaints during movement' "codePomDisplay";
+          } "codePomCodingRule";
+        } "codePom";
+
+        aPom.value as pv -> oPom.value = pv "valPom";
+
+        qr -> oPom then SetPainBodySite(qr, oPom) "painOnMovementSite";
+      } "painOnMovementObs";
+    } "painOnMovementAns";
+  } "painOnMovementRule";
+
+
+  // Blood glucose - capillary glucose
+  qr.item as itCg where (linkId = 'capillaryGlucose') then {
+    itCg.answer first as aCg then {
+      aCg -> bundle.entry as eCg, eCg.resource = create('Observation') as oCg then {
+        qr -> oCg, eCg then BuildBaseObs(qr, oCg, eCg) "capillaryGlucoseBase";
+        qr -> oCg then SetExamCategory(qr, oCg) "capillaryGlucoseCategory";
+        qr -> oCg.code as codeCg then {
+          qr -> codeCg.coding as codeCgCoding then {
+            qr -> codeCgCoding.system = 'http://loinc.org' "codeCgSys";
+            qr -> codeCgCoding.code = '14743-9' "codeCgCode";
+            qr -> codeCgCoding.display = 'Glucose [Moles/volume] in Capillary blood by Glucometer' "codeCgDisplay";
+          } "codeCgCodingRule";
+        } "codeCg";
+
+        // The answer is already a Quantity - the item is type `quantity` with
+        // questionnaire-unitOption pinning mmol/L - so copy it through whole. The
+        // vitals rules above rebuild a Quantity because their answers are bare
+        // decimals; rebuilding here would mean restating the unit, and restating a
+        // unit the client actually sent turns a wrong unit into a wrong reading.
+        aCg.value as gv -> oCg.value = gv "valCg";
+      } "capillaryGlucoseObs";
+    } "capillaryGlucoseAns";
+  } "capillaryGlucoseRule";
+
+
+  // Blood glucose - insulin given against the reading.
+  //
+  // 4287-9 is "Insulin regular [Mass] of Dose": PROPERTY Mass, SCALE_TYP Qn. The
+  // form captures free text ("4 units Actrapid"), and insulin is dosed in
+  // international units rather than by mass, so the answer lands in valueString
+  // rather than the Quantity the code implies. It records what the nurse wrote,
+  // which is the point; a mass in mg is not what anyone is charting.
+  qr.item as itIns where (linkId = 'insulinGiven') then {
+    itIns.answer first as aIns then {
+      aIns -> bundle.entry as eIns, eIns.resource = create('Observation') as oIns then {
+        qr -> oIns, eIns then BuildBaseObs(qr, oIns, eIns) "insulinGivenBase";
+        qr -> oIns then SetExamCategory(qr, oIns) "insulinGivenCategory";
+        qr -> oIns.code as codeIns then {
+          qr -> codeIns.coding as codeInsCoding then {
+            qr -> codeInsCoding.system = 'http://loinc.org' "codeInsSys";
+            qr -> codeInsCoding.code = '4287-9' "codeInsCode";
+            qr -> codeInsCoding.display = 'Insulin regular [Mass] of Dose' "codeInsDisplay";
+          } "codeInsCodingRule";
+        } "codeIns";
+
+        aIns.value as iv -> oIns.value = iv "valIns";
+      } "insulinGivenObs";
+    } "insulinGivenAns";
+  } "insulinGivenRule";
+}
+
+// Category `exam`, shared by every observation the admissions templates produce.
+group SetExamCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as catCoding then {
+      qr -> catCoding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "examSys";
+      qr -> catCoding.code = 'exam' "examCode";
+      qr -> catCoding.display = 'Exam' "examDisplay";
+    } "examCodingRule";
+  } "examCategory";
+}
+
+// The pain form asks for one site covering both scores, so it lands on each of
+// the two Observations. It is free text today, hence bodySite.text rather than a
+// coding; swap to bodySite.coding once the picker's option list is coded.
+group SetPainBodySite(source qr : QR, target obs : Observation) {
+  qr.item as siteItem where (linkId = 'site') then {
+    siteItem.answer first as siteAns then {
+      siteAns.value as siteVal -> obs.bodySite as bs then {
+        siteVal -> bs.text = siteVal "bodySiteText";
+      } "bodySite";
+    } "siteAns";
+  } "siteRule";
 }
 
 group BuildBaseObs(source qr : QR, target obs : Observation, target entry) {
   qr -> obs.status = 'final' "status";
   qr.subject as s -> obs.subject = s "subject";
   qr.encounter as e -> obs.encounter = e "encounter";
-  qr.authored as t -> obs.effectiveDateTime = t "effective";
+  // `effective`, not `effectiveDateTime`: the R5 transform engine writes choice
+  // elements by their base name and rejects the typed form with "Attempt to write
+  // to invalid property 'effectiveDateTime' on type Observation". The value is a
+  // dateTime, so the engine picks effectiveDateTime itself.
+  //
+  // The admissions templates ask for the time the reading was taken, which is the
+  // clinically meaningful one - a nurse writing up at the end of a round would
+  // otherwise stamp every reading with the moment they saved the form. Fall back
+  // to `authored` for the forms that do not ask.
+  qr.item as tItem where (linkId = 'timeTaken') then {
+    tItem.answer first as tAns then {
+      tAns.value as tv -> obs.effective = tv "effectiveFromTimeTaken";
+    } "timeTakenAns";
+  } "timeTakenRule";
+
+  qr where (item.where(linkId = 'timeTaken').answer.value.exists().not()) then {
+    qr.authored as t -> obs.effective = t "effectiveFromAuthored";
+  } "authoredFallback";
 
   // Performer from QuestionnaireResponse.source
   qr.source as src -> obs.performer = create('Reference') as perf then {
@@ -548,9 +694,13 @@ group BuildBaseObs(source qr : QR, target obs : Observation, target entry) {
     qr -> request.url    = 'Observation' "reqUrl";
   } "entryRequest";
 
-  // Link Observation -> QuestionnaireResponse
+  // Link Observation -> QuestionnaireResponse.
+  // No append: under this engine `qr.id` already resolves to the type-qualified
+  // relative reference ("QuestionnaireResponse/xyz"), so prefixing it again
+  // produced "QuestionnaireResponse/QuestionnaireResponse/xyz" - a reference that
+  // resolves to nothing.
   qr -> obs.derivedFrom = create('Reference') as newRef then {
-    qr.id as qid -> newRef.reference = append('QuestionnaireResponse/', qid) "setQRRef";
+    qr.id as qid -> newRef.reference = qid "setQRRef";
   } "linkQR";
 }
 
