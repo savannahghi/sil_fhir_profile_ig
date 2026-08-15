@@ -115,6 +115,37 @@ jobs:
           if-no-files-found: error
           retention-days: 1
           
+      # The IG Publisher runs SUSHI itself - with `--out <dir>` and no `--snapshot` -
+      # over the same folder, so every snapshot the build step produced is gone before
+      # anything reads fsh-generated/. It does that in the first second of the run,
+      # whether or not the publisher then succeeds, so a failed publish leaves the
+      # directory just as stripped as a successful one.
+      #
+      # Rebuilding here rather than changing the publisher call is deliberate: output/
+      # and the StructureMaps artifact are still produced by exactly the invocation
+      # that works today, and no step sits between this and the upload that could
+      # overwrite the result again. The publisher also takes `-no-sushi`, which stops
+      # it regenerating fsh-generated/ at all - tidier, but it changes a step that is
+      # currently working, and this does not.
+      - name: Rebuild snapshots stripped by the IG Publisher
+        run: |
+          sushi -s .
+
+          # Fail here, naming the cause, rather than part-way through the uploads.
+          missing=0
+          for file in fsh-generated/resources/StructureDefinition-*.json; do
+            [ -f "$file" ] || continue
+            if [ "$(jq -r '(.snapshot.element // []) | length' "$file")" -lt 1 ]; then
+              echo "Still no snapshot after rebuild: $file"
+              missing=$((missing + 1))
+            fi
+          done
+          if [ "$missing" -gt 0 ]; then
+            echo "$missing StructureDefinition(s) have no snapshot after 'sushi -s .'."
+            exit 1
+          fi
+          echo "All StructureDefinitions carry snapshots."
+
       - name: Publish FHIR Artifacts to HAPI FHIR
         run: |
           echo "Publishing to server: ${{ env.HAPI_FHIR_BASE_URL }}"
@@ -193,14 +224,17 @@ jobs:
             # every writer: HAPI resolves the profile named in meta.profile, finds no
             # snapshot, and fails the resource with "StructureDefinition <url> has no
             # snapshot - validation is against the snapshot, so it must be provided".
-            # Snapshots come from the `-s` on the SUSHI build above, which nothing else
-            # enforces, so refuse to publish a profile that lost them.
+            # The backstop for the rebuild step above, which is what actually puts the
+            # snapshots back after the IG Publisher strips them.
             if [ "$resource_type" = "StructureDefinition" ]; then
               local snapshot_elements
               snapshot_elements=$(jq -r '(.snapshot.element // []) | length' "$file")
               if [ "$snapshot_elements" -lt 1 ]; then
                 echo "Refusing to upload $file: StructureDefinition has no snapshot."
-                echo "The SUSHI build must run with -s/--snapshot."
+                echo "'sushi -s .' builds them and the IG Publisher then strips them by"
+                echo "re-running SUSHI without --snapshot over fsh-generated/. If this"
+                echo "fires, the 'Rebuild snapshots stripped by the IG Publisher' step"
+                echo "is missing, ran before the publisher, or failed."
                 exit 1
               fi
             fi
