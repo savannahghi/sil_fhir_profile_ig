@@ -1,0 +1,184 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractInpatientPaediatricAdmissionAssessment"
+/// name = "ExtractInpatientPaediatricAdmissionAssessment"
+/// title = "Inpatient Paediatric Admission Assessment Extraction"
+/// status = "active"
+/// description = "Weight, immunisation status and feeding become Observations; the guardian at the bedside becomes a RelatedPerson. Immunisation status is an Observation rather than an Immunization because the form records what the guardian says, not a dose given with a vaccine, a date and a batch -- an Immunization built from `Partially immunised` would be a fiction. The guardian is a new RelatedPerson rather than a patch to Patient.contact: repeated assessments would append a duplicate contact each time with nothing to deduplicate on, and moh-510-extractor already mints guardian RelatedPersons this way."
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Observation as target
+uses "http://hl7.org/fhir/StructureDefinition/RelatedPerson" alias RelatedPerson as target
+
+group ExtractInpatientPaediatricAdmissionAssessment(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  qr.item as itW where (linkId = 'weight' and answer.value.exists()) then {
+    itW.answer first as aW then {
+      aW -> bundle.entry as entryW, entryW.resource = create('Observation') as obsW then {
+        qr -> obsW, entryW then BuildObsBase(qr, obsW, entryW) "weightBase";
+        qr -> obsW then SetVitalSignsCategory(qr, obsW) "weightCategory";
+        qr -> obsW.code as code then {
+          qr -> code.coding as coding then {
+            qr -> coding.system = 'http://loinc.org' "codeSystem";
+            qr -> coding.code = '29463-7' "codeCode";
+            qr -> coding.display = 'Body weight' "codeDisplay";
+          } "codeCoding";
+        } "weightCode";
+        // Already a Quantity: the item is type `quantity` with a unitOption
+        // pinning kg.
+        aW.value as v -> obsW.value = v "weightValue";
+      } "weightObservation";
+    } "weightAnswer";
+  } "weightRule";
+
+  qr.item as itI where (linkId = 'immunisation' and answer.value.exists()) then {
+    itI.answer first as aI then {
+      aI -> bundle.entry as entryI, entryI.resource = create('Observation') as obsI then {
+        qr -> obsI, entryI then BuildObsBase(qr, obsI, entryI) "immunisationBase";
+        qr -> obsI then SetSocialHistoryCategory(qr, obsI) "immunisationCategory";
+        qr -> obsI.code as code then {
+          qr -> code.coding as coding then {
+            qr -> coding.system = 'http://loinc.org' "codeSystem";
+            qr -> coding.code = '11370-4' "codeCode";
+            qr -> coding.display = 'Immunization status - Reported' "codeDisplay";
+          } "codeCoding";
+        } "immunisationCode";
+        aI -> obsI then SetCodedValue(aI, obsI) "immunisationValue";
+      } "immunisationObservation";
+    } "immunisationAnswer";
+  } "immunisationRule";
+
+  qr.item as itF where (linkId = 'feeding' and answer.value.exists()) then {
+    itF.answer first as aF then {
+      aF -> bundle.entry as entryF, entryF.resource = create('Observation') as obsF then {
+        qr -> obsF, entryF then BuildObsBase(qr, obsF, entryF) "feedingBase";
+        qr -> obsF then SetSocialHistoryCategory(qr, obsF) "feedingCategory";
+        // No LOINC concept for a free-text account of how a child is fed, so a
+        // local code. See SGHIInpatientClinicalConceptCodeSystem.
+        qr -> obsF.code as code then {
+          qr -> code.coding as coding then {
+            qr -> coding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/inpatient-clinical-concept-codesystem' "codeSystem";
+            qr -> coding.code = 'feeding' "codeCode";
+            qr -> coding.display = 'Feeding' "codeDisplay";
+          } "codeCoding";
+          qr -> code.text = 'Feeding' "codeText";
+        } "feedingCode";
+        aF.value as v -> obsF.value = v "feedingValue";
+      } "feedingObservation";
+    } "feedingAnswer";
+  } "feedingRule";
+
+  // ── Guardian ───────────────────────────────────────────────────────────────
+  // RelatedPerson has no element that points back at the response it came from,
+  // so this resource is the one thing the map emits with no link home. A
+  // Provenance would carry it, but that is a wider change than this form.
+  qr.item as itG where (linkId = 'guardianName' and answer.value.exists()) then {
+    itG.answer first as aG then {
+      aG -> bundle.entry as entryG, entryG.resource = create('RelatedPerson') as rp then {
+        qr -> rp.id = uuid() then SetRelatedPersonFullUrl(rp, entryG) "idAndFullUrl";
+
+        qr -> entryG.request as request then {
+          qr -> request.method = 'POST' "requestMethod";
+          qr -> request.url = 'RelatedPerson' "requestUrl";
+        } "entryRequest";
+
+        qr -> rp.active = true "active";
+        qr.subject as s -> rp.patient = s "patient";
+
+        aG.value as v -> rp.name as name then {
+          v -> name.text = v "nameText";
+        } "guardianName";
+
+        // The relationship is written as the guardian described it on the day.
+        // v3-RoleCode has concepts for mother and father, but the form accepts
+        // anything from "Aunt" to "Neighbour", so matching free text against a
+        // code system here would guess.
+        qr.item as itR where (linkId = 'guardianRel' and answer.value.exists()) then {
+          itR.answer first as aR then {
+            aR.value as rv -> rp.relationship as rel then {
+              rv -> rel.text = rv "relationshipText";
+            } "guardianRelationship";
+          } "guardianRelAnswer";
+        } "guardianRelRule";
+      } "relatedPerson";
+    } "guardianNameAnswer";
+  } "guardianRule";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared scaffolding. Repeated in each map rather than imported: the transform
+// engine resolves `imports` against whatever StructureMaps happen to be on the
+// server, and a form that stops extracting because a shared map was not
+// uploaded is a worse failure than a duplicated group.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Source parameters are left untyped on purpose. Writing `: Element` makes the
+// publisher's StructureMap validator compare QuestionnaireResponse.item against
+// the literal 'Element' and report them as incompatible with each other, which is
+// noise, not a finding. Untyped, it says only that it cannot check the paths.
+
+group BuildObsBase(source qr : QR, target obs : Observation, target entry) {
+  qr -> obs.id = uuid() then SetObservationFullUrl(obs, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Observation' "requestUrl";
+  } "entryRequest";
+
+  qr -> obs.status = 'final' "status";
+  qr.subject as s -> obs.subject = s "subject";
+  qr.encounter as e -> obs.encounter = e "encounter";
+  qr.authored as t -> obs.effective = t "effective";
+
+  qr.source as src -> obs.performer = src "performerFromSource";
+  qr where (source.exists().not()) then {
+    qr.author as a -> obs.performer = a "performerFromAuthor";
+  } "performerFallback";
+
+  qr -> obs.derivedFrom = create('Reference') as ref then {
+    qr.id as qid -> ref.reference = qid "derivedFromRef";
+  } "linkQuestionnaireResponse";
+}
+
+// A coded answer becomes the Observation's value, coding and display intact, so
+// the record says both what was picked and how it read on screen.
+group SetCodedValue(source a, target obs : Observation) {
+  a.value as cv -> obs.value = create('CodeableConcept') as cc then {
+    cv -> cc.coding = cv "valueCoding";
+    cv.display as d -> cc.text = d "valueText";
+  } "codedValue";
+}
+
+group SetVitalSignsCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'vital-signs' "categoryCode";
+      qr -> coding.display = 'Vital Signs' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+group SetSocialHistoryCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'social-history' "categoryCode";
+      qr -> coding.display = 'Social History' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+group SetObservationFullUrl(source obs : Observation, target entry) {
+  obs.id as id -> entry.fullUrl = append(
+    'https://fhir.slade360.co.ke/fhir/Observation/',
+    id
+  ) "assignFullUrl";
+}
+
+group SetRelatedPersonFullUrl(source rp : RelatedPerson, target entry) {
+  rp.id as id -> entry.fullUrl = append(
+    'https://fhir.slade360.co.ke/fhir/RelatedPerson/',
+    id
+  ) "assignFullUrl";
+}

@@ -1,0 +1,259 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractInpatientCriticalCareAssessment"
+/// name = "ExtractInpatientCriticalCareAssessment"
+/// title = "Inpatient Critical Care Assessment Extraction"
+/// status = "active"
+/// description = "One Observation for the Glasgow Coma Scale, carrying the total as its value and the eye, verbal and motor sub-scores as components; one for the method of oxygen delivery; one for the organ support narrative; and a MedicationAdministration for the vasopressor the patient is on. The GCS total prefers the calculated total the form submits and falls back to summing the answer weights itself, so the score still extracts from a client that does not evaluate SDC expressions."
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Observation as target
+uses "http://hl7.org/fhir/StructureDefinition/MedicationAdministration" alias MedicationAdministration as target
+
+group ExtractInpatientCriticalCareAssessment(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  // ── Glasgow Coma Scale ─────────────────────────────────────────────────────
+  // One Observation, not three. The total is the reading a clinician acts on
+  // and the three sub-scores are how it was arrived at, which is exactly what
+  // Observation.component is for. (The older GlasgowCommaScaleExtract map emits
+  // three separate Observations from a different questionnaire; it is untouched.)
+  qr.item as gG where (linkId = 'gcs' and item.answer.value.ofType(Coding).exists()) then {
+    gG -> bundle.entry as entryG, entryG.resource = create('Observation') as obsG then {
+      qr -> obsG, entryG then BuildObsBase(qr, obsG, entryG) "gcsBase";
+      qr -> obsG then SetSurveyCategory(qr, obsG) "gcsCategory";
+      qr -> obsG.code as code then {
+        qr -> code.coding as coding then {
+          qr -> coding.system = 'http://loinc.org' "codeSystem";
+          qr -> coding.code = '9269-2' "codeCode";
+          qr -> coding.display = 'Glasgow coma score total' "codeDisplay";
+        } "codeCoding";
+      } "gcsCode";
+
+      // The submitted total wins; otherwise sum the answers. Every scored answer
+      // in SGHIClinicalScoreCodeSystem ends in its own weight -- gcs-motor-6 is
+      // worth 6 -- so the fallback reads the weight off the code. The two paths
+      // are the same arithmetic as the questionnaire's calculatedExpression, so
+      // they cannot disagree.
+      //
+      // Guarded on all three sub-scores being present. A GCS of 7 summed from
+      // eye and motor alone reads as a comatose patient; the components still
+      // extract, but the total does not, because a partial GCS is not a GCS.
+      gG where (item.answer.value.ofType(Coding).count() = 3) then {
+        gG -> obsG.value = evaluate(gG, iif(item.where(linkId = 'gcs.total').answer.value.exists(), item.where(linkId = 'gcs.total').answer.value, item.answer.value.ofType(Coding).code.select($this.split('-').last().toInteger()).aggregate($this + $total, 0))) "gcsTotalValue";
+      } "gcsTotalRule";
+
+      gG.item as itE where (linkId = 'gcs.eye' and answer.value.exists()) -> obsG.component as comp then {
+        itE -> comp.code as code then {
+          itE -> code.coding as coding then {
+            itE -> coding.system = 'http://loinc.org' "codeSystem";
+            itE -> coding.code = '9267-6' "codeCode";
+            itE -> coding.display = 'Glasgow coma score eye opening' "codeDisplay";
+          } "codeCoding";
+        } "eyeCode";
+        itE -> comp then SetComponentCodedValue(itE, comp) "eyeValue";
+      } "gcsEyeRule";
+
+      gG.item as itV where (linkId = 'gcs.verbal' and answer.value.exists()) -> obsG.component as comp then {
+        itV -> comp.code as code then {
+          itV -> code.coding as coding then {
+            itV -> coding.system = 'http://loinc.org' "codeSystem";
+            itV -> coding.code = '9270-0' "codeCode";
+            itV -> coding.display = 'Glasgow coma score verbal' "codeDisplay";
+          } "codeCoding";
+        } "verbalCode";
+        itV -> comp then SetComponentCodedValue(itV, comp) "verbalValue";
+      } "gcsVerbalRule";
+
+      gG.item as itM where (linkId = 'gcs.motor' and answer.value.exists()) -> obsG.component as comp then {
+        itM -> comp.code as code then {
+          itM -> code.coding as coding then {
+            itM -> coding.system = 'http://loinc.org' "codeSystem";
+            itM -> coding.code = '9268-4' "codeCode";
+            itM -> coding.display = 'Glasgow coma score motor' "codeDisplay";
+          } "codeCoding";
+        } "motorCode";
+        itM -> comp then SetComponentCodedValue(itM, comp) "motorValue";
+      } "gcsMotorRule";
+    } "gcsObservation";
+  } "gcsRule";
+
+  // ── Oxygen support ─────────────────────────────────────────────────────────
+  // Category `therapy`: this records a treatment being delivered, not a
+  // measurement taken.
+  qr.item as itO where (linkId = 'oxygen' and answer.value.exists()) then {
+    itO.answer first as aO then {
+      aO -> bundle.entry as entryO, entryO.resource = create('Observation') as obsO then {
+        qr -> obsO, entryO then BuildObsBase(qr, obsO, entryO) "oxygenBase";
+        qr -> obsO then SetTherapyCategory(qr, obsO) "oxygenCategory";
+        qr -> obsO.code as code then {
+          qr -> code.coding as coding then {
+            qr -> coding.system = 'http://loinc.org' "codeSystem";
+            qr -> coding.code = '107117-4' "codeCode";
+            qr -> coding.display = 'Method of oxygen delivery' "codeDisplay";
+          } "codeCoding";
+        } "oxygenCode";
+        aO -> obsO then SetCodedValue(aO, obsO) "oxygenValue";
+      } "oxygenObservation";
+    } "oxygenAnswer";
+  } "oxygenRule";
+
+  // ── Organ support ──────────────────────────────────────────────────────────
+  // LOINC has codes for individual supports but none for the summary the form
+  // asks for, so a local code. See SGHIInpatientClinicalConceptCodeSystem.
+  qr.item as itS where (linkId = 'organSupport' and answer.value.exists()) then {
+    itS.answer first as aS then {
+      aS -> bundle.entry as entryS, entryS.resource = create('Observation') as obsS then {
+        qr -> obsS, entryS then BuildObsBase(qr, obsS, entryS) "organSupportBase";
+        qr -> obsS then SetTherapyCategory(qr, obsS) "organSupportCategory";
+        qr -> obsS.code as code then {
+          qr -> code.coding as coding then {
+            qr -> coding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/inpatient-clinical-concept-codesystem' "codeSystem";
+            qr -> coding.code = 'organ-support' "codeCode";
+            qr -> coding.display = 'Organ support needed' "codeDisplay";
+          } "codeCoding";
+          qr -> code.text = 'Organ support needed' "codeText";
+        } "organSupportCode";
+        aS.value as v -> obsS.value = v "organSupportValue";
+      } "organSupportObservation";
+    } "organSupportAnswer";
+  } "organSupportRule";
+
+  // ── Vasopressor ────────────────────────────────────────────────────────────
+  // The form captures a dose description ("Noradrenaline 0.1 mcg/kg/min"), not
+  // a medication reference, so the wording lands in medication.concept.text
+  // rather than being matched against a drug dictionary. Status is
+  // `in-progress`: the assessment records an infusion running at the moment it
+  // was written, and `completed` would assert it had finished, which is not
+  // what the nurse wrote.
+  qr.item as itV where (linkId = 'vasopressor' and answer.value.exists()) then {
+    itV.answer first as aV then {
+      aV -> bundle.entry as entryV, entryV.resource = create('MedicationAdministration') as ma then {
+        qr -> ma.id = uuid() then SetMedicationAdministrationFullUrl(ma, entryV) "idAndFullUrl";
+
+        qr -> entryV.request as request then {
+          qr -> request.method = 'POST' "requestMethod";
+          qr -> request.url = 'MedicationAdministration' "requestUrl";
+        } "entryRequest";
+
+        qr -> ma.status = 'in-progress' "status";
+        qr -> ma.category as cat then {
+          qr -> cat.coding as coding then {
+            qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/medication-admin-location' "categorySystem";
+            qr -> coding.code = 'inpatient' "categoryCode";
+            qr -> coding.display = 'Inpatient' "categoryDisplay";
+          } "categoryCoding";
+        } "category";
+
+        aV.value as v -> ma.medication as medRef then {
+          v -> medRef.concept as concept then {
+            v -> concept.text = v "medicationText";
+          } "medicationConcept";
+        } "medication";
+
+        qr.subject as s -> ma.subject = s "subject";
+        qr.encounter as e -> ma.encounter = e "encounter";
+        // R5 spells this element `occurence[x]`. That is the specification's own
+        // typo, not one here.
+        qr.authored as t -> ma.occurence = t "occurrence";
+        qr.authored as t -> ma.recorded = t "recorded";
+
+        qr -> ma.supportingInformation = create('Reference') as ref then {
+          qr.id as qid -> ref.reference = qid "supportingInformationRef";
+        } "linkQuestionnaireResponse";
+      } "medicationAdministration";
+    } "vasopressorAnswer";
+  } "vasopressorRule";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared scaffolding. Repeated in each map rather than imported: the transform
+// engine resolves `imports` against whatever StructureMaps happen to be on the
+// server, and a form that stops extracting because a shared map was not
+// uploaded is a worse failure than a duplicated group.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Two notes on what the publisher's StructureMap validator says about this file.
+//
+// Source parameters below are left untyped on purpose. Writing `: Element` makes
+// the validator compare QuestionnaireResponse.item against the literal 'Element'
+// and report them as incompatible with each other, which is noise, not a finding.
+// Untyped, it says only that it cannot check the paths.
+//
+// `evaluate(context, expression)` is flagged as "takes 1 parameter but 2 were
+// found". Leave it. The FML parser in the same jar refuses the one-argument form
+// outright -- it wants a parameter, a comma, then the FHIRPath -- so the publisher
+// is objecting to what its own compiler emits. Two arguments is the only form that
+// compiles, and it is what the R5 transform engine executes.
+
+group BuildObsBase(source qr : QR, target obs : Observation, target entry) {
+  qr -> obs.id = uuid() then SetObservationFullUrl(obs, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Observation' "requestUrl";
+  } "entryRequest";
+
+  qr -> obs.status = 'final' "status";
+  qr.subject as s -> obs.subject = s "subject";
+  qr.encounter as e -> obs.encounter = e "encounter";
+  qr.authored as t -> obs.effective = t "effective";
+
+  qr.source as src -> obs.performer = src "performerFromSource";
+  qr where (source.exists().not()) then {
+    qr.author as a -> obs.performer = a "performerFromAuthor";
+  } "performerFallback";
+
+  qr -> obs.derivedFrom = create('Reference') as ref then {
+    qr.id as qid -> ref.reference = qid "derivedFromRef";
+  } "linkQuestionnaireResponse";
+}
+
+group SetCodedValue(source a, target obs : Observation) {
+  a.value as cv -> obs.value = create('CodeableConcept') as cc then {
+    cv -> cc.coding = cv "valueCoding";
+    cv.display as d -> cc.text = d "valueText";
+  } "codedValue";
+}
+
+group SetComponentCodedValue(source it, target comp) {
+  it.answer first as a then {
+    a.value as cv -> comp.value = create('CodeableConcept') as cc then {
+      cv -> cc.coding = cv "valueCoding";
+      cv.display as d -> cc.text = d "valueText";
+    } "codedValue";
+  } "componentAnswer";
+}
+
+group SetSurveyCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'survey' "categoryCode";
+      qr -> coding.display = 'Survey' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+group SetTherapyCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'therapy' "categoryCode";
+      qr -> coding.display = 'Therapy' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+group SetObservationFullUrl(source obs : Observation, target entry) {
+  obs.id as id -> entry.fullUrl = append(
+    'https://fhir.slade360.co.ke/fhir/Observation/',
+    id
+  ) "assignFullUrl";
+}
+
+group SetMedicationAdministrationFullUrl(source ma : MedicationAdministration, target entry) {
+  ma.id as id -> entry.fullUrl = append(
+    'https://fhir.slade360.co.ke/fhir/MedicationAdministration/',
+    id
+  ) "assignFullUrl";
+}

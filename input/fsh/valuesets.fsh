@@ -1799,3 +1799,175 @@ Description: "How the draw went, recorded by whoever took the sample. A difficul
 * include SGHISpecimenCollectionCodeSystem#difficult-draw "Difficult draw"
 * include SGHISpecimenCollectionCodeSystem#short-draw "Short draw, under volume"
 * include $v2-0493#HEM "Visibly haemolysed"
+
+// ═════════════════════════════════════════════════════════════════════════════
+// Inpatient clinical documentation
+//
+// Sliced by the thing a consumer actually binds to. The two whole-system sets
+// classify documents and name the locally-minted concepts; the four instrument
+// sets say which answers belong to which scored instrument, which is what
+// validates an extracted Observation.component; the five pick-list sets are
+// directly usable as `answerValueSet` on their questionnaire items, because
+// unlike the scored answers they carry no ordinal weight to lose.
+// ═════════════════════════════════════════════════════════════════════════════
+
+ValueSet: SGHIInpatientDocumentType
+Id: inpatient-document-type
+Title: "SGHI Inpatient Document Type"
+Description: "The kind of note or assessment written against an inpatient stay. Binds Composition.type and DocumentReference.type for a filed inpatient note."
+* ^status = #active
+* ^experimental = false
+* include codes from system SGHIInpatientDocumentTypeCodeSystem
+
+ValueSet: SGHIInpatientClinicalConcept
+Id: inpatient-clinical-concept
+Title: "SGHI Inpatient Clinical Concept"
+Description: "The concepts the inpatient forms record that LOINC has no code for. Used as Observation.code, RiskAssessment.code, Task.code, ServiceRequest.code and CarePlan.category on resources extracted from those forms."
+* ^status = #active
+* ^experimental = false
+* include codes from system SGHIInpatientClinicalConceptCodeSystem
+
+ValueSet: SGHIBradenScaleAnswer
+Id: braden-scale-answer
+Title: "SGHI Braden Scale Answer"
+Description: "The answers to the six Braden pressure ulcer scale items. The extracted Observation carries the total as its value and these as component values, coded against the LOINC Braden panel."
+* ^status = #active
+* ^experimental = false
+* include SGHIClinicalScoreCodeSystem#braden-sensory-1 "Completely limited"
+* include SGHIClinicalScoreCodeSystem#braden-sensory-2 "Very limited"
+* include SGHIClinicalScoreCodeSystem#braden-sensory-3 "Slightly limited"
+* include SGHIClinicalScoreCodeSystem#braden-sensory-4 "No impairment"
+* include SGHIClinicalScoreCodeSystem#braden-moisture-1 "Constantly moist"
+* include SGHIClinicalScoreCodeSystem#braden-moisture-2 "Often moist"
+* include SGHIClinicalScoreCodeSystem#braden-moisture-3 "Occasionally moist"
+* include SGHIClinicalScoreCodeSystem#braden-moisture-4 "Rarely moist"
+* include SGHIClinicalScoreCodeSystem#braden-activity-1 "Bedfast"
+* include SGHIClinicalScoreCodeSystem#braden-activity-2 "Chairfast"
+* include SGHIClinicalScoreCodeSystem#braden-activity-3 "Walks occasionally"
+* include SGHIClinicalScoreCodeSystem#braden-activity-4 "Walks frequently"
+* include SGHIClinicalScoreCodeSystem#braden-mobility-1 "Completely immobile"
+* include SGHIClinicalScoreCodeSystem#braden-mobility-2 "Very limited"
+* include SGHIClinicalScoreCodeSystem#braden-mobility-3 "Slightly limited"
+* include SGHIClinicalScoreCodeSystem#braden-mobility-4 "No limitation"
+* include SGHIClinicalScoreCodeSystem#braden-nutrition-1 "Very poor"
+* include SGHIClinicalScoreCodeSystem#braden-nutrition-2 "Probably inadequate"
+* include SGHIClinicalScoreCodeSystem#braden-nutrition-3 "Adequate"
+* include SGHIClinicalScoreCodeSystem#braden-nutrition-4 "Excellent"
+* include SGHIClinicalScoreCodeSystem#braden-friction-1 "Problem"
+* include SGHIClinicalScoreCodeSystem#braden-friction-2 "Potential problem"
+* include SGHIClinicalScoreCodeSystem#braden-friction-3 "No apparent problem"
+
+ValueSet: SGHIMorseFallScaleAnswer
+Id: morse-fall-scale-answer
+Title: "SGHI Morse Fall Scale Answer"
+Description: "The answers to the six falls risk items. The items are the Morse Fall Scale verbatim, so the extracted Observation is coded against the LOINC Morse panel and these are its component values."
+* ^status = #active
+* ^experimental = false
+* include SGHIClinicalScoreCodeSystem#falls-history-0 "No fall in the last 12 months"
+* include SGHIClinicalScoreCodeSystem#falls-history-25 "Fall in the last 12 months"
+* include SGHIClinicalScoreCodeSystem#falls-diagnoses-0 "One active diagnosis or none"
+* include SGHIClinicalScoreCodeSystem#falls-diagnoses-15 "More than one active diagnosis"
+* include SGHIClinicalScoreCodeSystem#falls-aid-0 "No walking aid, or bedrest"
+* include SGHIClinicalScoreCodeSystem#falls-aid-15 "Crutch, stick or walker"
+* include SGHIClinicalScoreCodeSystem#falls-aid-30 "Holds onto furniture"
+* include SGHIClinicalScoreCodeSystem#falls-iv-0 "No intravenous access"
+* include SGHIClinicalScoreCodeSystem#falls-iv-20 "Intravenous access in place"
+* include SGHIClinicalScoreCodeSystem#falls-gait-0 "Normal gait, or bedrest"
+* include SGHIClinicalScoreCodeSystem#falls-gait-10 "Weak gait"
+* include SGHIClinicalScoreCodeSystem#falls-gait-20 "Impaired gait"
+* include SGHIClinicalScoreCodeSystem#falls-mental-0 "Oriented to own ability"
+* include SGHIClinicalScoreCodeSystem#falls-mental-15 "Overestimates or forgets limits"
+
+ValueSet: SGHIMalnutritionScreeningAnswer
+Id: malnutrition-screening-answer
+Title: "SGHI Malnutrition Screening (MUST) Answer"
+Description: "The answers to the three MUST steps: body mass index, unplanned weight loss and acute disease effect. The extracted Observation carries the total, banded low, medium or high per BAPEN."
+* ^status = #active
+* ^experimental = false
+* include SGHIClinicalScoreCodeSystem#must-bmi-0 "BMI 20 or over"
+* include SGHIClinicalScoreCodeSystem#must-bmi-1 "BMI 18.5 to 20"
+* include SGHIClinicalScoreCodeSystem#must-bmi-2 "BMI under 18.5"
+* include SGHIClinicalScoreCodeSystem#must-loss-0 "Weight loss under 5%"
+* include SGHIClinicalScoreCodeSystem#must-loss-1 "Weight loss 5 to 10%"
+* include SGHIClinicalScoreCodeSystem#must-loss-2 "Weight loss over 10%"
+* include SGHIClinicalScoreCodeSystem#must-acute-0 "Eating normally"
+* include SGHIClinicalScoreCodeSystem#must-acute-2 "No nutritional intake for 5 days or more"
+
+ValueSet: SGHIGlasgowComaScaleAnswer
+Id: glasgow-coma-scale-answer
+Title: "SGHI Glasgow Coma Scale Answer"
+Description: "The answers to the three Glasgow Coma Scale components. The extracted Observation carries the total against LOINC 9269-2 and these as component values against the eye, verbal and motor codes."
+* ^status = #active
+* ^experimental = false
+* include SGHIClinicalScoreCodeSystem#gcs-eye-1 "No eye opening"
+* include SGHIClinicalScoreCodeSystem#gcs-eye-2 "Eye opening to pressure"
+* include SGHIClinicalScoreCodeSystem#gcs-eye-3 "Eye opening to sound"
+* include SGHIClinicalScoreCodeSystem#gcs-eye-4 "Spontaneous eye opening"
+* include SGHIClinicalScoreCodeSystem#gcs-verbal-1 "No verbal response"
+* include SGHIClinicalScoreCodeSystem#gcs-verbal-2 "Sounds"
+* include SGHIClinicalScoreCodeSystem#gcs-verbal-3 "Words"
+* include SGHIClinicalScoreCodeSystem#gcs-verbal-4 "Confused"
+* include SGHIClinicalScoreCodeSystem#gcs-verbal-5 "Oriented"
+* include SGHIClinicalScoreCodeSystem#gcs-motor-1 "No motor response"
+* include SGHIClinicalScoreCodeSystem#gcs-motor-2 "Extension"
+* include SGHIClinicalScoreCodeSystem#gcs-motor-3 "Abnormal flexion"
+* include SGHIClinicalScoreCodeSystem#gcs-motor-4 "Normal flexion"
+* include SGHIClinicalScoreCodeSystem#gcs-motor-5 "Localising"
+* include SGHIClinicalScoreCodeSystem#gcs-motor-6 "Obeys commands"
+
+ValueSet: SGHIASAPhysicalStatus
+Id: asa-physical-status
+Title: "SGHI ASA Physical Status"
+Description: "The American Society of Anesthesiologists physical status grade recorded on a pre-operative assessment. Extracted as an Observation against LOINC 97816-3."
+* ^status = #active
+* ^experimental = false
+* include SGHIInpatientAssessmentAnswerCodeSystem#asa-i "I — healthy"
+* include SGHIInpatientAssessmentAnswerCodeSystem#asa-ii "II — mild systemic disease"
+* include SGHIInpatientAssessmentAnswerCodeSystem#asa-iii "III — severe systemic disease"
+* include SGHIInpatientAssessmentAnswerCodeSystem#asa-iv "IV — life-threatening disease"
+* include SGHIInpatientAssessmentAnswerCodeSystem#asa-v "V — moribund"
+
+ValueSet: SGHIOxygenSupport
+Id: oxygen-support
+Title: "SGHI Oxygen Support"
+Description: "How supplemental oxygen or ventilatory support is being delivered, from room air through to invasive ventilation. Extracted as an Observation against LOINC 107117-4."
+* ^status = #active
+* ^experimental = false
+* include SGHIInpatientAssessmentAnswerCodeSystem#oxygen-room-air "Room air"
+* include SGHIInpatientAssessmentAnswerCodeSystem#oxygen-nasal-cannula "Nasal cannula"
+* include SGHIInpatientAssessmentAnswerCodeSystem#oxygen-face-mask "Face mask"
+* include SGHIInpatientAssessmentAnswerCodeSystem#oxygen-high-flow-nasal "High-flow nasal oxygen"
+* include SGHIInpatientAssessmentAnswerCodeSystem#oxygen-non-invasive-ventilation "Non-invasive ventilation"
+* include SGHIInpatientAssessmentAnswerCodeSystem#oxygen-invasive-ventilation "Invasive ventilation"
+
+ValueSet: SGHIImmunisationStatus
+Id: immunisation-status
+Title: "SGHI Immunisation Status"
+Description: "Immunisation status as reported by the carer on a paediatric admission. Extracted as an Observation against LOINC 11370-4, which is explicitly the reported status rather than a dose given."
+* ^status = #active
+* ^experimental = false
+* include SGHIInpatientAssessmentAnswerCodeSystem#immunisation-up-to-date "Up to date"
+* include SGHIInpatientAssessmentAnswerCodeSystem#immunisation-partial "Partially immunised"
+* include SGHIInpatientAssessmentAnswerCodeSystem#immunisation-none "Not immunised"
+* include SGHIInpatientAssessmentAnswerCodeSystem#immunisation-unknown "Not known"
+
+ValueSet: SGHISelfHarmRisk
+Id: self-harm-risk
+Title: "SGHI Self-Harm Risk"
+Description: "The risk of self-harm identified on a mental health assessment. Extracted as a RiskAssessment whose qualitativeRisk carries both an HL7 risk-probability code and the answer itself, because four answers map onto five probability concepts and two of them share one."
+* ^status = #active
+* ^experimental = false
+* include SGHIInpatientAssessmentAnswerCodeSystem#self-harm-none "No current risk identified"
+* include SGHIInpatientAssessmentAnswerCodeSystem#self-harm-passive "Passive thoughts, no plan"
+* include SGHIInpatientAssessmentAnswerCodeSystem#self-harm-active-plan "Active thoughts with a plan"
+* include SGHIInpatientAssessmentAnswerCodeSystem#self-harm-recent-act "Recent act of self-harm"
+
+ValueSet: SGHICapacityToConsent
+Id: capacity-to-consent
+Title: "SGHI Capacity to Consent"
+Description: "Whether the patient has capacity for the decision in front of them. Fluctuating is a distinct answer, not a hedge: it says the assessment holds only for the moment it was made."
+* ^status = #active
+* ^experimental = false
+* include SGHIInpatientAssessmentAnswerCodeSystem#capacity-has "Has capacity for this decision"
+* include SGHIInpatientAssessmentAnswerCodeSystem#capacity-fluctuating "Capacity fluctuating"
+* include SGHIInpatientAssessmentAnswerCodeSystem#capacity-lacks "Lacks capacity for this decision"

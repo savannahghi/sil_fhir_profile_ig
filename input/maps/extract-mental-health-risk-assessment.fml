@@ -1,0 +1,299 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractInpatientMentalHealthRiskAssessment"
+/// name = "ExtractInpatientMentalHealthRiskAssessment"
+/// title = "Inpatient Mental Health Risk Assessment Extraction"
+/// status = "active"
+/// description = "Mood and capacity become Observations, the risk of self-harm becomes a RiskAssessment carrying what the patient said as its note, and a safeguarding concern becomes a Flag on the patient. This is the one instrument here that is not scored: the band comes from which of four answers was picked, not from arithmetic, so each answer is banded explicitly. The answer's own coding and wording ride along in qualitativeRisk, so a reader never has to infer what was said from a risk tier."
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Observation as target
+uses "http://hl7.org/fhir/StructureDefinition/RiskAssessment" alias RiskAssessment as target
+uses "http://hl7.org/fhir/StructureDefinition/Flag" alias Flag as target
+
+group ExtractInpatientMentalHealthRiskAssessment(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  // ── Mood and affect ────────────────────────────────────────────────────────
+  // No LOINC concept for the mood and affect line of a mental state
+  // examination, so a local code. See SGHIInpatientClinicalConceptCodeSystem.
+  qr.item as itM where (linkId = 'mood' and answer.value.exists()) then {
+    itM.answer first as aM then {
+      aM -> bundle.entry as entryM, entryM.resource = create('Observation') as obsM then {
+        qr -> obsM, entryM then BuildObsBase(qr, obsM, entryM) "moodBase";
+        qr -> obsM then SetExamCategory(qr, obsM) "moodCategory";
+        qr -> obsM.code as code then {
+          qr -> code.coding as coding then {
+            qr -> coding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/inpatient-clinical-concept-codesystem' "codeSystem";
+            qr -> coding.code = 'mood-and-affect' "codeCode";
+            qr -> coding.display = 'Mood and affect' "codeDisplay";
+          } "codeCoding";
+          qr -> code.text = 'Mood and affect' "codeText";
+        } "moodCode";
+        aM.value as v -> obsM.value = v "moodValue";
+      } "moodObservation";
+    } "moodAnswer";
+  } "moodRule";
+
+  // ── Capacity to consent ────────────────────────────────────────────────────
+  qr.item as itC where (linkId = 'capacity' and answer.value.exists()) then {
+    itC.answer first as aC then {
+      aC -> bundle.entry as entryC, entryC.resource = create('Observation') as obsC then {
+        qr -> obsC, entryC then BuildObsBase(qr, obsC, entryC) "capacityBase";
+        qr -> obsC then SetExamCategory(qr, obsC) "capacityCategory";
+        qr -> obsC.code as code then {
+          qr -> code.coding as coding then {
+            qr -> coding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/inpatient-clinical-concept-codesystem' "codeSystem";
+            qr -> coding.code = 'capacity-to-consent' "codeCode";
+            qr -> coding.display = 'Capacity to consent' "codeDisplay";
+          } "codeCoding";
+          qr -> code.text = 'Capacity to consent' "codeText";
+        } "capacityCode";
+        aC -> obsC then SetCodedValue(aC, obsC) "capacityValue";
+      } "capacityObservation";
+    } "capacityAnswer";
+  } "capacityRule";
+
+  // ── Risk of self-harm ──────────────────────────────────────────────────────
+  // Four answers, four bands. Passive ideation is banded `moderate` rather than
+  // `low`: on a ward, thoughts of self-harm without a plan still warrant
+  // observation, and the cost of over-flagging here is smaller than the cost of
+  // under-flagging.
+  qr.item as itS where (linkId = 'selfHarm' and answer.value.ofType(Coding).code = 'self-harm-none') -> bundle.entry as entry, entry.resource = create('RiskAssessment') as ra then {
+    qr -> ra, entry then BuildRiskBase(qr, ra, entry) "riskBase";
+    qr -> ra.prediction as pred then {
+      qr -> pred.outcome as outcome then {
+        qr -> outcome.text = 'Self-harm' "outcomeText";
+      } "outcome";
+      qr -> pred.qualitativeRisk as risk then {
+        qr -> risk.coding as coding then {
+          qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/risk-probability' "riskSystem";
+          qr -> coding.code = 'negligible' "riskCode";
+          qr -> coding.display = 'Negligible likelihood' "riskDisplay";
+        } "riskCoding";
+        itS -> risk then AddAnswerCodingAndText(itS, risk) "answerCoding";
+      } "qualitativeRisk";
+    } "prediction";
+  } "selfHarmNoneRule";
+
+  qr.item as itS where (linkId = 'selfHarm' and answer.value.ofType(Coding).code = 'self-harm-passive') -> bundle.entry as entry, entry.resource = create('RiskAssessment') as ra then {
+    qr -> ra, entry then BuildRiskBase(qr, ra, entry) "riskBase";
+    qr -> ra.prediction as pred then {
+      qr -> pred.outcome as outcome then {
+        qr -> outcome.text = 'Self-harm' "outcomeText";
+      } "outcome";
+      qr -> pred.qualitativeRisk as risk then {
+        qr -> risk.coding as coding then {
+          qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/risk-probability' "riskSystem";
+          qr -> coding.code = 'moderate' "riskCode";
+          qr -> coding.display = 'Moderate likelihood' "riskDisplay";
+        } "riskCoding";
+        itS -> risk then AddAnswerCodingAndText(itS, risk) "answerCoding";
+      } "qualitativeRisk";
+    } "prediction";
+  } "selfHarmPassiveRule";
+
+  qr.item as itS where (linkId = 'selfHarm' and answer.value.ofType(Coding).code = 'self-harm-active-plan') -> bundle.entry as entry, entry.resource = create('RiskAssessment') as ra then {
+    qr -> ra, entry then BuildRiskBase(qr, ra, entry) "riskBase";
+    qr -> ra.prediction as pred then {
+      qr -> pred.outcome as outcome then {
+        qr -> outcome.text = 'Self-harm' "outcomeText";
+      } "outcome";
+      qr -> pred.qualitativeRisk as risk then {
+        qr -> risk.coding as coding then {
+          qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/risk-probability' "riskSystem";
+          qr -> coding.code = 'high' "riskCode";
+          qr -> coding.display = 'High likelihood' "riskDisplay";
+        } "riskCoding";
+        itS -> risk then AddAnswerCodingAndText(itS, risk) "answerCoding";
+      } "qualitativeRisk";
+    } "prediction";
+  } "selfHarmActivePlanRule";
+
+  qr.item as itS where (linkId = 'selfHarm' and answer.value.ofType(Coding).code = 'self-harm-recent-act') -> bundle.entry as entry, entry.resource = create('RiskAssessment') as ra then {
+    qr -> ra, entry then BuildRiskBase(qr, ra, entry) "riskBase";
+    qr -> ra.prediction as pred then {
+      qr -> pred.outcome as outcome then {
+        qr -> outcome.text = 'Self-harm' "outcomeText";
+      } "outcome";
+      qr -> pred.qualitativeRisk as risk then {
+        qr -> risk.coding as coding then {
+          qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/risk-probability' "riskSystem";
+          qr -> coding.code = 'high' "riskCode";
+          qr -> coding.display = 'High likelihood' "riskDisplay";
+        } "riskCoding";
+        itS -> risk then AddAnswerCodingAndText(itS, risk) "answerCoding";
+      } "qualitativeRisk";
+    } "prediction";
+  } "selfHarmRecentActRule";
+
+  // ── Safeguarding ───────────────────────────────────────────────────────────
+  // Flag has no element that points back at the response it came from, so this
+  // is the one resource the map emits with no link home. Category `safety` is
+  // what makes it show up wherever the ward surfaces safety flags.
+  qr.item as itSg where (linkId = 'safeguarding' and answer.value.exists()) then {
+    itSg.answer first as aSg then {
+      aSg -> bundle.entry as entryF, entryF.resource = create('Flag') as flag then {
+        qr -> flag.id = uuid() then SetFlagFullUrl(flag, entryF) "idAndFullUrl";
+
+        qr -> entryF.request as request then {
+          qr -> request.method = 'POST' "requestMethod";
+          qr -> request.url = 'Flag' "requestUrl";
+        } "entryRequest";
+
+        qr -> flag.status = 'active' "status";
+        qr -> flag.category as cat then {
+          qr -> cat.coding as coding then {
+            qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/flag-category' "categorySystem";
+            qr -> coding.code = 'safety' "categoryCode";
+            qr -> coding.display = 'Safety' "categoryDisplay";
+          } "categoryCoding";
+        } "category";
+
+        // The concern as written. Flag.code is 1..1 and there is no code system
+        // for "what a nurse is worried about", so the wording is the concept.
+        aSg.value as v -> flag.code as code then {
+          v -> code.text = v "codeText";
+        } "flagCode";
+
+        qr.subject as s -> flag.subject = s "subject";
+        qr.encounter as e -> flag.encounter = e "encounter";
+        qr.authored as t -> flag.period as period then {
+          t -> period.start = t "periodStart";
+        } "period";
+
+        qr.author as a -> flag.author = a "authorFromAuthor";
+        qr where (author.exists().not()) then {
+          qr.source as src -> flag.author = src "authorFromSource";
+        } "authorFallback";
+      } "flag";
+    } "safeguardingAnswer";
+  } "safeguardingRule";
+}
+
+// The chosen answer, coding and wording intact, alongside the risk-probability
+// code. risk-probability has five concepts and the form has four answers, so
+// two of them share `high`; the answer coding is what tells them apart.
+group AddAnswerCodingAndText(source it, target risk) {
+  it.answer first as a then {
+    a.value as cv -> risk.coding = cv "answerCoding";
+    a.value as cv then {
+      cv.display as d -> risk.text = d "answerText";
+    } "answerDisplay";
+  } "answer";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared scaffolding. Repeated in each map rather than imported: the transform
+// engine resolves `imports` against whatever StructureMaps happen to be on the
+// server, and a form that stops extracting because a shared map was not
+// uploaded is a worse failure than a duplicated group.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Source parameters are left untyped on purpose. Writing `: Element` makes the
+// publisher's StructureMap validator compare QuestionnaireResponse.item against
+// the literal 'Element' and report them as incompatible with each other, which is
+// noise, not a finding. Untyped, it says only that it cannot check the paths.
+
+group BuildObsBase(source qr : QR, target obs : Observation, target entry) {
+  qr -> obs.id = uuid() then SetObservationFullUrl(obs, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Observation' "requestUrl";
+  } "entryRequest";
+
+  qr -> obs.status = 'final' "status";
+  qr.subject as s -> obs.subject = s "subject";
+  qr.encounter as e -> obs.encounter = e "encounter";
+  qr.authored as t -> obs.effective = t "effective";
+
+  qr.source as src -> obs.performer = src "performerFromSource";
+  qr where (source.exists().not()) then {
+    qr.author as a -> obs.performer = a "performerFromAuthor";
+  } "performerFallback";
+
+  qr -> obs.derivedFrom = create('Reference') as ref then {
+    qr.id as qid -> ref.reference = qid "derivedFromRef";
+  } "linkQuestionnaireResponse";
+}
+
+// No Observation to stand on here -- the self-harm answer is a judgement, not a
+// measurement -- so basis carries the response alone, and "What was said" comes
+// through as the assessment's note.
+group BuildRiskBase(source qr : QR, target ra : RiskAssessment, target entry) {
+  qr -> ra.id = uuid() then SetRiskAssessmentFullUrl(ra, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'RiskAssessment' "requestUrl";
+  } "entryRequest";
+
+  qr -> ra.status = 'final' "status";
+  qr -> ra.code as code then {
+    qr -> code.coding as coding then {
+      qr -> coding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/inpatient-clinical-concept-codesystem' "codeSystem";
+      qr -> coding.code = 'self-harm-risk' "codeCode";
+      qr -> coding.display = 'Risk of self-harm' "codeDisplay";
+    } "codeCoding";
+    qr -> code.text = 'Risk of self-harm' "codeText";
+  } "code";
+
+  qr.subject as s -> ra.subject = s "subject";
+  qr.encounter as e -> ra.encounter = e "encounter";
+  qr.authored as t -> ra.occurrence = t "occurrence";
+
+  qr.author as a -> ra.performer = a "performerFromAuthor";
+  qr where (author.exists().not()) then {
+    qr.source as src -> ra.performer = src "performerFromSource";
+  } "performerFallback";
+
+  qr -> ra.basis = create('Reference') as qref then {
+    qr.id as qid -> qref.reference = qid "basisQuestionnaireResponse";
+  } "basisResponse";
+
+  qr.item as itD where (linkId = 'selfHarmDetail' and answer.value.exists()) then {
+    itD.answer first as aD then {
+      aD.value as v -> ra.note as note then {
+        v -> note.text = v "noteText";
+      } "note";
+    } "detailAnswer";
+  } "whatWasSaidRule";
+}
+
+group SetCodedValue(source a, target obs : Observation) {
+  a.value as cv -> obs.value = create('CodeableConcept') as cc then {
+    cv -> cc.coding = cv "valueCoding";
+    cv.display as d -> cc.text = d "valueText";
+  } "codedValue";
+}
+
+group SetExamCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'exam' "categoryCode";
+      qr -> coding.display = 'Exam' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+group SetObservationFullUrl(source obs : Observation, target entry) {
+  obs.id as id -> entry.fullUrl = append(
+    'https://fhir.slade360.co.ke/fhir/Observation/',
+    id
+  ) "assignFullUrl";
+}
+
+group SetRiskAssessmentFullUrl(source ra : RiskAssessment, target entry) {
+  ra.id as id -> entry.fullUrl = append(
+    'https://fhir.slade360.co.ke/fhir/RiskAssessment/',
+    id
+  ) "assignFullUrl";
+}
+
+group SetFlagFullUrl(source flag : Flag, target entry) {
+  flag.id as id -> entry.fullUrl = append(
+    'https://fhir.slade360.co.ke/fhir/Flag/',
+    id
+  ) "assignFullUrl";
+}

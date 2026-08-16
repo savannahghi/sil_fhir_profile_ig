@@ -1,0 +1,191 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractInpatientWardRoundNote"
+/// name = "ExtractInpatientWardRoundNote"
+/// title = "Inpatient Ward Round Note Extraction"
+/// status = "active"
+/// description = "Turns a response to the inpatient ward round into a Composition with a section per heading, one attester per clinician who was on the round, and a Task carrying the jobs the round left for the team. The jobs item is a single free-text block, so it becomes a single Task: splitting it would invent boundaries the writer did not draw. Making it several Tasks means first making the form item repeat."
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/Composition" alias Composition as target
+uses "http://hl7.org/fhir/StructureDefinition/Task" alias Task as target
+
+group ExtractInpatientWardRoundNote(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  qr -> bundle.entry as entry, entry.resource = create('Composition') as comp then {
+    qr -> comp, entry then BuildNoteBase(qr, comp, entry) "noteBase";
+    qr -> comp.name = 'InpatientWardRoundNote' "noteName";
+    qr -> comp.title = 'Ward round' "noteTitle";
+
+    qr -> comp.type as ty then {
+      qr -> ty.coding as sghi then {
+        qr -> sghi.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/inpatient-document-type-codesystem' "sghiSystem";
+        qr -> sghi.code = 'ward-round-note' "sghiCode";
+        qr -> sghi.display = 'Ward round' "sghiDisplay";
+      } "sghiCoding";
+      qr -> ty.text = 'Ward round' "typeText";
+    } "noteType";
+
+    // Everyone on the round attests the note. The item repeats, so this yields
+    // one attester per clinician picked.
+    qr.item as itP where (linkId = 'present') then {
+      itP.answer as aP then {
+        aP.value as pv -> comp.attester as att then {
+          aP -> att.mode as mode then {
+            aP -> mode.coding as modec then {
+              aP -> modec.system = 'http://hl7.org/fhir/composition-attestation-mode' "attModeSystem";
+              aP -> modec.code = 'professional' "attModeCode";
+              aP -> modec.display = 'Professional' "attModeDisplay";
+            } "attModeCoding";
+          } "attesterMode";
+          qr.authored as t -> att.time = t "attesterTime";
+          pv -> att.party = pv "attesterParty";
+        } "attester";
+      } "presentAnswer";
+    } "presentRule";
+
+    qr.item as it where (linkId = 'findings' and answer.value.exists()) -> comp.section as sec then {
+      it -> sec.title = 'Findings' "findingsTitle";
+      it -> sec then AddSectionText(it, sec) "findingsText";
+    } "findingsRule";
+
+    qr.item as it where (linkId = 'decisions' and answer.value.exists()) -> comp.section as sec then {
+      it -> sec.title = 'Decisions' "decisionsTitle";
+      it -> sec then AddSectionText(it, sec) "decisionsText";
+    } "decisionsRule";
+
+    qr.item as it where (linkId = 'jobs' and answer.value.exists()) -> comp.section as sec then {
+      it -> sec.title = 'Jobs for the team' "jobsTitle";
+      it -> sec then AddSectionText(it, sec) "jobsText";
+    } "jobsSectionRule";
+  } "composition";
+
+  // The jobs are also actionable work, so they leave the document as a Task the
+  // ward can pick up and close.
+  qr.item as itJ where (linkId = 'jobs' and answer.value.exists()) then {
+    itJ.answer first as aJ then {
+      aJ -> bundle.entry as entryT, entryT.resource = create('Task') as task then {
+        qr -> task.id = uuid() then SetTaskFullUrl(task, entryT) "idAndFullUrl";
+
+        qr -> entryT.request as request then {
+          qr -> request.method = 'POST' "requestMethod";
+          qr -> request.url = 'Task' "requestUrl";
+        } "entryRequest";
+
+        qr -> task.status = 'requested' "status";
+        qr -> task.intent = 'order' "intent";
+        qr -> task.priority = 'routine' "priority";
+
+        qr -> task.code as code then {
+          qr -> code.coding as coding then {
+            qr -> coding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/inpatient-clinical-concept-codesystem' "codeSystem";
+            qr -> coding.code = 'ward-round-job' "codeCode";
+            qr -> coding.display = 'Job for the team from a ward round' "codeDisplay";
+          } "codeCoding";
+        } "taskCode";
+
+        aJ.value as v -> task.description = v "description";
+        qr.subject as s -> task.for = s "for";
+        qr.encounter as e -> task.encounter = e "encounter";
+        qr.authored as t -> task.authoredOn = t "authoredOn";
+        qr.authored as t -> task.lastModified = t "lastModified";
+
+        qr.author as a -> task.requester = a "requesterFromAuthor";
+        qr where (author.exists().not()) then {
+          qr.source as src -> task.requester = src "requesterFromSource";
+        } "requesterFallback";
+
+        // basedOn, not focus: the round authorised the work, it is not the
+        // thing the work acts upon.
+        qr -> task.basedOn = create('Reference') as ref then {
+          qr.id as qid -> ref.reference = qid "basedOnRef";
+        } "linkQuestionnaireResponse";
+      } "task";
+    } "jobsAnswer";
+  } "jobsTaskRule";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared note scaffolding. Repeated in each note map rather than imported: the
+// transform engine resolves `imports` against whatever StructureMaps happen to
+// be on the server, and a note that stops extracting because a shared map was
+// not uploaded is a worse failure than a duplicated group.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Two notes on what the publisher's StructureMap validator says about this file.
+//
+// Source parameters below are left untyped on purpose. Writing `: Element` makes
+// the validator compare QuestionnaireResponse.item against the literal 'Element'
+// and report them as incompatible with each other, which is noise, not a finding.
+// Untyped, it says only that it cannot check the paths.
+//
+// `evaluate(context, expression)` is flagged as "takes 1 parameter but 2 were
+// found". Leave it. The FML parser in the same jar refuses the one-argument form
+// outright -- it wants a parameter, a comma, then the FHIRPath -- so the publisher
+// is objecting to what its own compiler emits. Two arguments is the only form that
+// compiles, and it is what the R5 transform engine executes.
+
+group BuildNoteBase(source qr : QR, target comp : Composition, target entry) {
+  qr -> comp.id = uuid() then SetCompositionFullUrl(comp, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Composition' "requestUrl";
+  } "entryRequest";
+
+  qr -> comp.status = 'final' "status";
+  qr.subject as s -> comp.subject = s "subject";
+  qr.encounter as e -> comp.encounter = e "encounter";
+  // Composition.date is 1..1. `authored` is only 0..1 on the response, so when a
+  // client sends none the extraction time stands in. It is a poor substitute for
+  // when the note was written, but a document with no date at all is worse, and
+  // extraction happens moments after submission in practice.
+  qr.authored as t -> comp.date = t "date";
+  qr where (authored.exists().not()) then {
+    qr -> comp.date = evaluate(qr, now()) "dateFromExtractionTime";
+  } "dateFallback";
+
+  // Composition.author is 1..1 minimum. R5 QuestionnaireResponse carries both
+  // `author` (who recorded the answers) and `source` (who supplied them); the
+  // author is the one who wrote the note, so it wins, and `source` only stands
+  // in when the client did not send an author. If the response carries neither,
+  // the note comes out unauthored -- there is nothing on a QuestionnaireResponse
+  // to invent one from, and guessing at who wrote a clinical note is not a thing
+  // a map should do.
+  qr.author as a -> comp.author = a "authorFromAuthor";
+  qr where (author.exists().not()) then {
+    qr.source as src -> comp.author = src "authorFromSource";
+  } "authorFallback";
+
+  qr -> comp.relatesTo as rel then {
+    qr -> rel.type = 'derived-from' "relatesToType";
+    qr -> rel.resourceReference = create('Reference') as ref then {
+      qr.id as qid -> ref.reference = qid "relatesToRef";
+    } "relatesToTarget";
+  } "linkQuestionnaireResponse";
+}
+
+group AddSectionText(source it, target sec) {
+  it.answer first as a then {
+    a.value as v -> sec.text as narrative then {
+      v -> narrative.status = 'generated' "narrativeStatus";
+      v -> narrative.div = create('xhtml') as xhtml then {
+        v -> xhtml.value = evaluate(a, '<div xmlns="http://www.w3.org/1999/xhtml"><p>' + value.toString().escape('html') + '</p></div>') "narrativeDiv";
+      } "narrativeXhtml";
+    } "sectionText";
+  } "sectionAnswer";
+}
+
+group SetCompositionFullUrl(source comp : Composition, target entry) {
+  comp.id as id -> entry.fullUrl = append(
+    'https://fhir.slade360.co.ke/fhir/Composition/',
+    id
+  ) "assignFullUrl";
+}
+
+group SetTaskFullUrl(source task : Task, target entry) {
+  task.id as id -> entry.fullUrl = append(
+    'https://fhir.slade360.co.ke/fhir/Task/',
+    id
+  ) "assignFullUrl";
+}

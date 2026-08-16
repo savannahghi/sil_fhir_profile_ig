@@ -1,0 +1,190 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractInpatientDischargeNote"
+/// name = "ExtractInpatientDischargeNote"
+/// title = "Inpatient Discharge Note Extraction"
+/// status = "active"
+/// description = "Turns a response to the inpatient discharge note into a discharge-summary Composition and a ServiceRequest for the follow-up. Medication on discharge is referenced, never copied: those MedicationRequests already exist on the server -- the form picks them from it -- so they become section entries rather than new resources. The follow-up is intent `plan` rather than an Appointment because the form captures it as free text with no date to book against; give the item a date and an Appointment becomes the truer target. The Encounter is deliberately untouched: closing the stay -- Encounter.status and the discharge disposition -- belongs to the EMR's discharge workflow, which knows about bed release, billing and the actual moment the patient left. Writing a note is not the same event as being discharged, and a map that conflated them would close stays early."
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/Composition" alias Composition as target
+uses "http://hl7.org/fhir/StructureDefinition/ServiceRequest" alias ServiceRequest as target
+
+group ExtractInpatientDischargeNote(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  qr -> bundle.entry as entry, entry.resource = create('Composition') as comp then {
+    qr -> comp, entry then BuildNoteBase(qr, comp, entry) "noteBase";
+    qr -> comp.name = 'InpatientDischargeNote' "noteName";
+    qr -> comp.title = 'Discharge note' "noteTitle";
+
+    qr -> comp.type as ty then {
+      qr -> ty.coding as sghi then {
+        qr -> sghi.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/inpatient-document-type-codesystem' "sghiSystem";
+        qr -> sghi.code = 'discharge-note' "sghiCode";
+        qr -> sghi.display = 'Discharge note' "sghiDisplay";
+      } "sghiCoding";
+      qr -> ty.coding as loinc then {
+        qr -> loinc.system = 'http://loinc.org' "loincSystem";
+        qr -> loinc.code = '18842-5' "loincCode";
+        qr -> loinc.display = 'Discharge summary' "loincDisplay";
+      } "loincCoding";
+      qr -> ty.text = 'Discharge summary' "typeText";
+    } "noteType";
+
+    qr.item as it where (linkId = 'summary' and answer.value.exists()) -> comp.section as sec then {
+      it -> sec.title = 'Admission summary' "summaryTitle";
+      it -> sec then AddSectionText(it, sec) "summaryText";
+    } "summaryRule";
+
+    // One section, one entry per medication. No MedicationRequest is created:
+    // the form picked these off the server, and minting copies would double the
+    // patient's prescription list.
+    qr.item as itM where (linkId = 'medsOnDischarge' and answer.value.exists()) -> comp.section as secM then {
+      itM -> secM.title = 'Medication on discharge' "medsTitle";
+      itM.answer as aM then {
+        aM.value as mv -> secM.entry = mv "medsEntry";
+      } "medsAnswers";
+    } "medsRule";
+
+    qr.item as it where (linkId = 'followUp' and answer.value.exists()) -> comp.section as sec then {
+      it -> sec.title = 'Follow-up' "followUpTitle";
+      it -> sec then AddSectionText(it, sec) "followUpText";
+    } "followUpSectionRule";
+
+    qr.item as it where (linkId = 'adviceGiven' and answer.value.exists()) -> comp.section as sec then {
+      it -> sec.title = 'Advice given' "adviceTitle";
+      it -> sec then AddSectionText(it, sec) "adviceText";
+    } "adviceRule";
+  } "composition";
+
+  // The follow-up also leaves the document, so it can be worked rather than read.
+  qr.item as itF where (linkId = 'followUp' and answer.value.exists()) then {
+    itF.answer first as aF then {
+      aF -> bundle.entry as entryS, entryS.resource = create('ServiceRequest') as sr then {
+        qr -> sr.id = uuid() then SetServiceRequestFullUrl(sr, entryS) "idAndFullUrl";
+
+        qr -> entryS.request as request then {
+          qr -> request.method = 'POST' "requestMethod";
+          qr -> request.url = 'ServiceRequest' "requestUrl";
+        } "entryRequest";
+
+        qr -> sr.status = 'active' "status";
+        qr -> sr.intent = 'plan' "intent";
+        qr -> sr.priority = 'routine' "priority";
+
+        // R5 ServiceRequest.code is a CodeableReference, so the concept sits one
+        // level down.
+        aF.value as v -> sr.code as codeRef then {
+          aF -> codeRef.concept as concept then {
+            aF -> concept.coding as coding then {
+              aF -> coding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/inpatient-clinical-concept-codesystem' "codeSystem";
+              aF -> coding.code = 'discharge-follow-up' "codeCode";
+              aF -> coding.display = 'Follow-up arranged on discharge' "codeDisplay";
+            } "codeCoding";
+            v -> concept.text = v "codeText";
+          } "codeConcept";
+        } "serviceRequestCode";
+
+        qr.subject as s -> sr.subject = s "subject";
+        qr.encounter as e -> sr.encounter = e "encounter";
+        qr.authored as t -> sr.authoredOn = t "authoredOn";
+
+        qr.author as a -> sr.requester = a "requesterFromAuthor";
+        qr where (author.exists().not()) then {
+          qr.source as src -> sr.requester = src "requesterFromSource";
+        } "requesterFallback";
+
+        qr -> sr.supportingInfo as si then {
+          qr -> si.reference = create('Reference') as ref then {
+            qr.id as qid -> ref.reference = qid "supportingInfoRef";
+          } "supportingInfoTarget";
+        } "linkQuestionnaireResponse";
+      } "serviceRequest";
+    } "followUpAnswer";
+  } "followUpRequestRule";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared note scaffolding. Repeated in each note map rather than imported: the
+// transform engine resolves `imports` against whatever StructureMaps happen to
+// be on the server, and a note that stops extracting because a shared map was
+// not uploaded is a worse failure than a duplicated group.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Two notes on what the publisher's StructureMap validator says about this file.
+//
+// Source parameters below are left untyped on purpose. Writing `: Element` makes
+// the validator compare QuestionnaireResponse.item against the literal 'Element'
+// and report them as incompatible with each other, which is noise, not a finding.
+// Untyped, it says only that it cannot check the paths.
+//
+// `evaluate(context, expression)` is flagged as "takes 1 parameter but 2 were
+// found". Leave it. The FML parser in the same jar refuses the one-argument form
+// outright -- it wants a parameter, a comma, then the FHIRPath -- so the publisher
+// is objecting to what its own compiler emits. Two arguments is the only form that
+// compiles, and it is what the R5 transform engine executes.
+
+group BuildNoteBase(source qr : QR, target comp : Composition, target entry) {
+  qr -> comp.id = uuid() then SetCompositionFullUrl(comp, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Composition' "requestUrl";
+  } "entryRequest";
+
+  qr -> comp.status = 'final' "status";
+  qr.subject as s -> comp.subject = s "subject";
+  qr.encounter as e -> comp.encounter = e "encounter";
+  // Composition.date is 1..1. `authored` is only 0..1 on the response, so when a
+  // client sends none the extraction time stands in. It is a poor substitute for
+  // when the note was written, but a document with no date at all is worse, and
+  // extraction happens moments after submission in practice.
+  qr.authored as t -> comp.date = t "date";
+  qr where (authored.exists().not()) then {
+    qr -> comp.date = evaluate(qr, now()) "dateFromExtractionTime";
+  } "dateFallback";
+
+  // Composition.author is 1..1 minimum. R5 QuestionnaireResponse carries both
+  // `author` (who recorded the answers) and `source` (who supplied them); the
+  // author is the one who wrote the note, so it wins, and `source` only stands
+  // in when the client did not send an author. If the response carries neither,
+  // the note comes out unauthored -- there is nothing on a QuestionnaireResponse
+  // to invent one from, and guessing at who wrote a clinical note is not a thing
+  // a map should do.
+  qr.author as a -> comp.author = a "authorFromAuthor";
+  qr where (author.exists().not()) then {
+    qr.source as src -> comp.author = src "authorFromSource";
+  } "authorFallback";
+
+  qr -> comp.relatesTo as rel then {
+    qr -> rel.type = 'derived-from' "relatesToType";
+    qr -> rel.resourceReference = create('Reference') as ref then {
+      qr.id as qid -> ref.reference = qid "relatesToRef";
+    } "relatesToTarget";
+  } "linkQuestionnaireResponse";
+}
+
+group AddSectionText(source it, target sec) {
+  it.answer first as a then {
+    a.value as v -> sec.text as narrative then {
+      v -> narrative.status = 'generated' "narrativeStatus";
+      v -> narrative.div = create('xhtml') as xhtml then {
+        v -> xhtml.value = evaluate(a, '<div xmlns="http://www.w3.org/1999/xhtml"><p>' + value.toString().escape('html') + '</p></div>') "narrativeDiv";
+      } "narrativeXhtml";
+    } "sectionText";
+  } "sectionAnswer";
+}
+
+group SetCompositionFullUrl(source comp : Composition, target entry) {
+  comp.id as id -> entry.fullUrl = append(
+    'https://fhir.slade360.co.ke/fhir/Composition/',
+    id
+  ) "assignFullUrl";
+}
+
+group SetServiceRequestFullUrl(source sr : ServiceRequest, target entry) {
+  sr.id as id -> entry.fullUrl = append(
+    'https://fhir.slade360.co.ke/fhir/ServiceRequest/',
+    id
+  ) "assignFullUrl";
+}

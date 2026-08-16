@@ -1,0 +1,356 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractInpatientNutritionScreening"
+/// name = "ExtractInpatientNutritionScreening"
+/// title = "Inpatient Nutrition Screening (MUST) Extraction"
+/// status = "active"
+/// description = "The MUST score becomes one Observation carrying the total with its three steps as components, plus a RiskAssessment for the band. The nutritional plan becomes a CarePlan, and a score in the high-risk band raises a dietitian referral. That referral is intent `proposal` and status `draft` deliberately: a map should not put an active order in a dietitian's queue on its own, so it arrives as something a clinician signs."
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Observation as target
+uses "http://hl7.org/fhir/StructureDefinition/RiskAssessment" alias RiskAssessment as target
+uses "http://hl7.org/fhir/StructureDefinition/CarePlan" alias CarePlan as target
+uses "http://hl7.org/fhir/StructureDefinition/ServiceRequest" alias ServiceRequest as target
+
+group ExtractInpatientNutritionScreening(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  // ── MUST score ─────────────────────────────────────────────────────────────
+  // LOINC has 101789-6 for the screening itself and 101807-6 for its result
+  // indicator, but nothing for the three steps, so those carry local codes.
+  qr.item as gM where (linkId = 'must' and item.answer.value.ofType(Coding).exists()) then {
+    gM -> bundle.entry as entryM, entryM.resource = create('Observation') as obsM then {
+      qr -> obsM, entryM then BuildObsBase(qr, obsM, entryM) "mustBase";
+      qr -> obsM then SetSurveyCategory(qr, obsM) "mustCategory";
+      qr -> obsM.code as code then {
+        qr -> code.coding as coding then {
+          qr -> coding.system = 'http://loinc.org' "codeSystem";
+          qr -> coding.code = '101789-6' "codeCode";
+          qr -> coding.display = 'Malnutrition risk screening' "codeDisplay";
+        } "codeCoding";
+        qr -> code.text = 'MUST score' "codeText";
+      } "mustCode";
+
+      // The submitted total wins; otherwise sum the answers, reading each
+      // weight off the tail of its code (must-loss-2 is worth 2). Guarded on
+      // all three steps being answered -- MUST is a sum of three, and a sum of
+      // two banded as low risk would send a wasting patient home.
+      gM where (item.answer.value.ofType(Coding).count() = 3) then {
+        gM -> obsM.value = evaluate(gM, iif(item.where(linkId = 'must.total').answer.value.exists(), item.where(linkId = 'must.total').answer.value, item.answer.value.ofType(Coding).code.select($this.split('-').last().toInteger()).aggregate($this + $total, 0))) "mustTotalValue";
+      } "mustTotalRule";
+
+      gM.item as it where (linkId = 'must.bmi' and answer.value.exists()) -> obsM.component as comp then {
+        it -> comp.code as code then {
+          it -> code.coding as coding then {
+            it -> coding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/inpatient-clinical-concept-codesystem' "codeSystem";
+            it -> coding.code = 'must-bmi-score' "codeCode";
+            it -> coding.display = 'BMI score (MUST)' "codeDisplay";
+          } "codeCoding";
+        } "bmiCode";
+        it -> comp then SetComponentCodedValue(it, comp) "bmiValue";
+      } "mustBmiRule";
+
+      gM.item as it where (linkId = 'must.loss' and answer.value.exists()) -> obsM.component as comp then {
+        it -> comp.code as code then {
+          it -> code.coding as coding then {
+            it -> coding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/inpatient-clinical-concept-codesystem' "codeSystem";
+            it -> coding.code = 'must-weight-loss-score' "codeCode";
+            it -> coding.display = 'Unplanned weight loss score (MUST)' "codeDisplay";
+          } "codeCoding";
+        } "lossCode";
+        it -> comp then SetComponentCodedValue(it, comp) "lossValue";
+      } "mustLossRule";
+
+      gM.item as it where (linkId = 'must.acute' and answer.value.exists()) -> obsM.component as comp then {
+        it -> comp.code as code then {
+          it -> code.coding as coding then {
+            it -> coding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/inpatient-clinical-concept-codesystem' "codeSystem";
+            it -> coding.code = 'must-acute-disease-score' "codeCode";
+            it -> coding.display = 'Acute disease effect score (MUST)' "codeDisplay";
+          } "codeCoding";
+        } "acuteCode";
+        it -> comp then SetComponentCodedValue(it, comp) "acuteValue";
+      } "mustAcuteRule";
+
+      qr -> obsM, bundle then AddMustRiskAssessment(obsM, qr, bundle) "mustBand";
+
+      // BAPEN's management guidance for a MUST of 2 or more is to refer to a
+      // dietitian, so a high-risk score raises the referral rather than leaving
+      // it to be remembered. Draft and proposal: it needs a signature.
+      qr -> obsM, bundle then AddDietitianReferral(obsM, qr, bundle) "dietitianReferral";
+    } "mustObservation";
+  } "mustRule";
+
+  // ── Nutritional plan ───────────────────────────────────────────────────────
+  qr.item as itP where (linkId = 'plan' and answer.value.exists()) then {
+    itP.answer first as aP then {
+      aP -> bundle.entry as entryC, entryC.resource = create('CarePlan') as plan then {
+        qr -> plan.id = uuid() then SetCarePlanFullUrl(plan, entryC) "idAndFullUrl";
+
+        qr -> entryC.request as request then {
+          qr -> request.method = 'POST' "requestMethod";
+          qr -> request.url = 'CarePlan' "requestUrl";
+        } "entryRequest";
+
+        qr -> plan.status = 'active' "status";
+        qr -> plan.intent = 'plan' "intent";
+        qr -> plan.category as cat then {
+          qr -> cat.coding as coding then {
+            qr -> coding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/inpatient-clinical-concept-codesystem' "categorySystem";
+            qr -> coding.code = 'nutrition-care-plan' "categoryCode";
+            qr -> coding.display = 'Nutritional plan' "categoryDisplay";
+          } "categoryCoding";
+        } "category";
+        qr -> plan.title = 'Nutritional plan' "title";
+        aP.value as v -> plan.description = v "description";
+        qr.subject as s -> plan.subject = s "subject";
+        qr.encounter as e -> plan.encounter = e "encounter";
+        qr.authored as t -> plan.created = t "created";
+
+        qr.author as a -> plan.contributor = a "contributorFromAuthor";
+        qr where (author.exists().not()) then {
+          qr.source as src -> plan.contributor = src "contributorFromSource";
+        } "contributorFallback";
+
+        qr -> plan.supportingInfo = create('Reference') as ref then {
+          qr.id as qid -> ref.reference = qid "supportingInfoRef";
+        } "linkQuestionnaireResponse";
+      } "carePlan";
+    } "planAnswer";
+  } "planRule";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MUST bands (BAPEN): 0 low risk, 1 medium risk, 2 or more high risk.
+// ─────────────────────────────────────────────────────────────────────────────
+
+group AddMustRiskAssessment(source obs : Observation, source qr : QR, target bundle : Bundle) {
+  obs where (value.ofType(integer) = 0) -> bundle.entry as entry, entry.resource = create('RiskAssessment') as ra then {
+    qr -> ra, entry then BuildRiskBase(qr, obs, ra, entry) "riskBase";
+    qr -> ra then SetMustRiskCode(qr, ra) "riskCode";
+    qr -> ra.prediction as pred then {
+      qr -> pred.qualitativeRisk as risk then {
+        qr -> risk.coding as coding then {
+          qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/risk-probability' "riskSystem";
+          qr -> coding.code = 'low' "riskCode";
+          qr -> coding.display = 'Low likelihood' "riskDisplay";
+        } "riskCoding";
+        qr -> risk.text = 'Low risk' "riskText";
+      } "qualitativeRisk";
+    } "prediction";
+  } "mustLow";
+
+  obs where (value.ofType(integer) = 1) -> bundle.entry as entry, entry.resource = create('RiskAssessment') as ra then {
+    qr -> ra, entry then BuildRiskBase(qr, obs, ra, entry) "riskBase";
+    qr -> ra then SetMustRiskCode(qr, ra) "riskCode";
+    qr -> ra.prediction as pred then {
+      qr -> pred.qualitativeRisk as risk then {
+        qr -> risk.coding as coding then {
+          qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/risk-probability' "riskSystem";
+          qr -> coding.code = 'moderate' "riskCode";
+          qr -> coding.display = 'Moderate likelihood' "riskDisplay";
+        } "riskCoding";
+        qr -> risk.text = 'Medium risk' "riskText";
+      } "qualitativeRisk";
+    } "prediction";
+  } "mustMedium";
+
+  obs where (value.ofType(integer) >= 2) -> bundle.entry as entry, entry.resource = create('RiskAssessment') as ra then {
+    qr -> ra, entry then BuildRiskBase(qr, obs, ra, entry) "riskBase";
+    qr -> ra then SetMustRiskCode(qr, ra) "riskCode";
+    qr -> ra.prediction as pred then {
+      qr -> pred.qualitativeRisk as risk then {
+        qr -> risk.coding as coding then {
+          qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/risk-probability' "riskSystem";
+          qr -> coding.code = 'high' "riskCode";
+          qr -> coding.display = 'High likelihood' "riskDisplay";
+        } "riskCoding";
+        qr -> risk.text = 'High risk' "riskText";
+      } "qualitativeRisk";
+    } "prediction";
+  } "mustHigh";
+}
+
+group SetMustRiskCode(source qr : QR, target ra : RiskAssessment) {
+  qr -> ra.code as code then {
+    qr -> code.coding as coding then {
+      qr -> coding.system = 'http://loinc.org' "codeSystem";
+      qr -> coding.code = '101807-6' "codeCode";
+      qr -> coding.display = 'Malnutrition risk screen results indicator' "codeDisplay";
+    } "codeCoding";
+  } "code";
+}
+
+group AddDietitianReferral(source obs : Observation, source qr : QR, target bundle : Bundle) {
+  obs where (value.ofType(integer) >= 2) -> bundle.entry as entry, entry.resource = create('ServiceRequest') as sr then {
+    qr -> sr.id = uuid() then SetServiceRequestFullUrl(sr, entry) "idAndFullUrl";
+
+    qr -> entry.request as request then {
+      qr -> request.method = 'POST' "requestMethod";
+      qr -> request.url = 'ServiceRequest' "requestUrl";
+    } "entryRequest";
+
+    qr -> sr.status = 'draft' "status";
+    qr -> sr.intent = 'proposal' "intent";
+    qr -> sr.priority = 'routine' "priority";
+
+    // R5 ServiceRequest.code is a CodeableReference, so the concept sits one
+    // level down.
+    qr -> sr.code as codeRef then {
+      qr -> codeRef.concept as concept then {
+        qr -> concept.coding as coding then {
+          qr -> coding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/inpatient-clinical-concept-codesystem' "codeSystem";
+          qr -> coding.code = 'dietitian-referral' "codeCode";
+          qr -> coding.display = 'Referral to a dietitian' "codeDisplay";
+        } "codeCoding";
+        qr -> concept.text = 'Referral to a dietitian' "codeText";
+      } "codeConcept";
+    } "serviceRequestCode";
+
+    qr -> sr.performerType as pt then {
+      qr -> pt.coding as coding then {
+        qr -> coding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/practitioner-specialty-codesystem' "performerTypeSystem";
+        qr -> coding.code = 'nutritionist' "performerTypeCode";
+      } "performerTypeCoding";
+      qr -> pt.text = 'Nutritionist' "performerTypeText";
+    } "performerType";
+
+    qr.subject as s -> sr.subject = s "subject";
+    qr.encounter as e -> sr.encounter = e "encounter";
+    qr.authored as t -> sr.authoredOn = t "authoredOn";
+
+    qr.author as a -> sr.requester = a "requesterFromAuthor";
+    qr where (author.exists().not()) then {
+      qr.source as src -> sr.requester = src "requesterFromSource";
+    } "requesterFallback";
+
+    // Why this referral exists: the score that triggered it.
+    obs.id as oid -> sr.reason as reason then {
+      oid -> reason.reference = create('Reference') as ref then {
+        oid -> ref.reference = append('Observation/', oid) "reasonRef";
+      } "reasonTarget";
+    } "reason";
+
+    qr -> sr.supportingInfo as si then {
+      qr -> si.reference = create('Reference') as ref then {
+        qr.id as qid -> ref.reference = qid "supportingInfoRef";
+      } "supportingInfoTarget";
+    } "linkQuestionnaireResponse";
+  } "dietitianReferral";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared scaffolding. Repeated in each map rather than imported: the transform
+// engine resolves `imports` against whatever StructureMaps happen to be on the
+// server, and a form that stops extracting because a shared map was not
+// uploaded is a worse failure than a duplicated group.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Two notes on what the publisher's StructureMap validator says about this file.
+//
+// Source parameters below are left untyped on purpose. Writing `: Element` makes
+// the validator compare QuestionnaireResponse.item against the literal 'Element'
+// and report them as incompatible with each other, which is noise, not a finding.
+// Untyped, it says only that it cannot check the paths.
+//
+// `evaluate(context, expression)` is flagged as "takes 1 parameter but 2 were
+// found". Leave it. The FML parser in the same jar refuses the one-argument form
+// outright -- it wants a parameter, a comma, then the FHIRPath -- so the publisher
+// is objecting to what its own compiler emits. Two arguments is the only form that
+// compiles, and it is what the R5 transform engine executes.
+
+group BuildObsBase(source qr : QR, target obs : Observation, target entry) {
+  qr -> obs.id = uuid() then SetObservationFullUrl(obs, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Observation' "requestUrl";
+  } "entryRequest";
+
+  qr -> obs.status = 'final' "status";
+  qr.subject as s -> obs.subject = s "subject";
+  qr.encounter as e -> obs.encounter = e "encounter";
+  qr.authored as t -> obs.effective = t "effective";
+
+  qr.source as src -> obs.performer = src "performerFromSource";
+  qr where (source.exists().not()) then {
+    qr.author as a -> obs.performer = a "performerFromAuthor";
+  } "performerFallback";
+
+  qr -> obs.derivedFrom = create('Reference') as ref then {
+    qr.id as qid -> ref.reference = qid "derivedFromRef";
+  } "linkQuestionnaireResponse";
+}
+
+group BuildRiskBase(source qr : QR, source obs : Observation, target ra : RiskAssessment, target entry) {
+  qr -> ra.id = uuid() then SetRiskAssessmentFullUrl(ra, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'RiskAssessment' "requestUrl";
+  } "entryRequest";
+
+  qr -> ra.status = 'final' "status";
+  qr.subject as s -> ra.subject = s "subject";
+  qr.encounter as e -> ra.encounter = e "encounter";
+  qr.authored as t -> ra.occurrence = t "occurrence";
+
+  qr.author as a -> ra.performer = a "performerFromAuthor";
+  qr where (author.exists().not()) then {
+    qr.source as src -> ra.performer = src "performerFromSource";
+  } "performerFallback";
+
+  qr -> ra.basis = create('Reference') as qref then {
+    qr.id as qid -> qref.reference = qid "basisQuestionnaireResponse";
+  } "basisResponse";
+
+  obs.id as oid -> ra.basis = create('Reference') as oref then {
+    oid -> oref.reference = append('Observation/', oid) "basisObservationRef";
+  } "basisObservation";
+}
+
+group SetComponentCodedValue(source it, target comp) {
+  it.answer first as a then {
+    a.value as cv -> comp.value = create('CodeableConcept') as cc then {
+      cv -> cc.coding = cv "valueCoding";
+      cv.display as d -> cc.text = d "valueText";
+    } "codedValue";
+  } "componentAnswer";
+}
+
+group SetSurveyCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'survey' "categoryCode";
+      qr -> coding.display = 'Survey' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+group SetObservationFullUrl(source obs : Observation, target entry) {
+  obs.id as id -> entry.fullUrl = append(
+    'https://fhir.slade360.co.ke/fhir/Observation/',
+    id
+  ) "assignFullUrl";
+}
+
+group SetRiskAssessmentFullUrl(source ra : RiskAssessment, target entry) {
+  ra.id as id -> entry.fullUrl = append(
+    'https://fhir.slade360.co.ke/fhir/RiskAssessment/',
+    id
+  ) "assignFullUrl";
+}
+
+group SetCarePlanFullUrl(source plan : CarePlan, target entry) {
+  plan.id as id -> entry.fullUrl = append(
+    'https://fhir.slade360.co.ke/fhir/CarePlan/',
+    id
+  ) "assignFullUrl";
+}
+
+group SetServiceRequestFullUrl(source sr : ServiceRequest, target entry) {
+  sr.id as id -> entry.fullUrl = append(
+    'https://fhir.slade360.co.ke/fhir/ServiceRequest/',
+    id
+  ) "assignFullUrl";
+}
