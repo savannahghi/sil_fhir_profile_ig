@@ -1,0 +1,268 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractInpatientDeathNote"
+/// name = "ExtractInpatientDeathNote"
+/// title = "Inpatient Death Note Extraction"
+/// status = "active"
+/// description = "The richest of the seven notes, and the only one that changes a record that already exists. It produces a Composition attested by the clinician who confirmed the death, a Condition carrying the cause as stated, and a FHIRPath PATCH that sets Patient.deceasedDateTime. The PATCH touches that one element and nothing else -- the response carries no demographics, so rebuilding and PUTting the Patient would erase the record. Note this uses the `add` operation: extracting the same death note twice will fail the second time rather than silently overwrite, which is the safer direction for a fact recorded once."
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/Composition" alias Composition as target
+uses "http://hl7.org/fhir/StructureDefinition/Condition" alias Condition as target
+uses "http://hl7.org/fhir/StructureDefinition/Parameters" alias Parameters as target
+
+group ExtractInpatientDeathNote(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  qr -> bundle.entry as entry, entry.resource = create('Composition') as comp then {
+    qr -> comp, entry then BuildNoteBase(qr, comp, entry) "noteBase";
+    qr -> comp.name = 'InpatientDeathNote' "noteName";
+    qr -> comp.title = 'Death note' "noteTitle";
+
+    // Deliberately not LOINC 64297-5. That code is the civil death certificate,
+    // a different document with a different author and a different audience.
+    qr -> comp.type as ty then {
+      qr -> ty.coding as sghi then {
+        qr -> sghi.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/inpatient-document-type-codesystem' "sghiSystem";
+        qr -> sghi.code = 'death-note' "sghiCode";
+        qr -> sghi.display = 'Death note' "sghiDisplay";
+      } "sghiCoding";
+      qr -> ty.text = 'Death note' "typeText";
+    } "noteType";
+
+    // The clinician who confirmed the death attests the note.
+    qr.item as itC where (linkId = 'confirmedBy') then {
+      itC.answer as aC then {
+        aC.value as cv -> comp.attester as att then {
+          aC -> att.mode as mode then {
+            aC -> mode.coding as modec then {
+              aC -> modec.system = 'http://hl7.org/fhir/composition-attestation-mode' "attModeSystem";
+              aC -> modec.code = 'professional' "attModeCode";
+              aC -> modec.display = 'Professional' "attModeDisplay";
+            } "attModeCoding";
+          } "attesterMode";
+          qr.item as itT where (linkId = 'confirmedAt') then {
+            itT.answer first as aT then {
+              aT.value as tv -> att.time = tv "attesterTimeFromConfirmedAt";
+            } "confirmedAtAnswer";
+          } "attesterTimeRule";
+          cv -> att.party = cv "attesterParty";
+        } "attester";
+      } "confirmedByAnswer";
+    } "confirmedByRule";
+
+    // The confirmed-at time is on the Patient as a fact, and in the document as
+    // a line, because a printed death note that does not say when is not a
+    // death note.
+    qr.item as it where (linkId = 'confirmedAt' and answer.value.exists()) -> comp.section as sec then {
+      it -> sec.title = 'Death confirmed at' "confirmedAtTitle";
+      it -> sec then AddSectionText(it, sec) "confirmedAtText";
+    } "confirmedAtSectionRule";
+
+    qr.item as it where (linkId = 'circumstances' and answer.value.exists()) -> comp.section as sec then {
+      it -> sec.title = 'Circumstances' "circumstancesTitle";
+      it -> sec then AddSectionText(it, sec) "circumstancesText";
+    } "circumstancesRule";
+
+    qr.item as it where (linkId = 'causeStated' and answer.value.exists()) -> comp.section as sec then {
+      it -> sec.title = 'Cause of death as stated' "causeTitle";
+      it -> sec then AddSectionText(it, sec) "causeText";
+    } "causeSectionRule";
+
+    qr.item as it where (linkId = 'familyInformed' and answer.value.exists()) -> comp.section as sec then {
+      it -> sec.title = 'Family informed' "familyTitle";
+      it -> sec then AddSectionText(it, sec) "familyText";
+    } "familyRule";
+  } "composition";
+
+  // Cause of death as a Condition. verificationStatus is `confirmed`, not
+  // `provisional` as on the admission note: this is a stated cause, recorded
+  // after the event, not a working impression.
+  qr.item as itCause where (linkId = 'causeStated' and answer.value.exists()) then {
+    itCause.answer first as aCause then {
+      aCause -> bundle.entry as entryC, entryC.resource = create('Condition') as cond then {
+        qr -> cond, entryC then BuildConditionBase(qr, cond, entryC) "conditionBase";
+
+        qr -> cond.verificationStatus as vs then {
+          qr -> vs.coding as vsc then {
+            qr -> vsc.system = 'http://terminology.hl7.org/CodeSystem/condition-ver-status' "verSystem";
+            qr -> vsc.code = 'confirmed' "verCode";
+            qr -> vsc.display = 'Confirmed' "verDisplay";
+          } "verCoding";
+        } "verificationStatus";
+
+        aCause.value as v -> cond.code as code then {
+          v -> code.text = v "codeText";
+        } "conditionCode";
+
+        qr -> cond.note as note then {
+          qr -> note.text = 'Cause of death as stated on the inpatient death note.' "noteText";
+        } "conditionNote";
+      } "condition";
+    } "causeAnswer";
+  } "causeConditionRule";
+
+  // Patient.deceasedDateTime, by FHIRPath PATCH.
+  qr.item as itAt where (linkId = 'confirmedAt' and answer.value.exists()) then {
+    itAt.answer first as aAt then {
+      aAt -> bundle.entry as entryP, entryP.resource = create('Parameters') as params then {
+        qr.subject as s then {
+          s.reference as sref -> entryP.request as request then {
+            qr -> request.method = 'PATCH' "requestMethod";
+            // The patient reference is already relative ("Patient/1051"), which
+            // is exactly what a transaction entry URL wants.
+            sref -> request.url = sref "requestUrl";
+          } "entryRequest";
+        } "patientReference";
+
+        aAt.value as dv -> params.parameter as op then {
+          aAt -> op.name = 'operation' "operationName";
+          aAt -> op.part as partType then {
+            aAt -> partType.name = 'type' "typeName";
+            aAt -> partType.value = 'add' "typeValue";
+          } "operationType";
+          aAt -> op.part as partPath then {
+            aAt -> partPath.name = 'path' "pathName";
+            aAt -> partPath.value = 'Patient' "pathValue";
+          } "operationPath";
+          aAt -> op.part as partName then {
+            aAt -> partName.name = 'name' "nameName";
+            aAt -> partName.value = 'deceasedDateTime' "nameValue";
+          } "operationElement";
+          aAt -> op.part as partValue then {
+            aAt -> partValue.name = 'value' "valueName";
+            dv -> partValue.value = dv "valueValue";
+          } "operationValue";
+        } "operation";
+      } "patientPatch";
+    } "confirmedAtAnswer";
+  } "deceasedPatchRule";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared note scaffolding. Repeated in each note map rather than imported: the
+// transform engine resolves `imports` against whatever StructureMaps happen to
+// be on the server, and a note that stops extracting because a shared map was
+// not uploaded is a worse failure than a duplicated group.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Two notes on what the publisher's StructureMap validator says about this file.
+//
+// Source parameters below are left untyped on purpose. Writing `: Element` makes
+// the validator compare QuestionnaireResponse.item against the literal 'Element'
+// and report them as incompatible with each other, which is noise, not a finding.
+// Untyped, it says only that it cannot check the paths.
+//
+// `evaluate(context, expression)` is flagged as "takes 1 parameter but 2 were
+// found". Leave it. The FML parser in the same jar refuses the one-argument form
+// outright -- it wants a parameter, a comma, then the FHIRPath -- so the publisher
+// is objecting to what its own compiler emits. Two arguments is the only form that
+// compiles, and it is what the R5 transform engine executes.
+
+group BuildNoteBase(source qr : QR, target comp : Composition, target entry) {
+  qr -> comp.id = uuid() then SetCompositionFullUrl(comp, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Composition' "requestUrl";
+  } "entryRequest";
+
+  qr -> comp.status = 'final' "status";
+  qr.subject as s -> comp.subject = s "subject";
+  qr.encounter as e -> comp.encounter = e "encounter";
+  // Composition.date is 1..1. `authored` is only 0..1 on the response, so when a
+  // client sends none the extraction time stands in. It is a poor substitute for
+  // when the note was written, but a document with no date at all is worse, and
+  // extraction happens moments after submission in practice.
+  qr.authored as t -> comp.date = t "date";
+  qr where (authored.exists().not()) then {
+    qr -> comp.date = evaluate(qr, now()) "dateFromExtractionTime";
+  } "dateFallback";
+
+  // Composition.author is 1..1 minimum. R5 QuestionnaireResponse carries both
+  // `author` (who recorded the answers) and `source` (who supplied them); the
+  // author is the one who wrote the note, so it wins, and `source` only stands
+  // in when the client did not send an author. If the response carries neither,
+  // the note comes out unauthored -- there is nothing on a QuestionnaireResponse
+  // to invent one from, and guessing at who wrote a clinical note is not a thing
+  // a map should do.
+  qr.author as a -> comp.author = a "authorFromAuthor";
+  qr where (author.exists().not()) then {
+    qr.source as src -> comp.author = src "authorFromSource";
+  } "authorFallback";
+
+  qr -> comp.relatesTo as rel then {
+    qr -> rel.type = 'derived-from' "relatesToType";
+    qr -> rel.resourceReference = create('Reference') as ref then {
+      qr.id as qid -> ref.reference = qid "relatesToRef";
+    } "relatesToTarget";
+  } "linkQuestionnaireResponse";
+}
+
+group AddSectionText(source it, target sec) {
+  it.answer first as a then {
+    a.value as v -> sec.text as narrative then {
+      v -> narrative.status = 'generated' "narrativeStatus";
+      v -> narrative.div = create('xhtml') as xhtml then {
+        v -> xhtml.value = evaluate(a, '<div xmlns="http://www.w3.org/1999/xhtml"><p>' + value.toString().escape('html') + '</p></div>') "narrativeDiv";
+      } "narrativeXhtml";
+    } "sectionText";
+  } "sectionAnswer";
+}
+
+group SetCompositionFullUrl(source comp : Composition, target entry) {
+  comp.id as id -> entry.fullUrl = append(
+    'https://fhir.slade360.co.ke/fhir/Composition/',
+    id
+  ) "assignFullUrl";
+}
+
+group BuildConditionBase(source qr : QR, target cond : Condition, target entry) {
+  qr -> cond.id = uuid() then SetConditionFullUrl(cond, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Condition' "requestUrl";
+  } "entryRequest";
+
+  qr -> cond.clinicalStatus as cs then {
+    qr -> cs.coding as csc then {
+      qr -> csc.system = 'http://terminology.hl7.org/CodeSystem/condition-clinical' "clinSystem";
+      qr -> csc.code = 'active' "clinCode";
+      qr -> csc.display = 'Active' "clinDisplay";
+    } "clinCoding";
+  } "clinicalStatus";
+
+  qr -> cond.category as cat then {
+    qr -> cat.coding as catc then {
+      qr -> catc.system = 'http://terminology.hl7.org/CodeSystem/condition-category' "catSystem";
+      qr -> catc.code = 'encounter-diagnosis' "catCode";
+      qr -> catc.display = 'Encounter Diagnosis' "catDisplay";
+    } "catCoding";
+  } "category";
+
+  qr.subject as s -> cond.subject = s "subject";
+  qr.encounter as e -> cond.encounter = e "encounter";
+  qr.authored as t -> cond.recordedDate = t "recordedDate";
+
+  qr.author as a -> cond.participant as part then {
+    qr -> part.actor = a "participantActor";
+  } "participantFromAuthor";
+  qr where (author.exists().not()) then {
+    qr.source as src -> cond.participant as part2 then {
+      qr -> part2.actor = src "participantActorFromSource";
+    } "participantFromSource";
+  } "participantFallback";
+
+  qr -> cond.evidence as ev then {
+    qr -> ev.reference = create('Reference') as ref then {
+      qr.id as qid -> ref.reference = qid "evidenceRef";
+    } "evidenceTarget";
+  } "linkQuestionnaireResponse";
+}
+
+group SetConditionFullUrl(source cond : Condition, target entry) {
+  cond.id as id -> entry.fullUrl = append(
+    'https://fhir.slade360.co.ke/fhir/Condition/',
+    id
+  ) "assignFullUrl";
+}

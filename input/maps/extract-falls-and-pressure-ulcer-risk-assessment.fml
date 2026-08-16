@@ -1,0 +1,503 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractInpatientFallsAndPressureUlcerRiskAssessment"
+/// name = "ExtractInpatientFallsAndPressureUlcerRiskAssessment"
+/// title = "Inpatient Falls and Pressure Ulcer Risk Assessment Extraction"
+/// status = "active"
+/// description = "Two scored instruments out. Braden becomes one Observation carrying the total with its six sub-scores as components, plus a RiskAssessment for the band; the falls score -- which is the Morse Fall Scale item for item -- becomes the same shape against the LOINC Morse panel. The measures put in place become a CarePlan. A total is only emitted when every sub-score has been answered: a Braden computed from four of six items is not a Braden score, and banding one would put a number a nurse can act on next to a risk tier that is wrong."
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Observation as target
+uses "http://hl7.org/fhir/StructureDefinition/RiskAssessment" alias RiskAssessment as target
+uses "http://hl7.org/fhir/StructureDefinition/CarePlan" alias CarePlan as target
+
+group ExtractInpatientFallsAndPressureUlcerRiskAssessment(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  // ── Braden pressure ulcer risk ─────────────────────────────────────────────
+  qr.item as gB where (linkId = 'braden' and item.answer.value.ofType(Coding).exists()) then {
+    gB -> bundle.entry as entryB, entryB.resource = create('Observation') as obsB then {
+      qr -> obsB, entryB then BuildObsBase(qr, obsB, entryB) "bradenBase";
+      qr -> obsB then SetSurveyCategory(qr, obsB) "bradenCategory";
+      qr -> obsB.code as code then {
+        qr -> code.coding as coding then {
+          qr -> coding.system = 'http://loinc.org' "codeSystem";
+          qr -> coding.code = '38227-5' "codeCode";
+          qr -> coding.display = 'Braden scale total score' "codeDisplay";
+        } "codeCoding";
+      } "bradenCode";
+
+      // The submitted total wins; otherwise sum the answers. Every scored answer
+      // in SGHIClinicalScoreCodeSystem ends in its own weight -- braden-sensory-3
+      // is worth 3 -- so the fallback reads the weight off the code. Both paths
+      // are the arithmetic the questionnaire's calculatedExpression performs, so
+      // they cannot disagree. Guarded on all six sub-scores being present.
+      gB where (item.answer.value.ofType(Coding).count() = 6) then {
+        gB -> obsB.value = evaluate(gB, iif(item.where(linkId = 'braden.total').answer.value.exists(), item.where(linkId = 'braden.total').answer.value, item.answer.value.ofType(Coding).code.select($this.split('-').last().toInteger()).aggregate($this + $total, 0))) "bradenTotalValue";
+      } "bradenTotalRule";
+
+      gB.item as it where (linkId = 'braden.sensory' and answer.value.exists()) -> obsB.component as comp then {
+        it -> comp.code as code then {
+          it -> code.coding as coding then {
+            it -> coding.system = 'http://loinc.org' "codeSystem";
+            it -> coding.code = '38222-6' "codeCode";
+            it -> coding.display = 'Sensory perception Braden scale' "codeDisplay";
+          } "codeCoding";
+        } "sensoryCode";
+        it -> comp then SetComponentCodedValue(it, comp) "sensoryValue";
+      } "bradenSensoryRule";
+
+      gB.item as it where (linkId = 'braden.moisture' and answer.value.exists()) -> obsB.component as comp then {
+        it -> comp.code as code then {
+          it -> code.coding as coding then {
+            it -> coding.system = 'http://loinc.org' "codeSystem";
+            it -> coding.code = '38229-1' "codeCode";
+            it -> coding.display = 'Moisture exposure Braden scale' "codeDisplay";
+          } "codeCoding";
+        } "moistureCode";
+        it -> comp then SetComponentCodedValue(it, comp) "moistureValue";
+      } "bradenMoistureRule";
+
+      gB.item as it where (linkId = 'braden.activity' and answer.value.exists()) -> obsB.component as comp then {
+        it -> comp.code as code then {
+          it -> code.coding as coding then {
+            it -> coding.system = 'http://loinc.org' "codeSystem";
+            it -> coding.code = '38223-4' "codeCode";
+            it -> coding.display = 'Physical activity Braden scale' "codeDisplay";
+          } "codeCoding";
+        } "activityCode";
+        it -> comp then SetComponentCodedValue(it, comp) "activityValue";
+      } "bradenActivityRule";
+
+      gB.item as it where (linkId = 'braden.mobility' and answer.value.exists()) -> obsB.component as comp then {
+        it -> comp.code as code then {
+          it -> code.coding as coding then {
+            it -> coding.system = 'http://loinc.org' "codeSystem";
+            it -> coding.code = '38224-2' "codeCode";
+            it -> coding.display = 'Physical mobility Braden scale' "codeDisplay";
+          } "codeCoding";
+        } "mobilityCode";
+        it -> comp then SetComponentCodedValue(it, comp) "mobilityValue";
+      } "bradenMobilityRule";
+
+      gB.item as it where (linkId = 'braden.nutrition' and answer.value.exists()) -> obsB.component as comp then {
+        it -> comp.code as code then {
+          it -> code.coding as coding then {
+            it -> coding.system = 'http://loinc.org' "codeSystem";
+            it -> coding.code = '38225-9' "codeCode";
+            it -> coding.display = 'Nutrition intake pattern Braden scale' "codeDisplay";
+          } "codeCoding";
+        } "nutritionCode";
+        it -> comp then SetComponentCodedValue(it, comp) "nutritionValue";
+      } "bradenNutritionRule";
+
+      gB.item as it where (linkId = 'braden.friction' and answer.value.exists()) -> obsB.component as comp then {
+        it -> comp.code as code then {
+          it -> code.coding as coding then {
+            it -> coding.system = 'http://loinc.org' "codeSystem";
+            it -> coding.code = '38226-7' "codeCode";
+            it -> coding.display = 'Friction and shear Braden scale' "codeDisplay";
+          } "codeCoding";
+        } "frictionCode";
+        it -> comp then SetComponentCodedValue(it, comp) "frictionValue";
+      } "bradenFrictionRule";
+
+      qr -> obsB, bundle then AddBradenRiskAssessment(obsB, qr, bundle) "bradenBand";
+    } "bradenObservation";
+  } "bradenRule";
+
+  // ── Falls risk (Morse Fall Scale) ──────────────────────────────────────────
+  qr.item as gF where (linkId = 'fallsRisk' and item.answer.value.ofType(Coding).exists()) then {
+    gF -> bundle.entry as entryF, entryF.resource = create('Observation') as obsF then {
+      qr -> obsF, entryF then BuildObsBase(qr, obsF, entryF) "fallsBase";
+      qr -> obsF then SetSurveyCategory(qr, obsF) "fallsCategory";
+      qr -> obsF.code as code then {
+        qr -> code.coding as coding then {
+          qr -> coding.system = 'http://loinc.org' "codeSystem";
+          qr -> coding.code = '59460-6' "codeCode";
+          qr -> coding.display = 'Fall risk total [Morse Fall Scale]' "codeDisplay";
+        } "codeCoding";
+      } "fallsCode";
+
+      gF where (item.answer.value.ofType(Coding).count() = 6) then {
+        gF -> obsF.value = evaluate(gF, iif(item.where(linkId = 'fallsRisk.total').answer.value.exists(), item.where(linkId = 'fallsRisk.total').answer.value, item.answer.value.ofType(Coding).code.select($this.split('-').last().toInteger()).aggregate($this + $total, 0))) "fallsTotalValue";
+      } "fallsTotalRule";
+
+      gF.item as it where (linkId = 'fallsRisk.history' and answer.value.exists()) -> obsF.component as comp then {
+        it -> comp.code as code then {
+          it -> code.coding as coding then {
+            it -> coding.system = 'http://loinc.org' "codeSystem";
+            it -> coding.code = '59454-9' "codeCode";
+            it -> coding.display = 'History of falling; immediate or within 3 months [Morse Fall Scale]' "codeDisplay";
+          } "codeCoding";
+        } "historyCode";
+        it -> comp then SetComponentCodedValue(it, comp) "historyValue";
+      } "fallsHistoryRule";
+
+      gF.item as it where (linkId = 'fallsRisk.diagnoses' and answer.value.exists()) -> obsF.component as comp then {
+        it -> comp.code as code then {
+          it -> code.coding as coding then {
+            it -> coding.system = 'http://loinc.org' "codeSystem";
+            it -> coding.code = '59455-6' "codeCode";
+            it -> coding.display = 'Secondary diagnosis is present' "codeDisplay";
+          } "codeCoding";
+        } "diagnosesCode";
+        it -> comp then SetComponentCodedValue(it, comp) "diagnosesValue";
+      } "fallsDiagnosesRule";
+
+      gF.item as it where (linkId = 'fallsRisk.aid' and answer.value.exists()) -> obsF.component as comp then {
+        it -> comp.code as code then {
+          it -> code.coding as coding then {
+            it -> coding.system = 'http://loinc.org' "codeSystem";
+            it -> coding.code = '59456-4' "codeCode";
+            it -> coding.display = 'Ambulatory aid [Morse Fall Scale]' "codeDisplay";
+          } "codeCoding";
+        } "aidCode";
+        it -> comp then SetComponentCodedValue(it, comp) "aidValue";
+      } "fallsAidRule";
+
+      gF.item as it where (linkId = 'fallsRisk.iv' and answer.value.exists()) -> obsF.component as comp then {
+        it -> comp.code as code then {
+          it -> code.coding as coding then {
+            it -> coding.system = 'http://loinc.org' "codeSystem";
+            it -> coding.code = '59457-2' "codeCode";
+            it -> coding.display = 'Intravenous apparatus [Morse Fall Scale]' "codeDisplay";
+          } "codeCoding";
+        } "ivCode";
+        it -> comp then SetComponentCodedValue(it, comp) "ivValue";
+      } "fallsIvRule";
+
+      gF.item as it where (linkId = 'fallsRisk.gait' and answer.value.exists()) -> obsF.component as comp then {
+        it -> comp.code as code then {
+          it -> code.coding as coding then {
+            it -> coding.system = 'http://loinc.org' "codeSystem";
+            it -> coding.code = '59458-0' "codeCode";
+            it -> coding.display = 'Gait [Morse Fall Scale]' "codeDisplay";
+          } "codeCoding";
+        } "gaitCode";
+        it -> comp then SetComponentCodedValue(it, comp) "gaitValue";
+      } "fallsGaitRule";
+
+      gF.item as it where (linkId = 'fallsRisk.mental' and answer.value.exists()) -> obsF.component as comp then {
+        it -> comp.code as code then {
+          it -> code.coding as coding then {
+            it -> coding.system = 'http://loinc.org' "codeSystem";
+            it -> coding.code = '59459-8' "codeCode";
+            it -> coding.display = 'Mental status [Morse Fall Scale]' "codeDisplay";
+          } "codeCoding";
+        } "mentalCode";
+        it -> comp then SetComponentCodedValue(it, comp) "mentalValue";
+      } "fallsMentalRule";
+
+      qr -> obsF, bundle then AddFallsRiskAssessment(obsF, qr, bundle) "fallsBand";
+    } "fallsObservation";
+  } "fallsRiskRule";
+
+  // ── Measures in place ──────────────────────────────────────────────────────
+  qr.item as itM where (linkId = 'measures' and answer.value.exists()) then {
+    itM.answer first as aM then {
+      aM -> bundle.entry as entryC, entryC.resource = create('CarePlan') as plan then {
+        qr -> plan.id = uuid() then SetCarePlanFullUrl(plan, entryC) "idAndFullUrl";
+
+        qr -> entryC.request as request then {
+          qr -> request.method = 'POST' "requestMethod";
+          qr -> request.url = 'CarePlan' "requestUrl";
+        } "entryRequest";
+
+        qr -> plan.status = 'active' "status";
+        qr -> plan.intent = 'plan' "intent";
+        qr -> plan.category as cat then {
+          qr -> cat.coding as coding then {
+            qr -> coding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/inpatient-clinical-concept-codesystem' "categorySystem";
+            qr -> coding.code = 'falls-prevention-plan' "categoryCode";
+            qr -> coding.display = 'Falls and pressure ulcer prevention measures' "categoryDisplay";
+          } "categoryCoding";
+        } "category";
+        qr -> plan.title = 'Falls and pressure ulcer prevention measures' "title";
+        aM.value as v -> plan.description = v "description";
+        qr.subject as s -> plan.subject = s "subject";
+        qr.encounter as e -> plan.encounter = e "encounter";
+        qr.authored as t -> plan.created = t "created";
+
+        qr.author as a -> plan.contributor = a "contributorFromAuthor";
+        qr where (author.exists().not()) then {
+          qr.source as src -> plan.contributor = src "contributorFromSource";
+        } "contributorFallback";
+
+        qr -> plan.supportingInfo = create('Reference') as ref then {
+          qr.id as qid -> ref.reference = qid "supportingInfoRef";
+        } "linkQuestionnaireResponse";
+      } "carePlan";
+    } "measuresAnswer";
+  } "measuresRule";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Risk bands
+//
+// Braden (Bergstrom): 19 and over no risk, 15-18 mild, 13-14 moderate, 10-12
+// high, 9 and under very high. Lower is worse.
+// Morse (Morse, Preventing Patient Falls): 0-24 no risk, 25-50 low, 51 and over
+// high. Higher is worse.
+//
+// The published band is the text; the coding is HL7's risk-probability, which
+// has five concepts and so collapses Braden's "very high" and "high" onto one
+// code. Consumers that need the exact tier read the text, consumers that need
+// to escalate read the code.
+// ─────────────────────────────────────────────────────────────────────────────
+
+group AddBradenRiskAssessment(source obs : Observation, source qr : QR, target bundle : Bundle) {
+  obs where (value.ofType(integer) <= 9) -> bundle.entry as entry, entry.resource = create('RiskAssessment') as ra then {
+    qr -> ra, entry then BuildRiskBase(qr, obs, ra, entry) "riskBase";
+    qr -> ra then SetBradenRiskCode(qr, ra) "riskCode";
+    qr -> ra.prediction as pred then {
+      qr -> pred.qualitativeRisk as risk then {
+        qr -> risk.coding as coding then {
+          qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/risk-probability' "riskSystem";
+          qr -> coding.code = 'high' "riskCode";
+          qr -> coding.display = 'High likelihood' "riskDisplay";
+        } "riskCoding";
+        qr -> risk.text = 'Very high risk' "riskText";
+      } "qualitativeRisk";
+    } "prediction";
+  } "bradenVeryHigh";
+
+  obs where (value.ofType(integer) >= 10 and value.ofType(integer) <= 12) -> bundle.entry as entry, entry.resource = create('RiskAssessment') as ra then {
+    qr -> ra, entry then BuildRiskBase(qr, obs, ra, entry) "riskBase";
+    qr -> ra then SetBradenRiskCode(qr, ra) "riskCode";
+    qr -> ra.prediction as pred then {
+      qr -> pred.qualitativeRisk as risk then {
+        qr -> risk.coding as coding then {
+          qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/risk-probability' "riskSystem";
+          qr -> coding.code = 'high' "riskCode";
+          qr -> coding.display = 'High likelihood' "riskDisplay";
+        } "riskCoding";
+        qr -> risk.text = 'High risk' "riskText";
+      } "qualitativeRisk";
+    } "prediction";
+  } "bradenHigh";
+
+  obs where (value.ofType(integer) >= 13 and value.ofType(integer) <= 14) -> bundle.entry as entry, entry.resource = create('RiskAssessment') as ra then {
+    qr -> ra, entry then BuildRiskBase(qr, obs, ra, entry) "riskBase";
+    qr -> ra then SetBradenRiskCode(qr, ra) "riskCode";
+    qr -> ra.prediction as pred then {
+      qr -> pred.qualitativeRisk as risk then {
+        qr -> risk.coding as coding then {
+          qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/risk-probability' "riskSystem";
+          qr -> coding.code = 'moderate' "riskCode";
+          qr -> coding.display = 'Moderate likelihood' "riskDisplay";
+        } "riskCoding";
+        qr -> risk.text = 'Moderate risk' "riskText";
+      } "qualitativeRisk";
+    } "prediction";
+  } "bradenModerate";
+
+  obs where (value.ofType(integer) >= 15 and value.ofType(integer) <= 18) -> bundle.entry as entry, entry.resource = create('RiskAssessment') as ra then {
+    qr -> ra, entry then BuildRiskBase(qr, obs, ra, entry) "riskBase";
+    qr -> ra then SetBradenRiskCode(qr, ra) "riskCode";
+    qr -> ra.prediction as pred then {
+      qr -> pred.qualitativeRisk as risk then {
+        qr -> risk.coding as coding then {
+          qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/risk-probability' "riskSystem";
+          qr -> coding.code = 'low' "riskCode";
+          qr -> coding.display = 'Low likelihood' "riskDisplay";
+        } "riskCoding";
+        qr -> risk.text = 'Mild risk' "riskText";
+      } "qualitativeRisk";
+    } "prediction";
+  } "bradenMild";
+
+  obs where (value.ofType(integer) >= 19) -> bundle.entry as entry, entry.resource = create('RiskAssessment') as ra then {
+    qr -> ra, entry then BuildRiskBase(qr, obs, ra, entry) "riskBase";
+    qr -> ra then SetBradenRiskCode(qr, ra) "riskCode";
+    qr -> ra.prediction as pred then {
+      qr -> pred.qualitativeRisk as risk then {
+        qr -> risk.coding as coding then {
+          qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/risk-probability' "riskSystem";
+          qr -> coding.code = 'negligible' "riskCode";
+          qr -> coding.display = 'Negligible likelihood' "riskDisplay";
+        } "riskCoding";
+        qr -> risk.text = 'No risk identified' "riskText";
+      } "qualitativeRisk";
+    } "prediction";
+  } "bradenNoRisk";
+}
+
+group SetBradenRiskCode(source qr : QR, target ra : RiskAssessment) {
+  qr -> ra.code as code then {
+    qr -> code.coding as coding then {
+      qr -> coding.system = 'http://loinc.org' "codeSystem";
+      qr -> coding.code = '81636-3' "codeCode";
+      qr -> coding.display = 'Pressure injury risk level Braden scale' "codeDisplay";
+    } "codeCoding";
+  } "code";
+}
+
+group AddFallsRiskAssessment(source obs : Observation, source qr : QR, target bundle : Bundle) {
+  obs where (value.ofType(integer) <= 24) -> bundle.entry as entry, entry.resource = create('RiskAssessment') as ra then {
+    qr -> ra, entry then BuildRiskBase(qr, obs, ra, entry) "riskBase";
+    qr -> ra then SetFallsRiskCode(qr, ra) "riskCode";
+    qr -> ra.prediction as pred then {
+      qr -> pred.qualitativeRisk as risk then {
+        qr -> risk.coding as coding then {
+          qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/risk-probability' "riskSystem";
+          qr -> coding.code = 'negligible' "riskCode";
+          qr -> coding.display = 'Negligible likelihood' "riskDisplay";
+        } "riskCoding";
+        qr -> risk.text = 'No risk' "riskText";
+      } "qualitativeRisk";
+    } "prediction";
+  } "fallsNoRisk";
+
+  obs where (value.ofType(integer) >= 25 and value.ofType(integer) <= 50) -> bundle.entry as entry, entry.resource = create('RiskAssessment') as ra then {
+    qr -> ra, entry then BuildRiskBase(qr, obs, ra, entry) "riskBase";
+    qr -> ra then SetFallsRiskCode(qr, ra) "riskCode";
+    qr -> ra.prediction as pred then {
+      qr -> pred.qualitativeRisk as risk then {
+        qr -> risk.coding as coding then {
+          qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/risk-probability' "riskSystem";
+          qr -> coding.code = 'low' "riskCode";
+          qr -> coding.display = 'Low likelihood' "riskDisplay";
+        } "riskCoding";
+        qr -> risk.text = 'Low risk' "riskText";
+      } "qualitativeRisk";
+    } "prediction";
+  } "fallsLow";
+
+  obs where (value.ofType(integer) >= 51) -> bundle.entry as entry, entry.resource = create('RiskAssessment') as ra then {
+    qr -> ra, entry then BuildRiskBase(qr, obs, ra, entry) "riskBase";
+    qr -> ra then SetFallsRiskCode(qr, ra) "riskCode";
+    qr -> ra.prediction as pred then {
+      qr -> pred.qualitativeRisk as risk then {
+        qr -> risk.coding as coding then {
+          qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/risk-probability' "riskSystem";
+          qr -> coding.code = 'high' "riskCode";
+          qr -> coding.display = 'High likelihood' "riskDisplay";
+        } "riskCoding";
+        qr -> risk.text = 'High risk' "riskText";
+      } "qualitativeRisk";
+    } "prediction";
+  } "fallsHigh";
+}
+
+group SetFallsRiskCode(source qr : QR, target ra : RiskAssessment) {
+  qr -> ra.code as code then {
+    qr -> code.coding as coding then {
+      qr -> coding.system = 'http://loinc.org' "codeSystem";
+      qr -> coding.code = '59461-4' "codeCode";
+      qr -> coding.display = 'Fall risk level [Morse Fall Scale]' "codeDisplay";
+    } "codeCoding";
+  } "code";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared scaffolding. Repeated in each map rather than imported: the transform
+// engine resolves `imports` against whatever StructureMaps happen to be on the
+// server, and a form that stops extracting because a shared map was not
+// uploaded is a worse failure than a duplicated group.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Two notes on what the publisher's StructureMap validator says about this file.
+//
+// Source parameters below are left untyped on purpose. Writing `: Element` makes
+// the validator compare QuestionnaireResponse.item against the literal 'Element'
+// and report them as incompatible with each other, which is noise, not a finding.
+// Untyped, it says only that it cannot check the paths.
+//
+// `evaluate(context, expression)` is flagged as "takes 1 parameter but 2 were
+// found". Leave it. The FML parser in the same jar refuses the one-argument form
+// outright -- it wants a parameter, a comma, then the FHIRPath -- so the publisher
+// is objecting to what its own compiler emits. Two arguments is the only form that
+// compiles, and it is what the R5 transform engine executes.
+
+group BuildObsBase(source qr : QR, target obs : Observation, target entry) {
+  qr -> obs.id = uuid() then SetObservationFullUrl(obs, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Observation' "requestUrl";
+  } "entryRequest";
+
+  qr -> obs.status = 'final' "status";
+  qr.subject as s -> obs.subject = s "subject";
+  qr.encounter as e -> obs.encounter = e "encounter";
+  qr.authored as t -> obs.effective = t "effective";
+
+  qr.source as src -> obs.performer = src "performerFromSource";
+  qr where (source.exists().not()) then {
+    qr.author as a -> obs.performer = a "performerFromAuthor";
+  } "performerFallback";
+
+  qr -> obs.derivedFrom = create('Reference') as ref then {
+    qr.id as qid -> ref.reference = qid "derivedFromRef";
+  } "linkQuestionnaireResponse";
+}
+
+// The RiskAssessment stands on two things: the response that was filled in and
+// the Observation that holds the number. Both go in basis, which is what the
+// SGHI RiskAssessment profile binds to a QuestionnaireResponse.
+group BuildRiskBase(source qr : QR, source obs : Observation, target ra : RiskAssessment, target entry) {
+  qr -> ra.id = uuid() then SetRiskAssessmentFullUrl(ra, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'RiskAssessment' "requestUrl";
+  } "entryRequest";
+
+  qr -> ra.status = 'final' "status";
+  qr.subject as s -> ra.subject = s "subject";
+  qr.encounter as e -> ra.encounter = e "encounter";
+  qr.authored as t -> ra.occurrence = t "occurrence";
+
+  qr.author as a -> ra.performer = a "performerFromAuthor";
+  qr where (author.exists().not()) then {
+    qr.source as src -> ra.performer = src "performerFromSource";
+  } "performerFallback";
+
+  qr -> ra.basis = create('Reference') as qref then {
+    qr.id as qid -> qref.reference = qid "basisQuestionnaireResponse";
+  } "basisResponse";
+
+  obs.id as oid -> ra.basis = create('Reference') as oref then {
+    oid -> oref.reference = append('Observation/', oid) "basisObservationRef";
+  } "basisObservation";
+}
+
+group SetComponentCodedValue(source it, target comp) {
+  it.answer first as a then {
+    a.value as cv -> comp.value = create('CodeableConcept') as cc then {
+      cv -> cc.coding = cv "valueCoding";
+      cv.display as d -> cc.text = d "valueText";
+    } "codedValue";
+  } "componentAnswer";
+}
+
+group SetSurveyCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'survey' "categoryCode";
+      qr -> coding.display = 'Survey' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+group SetObservationFullUrl(source obs : Observation, target entry) {
+  obs.id as id -> entry.fullUrl = append(
+    'https://fhir.slade360.co.ke/fhir/Observation/',
+    id
+  ) "assignFullUrl";
+}
+
+group SetRiskAssessmentFullUrl(source ra : RiskAssessment, target entry) {
+  ra.id as id -> entry.fullUrl = append(
+    'https://fhir.slade360.co.ke/fhir/RiskAssessment/',
+    id
+  ) "assignFullUrl";
+}
+
+group SetCarePlanFullUrl(source plan : CarePlan, target entry) {
+  plan.id as id -> entry.fullUrl = append(
+    'https://fhir.slade360.co.ke/fhir/CarePlan/',
+    id
+  ) "assignFullUrl";
+}

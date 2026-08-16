@@ -1,0 +1,140 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractInpatientObstetricAdmissionAssessment"
+/// name = "ExtractInpatientObstetricAdmissionAssessment"
+/// title = "Inpatient Obstetric Admission Assessment Extraction"
+/// status = "active"
+/// description = "Four measurements out, four Observations. Gestation, fetal heart rate and cervical dilatation are readings taken at the bedside, so they carry category `exam`; the obstetric history is reported rather than measured, so it carries `social-history`. Every LOINC code here was checked against tx.fhir.org before use."
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Observation as target
+
+group ExtractInpatientObstetricAdmissionAssessment(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  qr.item as itG where (linkId = 'gestation' and answer.value.exists()) then {
+    itG.answer first as aG then {
+      aG -> bundle.entry as entryG, entryG.resource = create('Observation') as obsG then {
+        qr -> obsG, entryG then BuildObsBase(qr, obsG, entryG) "gestationBase";
+        qr -> obsG then SetExamCategory(qr, obsG) "gestationCategory";
+        qr -> obsG.code as code then {
+          qr -> code.coding as coding then {
+            qr -> coding.system = 'http://loinc.org' "codeSystem";
+            qr -> coding.code = '18185-9' "codeCode";
+            qr -> coding.display = 'Gestational age' "codeDisplay";
+          } "codeCoding";
+        } "gestationCode";
+        // The item is type `quantity` with a unitOption pinning weeks, so the
+        // answer arrives as a Quantity and is copied through whole.
+        aG.value as v -> obsG.value = v "gestationValue";
+      } "gestationObservation";
+    } "gestationAnswer";
+  } "gestationRule";
+
+  qr.item as itF where (linkId = 'fhr' and answer.value.exists()) then {
+    itF.answer first as aF then {
+      aF -> bundle.entry as entryF, entryF.resource = create('Observation') as obsF then {
+        qr -> obsF, entryF then BuildObsBase(qr, obsF, entryF) "fhrBase";
+        qr -> obsF then SetExamCategory(qr, obsF) "fhrCategory";
+        qr -> obsF.code as code then {
+          qr -> code.coding as coding then {
+            qr -> coding.system = 'http://loinc.org' "codeSystem";
+            qr -> coding.code = '55283-6' "codeCode";
+            qr -> coding.display = 'Fetal Heart rate' "codeDisplay";
+          } "codeCoding";
+        } "fhrCode";
+        aF.value as v -> obsF.value = v "fhrValue";
+      } "fhrObservation";
+    } "fhrAnswer";
+  } "fhrRule";
+
+  qr.item as itD where (linkId = 'dilatation' and answer.value.exists()) then {
+    itD.answer first as aD then {
+      aD -> bundle.entry as entryD, entryD.resource = create('Observation') as obsD then {
+        qr -> obsD, entryD then BuildObsBase(qr, obsD, entryD) "dilatationBase";
+        qr -> obsD then SetExamCategory(qr, obsD) "dilatationCategory";
+        qr -> obsD.code as code then {
+          qr -> code.coding as coding then {
+            qr -> coding.system = 'http://loinc.org' "codeSystem";
+            qr -> coding.code = '11784-6' "codeCode";
+            qr -> coding.display = 'Cervical canal external os Diameter palpation' "codeDisplay";
+          } "codeCoding";
+        } "dilatationCode";
+        aD.value as v -> obsD.value = v "dilatationValue";
+      } "dilatationObservation";
+    } "dilatationAnswer";
+  } "dilatationRule";
+
+  qr.item as itH where (linkId = 'obsHistory' and answer.value.exists()) then {
+    itH.answer first as aH then {
+      aH -> bundle.entry as entryH, entryH.resource = create('Observation') as obsH then {
+        qr -> obsH, entryH then BuildObsBase(qr, obsH, entryH) "historyBase";
+        qr -> obsH then SetSocialHistoryCategory(qr, obsH) "historyCategory";
+        qr -> obsH.code as code then {
+          qr -> code.coding as coding then {
+            qr -> coding.system = 'http://loinc.org' "codeSystem";
+            qr -> coding.code = '89213-3' "codeCode";
+            qr -> coding.display = 'Obstetrics History and physical note' "codeDisplay";
+          } "codeCoding";
+        } "historyCode";
+        aH.value as v -> obsH.value = v "historyValue";
+      } "historyObservation";
+    } "historyAnswer";
+  } "obsHistoryRule";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared scaffolding. Repeated in each map rather than imported: the transform
+// engine resolves `imports` against whatever StructureMaps happen to be on the
+// server, and a form that stops extracting because a shared map was not
+// uploaded is a worse failure than a duplicated group.
+// ─────────────────────────────────────────────────────────────────────────────
+
+group BuildObsBase(source qr : QR, target obs : Observation, target entry) {
+  qr -> obs.id = uuid() then SetObservationFullUrl(obs, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Observation' "requestUrl";
+  } "entryRequest";
+
+  qr -> obs.status = 'final' "status";
+  qr.subject as s -> obs.subject = s "subject";
+  qr.encounter as e -> obs.encounter = e "encounter";
+  qr.authored as t -> obs.effective = t "effective";
+
+  qr.source as src -> obs.performer = src "performerFromSource";
+  qr where (source.exists().not()) then {
+    qr.author as a -> obs.performer = a "performerFromAuthor";
+  } "performerFallback";
+
+  qr -> obs.derivedFrom = create('Reference') as ref then {
+    qr.id as qid -> ref.reference = qid "derivedFromRef";
+  } "linkQuestionnaireResponse";
+}
+
+group SetExamCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'exam' "categoryCode";
+      qr -> coding.display = 'Exam' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+group SetSocialHistoryCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'social-history' "categoryCode";
+      qr -> coding.display = 'Social History' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+group SetObservationFullUrl(source obs : Observation, target entry) {
+  obs.id as id -> entry.fullUrl = append(
+    'https://fhir.slade360.co.ke/fhir/Observation/',
+    id
+  ) "assignFullUrl";
+}

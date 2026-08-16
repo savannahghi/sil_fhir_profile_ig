@@ -1472,3 +1472,176 @@ Description: "A code system enumerating the specimen collection concepts with no
 * #clean-draw "Clean draw" "The draw went cleanly and the sample is fit for testing."
 * #difficult-draw "Difficult draw" "The draw needed more than one attempt or prolonged venous access. The sample stands, but results sensitive to a traumatic draw are read with it in mind."
 * #short-draw "Short draw, under volume" "The container was filled below its target volume. It matters most where the blood-to-additive ratio is fixed, as in a citrate tube."
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Inpatient clinical documentation
+//
+// The terminology behind the fifteen inpatient notes and assessments, and behind
+// the extraction maps in input/maps that turn their responses into resources.
+// These four were hand-authored as JSON in sil-templates/clinical-notes while the
+// forms were being designed; they live here now so a normal IG build produces
+// them and there is one source of truth.
+//
+// Codes are minted locally only where LOINC has no equivalent. Every LOINC code
+// used by the forms or the maps was checked against tx.fhir.org first.
+// ─────────────────────────────────────────────────────────────────────────────
+
+CodeSystem: SGHIInpatientDocumentTypeCodeSystem
+Id: inpatient-document-type-codesystem
+Title: "SGHI Inpatient Document Type Code System"
+Description: "The notes and assessments written against an inpatient stay. LOINC already names four of these — progress note, history and physical, nurse note and discharge summary — and each carries its LOINC code alongside its SGHI code. The other eleven have no LOINC equivalent that says the same thing. It is a document classification, so it serves Composition.type and DocumentReference.type once a note is filed."
+* ^status = #active
+* ^experimental = false
+* ^content = #complete
+* ^caseSensitive = true
+* #progress-note "Progress note" "Interval change since the last entry, and the plan from here."
+* #admission-note "Admission note" "The narrative account of why the patient was admitted."
+* #nursing-note "Nursing note" "Nursing observation and care given during a shift."
+* #ward-round-note "Ward round" "The consultant round entry: findings, decisions and jobs for the team."
+* #shift-handover-note "Shift handover" "What the next shift needs to know about the patient."
+* #discharge-note "Discharge note" "The summary the patient and their next clinician leave with."
+* #death-note "Death note" "The record of a death, its circumstances and who was informed. Distinct from the death certificate, which is a civil registration document."
+* #adult-general-admission-assessment "Adult general admission assessment" "The baseline taken on arrival to the ward, for any adult admission."
+* #obstetric-admission-assessment "Obstetric admission assessment" "Taken on admission to the maternity ward, before the first review."
+* #surgical-preoperative-assessment "Surgical pre-operative assessment" "Completed before theatre, confirming fitness and consent."
+* #critical-care-assessment "Critical care assessment" "Organ support and conscious level, for a patient in critical care."
+* #paediatric-admission-assessment "Paediatric admission assessment" "The baseline for a child, including who is staying with them."
+* #falls-and-pressure-ulcer-risk-assessment "Falls and pressure ulcer risk" "Braden and falls risk together, reassessed daily and on any change."
+* #nutrition-screening "Nutrition screening (MUST)" "Malnutrition screening, repeated weekly for an inpatient."
+* #mental-health-risk-assessment "Mental health risk assessment" "Mood, risk and capacity, with any safeguarding concern."
+
+
+CodeSystem: SGHIClinicalScoreCodeSystem
+Id: clinical-score-codesystem
+Title: "SGHI Clinical Score Code System"
+Description: "The answers to the scored instruments used on inpatient assessments: the Braden pressure ulcer scale, the Morse falls score, MUST nutrition screening and the Glasgow Coma Scale. Each answer is a concept so a response records what was observed rather than a bare number. Codes are namespaced instrument-item-weight; the weight is in the code because within an item it is what tells one answer from another, and because two items in an instrument can share a label. The extraction maps rely on that: they read the weight off the tail of the code when a client submits no calculated total."
+* ^status = #active
+* ^experimental = false
+* ^content = #complete
+* ^caseSensitive = true
+
+// Braden pressure ulcer scale (Bergstrom). Lower total is worse.
+* #braden-sensory-1 "Completely limited" "Braden sensory perception: unresponsive to painful stimuli, or limited ability to feel pain over most of the body."
+* #braden-sensory-2 "Very limited" "Braden sensory perception: responds only to painful stimuli, or a sensory impairment over half the body."
+* #braden-sensory-3 "Slightly limited" "Braden sensory perception: responds to verbal commands but cannot always communicate discomfort."
+* #braden-sensory-4 "No impairment" "Braden sensory perception: responds to verbal commands, no sensory deficit."
+* #braden-moisture-1 "Constantly moist" "Braden moisture: skin kept moist almost constantly by perspiration or urine."
+* #braden-moisture-2 "Often moist" "Braden moisture: skin often but not always moist; linen changed at least once a shift."
+* #braden-moisture-3 "Occasionally moist" "Braden moisture: skin occasionally moist, requiring an extra linen change about once a day."
+* #braden-moisture-4 "Rarely moist" "Braden moisture: skin usually dry; linen changed at routine intervals."
+* #braden-activity-1 "Bedfast" "Braden activity: confined to bed."
+* #braden-activity-2 "Chairfast" "Braden activity: ability to walk severely limited or non-existent; cannot bear own weight."
+* #braden-activity-3 "Walks occasionally" "Braden activity: walks short distances during the day, with or without assistance."
+* #braden-activity-4 "Walks frequently" "Braden activity: walks outside the room at least twice a day and inside it every two hours while awake."
+* #braden-mobility-1 "Completely immobile" "Braden mobility: makes no change in body or extremity position without assistance."
+* #braden-mobility-2 "Very limited" "Braden mobility: makes occasional slight changes in position but cannot make frequent or significant changes independently."
+* #braden-mobility-3 "Slightly limited" "Braden mobility: makes frequent though slight changes in position independently."
+* #braden-mobility-4 "No limitation" "Braden mobility: makes major and frequent changes in position without assistance."
+* #braden-nutrition-1 "Very poor" "Braden nutrition: never eats a complete meal, or is nil by mouth or on clear fluids for more than five days."
+* #braden-nutrition-2 "Probably inadequate" "Braden nutrition: rarely eats a complete meal; generally eats about half of what is offered."
+* #braden-nutrition-3 "Adequate" "Braden nutrition: eats over half of most meals, or is fed by tube or parenterally to meet most needs."
+* #braden-nutrition-4 "Excellent" "Braden nutrition: eats most of every meal and never refuses one."
+* #braden-friction-1 "Problem" "Braden friction and shear: requires moderate to maximum assistance to move; slides against sheets and cannot lift clear of them."
+* #braden-friction-2 "Potential problem" "Braden friction and shear: moves feebly or requires minimum assistance; skin probably slides against sheets to some extent."
+* #braden-friction-3 "No apparent problem" "Braden friction and shear: moves independently in bed and chair, with enough muscle strength to lift clear of the sheets."
+
+// Falls risk. The six items are the Morse Fall Scale verbatim, which is why the
+// extraction map codes the resulting Observation against the LOINC Morse panel.
+// Higher total is worse.
+* #falls-history-0 "No fall in the last 12 months" "Falls risk history: no fall recorded in the last twelve months."
+* #falls-history-25 "Fall in the last 12 months" "Falls risk history: at least one fall recorded in the last twelve months."
+* #falls-diagnoses-0 "One active diagnosis or none" "Falls risk: no more than one active diagnosis on the problem list."
+* #falls-diagnoses-15 "More than one active diagnosis" "Falls risk: more than one active diagnosis on the problem list."
+* #falls-aid-0 "No walking aid, or bedrest" "Falls risk walking aid: none needed, on bedrest, or assisted by a nurse."
+* #falls-aid-15 "Crutch, stick or walker" "Falls risk walking aid: mobilises with a crutch, stick or walking frame."
+* #falls-aid-30 "Holds onto furniture" "Falls risk walking aid: mobilises by holding onto furniture."
+* #falls-iv-0 "No intravenous access" "Falls risk: no cannula, line or heparin lock in place."
+* #falls-iv-20 "Intravenous access in place" "Falls risk: a cannula, line or heparin lock is in place."
+* #falls-gait-0 "Normal gait, or bedrest" "Falls risk gait: normal gait, or immobile."
+* #falls-gait-10 "Weak gait" "Falls risk gait: short steps, possibly shuffling, seeks support from furniture but not leaning on it."
+* #falls-gait-20 "Impaired gait" "Falls risk gait: short steps with difficulty rising, head down, grasps furniture for support."
+* #falls-mental-0 "Oriented to own ability" "Falls risk awareness: the patient's account of what they can manage matches what the nursing team observes."
+* #falls-mental-15 "Overestimates or forgets limits" "Falls risk awareness: the patient overestimates what they can manage, or forgets their limits."
+
+// MUST nutrition screening (BAPEN). Three steps, 0 to 6.
+* #must-bmi-0 "BMI 20 or over" "MUST body mass index step: 20 kg/m2 or above."
+* #must-bmi-1 "BMI 18.5 to 20" "MUST body mass index step: 18.5 to 20 kg/m2."
+* #must-bmi-2 "BMI under 18.5" "MUST body mass index step: below 18.5 kg/m2."
+* #must-loss-0 "Weight loss under 5%" "MUST weight loss step: unplanned loss of less than 5% of body weight in the last three to six months."
+* #must-loss-1 "Weight loss 5 to 10%" "MUST weight loss step: unplanned loss of 5 to 10% of body weight in the last three to six months."
+* #must-loss-2 "Weight loss over 10%" "MUST weight loss step: unplanned loss of more than 10% of body weight in the last three to six months."
+* #must-acute-0 "Eating normally" "MUST acute disease effect step: the patient is eating, or a break in intake of five days or more is not expected."
+* #must-acute-2 "No nutritional intake for 5 days or more" "MUST acute disease effect step: acutely ill with no nutritional intake for five days or more, or none expected for that long."
+
+// Glasgow Coma Scale. Three components, total 3 to 15.
+* #gcs-eye-1 "No eye opening" "GCS eye opening: none."
+* #gcs-eye-2 "Eye opening to pressure" "GCS eye opening: to pressure."
+* #gcs-eye-3 "Eye opening to sound" "GCS eye opening: to sound."
+* #gcs-eye-4 "Spontaneous eye opening" "GCS eye opening: spontaneous."
+* #gcs-verbal-1 "No verbal response" "GCS verbal response: none."
+* #gcs-verbal-2 "Sounds" "GCS verbal response: sounds only, no recognisable words."
+* #gcs-verbal-3 "Words" "GCS verbal response: recognisable words, not conversation."
+* #gcs-verbal-4 "Confused" "GCS verbal response: converses but is disoriented."
+* #gcs-verbal-5 "Oriented" "GCS verbal response: oriented conversation."
+* #gcs-motor-1 "No motor response" "GCS motor response: none."
+* #gcs-motor-2 "Extension" "GCS motor response: extension to pain."
+* #gcs-motor-3 "Abnormal flexion" "GCS motor response: abnormal flexion to pain."
+* #gcs-motor-4 "Normal flexion" "GCS motor response: normal flexion, withdraws from pain."
+* #gcs-motor-5 "Localising" "GCS motor response: localises to pain."
+* #gcs-motor-6 "Obeys commands" "GCS motor response: obeys commands."
+
+
+CodeSystem: SGHIInpatientAssessmentAnswerCodeSystem
+Id: inpatient-assessment-answer-codesystem
+Title: "SGHI Inpatient Assessment Answer Code System"
+Description: "The single-select answers offered by the inpatient assessments that are not part of a scored instrument: ASA grade, oxygen support, immunisation status, risk of self-harm and capacity to consent. Local pick lists get local codes. The displays are the wording shown to the clinician and should not be reworded without changing the form. Scored-instrument answers live in SGHIClinicalScoreCodeSystem instead, because they also carry an ordinal weight."
+* ^status = #active
+* ^experimental = false
+* ^content = #complete
+* ^caseSensitive = true
+* #asa-i "I — healthy" "ASA physical status I: a normal healthy patient."
+* #asa-ii "II — mild systemic disease" "ASA physical status II: a patient with mild systemic disease."
+* #asa-iii "III — severe systemic disease" "ASA physical status III: a patient with severe systemic disease."
+* #asa-iv "IV — life-threatening disease" "ASA physical status IV: a patient with severe systemic disease that is a constant threat to life."
+* #asa-v "V — moribund" "ASA physical status V: a moribund patient who is not expected to survive without the operation."
+* #oxygen-room-air "Room air" "Breathing room air, with no supplemental oxygen."
+* #oxygen-nasal-cannula "Nasal cannula" "Supplemental oxygen delivered by nasal cannula."
+* #oxygen-face-mask "Face mask" "Supplemental oxygen delivered by face mask."
+* #oxygen-high-flow-nasal "High-flow nasal oxygen" "Heated, humidified oxygen delivered at high flow by nasal interface."
+* #oxygen-non-invasive-ventilation "Non-invasive ventilation" "Ventilatory support delivered without an artificial airway, by mask or hood."
+* #oxygen-invasive-ventilation "Invasive ventilation" "Ventilatory support delivered through an endotracheal tube or tracheostomy."
+* #immunisation-up-to-date "Up to date" "Immunisations are complete for the child's age per the national schedule."
+* #immunisation-partial "Partially immunised" "Some but not all of the immunisations due for the child's age have been given."
+* #immunisation-none "Not immunised" "No immunisations have been given."
+* #immunisation-unknown "Not known" "Immunisation status could not be established from the carer or any record."
+* #self-harm-none "No current risk identified" "No current risk of self-harm identified on assessment."
+* #self-harm-passive "Passive thoughts, no plan" "Passive thoughts of self-harm or of being better off dead, with no plan or intent."
+* #self-harm-active-plan "Active thoughts with a plan" "Active thoughts of self-harm together with a plan."
+* #self-harm-recent-act "Recent act of self-harm" "A recent act of self-harm, whether or not intent to die was expressed."
+* #capacity-has "Has capacity for this decision" "The patient can understand, retain and weigh the information for this decision and communicate a choice."
+* #capacity-fluctuating "Capacity fluctuating" "Capacity for this decision varies over time, so the assessment holds only for the moment it was made."
+* #capacity-lacks "Lacks capacity for this decision" "The patient cannot make this particular decision at this time."
+
+
+CodeSystem: SGHIInpatientClinicalConceptCodeSystem
+Id: inpatient-clinical-concept-codesystem
+Title: "SGHI Inpatient Clinical Concept Code System"
+Description: "The concepts the inpatient notes and assessments record that no LOINC or HL7 concept covers. Every code here was minted only after searching LOINC and finding nothing equivalent; where LOINC does have the concept the extraction maps use LOINC and nothing is added here. These appear as Observation.code, RiskAssessment.code, Task.code, ServiceRequest.code and CarePlan.category on the resources the maps extract."
+* ^status = #active
+* ^experimental = false
+* ^content = #complete
+* ^caseSensitive = true
+* #must-bmi-score "BMI score (MUST)" "The body mass index step of the Malnutrition Universal Screening Tool, scored 0 to 2. LOINC has a code for the MUST screening itself (101789-6) but none for its three steps."
+* #must-weight-loss-score "Unplanned weight loss score (MUST)" "The unplanned weight loss step of the Malnutrition Universal Screening Tool, scored 0 to 2 over the preceding three to six months."
+* #must-acute-disease-score "Acute disease effect score (MUST)" "The acute disease effect step of the Malnutrition Universal Screening Tool, scored 0 or 2 on whether the patient has had no nutritional intake for five days or more."
+* #organ-support "Organ support needed" "A narrative account of the organ support a critically ill patient is receiving. LOINC has codes for individual supports but none for the summary the critical care assessment asks for."
+* #feeding "Feeding" "A narrative account of how a child is being fed, as recorded on a paediatric admission assessment."
+* #mood-and-affect "Mood and affect" "The mood and affect component of a mental state examination, recorded as narrative."
+* #capacity-to-consent "Capacity to consent" "Whether the patient has capacity to consent to the decision in front of them, and whether that capacity is fluctuating."
+* #self-harm-risk "Risk of self-harm" "The type of a risk assessment whose predicted outcome is self-harm. LOINC 93374-7 covers suicide risk specifically; self-harm is the wider concept the mental health assessment asks about."
+* #ward-round-job "Job for the team from a ward round" "A piece of work the ward round left for the team. The HL7 task-code system enumerates what to do to a request (fulfil, abort, replace) rather than what a ward round asks for."
+* #discharge-follow-up "Follow-up arranged on discharge" "The follow-up a discharge note arranges, as a request rather than a booked appointment. The discharge note captures it as free text, so no date is available to book against."
+* #planned-procedure "Planned procedure" "The procedure a pre-operative assessment was carried out for. The form captures it as free text, so the request carries the wording rather than a procedure code."
+* #dietitian-referral "Referral to a dietitian" "A request for dietetic assessment, raised from a nutrition screening that scored in the high-risk band."
+* #falls-prevention-plan "Falls and pressure ulcer prevention measures" "The category of a care plan recording the measures put in place because of a falls or pressure ulcer risk score."
+* #nutrition-care-plan "Nutritional plan" "The category of a care plan recording what will be done about a patient's nutrition after screening."

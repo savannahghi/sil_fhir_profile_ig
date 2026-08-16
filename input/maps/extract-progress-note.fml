@@ -1,0 +1,147 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractInpatientProgressNote"
+/// name = "ExtractInpatientProgressNote"
+/// title = "Inpatient Progress Note Extraction"
+/// status = "active"
+/// description = "Turns a response to the inpatient progress note into a single Composition with one section per SOAP heading. Nothing here is a discrete clinical fact -- a progress note is a document -- so no Observation, Condition or Task is produced. The QuestionnaireResponse remains the signed record and the Composition points back at it through relatesTo."
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/Composition" alias Composition as target
+
+group ExtractInpatientProgressNote(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  qr -> bundle.entry as entry, entry.resource = create('Composition') as comp then {
+    qr -> comp, entry then BuildNoteBase(qr, comp, entry) "noteBase";
+    qr -> comp.name = 'InpatientProgressNote' "noteName";
+    qr -> comp.title = 'Progress note' "noteTitle";
+
+    qr -> comp.type as ty then {
+      qr -> ty.coding as sghi then {
+        qr -> sghi.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/inpatient-document-type-codesystem' "sghiSystem";
+        qr -> sghi.code = 'progress-note' "sghiCode";
+        qr -> sghi.display = 'Progress note' "sghiDisplay";
+      } "sghiCoding";
+      qr -> ty.coding as loinc then {
+        qr -> loinc.system = 'http://loinc.org' "loincSystem";
+        qr -> loinc.code = '11506-3' "loincCode";
+        qr -> loinc.display = 'Progress note' "loincDisplay";
+      } "loincCoding";
+      qr -> ty.text = 'Progress note' "typeText";
+    } "noteType";
+
+    // Sections in the order the form asks for them, so the printed note reads
+    // the way it was written. The `answer.value.exists()` guard is not
+    // decoration: a section with a title and no content breaks cmp-1, and an
+    // unanswered optional item still arrives as an empty item.
+    qr.item as it where (linkId = 'subjective' and answer.value.exists()) -> comp.section as sec then {
+      it -> sec.title = 'Subjective' "subjectiveTitle";
+      it -> sec then AddSectionText(it, sec) "subjectiveText";
+    } "subjectiveRule";
+
+    qr.item as it where (linkId = 'objective' and answer.value.exists()) -> comp.section as sec then {
+      it -> sec.title = 'Objective' "objectiveTitle";
+      it -> sec then AddSectionText(it, sec) "objectiveText";
+    } "objectiveRule";
+
+    qr.item as it where (linkId = 'assessment' and answer.value.exists()) -> comp.section as sec then {
+      it -> sec.title = 'Assessment' "assessmentTitle";
+      it -> sec then AddSectionText(it, sec) "assessmentText";
+    } "assessmentRule";
+
+    qr.item as it where (linkId = 'plan' and answer.value.exists()) -> comp.section as sec then {
+      it -> sec.title = 'Plan' "planTitle";
+      it -> sec then AddSectionText(it, sec) "planText";
+    } "planRule";
+  } "composition";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared note scaffolding. Repeated in each note map rather than imported: the
+// transform engine resolves `imports` against whatever StructureMaps happen to
+// be on the server, and a note that stops extracting because a shared map was
+// not uploaded is a worse failure than a duplicated group.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Two notes on what the publisher's StructureMap validator says about this file.
+//
+// Source parameters below are left untyped on purpose. Writing `: Element` makes
+// the validator compare QuestionnaireResponse.item against the literal 'Element'
+// and report them as incompatible with each other, which is noise, not a finding.
+// Untyped, it says only that it cannot check the paths.
+//
+// `evaluate(context, expression)` is flagged as "takes 1 parameter but 2 were
+// found". Leave it. The FML parser in the same jar refuses the one-argument form
+// outright -- it wants a parameter, a comma, then the FHIRPath -- so the publisher
+// is objecting to what its own compiler emits. Two arguments is the only form that
+// compiles, and it is what the R5 transform engine executes.
+
+group BuildNoteBase(source qr : QR, target comp : Composition, target entry) {
+  qr -> comp.id = uuid() then SetCompositionFullUrl(comp, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Composition' "requestUrl";
+  } "entryRequest";
+
+  qr -> comp.status = 'final' "status";
+  qr.subject as s -> comp.subject = s "subject";
+  qr.encounter as e -> comp.encounter = e "encounter";
+  // Composition.date is 1..1. `authored` is only 0..1 on the response, so when a
+  // client sends none the extraction time stands in. It is a poor substitute for
+  // when the note was written, but a document with no date at all is worse, and
+  // extraction happens moments after submission in practice.
+  qr.authored as t -> comp.date = t "date";
+  qr where (authored.exists().not()) then {
+    qr -> comp.date = evaluate(qr, now()) "dateFromExtractionTime";
+  } "dateFallback";
+
+  // Composition.author is 1..1 minimum. R5 QuestionnaireResponse carries both
+  // `author` (who recorded the answers) and `source` (who supplied them); the
+  // author is the one who wrote the note, so it wins, and `source` only stands
+  // in when the client did not send an author. If the response carries neither,
+  // the note comes out unauthored -- there is nothing on a QuestionnaireResponse
+  // to invent one from, and guessing at who wrote a clinical note is not a thing
+  // a map should do.
+  qr.author as a -> comp.author = a "authorFromAuthor";
+  qr where (author.exists().not()) then {
+    qr.source as src -> comp.author = src "authorFromSource";
+  } "authorFallback";
+
+  // The note is derived from the response, not a copy of it. relatesTo is the
+  // only element on R5 Composition that can say so.
+  qr -> comp.relatesTo as rel then {
+    qr -> rel.type = 'derived-from' "relatesToType";
+    qr -> rel.resourceReference = create('Reference') as ref then {
+      // `qr.id` already resolves to the type-qualified relative reference under
+      // this engine, so it is used unprefixed.
+      qr.id as qid -> ref.reference = qid "relatesToRef";
+    } "relatesToTarget";
+  } "linkQuestionnaireResponse";
+}
+
+// The narrative half of a section. The title stays with the caller because a
+// group can only be invoked with variables, not string literals.
+//
+// Two things here are deliberate. `create('xhtml')` rather than assigning the
+// string straight to `div`: the engine hard-casts whatever it is given to
+// XhtmlType, so a plain string fails with a ClassCastException. And
+// `escape('html')` on the answer: a nurse writing "sats < 92% & falling" would
+// otherwise produce a div the server refuses to parse.
+group AddSectionText(source it, target sec) {
+  it.answer first as a then {
+    a.value as v -> sec.text as narrative then {
+      v -> narrative.status = 'generated' "narrativeStatus";
+      v -> narrative.div = create('xhtml') as xhtml then {
+        v -> xhtml.value = evaluate(a, '<div xmlns="http://www.w3.org/1999/xhtml"><p>' + value.toString().escape('html') + '</p></div>') "narrativeDiv";
+      } "narrativeXhtml";
+    } "sectionText";
+  } "sectionAnswer";
+}
+
+group SetCompositionFullUrl(source comp : Composition, target entry) {
+  comp.id as id -> entry.fullUrl = append(
+    'https://fhir.slade360.co.ke/fhir/Composition/',
+    id
+  ) "assignFullUrl";
+}

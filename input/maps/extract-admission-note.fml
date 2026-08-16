@@ -1,0 +1,209 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractInpatientAdmissionNote"
+/// name = "ExtractInpatientAdmissionNote"
+/// title = "Inpatient Admission Note Extraction"
+/// status = "active"
+/// description = "Turns a response to the inpatient admission note into a Composition with one section per heading, plus a Condition for the impression -- the one line on this form that belongs on the problem list. The Condition is verificationStatus `provisional` because an admitting impression is exactly that; the team confirms or replaces it as the stay goes on. Its code carries the clinician's wording as text rather than an ICD-11 coding, because the form asks for prose and guessing a diagnosis code from prose is not something a map should do."
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/Composition" alias Composition as target
+uses "http://hl7.org/fhir/StructureDefinition/Condition" alias Condition as target
+
+group ExtractInpatientAdmissionNote(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  qr -> bundle.entry as entry, entry.resource = create('Composition') as comp then {
+    qr -> comp, entry then BuildNoteBase(qr, comp, entry) "noteBase";
+    qr -> comp.name = 'InpatientAdmissionNote' "noteName";
+    qr -> comp.title = 'Admission note' "noteTitle";
+
+    qr -> comp.type as ty then {
+      qr -> ty.coding as sghi then {
+        qr -> sghi.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/inpatient-document-type-codesystem' "sghiSystem";
+        qr -> sghi.code = 'admission-note' "sghiCode";
+        qr -> sghi.display = 'Admission note' "sghiDisplay";
+      } "sghiCoding";
+      qr -> ty.coding as loinc then {
+        qr -> loinc.system = 'http://loinc.org' "loincSystem";
+        qr -> loinc.code = '34117-2' "loincCode";
+        qr -> loinc.display = 'History and physical note' "loincDisplay";
+      } "loincCoding";
+      qr -> ty.text = 'Admission note' "typeText";
+    } "noteType";
+
+    qr.item as it where (linkId = 'history' and answer.value.exists()) -> comp.section as sec then {
+      it -> sec.title = 'History' "historyTitle";
+      it -> sec then AddSectionText(it, sec) "historyText";
+    } "historyRule";
+
+    qr.item as it where (linkId = 'exam' and answer.value.exists()) -> comp.section as sec then {
+      it -> sec.title = 'Examination' "examTitle";
+      it -> sec then AddSectionText(it, sec) "examText";
+    } "examRule";
+
+    // The impression is both a section of the note and a Condition. It stays in
+    // the document so the note reads whole, and it also lands on the problem
+    // list so the rest of the stay can hang off it.
+    qr.item as it where (linkId = 'impression' and answer.value.exists()) -> comp.section as sec then {
+      it -> sec.title = 'Impression' "impressionTitle";
+      it -> sec then AddSectionText(it, sec) "impressionText";
+    } "impressionSectionRule";
+
+    qr.item as it where (linkId = 'plan' and answer.value.exists()) -> comp.section as sec then {
+      it -> sec.title = 'Initial plan' "planTitle";
+      it -> sec then AddSectionText(it, sec) "planText";
+    } "planRule";
+  } "composition";
+
+  qr.item as itImp where (linkId = 'impression' and answer.value.exists()) then {
+    itImp.answer first as aImp then {
+      aImp -> bundle.entry as entryC, entryC.resource = create('Condition') as cond then {
+        qr -> cond, entryC then BuildConditionBase(qr, cond, entryC) "conditionBase";
+
+        qr -> cond.verificationStatus as vs then {
+          qr -> vs.coding as vsc then {
+            qr -> vsc.system = 'http://terminology.hl7.org/CodeSystem/condition-ver-status' "verSystem";
+            qr -> vsc.code = 'provisional' "verCode";
+            qr -> vsc.display = 'Provisional' "verDisplay";
+          } "verCoding";
+        } "verificationStatus";
+
+        aImp.value as v -> cond.code as code then {
+          v -> code.text = v "codeText";
+        } "conditionCode";
+      } "condition";
+    } "impressionAnswer";
+  } "impressionConditionRule";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared note scaffolding. Repeated in each note map rather than imported: the
+// transform engine resolves `imports` against whatever StructureMaps happen to
+// be on the server, and a note that stops extracting because a shared map was
+// not uploaded is a worse failure than a duplicated group.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Two notes on what the publisher's StructureMap validator says about this file.
+//
+// Source parameters below are left untyped on purpose. Writing `: Element` makes
+// the validator compare QuestionnaireResponse.item against the literal 'Element'
+// and report them as incompatible with each other, which is noise, not a finding.
+// Untyped, it says only that it cannot check the paths.
+//
+// `evaluate(context, expression)` is flagged as "takes 1 parameter but 2 were
+// found". Leave it. The FML parser in the same jar refuses the one-argument form
+// outright -- it wants a parameter, a comma, then the FHIRPath -- so the publisher
+// is objecting to what its own compiler emits. Two arguments is the only form that
+// compiles, and it is what the R5 transform engine executes.
+
+group BuildNoteBase(source qr : QR, target comp : Composition, target entry) {
+  qr -> comp.id = uuid() then SetCompositionFullUrl(comp, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Composition' "requestUrl";
+  } "entryRequest";
+
+  qr -> comp.status = 'final' "status";
+  qr.subject as s -> comp.subject = s "subject";
+  qr.encounter as e -> comp.encounter = e "encounter";
+  // Composition.date is 1..1. `authored` is only 0..1 on the response, so when a
+  // client sends none the extraction time stands in. It is a poor substitute for
+  // when the note was written, but a document with no date at all is worse, and
+  // extraction happens moments after submission in practice.
+  qr.authored as t -> comp.date = t "date";
+  qr where (authored.exists().not()) then {
+    qr -> comp.date = evaluate(qr, now()) "dateFromExtractionTime";
+  } "dateFallback";
+
+  // Composition.author is 1..1 minimum. R5 QuestionnaireResponse carries both
+  // `author` (who recorded the answers) and `source` (who supplied them); the
+  // author is the one who wrote the note, so it wins, and `source` only stands
+  // in when the client did not send an author. If the response carries neither,
+  // the note comes out unauthored -- there is nothing on a QuestionnaireResponse
+  // to invent one from, and guessing at who wrote a clinical note is not a thing
+  // a map should do.
+  qr.author as a -> comp.author = a "authorFromAuthor";
+  qr where (author.exists().not()) then {
+    qr.source as src -> comp.author = src "authorFromSource";
+  } "authorFallback";
+
+  qr -> comp.relatesTo as rel then {
+    qr -> rel.type = 'derived-from' "relatesToType";
+    qr -> rel.resourceReference = create('Reference') as ref then {
+      qr.id as qid -> ref.reference = qid "relatesToRef";
+    } "relatesToTarget";
+  } "linkQuestionnaireResponse";
+}
+
+group AddSectionText(source it, target sec) {
+  it.answer first as a then {
+    a.value as v -> sec.text as narrative then {
+      v -> narrative.status = 'generated' "narrativeStatus";
+      v -> narrative.div = create('xhtml') as xhtml then {
+        v -> xhtml.value = evaluate(a, '<div xmlns="http://www.w3.org/1999/xhtml"><p>' + value.toString().escape('html') + '</p></div>') "narrativeDiv";
+      } "narrativeXhtml";
+    } "sectionText";
+  } "sectionAnswer";
+}
+
+group SetCompositionFullUrl(source comp : Composition, target entry) {
+  comp.id as id -> entry.fullUrl = append(
+    'https://fhir.slade360.co.ke/fhir/Composition/',
+    id
+  ) "assignFullUrl";
+}
+
+// Everything a Condition extracted from one of these forms shares. The caller
+// supplies verificationStatus and code, because those are the two things that
+// differ between an admitting impression and a stated cause of death.
+group BuildConditionBase(source qr : QR, target cond : Condition, target entry) {
+  qr -> cond.id = uuid() then SetConditionFullUrl(cond, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Condition' "requestUrl";
+  } "entryRequest";
+
+  qr -> cond.clinicalStatus as cs then {
+    qr -> cs.coding as csc then {
+      qr -> csc.system = 'http://terminology.hl7.org/CodeSystem/condition-clinical' "clinSystem";
+      qr -> csc.code = 'active' "clinCode";
+      qr -> csc.display = 'Active' "clinDisplay";
+    } "clinCoding";
+  } "clinicalStatus";
+
+  qr -> cond.category as cat then {
+    qr -> cat.coding as catc then {
+      qr -> catc.system = 'http://terminology.hl7.org/CodeSystem/condition-category' "catSystem";
+      qr -> catc.code = 'encounter-diagnosis' "catCode";
+      qr -> catc.display = 'Encounter Diagnosis' "catDisplay";
+    } "catCoding";
+  } "category";
+
+  qr.subject as s -> cond.subject = s "subject";
+  qr.encounter as e -> cond.encounter = e "encounter";
+  qr.authored as t -> cond.recordedDate = t "recordedDate";
+
+  qr.author as a -> cond.participant as part then {
+    qr -> part.actor = a "participantActor";
+  } "participantFromAuthor";
+  qr where (author.exists().not()) then {
+    qr.source as src -> cond.participant as part2 then {
+      qr -> part2.actor = src "participantActorFromSource";
+    } "participantFromSource";
+  } "participantFallback";
+
+  qr -> cond.evidence as ev then {
+    qr -> ev.reference = create('Reference') as ref then {
+      qr.id as qid -> ref.reference = qid "evidenceRef";
+    } "evidenceTarget";
+  } "linkQuestionnaireResponse";
+}
+
+group SetConditionFullUrl(source cond : Condition, target entry) {
+  cond.id as id -> entry.fullUrl = append(
+    'https://fhir.slade360.co.ke/fhir/Condition/',
+    id
+  ) "assignFullUrl";
+}
