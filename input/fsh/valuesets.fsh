@@ -1329,6 +1329,7 @@ Description: "Qualifies what a reference range on an observation represents."
 //   apparent sex        -> HL7 administrative-gender
 //   ward / room / bed   -> SGHILocationForm
 //   kind of bed         -> SGHIBedKind
+//   ward closed         -> SGHIBedStatus #closed, not SGHIWardRemovalReason
 // Only the concepts with no existing home live in SGHIAdmissionCodeSystem.
 // ═════════════════════════════════════════════════════════════════════════════
 
@@ -1413,6 +1414,23 @@ Description: "The kind of ward a bed sits in. Used to route an admission to a wa
 * include SGHIAdmissionCodeSystem#isolation "Isolation"
 * include SGHIAdmissionCodeSystem#amenity "Amenity"
 * include SGHIAdmissionCodeSystem#theatre-recovery "Theatre recovery"
+
+// Why a ward record was removed from the facility setup. Every reason here is an
+// administrative correction — the record should never have stood — which is why
+// a ward that ran and has since shut is not in this set: that ward closed, and
+// closing keeps the history that removal discards.
+ValueSet: SGHIWardRemovalReason
+Id: ward-removal-reason
+Title: "SGHI Ward Removal Reason"
+Description: "Why a ward was removed from the facility setup. Recorded for audit. Removal is for a record that should never have existed; a ward that has stopped taking patients is closed rather than removed."
+* ^status = #active
+* ^experimental = false
+* include SGHIAdmissionCodeSystem#removed-in-error "Created by mistake"
+* include SGHIAdmissionCodeSystem#removed-duplicate "Duplicate of an existing ward"
+* include SGHIAdmissionCodeSystem#removed-wrong-facility "Wrong facility"
+* include SGHIAdmissionCodeSystem#removed-test-data "Test or training data"
+* include SGHIAdmissionCodeSystem#removed-ward-cancelled "Set up before the ward was cancelled"
+* include SGHIAdmissionCodeSystem#removed-other "Other"
 
 ValueSet: SGHIRoomClass
 Id: room-class
