@@ -1360,6 +1360,70 @@ Description: "Micronutrient supplements recorded alongside immunisation on the M
 * #vitamin-a-200000 "Vitamin A 200,000 IU" "Vitamin A supplement at 200,000 international units, given from 12 months onwards."
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Medication administration
+//
+// What the nurse records at the drug round: what happened to the dose, and if it
+// was not given, why.
+//
+// The outcome codes here are NOT what goes on MedicationAdministration.status.
+// That element has a required binding to HL7's medication-admin-status, and the
+// four outcomes do not fit it one-to-one:
+//
+//   Given   -> #completed
+//   Held    -> #on-hold    ("temporarily halted, but expected to continue later")
+//   Refused -> #not-done  ─┐ both land on the same HL7 code, so the four-way
+//   Omitted -> #not-done  ─┘ distinction cannot be carried by status alone
+//
+// Refused and Omitted are told apart by which reason value set the statusReason
+// code belongs to. That is why SGHIMedicationRefusedReason and
+// SGHIMedicationOmittedReason share no codes: their membership is what makes the
+// distinction machine-readable.
+//
+// Three of the twelve reasons are HL7's own and are bound rather than recoded —
+// see SGHIMedicationOmittedReason. Only the concepts with no HL7 home are here.
+// ─────────────────────────────────────────────────────────────────────────────
+CodeSystem: SGHIMedicationAdministrationCodeSystem
+Id: medication-administration-codesystem
+Title: "SGHI Medication Administration Code System"
+Description: "A code system enumerating what happened to a medication dose at the drug round, and the reasons a dose was held, refused or omitted that have no home in HL7 terminology."
+* ^status = #active
+* ^experimental = false
+* ^content = #complete
+* ^caseSensitive = true
+* ^property[0].code = #supply-failure
+* ^property[0].uri = "https://fhir.slade360.co.ke/fhir/concept-properties#supply-failure"
+* ^property[0].type = #boolean
+* ^property[0].description = "True where the dose was not given because the drug was not there to give. These are stock failures rather than clinical decisions, and are escalated to pharmacy and counted."
+
+// What happened to the dose. Each definition records the HL7 status it is
+// carried as, since that mapping is the whole reason these codes exist.
+* #given "Given" "The dose was administered. Carried on MedicationAdministration.status as #completed."
+* #held "Held" "A clinical decision to withhold the dose, expecting to give it later. Carried as #on-hold, whose definition — temporarily halted but expected to continue — is exactly this."
+* #refused "Refused" "The patient declined the dose. Carried as #not-done, which it shares with #omitted; the two are told apart by the reason recorded, not by the status."
+* #omitted "Omitted" "The dose passed without being given. Carried as #not-done, shared with #refused as above."
+
+// Held — a clinical decision to withhold, expecting to give later.
+* #nil-by-mouth "Nil by mouth" "The patient is nil by mouth, so an oral dose cannot be given."
+* #vomiting "Vomiting" "The patient is vomiting and would not keep the dose down. Not HL7's reason-medication-not-given #d, which is the opposite case: a dose that was given and then vomited back."
+* #observations-out-of-range "Observations out of range" "An observation the dose depends on is outside the range it may be given in."
+* #awaiting-result "Awaiting a result" "A result the dose depends on has not come back yet."
+* #prescriber-asked-to-hold "Prescriber asked to hold" "The prescriber asked for the dose to be held."
+
+// Refused — the patient's decision.
+// Note: #unable-to-swallow is grouped here as specified. It describes a physical
+// inability rather than a decision, so a count of refusals taken from this set
+// will include it. If that matters for reporting, it belongs under held instead.
+* #patient-refused "Patient refused" "The patient declined the dose."
+* #unable-to-swallow "Unable to swallow" "The patient could not swallow the dose."
+* #adverse-effect-reported "Adverse effect reported by patient" "The patient declined the dose, reporting an adverse effect from it."
+
+// Omitted — the dose passed without being given. Asleep, off the ward and no
+// reason recorded are HL7 concepts and are not repeated here.
+* #drug-not-available "Drug not available" "The drug was not available to give. A supply failure rather than a clinical decision: escalated to pharmacy and counted as a stock-out."
+  * ^property[0].code = #supply-failure
+  * ^property[0].valueBoolean = true
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Specimen collection
 //
 // What the phlebotomist records at the bench: what was drawn, what it went into,
