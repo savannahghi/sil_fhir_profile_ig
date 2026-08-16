@@ -1255,6 +1255,19 @@ Description: "A code system enumerating the concepts used to request, triage, pl
 * #discharged "Discharged" "The stay has ended."
 * #cancelled "Cancelled" "The request left the queue without an admission."
 
+// Removing a ward from the facility setup. These say why a ward record should
+// never have stood, not that a ward has closed: a ward that ran and has since
+// shut is #closed in SGHIBedStatus terms and keeps its history. Every one of
+// these is an administrative correction, so the reason is kept for audit rather
+// than to drive any clinical behaviour. Only #removed-ward-cancelled is
+// ward-specific; the rest would read the same for a room or a bed.
+* #removed-in-error "Created by mistake" "The ward record should never have been created."
+* #removed-duplicate "Duplicate of an existing ward" "The same ward is already set up under another record."
+* #removed-wrong-facility "Wrong facility" "The ward was set up against the wrong facility."
+* #removed-test-data "Test or training data" "The ward was created for testing or training and is not a real ward."
+* #removed-ward-cancelled "Set up before the ward was cancelled" "The ward was configured in advance of opening, and the plan to open it was then dropped."
+* #removed-other "Other" "A reason none of the others covers. Expects a written explanation alongside it, since the code alone says nothing."
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Payer benefits
 //
