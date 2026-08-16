@@ -1749,6 +1749,83 @@ Description: "Micronutrient supplements recorded alongside immunisation on the M
 * include SGHIKEPISupplementCodeSystem#vitamin-a-200000 "Vitamin A 200,000 IU"
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Medication administration
+//
+// What happened to a dose at the drug round, and if it was not given, why.
+// Where a concept already had a home it is bound there rather than recoded:
+//   dose status          -> HL7 medication-admin-status, a required binding
+//   asleep / away / none -> HL7 reason-medication-not-given
+//   everything else      -> SGHIMedicationAdministrationCodeSystem
+//
+// SGHIMedicationAdministrationOutcome is a screen concept, not a status. It
+// cannot bind MedicationAdministration.status, whose binding is required, and it
+// would not fit if it could: Refused and Omitted are both #not-done there. The
+// reason sets below are disjoint precisely so that the statusReason code tells
+// those two apart. Bind them at MedicationAdministration.statusReason, whose
+// binding is example strength and so free to be replaced.
+// ─────────────────────────────────────────────────────────────────────────────
+
+ValueSet: SGHIMedicationAdministrationOutcome
+Id: medication-administration-outcome
+Title: "SGHI Medication Administration Outcome"
+Description: "What happened to a medication dose at the drug round. Recorded alongside MedicationAdministration.status rather than in it: status is a required binding on which Refused and Omitted are both #not-done."
+* ^status = #active
+* ^experimental = false
+* include SGHIMedicationAdministrationCodeSystem#given "Given"
+* include SGHIMedicationAdministrationCodeSystem#held "Held"
+* include SGHIMedicationAdministrationCodeSystem#refused "Refused"
+* include SGHIMedicationAdministrationCodeSystem#omitted "Omitted"
+
+ValueSet: SGHIMedicationHeldReason
+Id: medication-held-reason
+Title: "SGHI Medication Held Reason"
+Description: "Why a dose was held. A held dose is withheld on clinical grounds and expected to be given later, which is what separates it from an omitted one."
+* ^status = #active
+* ^experimental = false
+* include SGHIMedicationAdministrationCodeSystem#nil-by-mouth "Nil by mouth"
+* include SGHIMedicationAdministrationCodeSystem#vomiting "Vomiting"
+* include SGHIMedicationAdministrationCodeSystem#observations-out-of-range "Observations out of range"
+* include SGHIMedicationAdministrationCodeSystem#awaiting-result "Awaiting a result"
+* include SGHIMedicationAdministrationCodeSystem#prescriber-asked-to-hold "Prescriber asked to hold"
+
+ValueSet: SGHIMedicationRefusedReason
+Id: medication-refused-reason
+Title: "SGHI Medication Refused Reason"
+Description: "Why a patient did not take a dose. The patient's own decision, as distinct from a clinical decision to hold and from a dose that simply passed."
+* ^status = #active
+* ^experimental = false
+* include SGHIMedicationAdministrationCodeSystem#patient-refused "Patient refused"
+* include SGHIMedicationAdministrationCodeSystem#unable-to-swallow "Unable to swallow"
+* include SGHIMedicationAdministrationCodeSystem#adverse-effect-reported "Adverse effect reported by patient"
+
+// Three of the four are HL7's own. #a is 'No reason known', which is exactly a
+// dose missed with nothing recorded at the time — an absence worth recording as
+// itself rather than left blank.
+ValueSet: SGHIMedicationOmittedReason
+Id: medication-omitted-reason
+Title: "SGHI Medication Omitted Reason"
+Description: "Why a dose passed without being given. A reason carrying supply-failure = true is a stock-out rather than a clinical decision, and is escalated to pharmacy."
+* ^status = #active
+* ^experimental = false
+* include $reason-medication-not-given#c "Asleep"
+* include $reason-medication-not-given#b "Patient off the ward"
+* include SGHIMedicationAdministrationCodeSystem#drug-not-available "Drug not available"
+* include $reason-medication-not-given#a "Dose missed, no reason recorded at the time"
+
+// The union of the three reason sets, for binding statusReason in one place. The
+// three narrower sets stay authoritative for which outcome a reason belongs to;
+// this set deliberately says nothing about that.
+ValueSet: SGHIMedicationNotGivenReason
+Id: medication-not-given-reason
+Title: "SGHI Medication Not Given Reason"
+Description: "Every reason a dose was not given, across held, refused and omitted. Bound at MedicationAdministration.statusReason, where the HL7 binding is example strength. Which outcome a reason implies comes from the narrower set it belongs to."
+* ^status = #active
+* ^experimental = false
+* include codes from valueset SGHIMedicationHeldReason
+* include codes from valueset SGHIMedicationRefusedReason
+* include codes from valueset SGHIMedicationOmittedReason
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Specimen collection
 //
 // The three things recorded when a sample is taken: what was drawn, what it went

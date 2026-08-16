@@ -16,3 +16,5 @@ Alias: $sghi-referencerange-band = https://fhir.slade360.co.ke/fhir/CodeSystem/r
 Alias: $admit-source = http://terminology.hl7.org/CodeSystem/admit-source
 Alias: $v2-0487 = http://terminology.hl7.org/CodeSystem/v2-0487
 Alias: $v2-0493 = http://terminology.hl7.org/CodeSystem/v2-0493
+Alias: $reason-medication-not-given = http://hl7.org/fhir/reason-medication-not-given
+Alias: $medication-admin-status = http://hl7.org/fhir/CodeSystem/medication-admin-status
