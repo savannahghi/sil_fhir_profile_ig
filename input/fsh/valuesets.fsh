@@ -1723,6 +1723,107 @@ Description: "Lifecycle of an admission, from the request through to discharge o
 * include SGHIAdmissionCodeSystem#cancelled "Cancelled"
 
 // ---------------------------------------------------------------------------
+// Discharge clearances
+//
+// A discharge collects three sign-offs, each from a different person: the
+// clinician says the patient is well enough to leave, the nurse says the patient
+// and their family were told what to watch for, and the cashier says the account
+// was dealt with. Seven value sets, one per coded answer, because each answers a
+// question of its own and a single list would let one answer stand for another.
+//
+// None of these gates a discharge. A clearance can be signed off without its
+// check against a stated reason, because a hard gate fails at two in the morning
+// when the cashier has gone home and gets worked around, which leaves no trace.
+// ---------------------------------------------------------------------------
+
+ValueSet: SGHIDischargeOralIntake
+Id: discharge-oral-intake
+Title: "SGHI Discharge Oral Intake"
+Description: "Whether the patient is managing food and drink well enough to leave. Recorded on the clinical readiness clearance."
+* ^status = #active
+* ^experimental = false
+* include SGHIAdmissionCodeSystem#eating-drinking-normally "Eating and drinking normally"
+* include SGHIAdmissionCodeSystem#fluids-only "Taking fluids only"
+* include SGHIAdmissionCodeSystem#small-amounts "Taking small amounts"
+* include SGHIAdmissionCodeSystem#not-tolerating-oral-intake "Not tolerating oral intake"
+
+ValueSet: SGHIDischargeMobility
+Id: discharge-mobility
+Title: "SGHI Discharge Mobility"
+Description: "How much help the patient needs to move at discharge, which decides what has to be waiting for them at home. Recorded on the clinical readiness clearance."
+* ^status = #active
+* ^experimental = false
+* include SGHIAdmissionCodeSystem#independent "Independent"
+* include SGHIAdmissionCodeSystem#walking-aid "Walking with a stick or frame"
+* include SGHIAdmissionCodeSystem#needs-one-assist "Needs one person to assist"
+* include SGHIAdmissionCodeSystem#needs-two-assist "Needs two people to assist"
+* include SGHIAdmissionCodeSystem#bed-bound "Bed bound"
+
+ValueSet: SGHIDischargePainControl
+Id: discharge-pain-control
+Title: "SGHI Discharge Pain Control"
+Description: "Whether pain is held well enough on what the patient can take at home. Recorded on the clinical readiness clearance."
+* ^status = #active
+* ^experimental = false
+* include SGHIAdmissionCodeSystem#pain-free "Pain free"
+* include SGHIAdmissionCodeSystem#controlled-on-oral-analgesia "Controlled on oral analgesia"
+* include SGHIAdmissionCodeSystem#controlled-needs-review "Controlled but needs review"
+* include SGHIAdmissionCodeSystem#not-controlled "Not controlled"
+
+ValueSet: SGHIConditionAtDischarge
+Id: condition-at-discharge
+Title: "SGHI Condition At Discharge"
+Description: "The state the patient is leaving in, against the state they arrived in. Recorded on the clinical readiness clearance. The codes carry a condition- prefix because #improved already names a reason an admission was no longer needed, and the two are different axes."
+* ^status = #active
+* ^experimental = false
+* include SGHIAdmissionCodeSystem#condition-recovered "Recovered"
+* include SGHIAdmissionCodeSystem#condition-improved "Improved"
+* include SGHIAdmissionCodeSystem#condition-unchanged "Unchanged"
+* include SGHIAdmissionCodeSystem#condition-worse "Worse"
+* include SGHIAdmissionCodeSystem#condition-palliative "Palliative"
+
+// Wider than SGHIContactRelationship, which is built on HL7 v2-0131 and names
+// only five relationships. The discharge briefing routinely goes to a parent, a
+// child, a sibling or a neighbour, and v2-0131 has no concept for the last of
+// those at all.
+ValueSet: SGHINextOfKinRelationship
+Id: next-of-kin-relationship
+Title: "SGHI Next Of Kin Relationship"
+Description: "What the person briefed alongside the patient is to them. Recorded on the patient education clearance."
+* ^status = #active
+* ^experimental = false
+* include SGHIAdmissionCodeSystem#spouse "Spouse"
+* include SGHIAdmissionCodeSystem#parent "Parent"
+* include SGHIAdmissionCodeSystem#child "Child"
+* include SGHIAdmissionCodeSystem#sibling "Sibling"
+* include SGHIAdmissionCodeSystem#guardian "Guardian"
+* include SGHIAdmissionCodeSystem#other-relative "Other relative"
+* include SGHIAdmissionCodeSystem#neighbour-or-friend "Neighbour or friend"
+
+ValueSet: SGHIDischargeEducationRecipient
+Id: discharge-education-recipient
+Title: "SGHI Discharge Education Recipient"
+Description: "Who had the take-home medicines explained to them. Recorded on the patient education clearance. Includes a code for nobody having been told, because that is a fact worth stating rather than a blank to be read as an oversight."
+* ^status = #active
+* ^experimental = false
+* include SGHIAdmissionCodeSystem#explained-to-patient "Explained to the patient"
+* include SGHIAdmissionCodeSystem#explained-to-next-of-kin "Explained to the next of kin"
+* include SGHIAdmissionCodeSystem#explained-to-both "Explained to both"
+* include SGHIAdmissionCodeSystem#not-explained "Not explained"
+
+ValueSet: SGHIAccountSettlement
+Id: discharge-account-settlement
+Title: "SGHI Discharge Account Settlement"
+Description: "How the account was dealt with before the patient left. Recorded on the financial clearance. Carries no balance: the figure belongs to billing, and one restated here would be signed against as though this were the authority for it."
+* ^status = #active
+* ^experimental = false
+* include SGHIAdmissionCodeSystem#settled-in-full "Settled in full"
+* include SGHIAdmissionCodeSystem#scheme-covered "Covered by insurance or scheme"
+* include SGHIAdmissionCodeSystem#part-payment-balance-on-account "Part payment taken, balance on account"
+* include SGHIAdmissionCodeSystem#waiver-approved "Waiver approved"
+* include SGHIAdmissionCodeSystem#referred-to-credit-control "Referred to credit control"
+
+// ---------------------------------------------------------------------------
 // Kenya Expanded Programme on Immunisation (KEPI)
 // ---------------------------------------------------------------------------
 
