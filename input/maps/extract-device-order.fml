@@ -1,0 +1,131 @@
+map "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractDeviceRequest" = "ExtractDeviceRequest"
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/DeviceRequest" alias DeviceRequest as target
+
+group ExtractDeviceRequest(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  // The device sits outside 'the-request' on the form, so the whole response is carried
+  // into the build group rather than the group alone.
+  qr.item as requestGroup where (linkId = 'the-request') then {
+    requestGroup -> bundle.entry as entry, entry.resource = create('DeviceRequest') as devReq then {
+      qr -> devReq, entry then BuildDeviceRequest(qr, requestGroup, devReq, entry) "buildDevReq";
+    } "createDevReq";
+  } "findRequestGroup";
+}
+
+group BuildDeviceRequest(source qr : QR, source requestGroup, target devReq : DeviceRequest, target entry) {
+  // The form has no sign-off step, so a submitted order is already actionable. If a
+  // review step is added later this becomes 'draft', as it is on the medication order.
+  qr -> devReq.status = 'active' "setStatus";
+
+  qr.subject as s -> devReq.subject = s "setSubject";
+
+  qr.encounter as enc -> devReq.encounter = enc "setEncounter";
+
+  qr.authored as authored -> devReq.authoredOn = authored "setAuthoredOn";
+
+  qr.source as src -> devReq.requester = src "setRequester";
+
+  qr.identifier first as qrIdent -> devReq.identifier = qrIdent "copyIdentifier";
+
+  // Device. The answer is a Coding the client picked from a device search, badged SNOMED
+  // CT on the form. It is copied whole so its system survives, exactly as the medication
+  // order map copies its medication concept.
+  qr.item as deviceItem where (linkId = 'device') then {
+    deviceItem.answer first as deviceAns then {
+      deviceAns.value as deviceCoding -> devReq.code as codeRef, codeRef.concept as deviceCC then {
+        deviceCoding -> deviceCC.coding = deviceCoding "setDeviceCoding";
+        deviceCoding.display as deviceDisp -> deviceCC.text = deviceDisp "setDeviceText";
+      } "setDeviceCodeableReference";
+    } "extractDeviceAnswer";
+  } "findDevice";
+
+  // Intent. DeviceRequest.intent is a code, not a Coding: it takes the code alone and has
+  // nowhere to record the system it came from.
+  requestGroup.item as intentItem where (linkId = 'intent') then {
+    intentItem.answer first as intentAns then {
+      intentAns.value as intentCoding then {
+        intentCoding.code as intentCode -> devReq.intent = intentCode "setIntentCode";
+      } "extractIntentCode";
+    } "extractIntent";
+  } "findIntent";
+
+  // Priority. Same shape as intent, and same reason.
+  requestGroup.item as priorityItem where (linkId = 'priority') then {
+    priorityItem.answer first as priorityAns then {
+      priorityAns.value as priorityCoding then {
+        priorityCoding.code as priorityCode -> devReq.priority = priorityCode "setPriorityCode";
+      } "extractPriorityCode";
+    } "extractPriority";
+  } "findPriority";
+
+  requestGroup.item as qtyItem where (linkId = 'quantity') then {
+    qtyItem.answer first as qtyAns then {
+      qtyAns.value as qtyValue -> devReq.quantity = qtyValue "setQuantity";
+    } "extractQuantity";
+  } "findQuantity";
+
+  // How it is supplied. DeviceRequest has no element for this, so it becomes a parameter:
+  // parameter.code names the question, parameter.value carries the answer.
+  requestGroup.item as supplyItem where (linkId = 'supply-method') then {
+    supplyItem.answer first as supplyAns then {
+      supplyAns.value as supplyCoding -> devReq.parameter as param then {
+        supplyCoding -> param.code = create('CodeableConcept') as paramCode then {
+          supplyCoding -> paramCode.coding = create('Coding') as paramCoding then {
+            supplyCoding -> paramCoding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/device-order-codesystem' "setParamSystem";
+            supplyCoding -> paramCoding.code = 'supply-method' "setParamCode";
+            supplyCoding -> paramCoding.display = 'How the device is supplied' "setParamDisplay";
+          } "buildParamCoding";
+        } "buildParamCode";
+        supplyCoding -> param.value = create('CodeableConcept') as paramValue then {
+          supplyCoding -> paramValue.coding = supplyCoding "setParamValueCoding";
+          supplyCoding.display as supplyDisp -> paramValue.text = supplyDisp "setParamValueText";
+        } "buildParamValue";
+      } "createParameter";
+    } "extractSupply";
+  } "findSupply";
+
+  // Reason is free text on the form, so it lands as CodeableReference.concept.text with
+  // no coding. A coded reason would need a value set the form does not offer.
+  requestGroup.item as reasonItem where (linkId = 'reason') then {
+    reasonItem.answer first as reasonAns then {
+      reasonAns.value as reasonText -> devReq.reason as reasonRef, reasonRef.concept as reasonCC then {
+        reasonText -> reasonCC.text = reasonText "setReasonText";
+      } "setReason";
+    } "extractReason";
+  } "findReason";
+
+  // Patient instruction. DeviceRequest has no equivalent of Dosage.patientInstruction, so
+  // this rides a local extension rather than collapsing into note alongside the message
+  // written for the dispensing team.
+  requestGroup.item as instructionItem where (linkId = 'patient-instructions') then {
+    instructionItem.answer first as instructionAns then {
+      instructionAns.value as instructionText -> devReq.extension as instructionExt then {
+        instructionText -> instructionExt.url = 'https://fhir.slade360.co.ke/fhir/StructureDefinition/sghi-device-patient-instruction' "setInstructionExtUrl";
+        instructionText -> instructionExt.value = instructionText "setInstructionExtValue";
+      } "createInstructionExt";
+    } "extractInstruction";
+  } "findInstruction";
+
+  requestGroup.item as notesItem where (linkId = 'notes') then {
+    notesItem.answer first as notesAns then {
+      notesAns.value as notesText -> devReq.note as note then {
+        notesText -> note.text = notesText "setNoteText";
+      } "createNote";
+    } "extractNotes";
+  } "findNotes";
+
+  qr -> devReq.id = uuid() then SetDeviceRequestFullUrl(devReq, entry) "setDevReqIdAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "reqMethod";
+    qr -> request.url = 'DeviceRequest' "reqUrl";
+  } "entryRequest";
+}
+
+group SetDeviceRequestFullUrl(source devReq : DeviceRequest, target entry) {
+  devReq.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/DeviceRequest/', id) "assignFullUrl";
+}

@@ -1790,3 +1790,24 @@ Description: "The concepts the inpatient notes and assessments record that no LO
 * #dietitian-referral "Referral to a dietitian" "A request for dietetic assessment, raised from a nutrition screening that scored in the high-risk band."
 * #falls-prevention-plan "Falls and pressure ulcer prevention measures" "The category of a care plan recording the measures put in place because of a falls or pressure ulcer risk score."
 * #nutrition-care-plan "Nutritional plan" "The category of a care plan recording what will be done about a patient's nutrition after screening."
+
+
+CodeSystem: SGHIDeviceOrderCodeSystem
+Id: device-order-codesystem
+Title: "SGHI Device Order Code System"
+Description: "The concepts the device order form records that FHIR has nowhere to put. DeviceRequest carries the device, the intent, the priority and the quantity as named elements, but how the patient actually receives the device has no element of its own, so it is carried as a DeviceRequest.parameter and both halves of that parameter — the one naming what the parameter is, and the ones naming the answers — are defined here."
+* ^status = #active
+* ^experimental = false
+* ^content = #complete
+* ^caseSensitive = true
+// The parameter identifier. This is what DeviceRequest.parameter.code holds; the answer
+// the clinician picked goes in DeviceRequest.parameter.valueCodeableConcept.
+* #supply-method "How the device is supplied" "Names the DeviceRequest.parameter that records the route by which the device reaches the patient."
+// PROVISIONAL. The device order form's 'How it is supplied' dropdown is closed in the
+// design screenshot these were built from, so its real options have not been seen. The
+// five below are a placeholder standing in for that list and are expected to be replaced
+// wholesale, not extended. Replace them here and in SGHIDeviceSupplyMethod together.
+* #dispensed-on-site "Dispensed on site" "The patient collects the device from the facility that ordered it."
+* #fitted-in-clinic "Fitted in clinic" "The device is fitted to the patient during a clinic appointment."
+* #patient-to-purchase "Patient to purchase" "The device is to be purchased by the patient."
+* #loan-from-equipment-library "Loan from equipment library" "The patient is loaned the device from the equipment library."
