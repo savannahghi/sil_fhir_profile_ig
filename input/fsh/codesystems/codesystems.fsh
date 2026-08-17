@@ -145,7 +145,11 @@ Id: identifier-codesystem
 Title: "SGHI Identifier Code System"
 Description: "A single code system enumerating the many local identifier types used across SGHI's environment."
 * ^status = #active
-* ^content = #supplement
+// #complete, not #supplement: this code system defines its own concepts rather than
+// adding designations to someone else's, and a supplement is required to name what it
+// supplements. Declared as a supplement it is invalid, and a validator entitled to
+// enforce that would reject every code drawn from it.
+* ^content = #complete
 * #vtmid "VTM ID" "dm+d identifier for a Virtual Therapeutic Moiety (VTM) concept."
 * #vtmidprev "Previous VTM ID" "Deprecated VTM identifier retained for traceability."
 * #isid "IS ID" "dm+d identifier for an Ingredient Substance (IS) concept."
@@ -197,6 +201,147 @@ Description: "A single code system enumerating the many local identifier types u
 * #house "House" "A residential dwelling where a person/patient may reside."
 * #area "Area" "A defined physical boundary of something, such as a flood risk zone or region."
 * #virtual "Virtual" "A location that is virtual in nature, such as a conference call or virtual meeting space."
+
+// Concepts below were referenced by value sets long before they were defined here, so
+// every one of those value sets expanded to nothing. Codes and displays are reproduced
+// exactly as the value sets already spell them, because instance data has been written
+// against those spellings; correcting a spelling is a separate migration, not a rename.
+
+// Practitioner roles. Consumed by SGHIPractitionerRoleValueSet.
+* #doctor "Doctor" "A registered medical practitioner."
+* #nurse "Nurse" "A registered nurse."
+* #pharmacist "Pharmacist" "A registered pharmacist."
+* #researcher "Researcher" "A person carrying out clinical or health research."
+
+// Routes of medication administration. Consumed by SGHIMethodOfAdministration.
+* #apply "Apply" "Administered by applying to a body surface."
+* #inject "Inject" "Administered by injection."
+* #dialysis "Dialysis" "Administered through a dialysis circuit."
+* #insert "Insert" "Administered by insertion into a body cavity."
+* #implant "Implant" "Administered by implantation into tissue."
+* #infuse "Infuse" "Administered by infusion over a period of time."
+
+// Medication forms. Consumed by SGHIMedicationFormCodes.
+* #powder "Powder" "A dry, loose preparation of fine particles."
+* #tablets "Tablets" "A solid dose pressed into a tablet."
+* #capsule "Capsule" "A dose enclosed in a soluble shell."
+* #solution "Solution" "A liquid in which the active ingredient is fully dissolved."
+* #lozenge "Lozenge" "A solid dose dissolved slowly in the mouth."
+* #suspension "Suspension" "A liquid carrying undissolved particles, requiring agitation before use."
+* #syrup "Syrup" "A concentrated sugar solution carrying the active ingredient."
+
+// Laterality. Consumed by SGHILateralityVs.
+* #right "Right" "The right side of the body."
+* #left "Left" "The left side of the body."
+* #bilateral "Bilateral" "Both sides of the body."
+* #unknown "Unknown" "Laterality was not recorded or could not be determined."
+
+// Specimen collection methods. Consumed by SGHISpecimenTypeVs.
+* #cnb "Core Needle Biopsy" "Tissue obtained with a hollow core needle."
+* #excision "Excision" "The whole lesion was removed."
+* #fna "Fine Needle Aspiration" "Cells drawn through a fine needle."
+* #ib "Incisional Biopsy" "Part of the lesion was removed."
+* #pb "Punch Biopsy" "A cylindrical sample taken with a punch instrument."
+* #sb "Shave Biopsy" "A sample shaved from the surface of a lesion."
+* #eb "Endoscopic Biopsy" "Tissue taken during an endoscopic procedure."
+* #ras "Resection Autopsy Specimen" "Tissue obtained at resection or autopsy."
+
+// Laboratory disciplines. Consumed by SGHITypeOfTestVs. The #ich code carries the
+// display "Immunohistochemistry", whose usual abbreviation is IHC; the code is kept as
+// spelled because data already uses it.
+* #hematology "Hematology" "Testing of blood and blood-forming tissue."
+* #cytology "Cytology" "Examination of individual cells."
+* #histopathology "Histopathology" "Examination of tissue architecture."
+* #ich "Immunohistochemistry" "Detection of antigens in tissue using labelled antibodies."
+* #fc "Flow Cytometry" "Measurement of cell characteristics in a fluid stream."
+* #molecular "Molecular" "Testing of nucleic acids or other molecular targets."
+
+// Tumour behaviour. Consumed by SGHIBehaviourVs.
+* #benign "Benign" "A non-invasive growth that does not metastasise."
+* #malignant "Malignant" "An invasive growth capable of metastasis."
+* #insitu "In Situ" "Malignant cells confined to their tissue of origin."
+* #borderline "Borderline" "Behaviour falls between benign and malignant."
+* #uncertain "Uncertain" "Behaviour could not be determined from the material examined."
+
+// Tumour differentiation grade. Consumed by SGHIGradeVs.
+* #gradeI "Well Differentiated" "Grade I. Tumour cells closely resemble the tissue of origin."
+* #gradeII "Moderately Differentiated" "Grade II. Tumour cells partly resemble the tissue of origin."
+* #gradeIII "Poorly Differentiated" "Grade III. Tumour cells bear little resemblance to the tissue of origin."
+* #gradeIV "Undifferentiated / Anaplastic" "Grade IV. Tumour cells bear no resemblance to the tissue of origin."
+* #none "Not Graded" "No grade was assigned."
+
+// Hormone receptor status. Consumed by SGHIHormoneReceptorStatusVs.
+* #positive "Positive" "Receptor expression was detected."
+* #negative "Negative" "Receptor expression was not detected."
+* #equivocal "Equivocal" "The result fell in the indeterminate range."
+* #nottested "Not Tested" "The receptor was not assayed."
+
+// Molecular markers. Consumed by SGHISpecimenMolecularMarkersVs. #pt53 and #pdli name
+// the TP53 gene and PD-L1 protein; the codes are kept as spelled because data already
+// uses them.
+* #braf "BRAF Mutation" "A mutation in the BRAF gene."
+* #kras "KRAS Mutation" "A mutation in the KRAS gene."
+* #nras "NRAS Mutation" "A mutation in the NRAS gene."
+* #egfr "EGFR Mutation" "A mutation in the EGFR gene."
+* #alk "ALK Rearrangement" "A rearrangement involving the ALK gene."
+* #her2 "HER2 Amplification" "Amplification of the HER2 gene."
+* #pik3ca "PIK3CA Mutation" "A mutation in the PIK3CA gene."
+* #pt53 "TP53 Mutation" "A mutation in the TP53 gene."
+* #msi "Microsatellite Instability" "Instability in short repeated DNA sequences."
+* #pdli "PD-L1 Expression" "Expression of the PD-L1 protein."
+
+// Sites of distant metastasis. Consumed by SGHIDistanceMetastatisVs.
+* #bone "Bone" "Metastasis to bone."
+* #liver "Liver" "Metastasis to the liver."
+* #lung "Lung" "Metastasis to the lung."
+* #brain "Brain" "Metastasis to the brain."
+* #skin "Skin" "Metastasis to the skin."
+* #dln "Distant Lymph Nodes" "Metastasis to lymph nodes beyond the regional field."
+
+// Shared across value sets. #other is referenced by SGHIBehaviourVs,
+// SGHISpecimenMolecularMarkersVs and SGHITypeOfTestVs, so it is deliberately worded to
+// suit all three rather than any one of them.
+* #other "Other" "A value outside those enumerated for the element being recorded."
+* #sghidefaultcode "SGHI Default Code" "A placeholder used where no more specific code is available."
+
+// The codes below are SNOMED CT concept identifiers, carried here under the SGHI system
+// URL by an explicit decision rather than bound to http://snomed.info/sct, because
+// SNOMED is not provisioned on our servers and these value sets have to expand without
+// it. The consequence is that a consumer reading, say, code 385669000 against this
+// system cannot assume SNOMED semantics from the system URL alone, even though the
+// values are SNOMED's. If SNOMED is licensed and loaded later, the correct migration is
+// to repoint SGHIProcedureCategory, SGHIProcedureOutcome, SGHIProcedureFollowUpCodes and
+// SGHIBodySiteValueSet at http://snomed.info/sct and translate existing instance data,
+// not to leave both systems in circulation.
+
+// Body sites. Consumed by SGHIBodySiteValueSet.
+* #111002 "Parathyroid gland" "One of the parathyroid glands."
+
+// Procedure categories. Consumed by SGHIProcedureCategory.
+* #24642003 "Psychiatry procedure or service" "A psychiatric procedure or service."
+* #409063005 "Counseling" "A counselling procedure."
+* #409073007 "Education" "A patient education procedure."
+* #387713003 "Surgical procedure (procedure)" "A surgical procedure."
+* #103693007 "Diagnostic procedure" "A procedure performed to establish a diagnosis."
+* #46947000 "Chiropractic manipulation" "A chiropractic manipulation procedure."
+* #410606002 "Social service procedure (procedure)" "A social service procedure."
+
+// Follow-up procedures. Consumed by SGHIProcedureFollowUpCodes.
+* #18949003 "Change of dressing" "Replacement of a wound dressing."
+* #30549001 "Removal of suture" "Removal of sutures from a wound."
+* #241031001 "Removal of drain" "Removal of a surgical drain."
+* #35963001 "Removal of staples" "Removal of surgical staples from a wound."
+* #225164002 "Removal of ligature" "Removal of a ligature."
+* #447346005 "Cardiopulmonary exercise test (procedure)" "A test of cardiac and respiratory function under exertion."
+* #229506003 "Scar tissue massage" "Massage applied to scar tissue."
+* #274441001 "Suction drainage" "Drainage of a cavity or wound by suction."
+* #394725008 "Diabetes medication review (procedure)" "A review of a patient's diabetes medication."
+* #359825008 "Cytopathology, review of bronchioalveolar lavage specimen" "Cytopathological review of a bronchoalveolar lavage specimen."
+
+// Procedure outcomes. Consumed by SGHIProcedureOutcome.
+* #385669000 "Successful" "The procedure achieved what it was performed for."
+* #385671000 "Unsuccessful" "The procedure did not achieve what it was performed for."
+* #385670004 "Partially successful" "The procedure partly achieved what it was performed for."
 
 
 CodeSystem: SGHIVisitTypeCodeSystem
