@@ -2066,3 +2066,14 @@ Description: "Whether the patient has capacity for the decision in front of them
 * include SGHIInpatientAssessmentAnswerCodeSystem#capacity-has "Has capacity for this decision"
 * include SGHIInpatientAssessmentAnswerCodeSystem#capacity-fluctuating "Capacity fluctuating"
 * include SGHIInpatientAssessmentAnswerCodeSystem#capacity-lacks "Lacks capacity for this decision"
+
+ValueSet: SGHIDeviceSupplyMethod
+Id: device-supply-method
+Title: "SGHI Device Supply Method"
+Description: "How the patient receives an ordered device. Bound to the device order form's 'How it is supplied' question, and carried through to DeviceRequest.parameter.valueCodeableConcept. The parameter identifier itself, #supply-method, is deliberately not in this value set: it names the question, not an answer to it."
+* ^status = #active
+* ^experimental = false
+* include SGHIDeviceOrderCodeSystem#dispensed-on-site "Dispensed on site"
+* include SGHIDeviceOrderCodeSystem#fitted-in-clinic "Fitted in clinic"
+* include SGHIDeviceOrderCodeSystem#patient-to-purchase "Patient to purchase"
+* include SGHIDeviceOrderCodeSystem#loan-from-equipment-library "Loan from equipment library"
