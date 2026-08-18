@@ -1481,6 +1481,22 @@ Description: "A code system enumerating the concepts used to request, triage, pl
 * #waiver-approved "Waiver approved" "The balance was written off, with approval."
 * #referred-to-credit-control "Referred to credit control" "The account was passed to credit control to pursue, and the patient is not held for it."
 
+// How the admission ended. A workflow classification rather than a clinical one,
+// and HL7 has nothing for it: discharge-disposition says where the patient went,
+// which is a different question with its own value set. Each of these decides
+// what paperwork the exit requires, so they are not interchangeable.
+* #normal "Normal" "The patient was discharged as planned, on clinical grounds."
+* #transfer-out "Transfer out" "The patient was moved to another facility, which takes over their care."
+* #left-against-medical-advice "Left against medical advice" "The patient chose to leave before the clinician judged them ready, and signed to say so."
+* #absconded "Absconded" "The patient left unobserved. Nobody discharged them, so the record carries the last time they were seen rather than a signature."
+* #deceased "Deceased" "The stay ended in a death. The facts of it live on the record of death."
+
+// Where the patient went, for the two destinations HL7's discharge-disposition
+// has no concept for. The rest of SGHIDischargeDisposition comes from HL7 rather
+// than being restated here.
+* #home-with-community-follow-up "Home with community follow-up" "The patient went home with a community health worker or a home visit arranged."
+* #outpatient-clinic-follow-up "Outpatient clinic follow-up" "The patient went home with a clinic appointment arranged to continue their care."
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Payer benefits
 //

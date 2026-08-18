@@ -1893,6 +1893,36 @@ Description: "How the account was dealt with before the patient left. Recorded o
 * include SGHIAdmissionCodeSystem#waiver-approved "Waiver approved"
 * include SGHIAdmissionCodeSystem#referred-to-credit-control "Referred to credit control"
 
+// How the stay ended, and where the patient went. Two questions, so two value
+// sets: a transfer out and a death are both exits, and neither says anything
+// about a destination the patient walked to.
+ValueSet: SGHIDischargeType
+Id: discharge-type
+Title: "SGHI Discharge Type"
+Description: "How an admission ended. Decides what the exit requires: a transfer out names the receiving facility, leaving against advice takes a signed form, an absconsion records the last sighting instead of a signature, and a death defers to the record of death."
+* ^status = #active
+* ^experimental = false
+* include SGHIAdmissionCodeSystem#normal "Normal"
+* include SGHIAdmissionCodeSystem#transfer-out "Transfer out"
+* include SGHIAdmissionCodeSystem#left-against-medical-advice "Left against medical advice"
+* include SGHIAdmissionCodeSystem#absconded "Absconded"
+* include SGHIAdmissionCodeSystem#deceased "Deceased"
+
+// HL7 covers three of the five. Home with community follow-up and outpatient
+// clinic follow-up have no discharge-disposition concept, so they come from the
+// SGHI system alongside them.
+ValueSet: SGHIDischargeDisposition
+Id: discharge-disposition
+Title: "SGHI Discharge Disposition"
+Description: "Where the patient is going. Asked only of a living patient leaving with an agreed plan: a death has no disposition, and a transfer out names the receiving facility instead."
+* ^status = #active
+* ^experimental = false
+* include $discharge-disposition#home "Home"
+* include SGHIAdmissionCodeSystem#home-with-community-follow-up "Home with community follow-up"
+* include SGHIAdmissionCodeSystem#outpatient-clinic-follow-up "Outpatient clinic follow-up"
+* include $discharge-disposition#rehab "Rehabilitation"
+* include $discharge-disposition#snf "Nursing home or care facility"
+
 // ---------------------------------------------------------------------------
 // Kenya Expanded Programme on Immunisation (KEPI)
 // ---------------------------------------------------------------------------
