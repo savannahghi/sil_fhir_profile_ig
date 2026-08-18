@@ -1497,6 +1497,21 @@ Description: "A code system enumerating the concepts used to request, triage, pl
 * #home-with-community-follow-up "Home with community follow-up" "The patient went home with a community health worker or a home visit arranged."
 * #outpatient-clinic-follow-up "Outpatient clinic follow-up" "The patient went home with a clinic appointment arranged to continue their care."
 
+// Why a clearance was signed off without its check. Prefixed for the reason the
+// break-glass codes are: this is one decision's own axis, and a bare
+// #system-unavailable would be claimed by something else within a release.
+//
+// The list is what actually happens on a ward at night rather than a taxonomy,
+// and it ends in #override-other because it will never cover the night the power
+// was out. An override is always reviewable: the reason is recorded against a
+// named person, and a later signature does not remove it.
+* #override-cashier-off-duty "Cashier off duty, out of hours" "Nobody was at the counter to clear the account, and the patient is not being held for it."
+* #override-leaving-against-advice "Patient leaving against advice and will not wait" "The patient is going regardless, so the check cannot be completed first."
+* #override-transfer-time-critical "Transfer is time-critical" "The patient has to move now, and waiting for the check would cost more than skipping it."
+* #override-signer-unavailable "Signing person unavailable and patient must not be held" "Whoever normally signs this could not be reached, and holding the patient was judged the greater harm."
+* #override-system-unavailable "System or record unavailable at the time" "The information the check needs could not be reached when it was needed."
+* #override-other "Other" "A reason none of the others covers. Expects a written explanation alongside it, since the code alone says nothing."
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Payer benefits
 //

@@ -1923,6 +1923,22 @@ Description: "Where the patient is going. Asked only of a living patient leaving
 * include $discharge-disposition#rehab "Rehabilitation"
 * include $discharge-disposition#snf "Nursing home or care facility"
 
+// One list for all three clearances, because the reasons a check cannot be
+// signed are the same whichever check it is: the cashier being off duty stops a
+// financial clearance, and a patient who will not wait stops all three.
+ValueSet: SGHIClearanceOverrideReason
+Id: clearance-override-reason
+Title: "SGHI Clearance Override Reason"
+Description: "Why a discharge clearance was signed off without its check. A hard gate fails at two in the morning when the cashier has gone home, and somebody who cannot proceed goes round the system instead, which leaves no trace. This is what makes the gap reviewable: the reason is recorded against a named person, and a later signature does not remove it."
+* ^status = #active
+* ^experimental = false
+* include SGHIAdmissionCodeSystem#override-cashier-off-duty "Cashier off duty, out of hours"
+* include SGHIAdmissionCodeSystem#override-leaving-against-advice "Patient leaving against advice and will not wait"
+* include SGHIAdmissionCodeSystem#override-transfer-time-critical "Transfer is time-critical"
+* include SGHIAdmissionCodeSystem#override-signer-unavailable "Signing person unavailable and patient must not be held"
+* include SGHIAdmissionCodeSystem#override-system-unavailable "System or record unavailable at the time"
+* include SGHIAdmissionCodeSystem#override-other "Other"
+
 // ---------------------------------------------------------------------------
 // Kenya Expanded Programme on Immunisation (KEPI)
 // ---------------------------------------------------------------------------
