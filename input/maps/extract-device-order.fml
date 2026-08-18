@@ -7,8 +7,9 @@ uses "http://hl7.org/fhir/StructureDefinition/DeviceRequest" alias DeviceRequest
 group ExtractDeviceRequest(source qr : QR, target bundle : Bundle) {
   qr -> bundle.type = 'transaction' "setBundleType";
 
-  // The device sits outside 'the-request' on the form, so the whole response is carried
-  // into the build group rather than the group alone.
+  // Subject, encounter, authored date, requester, identifier and the device extension all
+  // live on the response itself, so the whole of it is carried into the build group rather
+  // than the answer group alone.
   qr.item as requestGroup where (linkId = 'the-request') then {
     requestGroup -> bundle.entry as entry, entry.resource = create('DeviceRequest') as devReq then {
       qr -> devReq, entry then BuildDeviceRequest(qr, requestGroup, devReq, entry) "buildDevReq";
@@ -31,17 +32,18 @@ group BuildDeviceRequest(source qr : QR, source requestGroup, target devReq : De
 
   qr.identifier first as qrIdent -> devReq.identifier = qrIdent "copyIdentifier";
 
-  // Device. The answer is a Coding the client picked from a device search, badged SNOMED
-  // CT on the form. It is copied whole so its system survives, exactly as the medication
-  // order map copies its medication concept.
-  qr.item as deviceItem where (linkId = 'device') then {
-    deviceItem.answer first as deviceAns then {
-      deviceAns.value as deviceCoding -> devReq.code as codeRef, codeRef.concept as deviceCC then {
-        deviceCoding -> deviceCC.coding = deviceCoding "setDeviceCoding";
-        deviceCoding.display as deviceDisp -> deviceCC.text = deviceDisp "setDeviceText";
-      } "setDeviceCodeableReference";
-    } "extractDeviceAnswer";
-  } "findDevice";
+  // Device as CodeableReference from the QR extension (using concept). The ordering
+  // client sets the device there rather than answering a form item, so this reads exactly
+  // as the medication order map reads its medication concept. Assigning the whole
+  // CodeableConcept carries its codings and their systems, so nothing further is copied.
+  // The url is not matched: a map is published once at the production canonical while the
+  // extension url is built from each environment's own base, so an equality test would
+  // hold in production alone.
+  qr.extension first as ext then {
+    ext.valueCodeableConcept as deviceCC -> devReq.code as code then {
+      deviceCC -> code.concept = deviceCC "setDeviceConcept";
+    } "accessDevice";
+  } "findDeviceExt";
 
   // Intent. DeviceRequest.intent is a code, not a Coding: it takes the code alone and has
   // nowhere to record the system it came from.
