@@ -17,6 +17,13 @@ Description: "Identifier types used  to identify patient, practitioner, animal o
 * include SGHIPersonIdentifierCodeSystem#birth-certificate "Birth Certificate Number"
 * include SGHIPersonIdentifierCodeSystem#client-registry-number "Client Registry Number"
 * include SGHIPersonIdentifierCodeSystem#slade-health-id "Slade Health ID"
+* include SGHIPersonIdentifierCodeSystem#slade-code "Slade Code"
+* include SGHIPersonIdentifierCodeSystem#sha-slade-code "SHA Slade Code"
+* include SGHIPersonIdentifierCodeSystem#kmpdc-registration-number "KMPDC Registration Number"
+* include SGHIPersonIdentifierCodeSystem#kmpdc-license-number "KMPDC License Number"
+* include SGHIPersonIdentifierCodeSystem#coc-registration-number "COC Registration Number"
+* include SGHIPersonIdentifierCodeSystem#nck-registration-number "NCK Registration Number"
+* include SGHIPersonIdentifierCodeSystem#ppb-registration-number "PPB Registration Number"
 * include SGHIDefaultIdentifierCodeSystem#default-id "Default Resource Identifier"
 
 ValueSet: SGHIOrganizationIdentifierTypes
