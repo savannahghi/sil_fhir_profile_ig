@@ -1413,6 +1413,60 @@ Description: "A code system enumerating the concepts used to request, triage, pl
 * #removed-ward-cancelled "Set up before the ward was cancelled" "The ward was configured in advance of opening, and the plan to open it was then dropped."
 * #removed-other "Other" "A reason none of the others covers. Expects a written explanation alongside it, since the code alone says nothing."
 
+// Discharge clearance, clinical readiness. What the discharging clinician
+// attests to about the state the patient is leaving in. Four axes, four value
+// sets: a clinician answers four separate questions, and one flat list would let
+// an answer to one stand in for an answer to another.
+* #eating-drinking-normally "Eating and drinking normally" "The patient is taking food and fluid as they normally would."
+* #fluids-only "Taking fluids only" "The patient is tolerating fluids but not yet solid food."
+* #small-amounts "Taking small amounts" "The patient is taking some food and fluid, below what they need."
+* #not-tolerating-oral-intake "Not tolerating oral intake" "The patient is not keeping food or fluid down, which is a reason to question the discharge."
+
+* #independent "Independent" "The patient moves without help and without an aid."
+* #walking-aid "Walking with a stick or frame" "The patient moves without another person but relies on an aid."
+* #needs-one-assist "Needs one person to assist" "One person is needed to move the patient safely, which is what home has to provide."
+* #needs-two-assist "Needs two people to assist" "Two people are needed to move the patient safely."
+* #bed-bound "Bed bound" "The patient cannot be got out of bed."
+
+* #pain-free "Pain free" "The patient reports no pain."
+* #controlled-on-oral-analgesia "Controlled on oral analgesia" "Pain is held by medicine the patient can take at home."
+* #controlled-needs-review "Controlled but needs review" "Pain is held for now, but the regimen is expected to need changing."
+* #not-controlled "Not controlled" "Pain is not held, which is a reason to question the discharge."
+
+// Prefixed, because #improved already names a reason an admission was no longer
+// needed. The condition a patient leaves in and the reason a request was
+// cancelled are different axes, so they do not share a concept.
+* #condition-recovered "Recovered" "The problem the patient was admitted for has resolved."
+* #condition-improved "Improved" "The patient is better than on admission without having fully recovered."
+* #condition-unchanged "Unchanged" "The patient is no different from how they arrived."
+* #condition-worse "Worse" "The patient is worse than on admission."
+* #condition-palliative "Palliative" "Care has moved to comfort rather than cure."
+
+// Discharge clearance, patient education. Who was briefed alongside the patient,
+// and who had the take-home medicines explained to them. The absence of this is
+// what brings a patient back, so it is recorded rather than assumed.
+* #spouse "Spouse" "The patient's husband or wife."
+* #parent "Parent" "The patient's mother or father."
+* #child "Child" "The patient's son or daughter."
+* #sibling "Sibling" "The patient's brother or sister."
+* #guardian "Guardian" "Somebody with legal responsibility for the patient."
+* #other-relative "Other relative" "A relative none of the narrower codes name."
+* #neighbour-or-friend "Neighbour or friend" "Somebody close to the patient who is not a relative, and routinely the person actually taking them home."
+
+* #explained-to-patient "Explained to the patient" "The medicines were gone through with the patient alone."
+* #explained-to-next-of-kin "Explained to the next of kin" "The medicines were gone through with the next of kin, which is what happens where the patient cannot take it in."
+* #explained-to-both "Explained to both" "The medicines were gone through with the patient and the next of kin together."
+* #not-explained "Not explained" "Nobody was taken through the medicines. A stated answer rather than a blank, because a blank reads as an oversight and this may be a decision."
+
+// Discharge clearance, financial. How the account was dealt with, and never a
+// balance: the figure belongs to billing, and one restated here would be signed
+// against as though this were the authority for it.
+* #settled-in-full "Settled in full" "Nothing is owed."
+* #scheme-covered "Covered by insurance or scheme" "The account sits with a payer rather than with the patient."
+* #part-payment-balance-on-account "Part payment taken, balance on account" "Something was paid at the counter and the rest is carried against the account."
+* #waiver-approved "Waiver approved" "The balance was written off, with approval."
+* #referred-to-credit-control "Referred to credit control" "The account was passed to credit control to pursue, and the patient is not held for it."
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Payer benefits
 //
