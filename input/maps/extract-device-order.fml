@@ -36,11 +36,18 @@ group BuildDeviceRequest(source qr : QR, source requestGroup, target devReq : De
   // client sets the device there rather than answering a form item, so this reads exactly
   // as the medication order map reads its medication concept. Assigning the whole
   // CodeableConcept carries its codings and their systems, so nothing further is copied.
-  // The url is not matched: a map is published once at the production canonical while the
-  // extension url is built from each environment's own base, so an equality test would
-  // hold in production alone.
-  qr.extension first as ext then {
-    ext.valueCodeableConcept as deviceCC -> devReq.code as code then {
+  //
+  // `value`, not `valueCodeableConcept`: this engine resolves the choice element by its
+  // base name and rejects the typed one outright --
+  // "Attempt to read invalid property 'valueCodeableConcept' on type Extension" -- which
+  // fails the whole transform, not just this rule. Same accessor every answer below uses.
+  //
+  // The url is matched on its tail rather than in full: a map is published once at the
+  // production canonical while the extension url is built from each environment's own
+  // base, so an equality test would hold in production alone. Matching beats taking the
+  // first extension, which silently reads whichever one the client happened to put first.
+  qr.extension as ext where (url.endsWith('/StructureDefinition/device-reference')) then {
+    ext.value as deviceCC -> devReq.code as code then {
       deviceCC -> code.concept = deviceCC "setDeviceConcept";
     } "accessDevice";
   } "findDeviceExt";
