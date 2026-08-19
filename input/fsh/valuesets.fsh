@@ -418,6 +418,18 @@ Title: "SGHI Body Site Value Set"
 Description: "Custom body site value set"
 * include #111002 "Parathyroid gland"  from system SGHIIdentifierCodeSystem
 
+ValueSet: SGHIInjectionSiteValueSet
+Id: injection-site-value-set
+Title: "SGHI Injection Site Value Set"
+Description: "Body sites used for the administration of injections, drawn from HL7 v2 table 0163 (administrative site)."
+// The whole of v2 table 0163 rather than a locally enumerated list: the codes carry a real
+// code system URL that consumers can resolve, unlike the SNOMED identifiers previously
+// carried here under the SGHI system URL (see the note in codesystems.fsh). Table 0163 is
+// "administrative site" for drug administration generally, so the expansion includes sites
+// that are not injectable (eyes, ears, nares, nebulized, chest tube). Narrow to an
+// enumerated subset if this ever backs a picklist.
+* include codes from system $v2-0163
+
 ValueSet: SGHIMethodOfAdministration
 Id: method-of-administration
 Title: "SGHI Method Of Medication Administration"
