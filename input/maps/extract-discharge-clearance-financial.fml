@@ -16,7 +16,13 @@ group ExtractDischargeClearanceFinancialClearance(source qr : QR, target bundle 
     it.answer first as a then {
       a -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
         qr -> obs, entry then BuildClearanceObs(qr, obs, entry) "settlementBase";
-        qr -> obs.code = cc('https://fhir.slade360.co.ke/fhir/CodeSystem/inpatient-clinical-concept-codesystem', 'account-settlement-at-discharge', 'How the account was settled at discharge') "settlementCode";
+        qr -> obs.code as settlementCodeCc then {
+          qr -> settlementCodeCc.coding as settlementCodeCoding then {
+            qr -> settlementCodeCoding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/inpatient-clinical-concept-codesystem' "settlementCodeSystem";
+            qr -> settlementCodeCoding.code = 'account-settlement-at-discharge' "settlementCodeCode";
+            qr -> settlementCodeCoding.display = 'How the account was settled at discharge' "settlementCodeDisplay";
+          } "settlementCodeCodingRule";
+        } "settlementCode";
         a -> obs then SetCodedValue(a, obs) "settlementValue";
 
         // linkId 818765459000 — "Note"
@@ -53,7 +59,13 @@ group BuildClearanceObs(source qr : QR, target obs : Observation, target entry) 
   } "entryRequest";
 
   qr -> obs.status = 'final' "status";
-  qr -> obs.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'survey', 'Survey') "category";
+  qr -> obs.category as categoryCc then {
+    qr -> categoryCc.coding as categoryCoding then {
+      qr -> categoryCoding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> categoryCoding.code = 'survey' "categoryCode";
+      qr -> categoryCoding.display = 'Survey' "categoryDisplay";
+    } "categoryCodingRule";
+  } "category";
 
   qr.subject as s -> obs.subject = s "subject";
   qr.encounter as e -> obs.encounter = e "encounter";
@@ -67,7 +79,7 @@ group BuildClearanceObs(source qr : QR, target obs : Observation, target entry) 
   // response would fix it at the source; there is nothing on the response for a
   // map to read it from.
   qr.authored as t -> obs.effective = t "effective";
-  qr.authored as t -> obs.issued = t "issued";
+  qr.authored as t -> obs.issued = cast(t, 'instant') "issued";
 
   // The facility, not the person who signed: SGHIObservation admits only an
   // Organization or a Patient as performer, and the form's signature is a typed
@@ -82,7 +94,13 @@ group BuildClearanceObs(source qr : QR, target obs : Observation, target entry) 
   // Observation from a single form the same business identity.
   qr -> obs.identifier as ident then {
     qr -> ident.use = 'official' "identifierUse";
-    qr -> ident.type = cc('https://fhir.slade360.co.ke/fhir/CodeSystem/default-identifier-codesystem', 'default-id', 'Default Resource Identifier') "identifierType";
+    qr -> ident.type as identifierTypeCc then {
+      qr -> identifierTypeCc.coding as identifierTypeCoding then {
+        qr -> identifierTypeCoding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/default-identifier-codesystem' "identifierTypeSystem";
+        qr -> identifierTypeCoding.code = 'default-id' "identifierTypeCode";
+        qr -> identifierTypeCoding.display = 'Default Resource Identifier' "identifierTypeDisplay";
+      } "identifierTypeCodingRule";
+    } "identifierType";
     qr -> ident.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/default-identifier-codesystem' "identifierSystem";
     qr -> ident.value = uuid() "identifierValue";
     qr.source as src -> ident.assigner = src "identifierAssigner";

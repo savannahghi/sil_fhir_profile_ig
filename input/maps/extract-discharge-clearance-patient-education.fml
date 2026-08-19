@@ -19,7 +19,13 @@ group ExtractDischargeClearancePatientEducation(source qr : QR, target bundle : 
     it.answer first as a then {
       a -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
         qr -> obs, entry then BuildClearanceObs(qr, obs, entry) "dangerSignsBase";
-        qr -> obs.code = cc('https://fhir.slade360.co.ke/fhir/CodeSystem/inpatient-clinical-concept-codesystem', 'danger-signs-explained', 'Danger signs explained at discharge') "dangerSignsCode";
+        qr -> obs.code as dangerSignsCodeCc then {
+          qr -> dangerSignsCodeCc.coding as dangerSignsCodeCoding then {
+            qr -> dangerSignsCodeCoding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/inpatient-clinical-concept-codesystem' "dangerSignsCodeSystem";
+            qr -> dangerSignsCodeCoding.code = 'danger-signs-explained' "dangerSignsCodeCode";
+            qr -> dangerSignsCodeCoding.display = 'Danger signs explained at discharge' "dangerSignsCodeDisplay";
+          } "dangerSignsCodeCodingRule";
+        } "dangerSignsCode";
         a.value as v -> obs.value = v "dangerSignsValue";
 
         // linkId 286776232661 — "Follow-up arrangement given"
@@ -41,12 +47,24 @@ group ExtractDischargeClearancePatientEducation(source qr : QR, target bundle : 
     it.answer first as a then {
       a -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
         qr -> obs, entry then BuildClearanceObs(qr, obs, entry) "kinBase";
-        qr -> obs.code = cc('https://fhir.slade360.co.ke/fhir/CodeSystem/inpatient-clinical-concept-codesystem', 'next-of-kin-briefed', 'Next of kin briefed at discharge') "kinCode";
+        qr -> obs.code as kinCodeCc then {
+          qr -> kinCodeCc.coding as kinCodeCoding then {
+            qr -> kinCodeCoding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/inpatient-clinical-concept-codesystem' "kinCodeSystem";
+            qr -> kinCodeCoding.code = 'next-of-kin-briefed' "kinCodeCode";
+            qr -> kinCodeCoding.display = 'Next of kin briefed at discharge' "kinCodeDisplay";
+          } "kinCodeCodingRule";
+        } "kinCode";
         a.value as v -> obs.value = v "kinNameValue";
 
         qr.item as itRelation where (linkId = '747571800699' and answer.value.exists()) then {
           itRelation.answer first as aRelation -> obs.component as comp then {
-            aRelation -> comp.code = cc('https://fhir.slade360.co.ke/fhir/CodeSystem/inpatient-clinical-concept-codesystem', 'relationship-to-patient', 'Relationship to the patient') "relationCode";
+            aRelation -> comp.code as relationCodeCc then {
+              aRelation -> relationCodeCc.coding as relationCodeCoding then {
+                aRelation -> relationCodeCoding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/inpatient-clinical-concept-codesystem' "relationCodeSystem";
+                aRelation -> relationCodeCoding.code = 'relationship-to-patient' "relationCodeCode";
+                aRelation -> relationCodeCoding.display = 'Relationship to the patient' "relationCodeDisplay";
+              } "relationCodeCodingRule";
+            } "relationCode";
             aRelation.value as cv -> comp.value = create('CodeableConcept') as concept then {
               cv -> concept.coding = cv "relationCoding";
               cv.display as d -> concept.text = d "relationText";
@@ -62,7 +80,13 @@ group ExtractDischargeClearancePatientEducation(source qr : QR, target bundle : 
     it.answer first as a then {
       a -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
         qr -> obs, entry then BuildClearanceObs(qr, obs, entry) "medicinesBase";
-        qr -> obs.code = cc('https://fhir.slade360.co.ke/fhir/CodeSystem/inpatient-clinical-concept-codesystem', 'medicines-explained-at-discharge', 'Take-home medicines explained at discharge') "medicinesCode";
+        qr -> obs.code as medicinesCodeCc then {
+          qr -> medicinesCodeCc.coding as medicinesCodeCoding then {
+            qr -> medicinesCodeCoding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/inpatient-clinical-concept-codesystem' "medicinesCodeSystem";
+            qr -> medicinesCodeCoding.code = 'medicines-explained-at-discharge' "medicinesCodeCode";
+            qr -> medicinesCodeCoding.display = 'Take-home medicines explained at discharge' "medicinesCodeDisplay";
+          } "medicinesCodeCodingRule";
+        } "medicinesCode";
         a -> obs then SetCodedValue(a, obs) "medicinesValue";
       } "medicinesObs";
     } "medicinesAnswer";
@@ -89,7 +113,13 @@ group BuildClearanceObs(source qr : QR, target obs : Observation, target entry) 
   } "entryRequest";
 
   qr -> obs.status = 'final' "status";
-  qr -> obs.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'survey', 'Survey') "category";
+  qr -> obs.category as categoryCc then {
+    qr -> categoryCc.coding as categoryCoding then {
+      qr -> categoryCoding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> categoryCoding.code = 'survey' "categoryCode";
+      qr -> categoryCoding.display = 'Survey' "categoryDisplay";
+    } "categoryCodingRule";
+  } "category";
 
   qr.subject as s -> obs.subject = s "subject";
   qr.encounter as e -> obs.encounter = e "encounter";
@@ -103,7 +133,7 @@ group BuildClearanceObs(source qr : QR, target obs : Observation, target entry) 
   // response would fix it at the source; there is nothing on the response for a
   // map to read it from.
   qr.authored as t -> obs.effective = t "effective";
-  qr.authored as t -> obs.issued = t "issued";
+  qr.authored as t -> obs.issued = cast(t, 'instant') "issued";
 
   // The facility, not the person who signed: SGHIObservation admits only an
   // Organization or a Patient as performer, and the form's signature is a typed
@@ -117,7 +147,13 @@ group BuildClearanceObs(source qr : QR, target obs : Observation, target entry) 
   // Observation from a single form the same business identity.
   qr -> obs.identifier as ident then {
     qr -> ident.use = 'official' "identifierUse";
-    qr -> ident.type = cc('https://fhir.slade360.co.ke/fhir/CodeSystem/default-identifier-codesystem', 'default-id', 'Default Resource Identifier') "identifierType";
+    qr -> ident.type as identifierTypeCc then {
+      qr -> identifierTypeCc.coding as identifierTypeCoding then {
+        qr -> identifierTypeCoding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/default-identifier-codesystem' "identifierTypeSystem";
+        qr -> identifierTypeCoding.code = 'default-id' "identifierTypeCode";
+        qr -> identifierTypeCoding.display = 'Default Resource Identifier' "identifierTypeDisplay";
+      } "identifierTypeCodingRule";
+    } "identifierType";
     qr -> ident.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/default-identifier-codesystem' "identifierSystem";
     qr -> ident.value = uuid() "identifierValue";
     qr.source as src -> ident.assigner = src "identifierAssigner";
