@@ -1,0 +1,110 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractDischargeClearanceFinancialClearance"
+/// name = "ExtractDischargeClearanceFinancialClearance"
+/// title = "Discharge Clearance: Financial Clearance Extraction"
+/// status = "active"
+/// description = "Turns the cashier's record that the account was dealt with into one survey Observation, with the clerk's note against it. A Task is the FHIR-correct home for work that has to be done, and this clearance is born completed -- a Task created in the `completed` state carries no workflow, and SGHITask would force an owner, a requester and a requestedPerformer that all resolve to the facility asking itself to settle the account. So this follows the other two clearances and stays an Observation, which keeps one extraction pattern across the three forms. It carries no balance: the figure belongs to billing, and one restated here would be signed against as though this were the authority for it. If billing later wants a workable item, a Task rule can be added to this map without changing anything the frontend sends."
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Observation as target
+
+group ExtractDischargeClearanceFinancialClearance(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  // linkId 398664818229 — "How the account was settled"
+  qr.item as it where (linkId = '398664818229' and answer.value.exists()) then {
+    it.answer first as a then {
+      a -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildClearanceObs(qr, obs, entry) "settlementBase";
+        qr -> obs.code = cc('https://fhir.slade360.co.ke/fhir/CodeSystem/inpatient-clinical-concept-codesystem', 'account-settlement-at-discharge', 'How the account was settled at discharge') "settlementCode";
+        a -> obs then SetCodedValue(a, obs) "settlementValue";
+
+        // linkId 818765459000 — "Note"
+        qr.item as itNote where (linkId = '818765459000' and answer.value.exists()) then {
+          itNote.answer first as aNote then {
+            aNote.value as nv -> obs.note as note then {
+              nv -> note.text = nv "financeNoteText";
+              qr.authored as t -> note.time = t "financeNoteTime";
+            } "financeNote";
+          } "financeNoteAnswer";
+        } "financeNoteRule";
+      } "settlementObs";
+    } "settlementAnswer";
+  } "settlementRule";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared scaffolding. Repeated in each clearance map rather than imported: the
+// transform engine resolves `imports` against whatever StructureMaps happen to
+// be on the server, and a clearance that stops extracting because a shared map
+// was not uploaded is a worse failure than a duplicated group.
+//
+// Source parameters are left untyped on purpose. Writing `: Element` makes the
+// publisher's StructureMap validator compare QuestionnaireResponse.item against
+// the literal 'Element' and report them as incompatible, which is noise.
+// ─────────────────────────────────────────────────────────────────────────────
+
+group BuildClearanceObs(source qr : QR, target obs : Observation, target entry) {
+  qr -> obs.id = uuid() then SetObservationFullUrl(obs, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Observation' "requestUrl";
+  } "entryRequest";
+
+  qr -> obs.status = 'final' "status";
+  qr -> obs.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'survey', 'Survey') "category";
+
+  qr.subject as s -> obs.subject = s "subject";
+  qr.encounter as e -> obs.encounter = e "encounter";
+
+  // `effective`, not `effectiveInstant`: the R5 transform engine writes choice
+  // elements by their base name and rejects the typed form.
+  //
+  // Advantage stamps `authored` when the clearances are submitted, not when each
+  // was signed, so a clearance signed at two in the morning and submitted at the
+  // handover carries the handover time. Sending the signature time on the
+  // response would fix it at the source; there is nothing on the response for a
+  // map to read it from.
+  qr.authored as t -> obs.effective = t "effective";
+  qr.authored as t -> obs.issued = t "issued";
+
+  // The facility, not the person who signed: SGHIObservation admits only an
+  // Organization or a Patient as performer, and the form's signature is a typed
+  // name that resolves to neither. On this form the signer is routinely a
+  // cashier, who has no practitioner record to reference in any case.
+  qr.source as src -> obs.performer = create('Reference') as perf then {
+    src.reference as ref -> perf.reference = ref "performerRef";
+    src.display as disp -> perf.display = disp "performerDisplay";
+  } "performer";
+
+  // One identifier per resource. Copying the response's own would give every
+  // Observation from a single form the same business identity.
+  qr -> obs.identifier as ident then {
+    qr -> ident.use = 'official' "identifierUse";
+    qr -> ident.type = cc('https://fhir.slade360.co.ke/fhir/CodeSystem/default-identifier-codesystem', 'default-id', 'Default Resource Identifier') "identifierType";
+    qr -> ident.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/default-identifier-codesystem' "identifierSystem";
+    qr -> ident.value = uuid() "identifierValue";
+    qr.source as src -> ident.assigner = src "identifierAssigner";
+  } "identifier";
+
+  // No append: under this engine `qr.id` already resolves to the type-qualified
+  // relative reference, so prefixing it again produces a reference to nothing.
+  qr -> obs.derivedFrom = create('Reference') as ref then {
+    qr.id as qid -> ref.reference = qid "derivedFromRef";
+  } "linkQuestionnaireResponse";
+}
+
+group SetCodedValue(source a, target obs : Observation) {
+  a.value as cv -> obs.value = create('CodeableConcept') as concept then {
+    cv -> concept.coding = cv "valueCoding";
+    cv.display as d -> concept.text = d "valueText";
+  } "codedValue";
+}
+
+group SetObservationFullUrl(source obs : Observation, target entry) {
+  obs.id as id -> entry.fullUrl = append(
+    'https://fhir.slade360.co.ke/fhir/Observation/',
+    id
+  ) "assignFullUrl";
+}

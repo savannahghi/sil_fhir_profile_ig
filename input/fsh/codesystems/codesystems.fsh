@@ -1890,6 +1890,34 @@ Description: "The concepts the inpatient notes and assessments record that no LO
 * #falls-prevention-plan "Falls and pressure ulcer prevention measures" "The category of a care plan recording the measures put in place because of a falls or pressure ulcer risk score."
 * #nutrition-care-plan "Nutritional plan" "The category of a care plan recording what will be done about a patient's nutrition after screening."
 
+// The four questions the clinical readiness clearance asks before a discharge.
+// LOINC names the readings a ward takes rather than the attestations a clinician
+// signs at the door: its nearest term for oral intake is 67517-3, the date and
+// time of the last one, which is a different fact. Each of these is the code of
+// an Observation the extraction map builds, and the answer it carries comes from
+// that question's own value set.
+* #oral-intake-at-discharge "Oral intake tolerated at discharge" "Whether the patient is managing food and drink well enough to leave. Answered from SGHIDischargeOralIntake."
+* #mobility-at-discharge "Mobility at discharge" "How much help the patient needs to move as they leave, which decides what has to be waiting for them at home. LOINC's mobility terms belong to scored instruments — the IRF-PAI and LCDS items, and 83186-7 for ambulation as functional ability — and carry those instruments' answer lists rather than this question's. Answered from SGHIDischargeMobility."
+* #pain-control-at-discharge "Pain control at discharge" "Whether pain is held well enough on what the patient can take at home. LOINC 99997-9, 'Demonstrates AndOr reports adequate pain control', is close in wording but is an instrument item answered yes or no, where this question grades the control on four levels. Answered from SGHIDischargePainControl."
+* #patient-condition-at-discharge "Condition at discharge" "The state the patient is leaving in, against the state they arrived in. Not the discharge disposition: LOINC 52523-8 and HL7's discharge-disposition both say where the patient went, which is a different axis with its own value set. Answered from SGHIConditionAtDischarge."
+
+// The patient education clearance. FHIR would carry a briefing as a
+// Communication, which this IG does not profile, so each of these records that
+// the briefing happened rather than the message itself. LOINC has nothing for
+// either: its patient-education terms are resource identifiers and CMS
+// assessment items, and 74213-0 'Discharge instructions' is a document code that
+// belongs on Composition.type.
+* #danger-signs-explained "Danger signs explained at discharge" "What the patient and their family were told to watch for, in the clinician's words. The absence of this is what brings a patient back."
+* #next-of-kin-briefed "Next of kin briefed at discharge" "The person briefed alongside the patient, named as the ward wrote them down. Their relationship rides as a component rather than a second Observation, because a name and what that person is to the patient are two halves of one fact."
+* #relationship-to-patient "Relationship to the patient" "What the person briefed alongside the patient is to them. Names the Observation.component that carries it; the answer comes from SGHINextOfKinRelationship."
+* #medicines-explained-at-discharge "Take-home medicines explained at discharge" "Who had the take-home medicines gone through with them, including nobody, which is a fact worth stating rather than a blank. Answered from SGHIDischargeEducationRecipient."
+
+// The financial clearance. A Task is the truer resource for work still to be
+// done, and this clearance is born completed, so it follows the other two and
+// stays an Observation. It records how the account was dealt with and never a
+// balance: the figure belongs to billing.
+* #account-settlement-at-discharge "How the account was settled at discharge" "The cashier's or billing clerk's record that the account was dealt with before the patient left. Answered from SGHIAccountSettlement."
+
 
 CodeSystem: SGHIDeviceOrderCodeSystem
 Id: device-order-codesystem

@@ -1,0 +1,144 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractDischargeClearanceClinicalReadiness"
+/// name = "ExtractDischargeClearanceClinicalReadiness"
+/// title = "Discharge Clearance: Clinical Readiness Extraction"
+/// status = "active"
+/// description = "Turns the discharging clinician's readiness attestation into four survey Observations: oral intake, mobility, pain control and the condition the patient is leaving in. Each is its own Observation because a clinician answers four separate questions and one flat resource would let an answer to one stand in for an answer to another. The handover sentence rides as a note on the condition Observation rather than becoming a fifth: it is prose about the discharge, and an Observation whose value is a paragraph answers no query. Nothing here writes to the Encounter -- closing the stay and recording the discharge disposition belong to the EMR's discharge workflow, and the condition a patient leaves in is a different axis from where they went. The signature the form collects is a typed name, which SGHIObservation cannot carry as a performer, so it stays in the response and out of the extracted resources."
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Observation as target
+
+group ExtractDischargeClearanceClinicalReadiness(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  // linkId 301989955559 — "Oral intake tolerated"
+  qr.item as it where (linkId = '301989955559' and answer.value.exists()) then {
+    it.answer first as a then {
+      a -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildClearanceObs(qr, obs, entry) "oralIntakeBase";
+        qr -> obs.code = cc('https://fhir.slade360.co.ke/fhir/CodeSystem/inpatient-clinical-concept-codesystem', 'oral-intake-at-discharge', 'Oral intake tolerated at discharge') "oralIntakeCode";
+        a -> obs then SetCodedValue(a, obs) "oralIntakeValue";
+      } "oralIntakeObs";
+    } "oralIntakeAnswer";
+  } "oralIntakeRule";
+
+  // linkId 507198101338 — "Mobility"
+  qr.item as it where (linkId = '507198101338' and answer.value.exists()) then {
+    it.answer first as a then {
+      a -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildClearanceObs(qr, obs, entry) "mobilityBase";
+        qr -> obs.code = cc('https://fhir.slade360.co.ke/fhir/CodeSystem/inpatient-clinical-concept-codesystem', 'mobility-at-discharge', 'Mobility at discharge') "mobilityCode";
+        a -> obs then SetCodedValue(a, obs) "mobilityValue";
+      } "mobilityObs";
+    } "mobilityAnswer";
+  } "mobilityRule";
+
+  // linkId 852812667233 — "Pain controlled"
+  qr.item as it where (linkId = '852812667233' and answer.value.exists()) then {
+    it.answer first as a then {
+      a -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildClearanceObs(qr, obs, entry) "painControlBase";
+        qr -> obs.code = cc('https://fhir.slade360.co.ke/fhir/CodeSystem/inpatient-clinical-concept-codesystem', 'pain-control-at-discharge', 'Pain control at discharge') "painControlCode";
+        a -> obs then SetCodedValue(a, obs) "painControlValue";
+      } "painControlObs";
+    } "painControlAnswer";
+  } "painControlRule";
+
+  // linkId 108099570999 — "Condition at discharge". This one carries the
+  // free-text handover as a note, so it is the Observation a reader lands on
+  // when they want the clinician's own words.
+  qr.item as it where (linkId = '108099570999' and answer.value.exists()) then {
+    it.answer first as a then {
+      a -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildClearanceObs(qr, obs, entry) "conditionBase";
+        qr -> obs.code = cc('https://fhir.slade360.co.ke/fhir/CodeSystem/inpatient-clinical-concept-codesystem', 'patient-condition-at-discharge', 'Condition at discharge') "conditionCode";
+        a -> obs then SetCodedValue(a, obs) "conditionValue";
+
+        // linkId 474741611141 — "Anything the next clinician should know"
+        qr.item as itNote where (linkId = '474741611141' and answer.value.exists()) then {
+          itNote.answer first as aNote then {
+            aNote.value as nv -> obs.note as note then {
+              nv -> note.text = nv "handoverNoteText";
+              qr.authored as t -> note.time = t "handoverNoteTime";
+            } "handoverNote";
+          } "handoverNoteAnswer";
+        } "handoverNoteRule";
+      } "conditionObs";
+    } "conditionAnswer";
+  } "conditionRule";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared scaffolding. Repeated in each clearance map rather than imported: the
+// transform engine resolves `imports` against whatever StructureMaps happen to
+// be on the server, and a clearance that stops extracting because a shared map
+// was not uploaded is a worse failure than a duplicated group.
+//
+// Source parameters are left untyped on purpose. Writing `: Element` makes the
+// publisher's StructureMap validator compare QuestionnaireResponse.item against
+// the literal 'Element' and report them as incompatible, which is noise.
+// ─────────────────────────────────────────────────────────────────────────────
+
+group BuildClearanceObs(source qr : QR, target obs : Observation, target entry) {
+  qr -> obs.id = uuid() then SetObservationFullUrl(obs, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Observation' "requestUrl";
+  } "entryRequest";
+
+  qr -> obs.status = 'final' "status";
+  qr -> obs.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'survey', 'Survey') "category";
+
+  qr.subject as s -> obs.subject = s "subject";
+  qr.encounter as e -> obs.encounter = e "encounter";
+
+  // `effective`, not `effectiveInstant`: the R5 transform engine writes choice
+  // elements by their base name and rejects the typed form.
+  //
+  // Advantage stamps `authored` when the clearances are submitted, not when each
+  // was signed, so a clearance signed at two in the morning and submitted at the
+  // handover carries the handover time. Sending the signature time on the
+  // response would fix it at the source; there is nothing on the response for a
+  // map to read it from.
+  qr.authored as t -> obs.effective = t "effective";
+  qr.authored as t -> obs.issued = t "issued";
+
+  // The facility, not the person who signed: SGHIObservation admits only an
+  // Organization or a Patient as performer, and the form's signature is a typed
+  // name that resolves to neither.
+  qr.source as src -> obs.performer = create('Reference') as perf then {
+    src.reference as ref -> perf.reference = ref "performerRef";
+    src.display as disp -> perf.display = disp "performerDisplay";
+  } "performer";
+
+  // One identifier per resource. Copying the response's own would give every
+  // Observation from a single form the same business identity.
+  qr -> obs.identifier as ident then {
+    qr -> ident.use = 'official' "identifierUse";
+    qr -> ident.type = cc('https://fhir.slade360.co.ke/fhir/CodeSystem/default-identifier-codesystem', 'default-id', 'Default Resource Identifier') "identifierType";
+    qr -> ident.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/default-identifier-codesystem' "identifierSystem";
+    qr -> ident.value = uuid() "identifierValue";
+    qr.source as src -> ident.assigner = src "identifierAssigner";
+  } "identifier";
+
+  // No append: under this engine `qr.id` already resolves to the type-qualified
+  // relative reference, so prefixing it again produces a reference to nothing.
+  qr -> obs.derivedFrom = create('Reference') as ref then {
+    qr.id as qid -> ref.reference = qid "derivedFromRef";
+  } "linkQuestionnaireResponse";
+}
+
+group SetCodedValue(source a, target obs : Observation) {
+  a.value as cv -> obs.value = create('CodeableConcept') as concept then {
+    cv -> concept.coding = cv "valueCoding";
+    cv.display as d -> concept.text = d "valueText";
+  } "codedValue";
+}
+
+group SetObservationFullUrl(source obs : Observation, target entry) {
+  obs.id as id -> entry.fullUrl = append(
+    'https://fhir.slade360.co.ke/fhir/Observation/',
+    id
+  ) "assignFullUrl";
+}
