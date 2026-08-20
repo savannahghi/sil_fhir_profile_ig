@@ -1938,3 +1938,47 @@ Description: "The concepts the device order form records that FHIR has nowhere t
 * #fitted-in-clinic "Fitted in clinic" "The device is fitted to the patient during a clinic appointment."
 * #patient-to-purchase "Patient to purchase" "The device is to be purchased by the patient."
 * #loan-from-equipment-library "Loan from equipment library" "The patient is loaned the device from the equipment library."
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Order cancellation
+//
+// Why one item on an order was stopped before it was done. A single list serves
+// laboratory, imaging, procedure and pharmacy items, because the reasons are the
+// same whichever kind of thing was ordered: a patient going home stops a blood
+// test and a prescription alike.
+//
+// None of these are HL7's, and that is a finding rather than an omission.
+// MedicationRequest.statusReason binds medicationrequest-status-reason at
+// example strength and so is free to be replaced, but every code in that set is
+// a clinical contraindication — drug levels, allergies, interactions, washout
+// periods. #hospadm reads closest to a patient leaving and means its opposite:
+// an admission suspending community medicines. ServiceRequest has no
+// statusReason element at all, so for a laboratory, imaging or procedure item
+// the code is kept in Advantage and only the display reaches the SHR, as a note.
+// ─────────────────────────────────────────────────────────────────────────────
+
+CodeSystem: SGHIOrderCancellationCodeSystem
+Id: order-cancellation
+Title: "SGHI Order Cancellation Code System"
+Description: "Why an ordered item was stopped before it was done. Recorded against the item and not the order: an order carries several items, and one test no longer being needed says nothing about the prescription beside it."
+* ^status = #active
+* ^experimental = false
+* ^content = #complete
+* ^caseSensitive = true
+* #no-longer-clinically-needed "No longer clinically needed" "The clinical question the item was raised to answer no longer needs answering."
+* #patient-being-discharged "Patient is being discharged" "The patient is leaving, and the item would not be done before they go."
+* #done-elsewhere-already "Done elsewhere already" "The same work has already been done, here or at another facility, and repeating it would add nothing."
+* #patient-declined "Patient declined" "The patient did not consent to the item being done."
+// The one code here that is not a cancellation. The four above describe a real
+// order that was stopped, which FHIR calls revoked on a ServiceRequest and
+// cancelled on a MedicationRequest. This one says the order should never have
+// existed, which FHIR calls entered-in-error and readers of the record may treat
+// as void. That difference decides which status the item lands on, so the two
+// are kept apart rather than folded into one "cancelled" bucket.
+* #ordered-in-error "Ordered in error" "The item should never have been ordered. Unlike the others this voids the request rather than stopping it, so the record shows it as never having been validly placed."
+// Set by the server, never offered to a clinician, and so deliberately absent
+// from SGHIOrderCancellationReason. Cancelling a whole order takes its untouched
+// items with it, and those items need a reason like any other; recording one of
+// the five a person could have picked would put a clinical decision in the log
+// that nobody made.
+* #parent-order-cancelled "Parent order was cancelled" "The item was stopped because the order it belonged to was cancelled, not on a decision about the item itself."
