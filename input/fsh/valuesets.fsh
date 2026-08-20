@@ -2294,3 +2294,21 @@ Description: "How the patient receives an ordered device. Bound to the device or
 * include SGHIDeviceOrderCodeSystem#fitted-in-clinic "Fitted in clinic"
 * include SGHIDeviceOrderCodeSystem#patient-to-purchase "Patient to purchase"
 * include SGHIDeviceOrderCodeSystem#loan-from-equipment-library "Loan from equipment library"
+
+// One list for all four order categories. Bound at
+// MedicationRequest.statusReason for a pharmacy item, where the HL7 binding is
+// example strength and so free to be replaced. A laboratory, imaging or
+// procedure item has nowhere to carry it — ServiceRequest has no statusReason,
+// and ServiceRequest.reason is bound required to LOINC by SGHIServiceRequest —
+// so for those the code stays in Advantage and the display travels as a note.
+ValueSet: SGHIOrderCancellationReason
+Id: order-cancellation-reason
+Title: "SGHI Order Cancellation Reason"
+Description: "Why an ordered item was stopped before it was done, as offered to the person cancelling it. #ordered-in-error is the odd one out and is deliberately included: the other four stop a request that was validly placed, while that one says it never should have been, and an audit that cannot tell those apart cannot tell a change of plan from a mistake. #parent-order-cancelled is deliberately excluded: the server sets it when a whole order is cancelled, and it is not a choice anyone makes."
+* ^status = #active
+* ^experimental = false
+* include SGHIOrderCancellationCodeSystem#no-longer-clinically-needed "No longer clinically needed"
+* include SGHIOrderCancellationCodeSystem#patient-being-discharged "Patient is being discharged"
+* include SGHIOrderCancellationCodeSystem#done-elsewhere-already "Done elsewhere already"
+* include SGHIOrderCancellationCodeSystem#patient-declined "Patient declined"
+* include SGHIOrderCancellationCodeSystem#ordered-in-error "Ordered in error"
