@@ -17,5 +17,6 @@ Alias: $admit-source = http://terminology.hl7.org/CodeSystem/admit-source
 Alias: $discharge-disposition = http://terminology.hl7.org/CodeSystem/discharge-disposition
 Alias: $v2-0487 = http://terminology.hl7.org/CodeSystem/v2-0487
 Alias: $v2-0493 = http://terminology.hl7.org/CodeSystem/v2-0493
+Alias: $v2-0163 = http://terminology.hl7.org/CodeSystem/v2-0163
 Alias: $reason-medication-not-given = http://hl7.org/fhir/reason-medication-not-given
 Alias: $medication-admin-status = http://hl7.org/fhir/CodeSystem/medication-admin-status
