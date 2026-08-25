@@ -2312,3 +2312,16 @@ Description: "Why an ordered item was stopped before it was done, as offered to 
 * include SGHIOrderCancellationCodeSystem#done-elsewhere-already "Done elsewhere already"
 * include SGHIOrderCancellationCodeSystem#patient-declined "Patient declined"
 * include SGHIOrderCancellationCodeSystem#ordered-in-error "Ordered in error"
+
+
+ValueSet: SGHITransferType
+Id: transfer-type
+Title: "SGHI Transfer Type"
+Description: "The kind of move a patient is being made within the facility. Bound to the transfer form's 'Transfer type' question. A ward transfer gives up the sending bed, an escalation or de-escalation changes the level of care as well, and theatre and procedure are temporary moves the patient returns from with the bed held."
+* ^status = #active
+* ^experimental = false
+* include SGHITransferCodeSystem#ward-transfer "Ward transfer"
+* include SGHITransferCodeSystem#escalation "Escalation"
+* include SGHITransferCodeSystem#de-escalation "De-escalation"
+* include SGHITransferCodeSystem#theatre "Theatre"
+* include SGHITransferCodeSystem#procedure "Procedure"

@@ -1982,3 +1982,25 @@ Description: "Why an ordered item was stopped before it was done. Recorded again
 // the five a person could have picked would put a clinical decision in the log
 // that nobody made.
 * #parent-order-cancelled "Parent order was cancelled" "The item was stopped because the order it belonged to was cancelled, not on a decision about the item itself."
+
+CodeSystem: SGHITransferCodeSystem
+Id: transfer-codesystem
+Title: "SGHI Transfer Code System"
+Description: "The kind of move a patient is being made within the facility. Recorded on the transfer form alongside the destination and the reason, and distinct from both: this says what sort of move it is, which decides whether the bed is held and whether the level of care changes."
+* ^status = #active
+* ^experimental = false
+* ^content = #complete
+* ^caseSensitive = true
+// A lateral move. The level of care is unchanged, so the receiving ward nurses
+// the patient exactly as the sending one did, and the sending bed is released.
+* #ward-transfer "Ward transfer" "A move to another ward at the same level of care. The bed the patient leaves is given up."
+// The two that change the level of care, and the reason care-rank exists on
+// SGHIAdmissionCodeSystem. Which of the two it is cannot be derived from the
+// destination alone at the point the form is filled, because the destination
+// ward may not yet be chosen, so it is stated.
+* #escalation "Escalation" "A move to a higher level of care, such as a general ward to high dependency or intensive care, because the patient has deteriorated or needs closer monitoring than the sending ward can give."
+* #de-escalation "De-escalation" "A move to a lower level of care, such as intensive care to high dependency or a general ward, because the patient has improved enough to be nursed with less support."
+// The two temporary moves. The patient is expected back and the bed is held, so
+// these do not release the sending bed the way the three above do.
+* #theatre "Theatre" "A move to an operating theatre for surgery. Temporary: the patient returns to the ward, or to recovery and then the ward, and the bed is held for them."
+* #procedure "Procedure" "A move to a procedure or investigation area for something that cannot be done at the bedside. Temporary in the same way theatre is, and separate from it because it needs no theatre list, no anaesthetic booking and usually no recovery bay."
