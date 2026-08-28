@@ -2,70 +2,215 @@
 /// name = "GlasgowCommaScaleExtract"
 /// status = "active"
 /// title = "Glasgow Coma Scale Extraction"
-/// description = "Extracts three Observation resources, one per GCS subscore, from a QuestionnaireResponse to the GCS questionnaire."
-/// experimental = "true"
+/// description = "One Observation for the Glasgow Coma Scale, carrying the total as its value, the eye, verbal and motor sub-scores as components, and the severity band the total falls in as its interpretation. The total prefers the calculated total the form submits and falls back to summing the answer weights itself, so the score still extracts from a client that does not evaluate SDC expressions."
 
 uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
 uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
 uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Observation as target
 
+// This map used to emit the three sub-scores as three loose Observations and no
+// total, which left nothing to band and nothing to read as "the GCS". It now
+// produces the same shape as ExtractInpatientCriticalCareAssessment: one
+// Observation with three components. Nothing was consuming the old shape --
+// the questionnaire typed its three items `group` and hung an answerValueSet off
+// them, and a group carries no answer, so no conformant response ever put a value
+// into those Observations. The questionnaire is fixed alongside this map.
 group GlasgowCommaScaleExtract(source qr : QR, target bundle : Bundle) {
   qr -> bundle.type = 'transaction' "setBundleType";
 
-  // Verbal
-  qr.item as itV where linkId = 'verbal-response' -> bundle.entry as eV, eV.resource = create('Observation') as oV then {
-    qr -> oV.id then BuildBaseObs(qr, oV, eV) "baseV";
-    qr -> oV.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'survey', 'Survey') "catVSystem";
-    qr -> oV.code = cc('http://loinc.org', '9270-0', 'Glasgow coma score verbal') "codeVCode";
-    qr -> oV.id then SetValueFromItem(itV, oV) "valV";
-  } "verbalResponseObs";
+  qr where (item.where(linkId in ('eye-opening'|'verbal-response'|'motor-response')).answer.value.ofType(Coding).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+    qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+    qr -> obs then SetSurveyCategory(qr, obs) "category";
+    qr -> obs.code as code then {
+      qr -> code.coding as coding then {
+        qr -> coding.system = 'http://loinc.org' "codeSystem";
+        qr -> coding.code = '9269-2' "codeCode";
+        qr -> coding.display = 'Glasgow coma score total' "codeDisplay";
+      } "codeCoding";
+    } "code";
 
-  // Motor
-  qr.item as itM where linkId = 'motor-response' -> bundle.entry as eM, eM.resource = create('Observation') as oM then {
-    qr -> oM.id then BuildBaseObs(qr, oM, eM) "baseM";
-    qr -> oM.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'survey', 'Survey') "catMSystem";
-    qr -> oM.code = cc('http://loinc.org', '9268-4', 'Glasgow coma score motor') "catMCode";
-    qr -> oM.id then SetValueFromItem(itM, oM) "valM";
-  } "motorResponseObs";
+    // The submitted total wins; otherwise sum the answers. The form's total item
+    // carries the same sum as an SDC calculatedExpression, so the two paths are
+    // the same arithmetic and cannot disagree; the fallback is there for a client
+    // that does not evaluate SDC.
+    //
+    // One lookup covers all three sub-scores. Eye runs 1 to 4, verbal 1 to 5 and
+    // motor 1 to 6, and no LOINC answer code appears in more than one of the
+    // three lists, so a code determines its weight on its own.
+    //
+    // Guarded on all three sub-scores being present. A GCS of 7 summed from eye
+    // and motor alone reads as a comatose patient; the components still extract,
+    // but the total does not, because a partial GCS is not a GCS.
+    qr where (item.where(linkId in ('eye-opening'|'verbal-response'|'motor-response')).answer.value.ofType(Coding).count() = 3) then {
+      qr -> obs.value = evaluate(qr, iif(item.where(linkId = 'gcs-total').answer.value.exists(), item.where(linkId = 'gcs-total').answer.value, item.where(linkId in ('eye-opening'|'verbal-response'|'motor-response')).answer.value.ofType(Coding).code.select(iif($this in ('LA6553-7'|'LA6557-8'|'LA6562-8'), 1, iif($this in ('LA6554-5'|'LA6558-6'|'LA6563-6'), 2, iif($this in ('LA6555-2'|'LA6559-4'|'LA6564-4'), 3, iif($this in ('LA6556-0'|'LA6560-2'|'LA6565-1'), 4, iif($this in ('LA6561-0'|'LA6566-9'), 5, iif($this = 'LA6567-7', 6, 0))))))).aggregate($this + $total, 0))) "totalValue";
+    } "totalRule";
 
-  // Eye
-  qr.item as itE where linkId = 'eye-opening' -> bundle.entry as eE, eE.resource = create('Observation') as oE then {
-    qr -> oE.id then BuildBaseObs(qr, oE, eE) "baseE";
-    qr -> oE.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'survey', 'Survey') "catESystem";
-    qr -> oE.code = cc('http://loinc.org', '9267-6', 'Glasgow coma score eye opening') "catECode";
-    qr -> oE.id then SetValueFromItem(itE, oE) "valE";
-  } "eyeResponseObs";
+    qr.item as it where (linkId = 'eye-opening' and answer.value.exists()) -> obs.component as comp then {
+      it -> comp.code as code then {
+        it -> code.coding as coding then {
+          it -> coding.system = 'http://loinc.org' "codeSystem";
+          it -> coding.code = '9267-6' "codeCode";
+          it -> coding.display = 'Glasgow coma score eye opening' "codeDisplay";
+        } "codeCoding";
+      } "eyeCode";
+      it -> comp then SetComponentCodedValue(it, comp) "eyeValue";
+    } "eyeRule";
+
+    qr.item as it where (linkId = 'verbal-response' and answer.value.exists()) -> obs.component as comp then {
+      it -> comp.code as code then {
+        it -> code.coding as coding then {
+          it -> coding.system = 'http://loinc.org' "codeSystem";
+          it -> coding.code = '9270-0' "codeCode";
+          it -> coding.display = 'Glasgow coma score verbal' "codeDisplay";
+        } "codeCoding";
+      } "verbalCode";
+      it -> comp then SetComponentCodedValue(it, comp) "verbalValue";
+    } "verbalRule";
+
+    qr.item as it where (linkId = 'motor-response' and answer.value.exists()) -> obs.component as comp then {
+      it -> comp.code as code then {
+        it -> code.coding as coding then {
+          it -> coding.system = 'http://loinc.org' "codeSystem";
+          it -> coding.code = '9268-4' "codeCode";
+          it -> coding.display = 'Glasgow coma score motor' "codeDisplay";
+        } "codeCoding";
+      } "motorCode";
+      it -> comp then SetComponentCodedValue(it, comp) "motorValue";
+    } "motorRule";
+
+    qr -> obs then AddGlasgowInterpretation(obs, obs) "interpretation";
+  } "glasgowRule";
 }
 
-group BuildBaseObs(source qr : QR, target obs : Observation, target entry) {
-  qr -> entry.request as req then {
-    qr -> req.method = 'POST' "reqMethod";
-    qr -> req.url = 'Observation' "reqUrl";
+// ─────────────────────────────────────────────────────────────────────────────
+// The band
+//
+// Teasdale and Jennett's three tiers, as every ward and ambulance service reads
+// them: 13-15 mild, 9-12 moderate, 3-8 severe. Lower is worse, and the scale
+// bottoms out at 3, not 0.
+//
+// This is an Observation.interpretation and not a RiskAssessment. A Glasgow Coma
+// Score says what a patient's consciousness is now; RiskAssessment models the
+// likelihood of a future outcome. Braden and Morse do predict one -- a pressure
+// injury, a fall -- and keep their RiskAssessments; this does not.
+//
+// The published wording is "mild, moderate and severe brain injury", which is
+// how the scale was introduced and how trauma services still say it. It is
+// written as impairment of consciousness here because the same scale is read on
+// a patient in a diabetic coma or a post-ictal state, where nothing has injured
+// the brain and the tier still means what it means.
+//
+// The coding comes from SGHIObservationInterpretation, the value set this IG
+// binds Observation.interpretation to, which offers LL, L, N, H, HH and A.
+//
+// Mild and moderate both take L. The low axis has two rungs, and the threshold
+// worth spending LL on is 8 -- the point below which a patient stops reliably
+// protecting their own airway. That is what a consumer escalates on. Nothing is
+// minted to separate mild from moderate: the tier is a published function of a
+// number this same Observation already carries in its value, so a consumer that
+// needs the exact tier reads the score rather than a second code.
+//
+// A Glasgow Coma Score of 15 is normal and still reads L, because the published
+// band is 13-15 and one code has to cover it. Flagging a normal score is the
+// safe direction to be wrong in; missing a deficit is not.
+// ─────────────────────────────────────────────────────────────────────────────
+
+group AddGlasgowInterpretation(source obs : Observation, target tgt : Observation) {
+  obs where (value.ofType(integer) <= 8) -> tgt.interpretation as interp then {
+    obs -> interp.coding as coding then {
+      obs -> coding.system = 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation' "interpSystem";
+      obs -> coding.code = 'LL' "interpCode";
+      obs -> coding.display = 'Critical low' "interpDisplay";
+    } "interpCoding";
+    obs -> interp.text = 'Severe impairment of consciousness (GCS 3-8)' "interpText";
+  } "glasgowSevere";
+
+  obs where (value.ofType(integer) >= 9 and value.ofType(integer) <= 12) -> tgt.interpretation as interp then {
+    obs -> interp.coding as coding then {
+      obs -> coding.system = 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation' "interpSystem";
+      obs -> coding.code = 'L' "interpCode";
+      obs -> coding.display = 'Low' "interpDisplay";
+    } "interpCoding";
+    obs -> interp.text = 'Moderate impairment of consciousness (GCS 9-12)' "interpText";
+  } "glasgowModerate";
+
+  obs where (value.ofType(integer) >= 13) -> tgt.interpretation as interp then {
+    obs -> interp.coding as coding then {
+      obs -> coding.system = 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation' "interpSystem";
+      obs -> coding.code = 'L' "interpCode";
+      obs -> coding.display = 'Low' "interpDisplay";
+    } "interpCoding";
+    obs -> interp.text = 'Mild impairment of consciousness (GCS 13-15)' "interpText";
+  } "glasgowMild";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared scaffolding. Repeated in each map rather than imported: the transform
+// engine resolves `imports` against whatever StructureMaps happen to be on the
+// server, and a form that stops extracting because a shared map was not
+// uploaded is a worse failure than a duplicated group.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Two notes on what the publisher's StructureMap validator says about this file.
+//
+// Source parameters below are left untyped on purpose. Writing `: Element` makes
+// the validator compare QuestionnaireResponse.item against the literal 'Element'
+// and report them as incompatible with each other, which is noise, not a finding.
+// Untyped, it says only that it cannot check the paths.
+//
+// `evaluate(context, expression)` is flagged as "takes 1 parameter but 2 were
+// found". Leave it. The FML parser in the same jar refuses the one-argument form
+// outright -- it wants a parameter, a comma, then the FHIRPath -- so the publisher
+// is objecting to what its own compiler emits. Two arguments is the only form that
+// compiles, and it is what the R5 transform engine executes.
+
+group BuildObsBase(source qr : QR, target obs : Observation, target entry) {
+  qr -> obs.id = uuid() then SetObservationFullUrl(obs, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Observation' "requestUrl";
   } "entryRequest";
 
-  qr -> obs.id = uuid() then SetFullUrl(obs, entry) "setIdAndFullUrl";
+  qr -> obs.status = 'final' "status";
+  qr.subject as s -> obs.subject = s "subject";
+  qr.encounter as e -> obs.encounter = e "encounter";
+  qr.authored as t -> obs.effective = t "effective";
 
-  qr -> obs.status = 'final' "setStatus";
+  qr.source as src -> obs.performer = src "performerFromSource";
+  qr where (source.exists().not()) then {
+    qr.author as a -> obs.performer = a "performerFromAuthor";
+  } "performerFallback";
 
-  qr.subject as s -> obs.subject = create('Reference') as r then {
-    s.reference as ref -> r.reference = ref "subRef";
-    s.display as disp -> r.display = disp "subDisp";
-  } "setSubject";
-
-  qr.authored as t -> obs.effective = t "setEffective";
-  qr.authored as t -> obs.issued = t "setIssued";
-
-  qr -> obs.derivedFrom = create('Reference') as dr then {
-    qr.id as id -> dr.reference = append('QuestionnaireResponse/', id) "derRef";
-  } "setDerivedFrom";
+  // A stored response's id already reads "QuestionnaireResponse/<id>", so it is a
+  // relative reference as it stands. The hasValue() guard is what stops an
+  // unsaved response -- one posted straight to $extract rather than saved first --
+  // from writing "QuestionnaireResponse/null" into the record.
+  qr.id as qid where ($this.hasValue()) -> obs.derivedFrom = create('Reference') as ref, ref.reference = qid "linkQuestionnaireResponse";
 }
 
-group SetValueFromItem(source it : Element, target obs : Observation) {
-  it.answer as a -> obs.value = create('CodeableConcept') as c then {
-    a.value as coding -> c.coding = coding as nc "copyCoding";
-  } "setValueCC";
+group SetComponentCodedValue(source it, target comp) {
+  it.answer first as a then {
+    a.value as cv -> comp.value = create('CodeableConcept') as cc then {
+      cv -> cc.coding = cv "valueCoding";
+      cv.display as d -> cc.text = d "valueText";
+    } "codedValue";
+  } "componentAnswer";
 }
 
-group SetFullUrl(source obs : Observation, target entry) {
-  obs.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/Observation/', id) "assignFullUrl";
+group SetSurveyCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'survey' "categoryCode";
+      qr -> coding.display = 'Survey' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+group SetObservationFullUrl(source obs : Observation, target entry) {
+  obs.id as id -> entry.fullUrl = append(
+    'https://fhir.slade360.co.ke/fhir/Observation/',
+    id
+  ) "assignFullUrl";
 }

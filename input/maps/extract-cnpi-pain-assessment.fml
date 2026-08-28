@@ -1,0 +1,317 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractCNPIPainAssessment"
+/// name = "ExtractCNPIPainAssessment"
+/// title = "Checklist of Nonverbal Pain Indicators Extraction"
+/// status = "active"
+/// description = "The LOINC CNPI panel out as one Observation carrying the total, with the with-movement and at-rest scores and all twelve observed behaviours as components, and whether any pain behaviour was seen at all as its interpretation. Each score prefers what the form submitted and otherwise counts the behaviours itself, and a score only extracts when all six of its behaviours have been answered."
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Observation as target
+
+group ExtractCNPIPainAssessment(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  // Unlike Braden and Morse, LOINC nests this one: the six behaviours watched for
+  // during movement sit under /99288-3 and the six watched for at rest under
+  // /99296-6, each group ending in its own score, with the total on its own at the
+  // top. The response itself is still the anchor for the Observation.
+  qr where (item.item.answer.value.ofType(Coding).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+    qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+    qr -> obs then SetSurveyCategory(qr, obs) "category";
+    qr -> obs.code as code then {
+      qr -> code.coding as coding then {
+        qr -> coding.system = 'http://loinc.org' "codeSystem";
+        qr -> coding.code = '99304-8' "codeCode";
+        qr -> coding.display = 'Total score [CNPI]' "codeDisplay";
+      } "codeCoding";
+    } "code";
+
+    // The submitted total wins; otherwise count the behaviours.
+    //
+    // No weight lookup is needed here and none should be invented: every one of
+    // the twelve behaviours is worth one if it was seen and nothing if it was
+    // not, so the score is a count of LA33-6 "Yes" answers. Feldt scores the
+    // instrument exactly that way.
+    //
+    // Guarded on all twelve behaviours being answered. A CNPI of 4 out of the six
+    // that were watched for reads as a patient in less distress than a CNPI of 4
+    // out of twelve, and nothing in the resource would say which it was.
+    qr where (item.item.answer.value.ofType(Coding).count() = 12) then {
+      qr -> obs.value = evaluate(qr, iif(item.where(linkId = '/99304-8').answer.value.exists(), item.where(linkId = '/99304-8').answer.value.truncate(), item.item.answer.value.ofType(Coding).where(code = 'LA33-6').count())) "totalValue";
+    } "totalRule";
+
+    qr where (item.where(linkId = '/99288-3').item.answer.value.ofType(Coding).count() = 6) -> obs.component as comp then {
+      qr -> comp.code as code then {
+        qr -> code.coding as coding then {
+          qr -> coding.system = 'http://loinc.org' "codeSystem";
+          qr -> coding.code = '99295-8' "codeCode";
+          qr -> coding.display = 'With movement score [CNPI]' "codeDisplay";
+        } "codeCoding";
+      } "movementScoreCode";
+      qr -> comp.value = evaluate(qr, iif(item.where(linkId = '/99288-3').item.where(linkId = '/99288-3/99295-8').answer.value.exists(), item.where(linkId = '/99288-3').item.where(linkId = '/99288-3/99295-8').answer.value.truncate(), item.where(linkId = '/99288-3').item.answer.value.ofType(Coding).where(code = 'LA33-6').count())) "movementScoreValue";
+    } "movementScoreRule";
+
+    qr where (item.where(linkId = '/99296-6').item.answer.value.ofType(Coding).count() = 6) -> obs.component as comp then {
+      qr -> comp.code as code then {
+        qr -> code.coding as coding then {
+          qr -> coding.system = 'http://loinc.org' "codeSystem";
+          qr -> coding.code = '99303-0' "codeCode";
+          qr -> coding.display = 'At rest score [CNPI]' "codeDisplay";
+        } "codeCoding";
+      } "restScoreCode";
+      qr -> comp.value = evaluate(qr, iif(item.where(linkId = '/99296-6').item.where(linkId = '/99296-6/99303-0').answer.value.exists(), item.where(linkId = '/99296-6').item.where(linkId = '/99296-6/99303-0').answer.value.truncate(), item.where(linkId = '/99296-6').item.answer.value.ofType(Coding).where(code = 'LA33-6').count())) "restScoreValue";
+    } "restScoreRule";
+
+    // ── The six behaviours watched for during movement ───────────────────────
+    qr.item as g where (linkId = '/99288-3') then {
+      g.item as it where (linkId = '/99288-3/99289-1' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as code then {
+          it -> code.coding as coding then {
+            it -> coding.system = 'http://loinc.org' "codeSystem";
+            it -> coding.code = '99289-1' "codeCode";
+            it -> coding.display = 'Nonverbal vocal complaints during movement' "codeDisplay";
+          } "codeCoding";
+        } "vocalMovementCode";
+        it -> comp then SetComponentCodedValue(it, comp) "vocalMovementValue";
+      } "vocalMovementRule";
+
+      g.item as it where (linkId = '/99288-3/99290-9' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as code then {
+          it -> code.coding as coding then {
+            it -> coding.system = 'http://loinc.org' "codeSystem";
+            it -> coding.code = '99290-9' "codeCode";
+            it -> coding.display = 'Facial grimaces or winces during movement' "codeDisplay";
+          } "codeCoding";
+        } "grimaceMovementCode";
+        it -> comp then SetComponentCodedValue(it, comp) "grimaceMovementValue";
+      } "grimaceMovementRule";
+
+      g.item as it where (linkId = '/99288-3/99291-7' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as code then {
+          it -> code.coding as coding then {
+            it -> coding.system = 'http://loinc.org' "codeSystem";
+            it -> coding.code = '99291-7' "codeCode";
+            it -> coding.display = 'Bracing during movement' "codeDisplay";
+          } "codeCoding";
+        } "bracingMovementCode";
+        it -> comp then SetComponentCodedValue(it, comp) "bracingMovementValue";
+      } "bracingMovementRule";
+
+      g.item as it where (linkId = '/99288-3/99292-5' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as code then {
+          it -> code.coding as coding then {
+            it -> coding.system = 'http://loinc.org' "codeSystem";
+            it -> coding.code = '99292-5' "codeCode";
+            it -> coding.display = 'Rubbing during movement' "codeDisplay";
+          } "codeCoding";
+        } "rubbingMovementCode";
+        it -> comp then SetComponentCodedValue(it, comp) "rubbingMovementValue";
+      } "rubbingMovementRule";
+
+      g.item as it where (linkId = '/99288-3/99293-3' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as code then {
+          it -> code.coding as coding then {
+            it -> coding.system = 'http://loinc.org' "codeSystem";
+            it -> coding.code = '99293-3' "codeCode";
+            it -> coding.display = 'Restlessness during movement' "codeDisplay";
+          } "codeCoding";
+        } "restlessMovementCode";
+        it -> comp then SetComponentCodedValue(it, comp) "restlessMovementValue";
+      } "restlessMovementRule";
+
+      g.item as it where (linkId = '/99288-3/99294-1' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as code then {
+          it -> code.coding as coding then {
+            it -> coding.system = 'http://loinc.org' "codeSystem";
+            it -> coding.code = '99294-1' "codeCode";
+            it -> coding.display = 'Verbal complaints during movement' "codeDisplay";
+          } "codeCoding";
+        } "verbalMovementCode";
+        it -> comp then SetComponentCodedValue(it, comp) "verbalMovementValue";
+      } "verbalMovementRule";
+    } "movementBehaviours";
+
+    // ── The same six watched for again at rest ───────────────────────────────
+    qr.item as g where (linkId = '/99296-6') then {
+      g.item as it where (linkId = '/99296-6/99297-4' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as code then {
+          it -> code.coding as coding then {
+            it -> coding.system = 'http://loinc.org' "codeSystem";
+            it -> coding.code = '99297-4' "codeCode";
+            it -> coding.display = 'Nonverbal vocal complaints while at rest' "codeDisplay";
+          } "codeCoding";
+        } "vocalRestCode";
+        it -> comp then SetComponentCodedValue(it, comp) "vocalRestValue";
+      } "vocalRestRule";
+
+      g.item as it where (linkId = '/99296-6/99298-2' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as code then {
+          it -> code.coding as coding then {
+            it -> coding.system = 'http://loinc.org' "codeSystem";
+            it -> coding.code = '99298-2' "codeCode";
+            it -> coding.display = 'Facial grimaces or winces while at rest' "codeDisplay";
+          } "codeCoding";
+        } "grimaceRestCode";
+        it -> comp then SetComponentCodedValue(it, comp) "grimaceRestValue";
+      } "grimaceRestRule";
+
+      g.item as it where (linkId = '/99296-6/99299-0' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as code then {
+          it -> code.coding as coding then {
+            it -> coding.system = 'http://loinc.org' "codeSystem";
+            it -> coding.code = '99299-0' "codeCode";
+            it -> coding.display = 'Bracing while at rest' "codeDisplay";
+          } "codeCoding";
+        } "bracingRestCode";
+        it -> comp then SetComponentCodedValue(it, comp) "bracingRestValue";
+      } "bracingRestRule";
+
+      g.item as it where (linkId = '/99296-6/99300-6' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as code then {
+          it -> code.coding as coding then {
+            it -> coding.system = 'http://loinc.org' "codeSystem";
+            it -> coding.code = '99300-6' "codeCode";
+            it -> coding.display = 'Restlessness while at rest' "codeDisplay";
+          } "codeCoding";
+        } "restlessRestCode";
+        it -> comp then SetComponentCodedValue(it, comp) "restlessRestValue";
+      } "restlessRestRule";
+
+      g.item as it where (linkId = '/99296-6/99301-4' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as code then {
+          it -> code.coding as coding then {
+            it -> coding.system = 'http://loinc.org' "codeSystem";
+            it -> coding.code = '99301-4' "codeCode";
+            it -> coding.display = 'Rubbing while at rest' "codeDisplay";
+          } "codeCoding";
+        } "rubbingRestCode";
+        it -> comp then SetComponentCodedValue(it, comp) "rubbingRestValue";
+      } "rubbingRestRule";
+
+      g.item as it where (linkId = '/99296-6/99302-2' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as code then {
+          it -> code.coding as coding then {
+            it -> coding.system = 'http://loinc.org' "codeSystem";
+            it -> coding.code = '99302-2' "codeCode";
+            it -> coding.display = 'Verbal complaints while at rest' "codeDisplay";
+          } "codeCoding";
+        } "verbalRestCode";
+        it -> comp then SetComponentCodedValue(it, comp) "verbalRestValue";
+      } "verbalRestRule";
+    } "restBehaviours";
+
+    qr -> obs then AddCNPIInterpretation(obs, obs) "interpretation";
+  } "cnpiRule";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// The band
+//
+// CNPI publishes no tiers. Feldt validated it as a count of pain behaviours in a
+// patient who cannot say they are in pain, and the guidance that comes with it is
+// that any behaviour seen is worth investigating -- not that four is twice as bad
+// as two. So this is two states, not a scale: none observed, or some observed.
+// Inventing cut-points to make it read like Braden and Morse would be putting
+// numbers in a clinician's hands that nobody published.
+//
+// It is an Observation.interpretation and not a RiskAssessment. Pain behaviour
+// seen at the bedside is a finding about the patient now, and RiskAssessment
+// models the likelihood of a future outcome. Braden and Morse do predict one --
+// a pressure injury, a fall -- and keep their RiskAssessments; this does not.
+//
+// N and A come from SGHIObservationInterpretation, the value set this IG binds
+// Observation.interpretation to, and they carry the two states exactly. Nothing
+// needed minting: unlike a severity scale, present-or-absent is what the
+// normality axis is for.
+// ─────────────────────────────────────────────────────────────────────────────
+
+group AddCNPIInterpretation(source obs : Observation, target tgt : Observation) {
+  obs where (value.ofType(integer) = 0) -> tgt.interpretation as interp then {
+    obs -> interp.coding as coding then {
+      obs -> coding.system = 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation' "interpSystem";
+      obs -> coding.code = 'N' "interpCode";
+      obs -> coding.display = 'Normal' "interpDisplay";
+    } "interpCoding";
+    obs -> interp.text = 'No pain behaviours observed' "interpText";
+  } "cnpiNone";
+
+  obs where (value.ofType(integer) >= 1) -> tgt.interpretation as interp then {
+    obs -> interp.coding as coding then {
+      obs -> coding.system = 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation' "interpSystem";
+      obs -> coding.code = 'A' "interpCode";
+      obs -> coding.display = 'Abnormal' "interpDisplay";
+    } "interpCoding";
+    obs -> interp.text = 'Pain behaviours observed - further assessment indicated' "interpText";
+  } "cnpiPresent";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared scaffolding. Repeated in each map rather than imported: the transform
+// engine resolves `imports` against whatever StructureMaps happen to be on the
+// server, and a form that stops extracting because a shared map was not
+// uploaded is a worse failure than a duplicated group.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Two notes on what the publisher's StructureMap validator says about this file.
+//
+// Source parameters below are left untyped on purpose. Writing `: Element` makes
+// the validator compare QuestionnaireResponse.item against the literal 'Element'
+// and report them as incompatible with each other, which is noise, not a finding.
+// Untyped, it says only that it cannot check the paths.
+//
+// `evaluate(context, expression)` is flagged as "takes 1 parameter but 2 were
+// found". Leave it. The FML parser in the same jar refuses the one-argument form
+// outright -- it wants a parameter, a comma, then the FHIRPath -- so the publisher
+// is objecting to what its own compiler emits. Two arguments is the only form that
+// compiles, and it is what the R5 transform engine executes.
+
+group BuildObsBase(source qr : QR, target obs : Observation, target entry) {
+  qr -> obs.id = uuid() then SetObservationFullUrl(obs, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Observation' "requestUrl";
+  } "entryRequest";
+
+  qr -> obs.status = 'final' "status";
+  qr.subject as s -> obs.subject = s "subject";
+  qr.encounter as e -> obs.encounter = e "encounter";
+  qr.authored as t -> obs.effective = t "effective";
+
+  qr.source as src -> obs.performer = src "performerFromSource";
+  qr where (source.exists().not()) then {
+    qr.author as a -> obs.performer = a "performerFromAuthor";
+  } "performerFallback";
+
+  // A stored response's id already reads "QuestionnaireResponse/<id>", so it is a
+  // relative reference as it stands. The hasValue() guard is what stops an
+  // unsaved response -- one posted straight to $extract rather than saved first --
+  // from writing "QuestionnaireResponse/null" into the record.
+  qr.id as qid where ($this.hasValue()) -> obs.derivedFrom = create('Reference') as ref, ref.reference = qid "linkQuestionnaireResponse";
+}
+
+group SetComponentCodedValue(source it, target comp) {
+  it.answer first as a then {
+    a.value as cv -> comp.value = create('CodeableConcept') as cc then {
+      cv -> cc.coding = cv "valueCoding";
+      cv.display as d -> cc.text = d "valueText";
+    } "codedValue";
+  } "componentAnswer";
+}
+
+group SetSurveyCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'survey' "categoryCode";
+      qr -> coding.display = 'Survey' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+group SetObservationFullUrl(source obs : Observation, target entry) {
+  obs.id as id -> entry.fullUrl = append(
+    'https://fhir.slade360.co.ke/fhir/Observation/',
+    id
+  ) "assignFullUrl";
+}
