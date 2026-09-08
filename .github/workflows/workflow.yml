@@ -17,15 +17,15 @@ jobs:
   build-and-publish:
     if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
-    
+
     strategy:
       fail-fast: false
       matrix:
-        environment: [testing, staging, prod]
+        environment: [testing, staging, prod, sandbox]
 
     environment:
       name: ${{ matrix.environment }}
-    
+
     steps:
       - name: Check Repository
         uses: actions/checkout@v4
@@ -33,8 +33,8 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
-        
+          node-version: "18"
+
       - name: Install Dependencies
         run: |
           sudo apt-get update
@@ -56,7 +56,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: "17"
 
       # Not ./_updatePublisher.sh: it prompts for confirmation, and with no TTY on the
       # runner every `read` returns empty, so it skips `mkdir input-cache`, prints
@@ -114,7 +114,7 @@ jobs:
           path: output/StructureMap-*.json
           if-no-files-found: error
           retention-days: 1
-          
+
       # The IG Publisher runs SUSHI itself - with `--out <dir>` and no `--snapshot` -
       # over the same folder, so every snapshot the build step produced is gone before
       # anything reads fsh-generated/. It does that in the first second of the run,
@@ -312,7 +312,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        environment: [testing, staging, prod]
+        environment: [testing, staging, prod, sandbox]
 
     environment:
       name: ${{ matrix.environment }}
