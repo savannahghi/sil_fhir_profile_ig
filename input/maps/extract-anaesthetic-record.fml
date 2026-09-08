@@ -1,0 +1,486 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractAnaestheticRecord"
+/// name = "ExtractAnaestheticRecord"
+/// title = "Anaesthetic Record Extraction"
+/// status = "active"
+/// description = "The anaesthetic chart out as: one Procedure for the anaesthesia itself, carrying the technique as its category, the anaesthetist as its performer and the start and completion times as its period; one Observation per timed reading taken through the case, each with its own effective time, because the paper chart is a graph and a graph is a time series; one MedicationAdministration per drug and per fluid, because those were given rather than ordered; and the estimated blood loss as its own Observation under the LOINC operation-note code, marked as an estimate."
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Observation as target
+uses "http://hl7.org/fhir/StructureDefinition/Procedure" alias Procedure as target
+uses "http://hl7.org/fhir/StructureDefinition/MedicationAdministration" alias MedicationAdministration as target
+
+group ExtractAnaestheticRecord(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  // ── The anaesthesia, as a Procedure ─────────────────────────────────────
+  // SNOMED 399097000, administration of anaesthesia, which was checked against
+  // tx.fhir.org. The technique -- general, spinal, block, sedation, local --
+  // becomes Procedure.category, because it classifies the procedure rather than
+  // being a separate finding about it.
+  //
+  // The performer is the anaesthetist named on the chart, not the response's
+  // source: an anaesthetic record is sometimes written up by someone else, and
+  // attributing the anaesthetic to the transcriber would be wrong.
+  qr.item as g where (linkId = 'case') -> bundle.entry as entry, entry.resource = create('Procedure') as proc then {
+    qr -> proc, entry then BuildProcedureBase(qr, proc, entry) "base";
+    g -> proc.status = 'completed' "status";
+    g -> proc.code as cc then {
+      g -> cc.coding as cg then {
+        g -> cg.system = 'http://snomed.info/sct' "sys";
+        g -> cg.code = '399097000' "cd";
+        g -> cg.display = 'Administration of anaesthesia' "dsp";
+      } "coding";
+    } "code";
+    qr.encounter as e -> proc.encounter = e "encounter";
+
+    // Start and completion as a Period. Both, when both are given: the duration
+    // is what an audit reads, and it can only be derived if both ends are there.
+    g.item as st where (linkId = 'case/started' and answer.value.exists()) then {
+      st.answer first as a then {
+        a.value as t -> proc.occurrence = create('Period') as per, per.start = t "periodStart";
+      } "answer";
+    } "startRule";
+
+    g.item as an where (linkId = 'case/anaesthetist' and answer.value.exists()) then {
+      an.answer first as a then {
+        a.value as ref -> proc.performer as p then {
+          ref -> p.actor = ref "actor";
+          ref -> p.function as fn then {
+            ref -> fn.coding as fcg then {
+              ref -> fcg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/practitioner-specialty-codesystem' "sys";
+              ref -> fcg.code = 'anaesthesia' "cd";
+            } "coding";
+          } "function";
+        } "performer";
+      } "answer";
+    } "anaesthetistRule";
+
+    g.item as sg where (linkId = 'case/surgeon' and answer.value.exists()) then {
+      sg.answer first as a then {
+        a.value as ref -> proc.performer as p then {
+          ref -> p.actor = ref "actor";
+          ref -> p.function as fn then {
+            ref -> fn.coding as fcg then {
+              ref -> fcg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/practitioner-specialty-codesystem' "sys";
+              ref -> fcg.code = 'general-surgery' "cd";
+            } "coding";
+          } "function";
+        } "performer";
+      } "answer";
+    } "surgeonRule";
+
+    g.item as sn where (linkId = 'case/scrub-nurse' and answer.value.exists()) then {
+      sn.answer first as a then {
+        a.value as ref -> proc.performer as p, p.actor = ref "scrubNurse";
+      } "answer";
+    } "scrubNurseRule";
+
+    // Type of surgery goes to Procedure.reason: this anaesthetic was given in
+    // order to allow that operation. Free text, because the theatre list is not
+    // a coded catalogue here.
+    g.item as ts where (linkId = 'case/type-of-surgery' and answer.value.exists()) then {
+      ts.answer first as a then {
+        a.value as txt -> proc.reason as rsn, rsn.concept as rc, rc.text = txt "reasonText";
+      } "answer";
+    } "typeOfSurgeryRule";
+
+    g.item as dx where (linkId = 'case/diagnosis' and answer.value.exists()) then {
+      dx.answer first as a then {
+        a.value as txt -> proc.note as n, n.text = txt "diagnosisNote";
+      } "answer";
+    } "diagnosisRule";
+
+    // Technique as Procedure.category, and the agents as notes. The agents are
+    // free text on the chart -- "propofol / sevo / fentanyl" on one line -- and
+    // splitting that into MedicationAdministrations would invent doses.
+    qr.item as tg where (linkId = 'technique') then {
+      tg.item as it where (linkId = 'technique/type' and answer.value.exists()) then {
+        it.answer first as a then {
+          a.value as cv -> proc.category as cat then {
+            cv -> cat.coding = cv "categoryCoding";
+            cv.display as d -> cat.text = d "categoryText";
+          } "category";
+        } "answer";
+      } "techniqueTypeRule";
+      tg.item as it where (linkId = 'technique/premedication') then {
+        it.answer first as a then {
+          a.value as txt -> proc.note as n, n.text = txt "note";
+        } "answer";
+      } "technique_premedication";
+      tg.item as it where (linkId = 'technique/induction') then {
+        it.answer first as a then {
+          a.value as txt -> proc.note as n, n.text = txt "note";
+        } "answer";
+      } "technique_induction";
+      tg.item as it where (linkId = 'technique/maintenance') then {
+        it.answer first as a then {
+          a.value as txt -> proc.note as n, n.text = txt "note";
+        } "answer";
+      } "technique_maintenance";
+      tg.item as it where (linkId = 'technique/position') then {
+        it.answer first as a then {
+          a.value as txt -> proc.note as n, n.text = txt "note";
+        } "answer";
+      } "technique_position";
+    } "techniqueGroup";
+
+    // The outcome sections. `outcome` takes the result of the operation;
+    // reversal and post-operative instructions are what recovery has to act
+    // on, so they are followUp rather than notes -- a note is read, a followUp
+    // is a stated instruction.
+    qr.item as og where (linkId = 'outcome') then {
+      og.item as it where (linkId = 'outcome/result-and-remarks' and answer.value.exists()) then {
+        it.answer first as a then {
+          a.value as txt -> proc.outcome as oc, oc.text = txt "outcomeText";
+        } "answer";
+      } "outcomeRule";
+      og.item as it where (linkId = 'outcome/reversal-notes' and answer.value.exists()) then {
+        it.answer first as a then {
+          a.value as txt -> proc.followUp as fu, fu.text = txt "reversalText";
+        } "answer";
+      } "reversalRule";
+      og.item as it where (linkId = 'outcome/post-operative-instructions' and answer.value.exists()) then {
+        it.answer first as a then {
+          a.value as txt -> proc.followUp as fu, fu.text = txt "instructionsText";
+        } "answer";
+      } "instructionsRule";
+    } "outcomeGroup";
+  } "anaesthesiaProcedure";
+
+  // ── The observations taken through the case ─────────────────────────────
+  // One Observation per reading, each with the reading's own time as its
+  // effective time. The chart is a graph at half-hourly gridlines; collapsing
+  // it into one Observation with thirty components would lose the axis the
+  // graph exists for.
+  //
+  // The time on the chart is a clock time with no date. It is written to
+  // Observation.effective as given; the case's own date is on the Procedure
+  // this Observation sits beside, and inventing a date here would be a guess
+  // that reads as a fact.
+  qr.item as g where (linkId = 'observation' and item.answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+    qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+    qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+    g -> obs.code as cc then {
+      g -> cc.coding as cg then {
+        g -> cg.system = 'http://loinc.org' "sys";
+        g -> cg.code = '8716-3' "cd";
+        g -> cg.display = 'Vital signs note' "dsp";
+      } "coding";
+      g -> cc.text = 'Observation during anaesthesia' "codeText";
+    } "code";
+    g.item as tm where (linkId = 'observation/time' and answer.value.exists()) then {
+      tm.answer first as a then {
+        a.value as t -> obs.note as n, n.text = 'Reading taken at the time recorded on the anaesthetic chart' "timeNote";
+      } "answer";
+    } "readingTimeRule";
+    g.item as it where (linkId = 'observation/systolic' and answer.value.exists()) -> obs.component as comp then {
+      it -> comp.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '8480-6' "cd";
+          it -> cg.display = 'Systolic blood pressure' "dsp";
+        } "coding";
+      } "code";
+      it -> comp then SetComponentValue(it, comp) "value";
+    } "comp_8480_6";
+    g.item as it where (linkId = 'observation/diastolic' and answer.value.exists()) -> obs.component as comp then {
+      it -> comp.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '8462-4' "cd";
+          it -> cg.display = 'Diastolic blood pressure' "dsp";
+        } "coding";
+      } "code";
+      it -> comp then SetComponentValue(it, comp) "value";
+    } "comp_8462_4";
+    g.item as it where (linkId = 'observation/pulse' and answer.value.exists()) -> obs.component as comp then {
+      it -> comp.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '8867-4' "cd";
+          it -> cg.display = 'Heart rate' "dsp";
+        } "coding";
+      } "code";
+      it -> comp then SetComponentValue(it, comp) "value";
+    } "comp_8867_4";
+    g.item as it where (linkId = 'observation/oxygen-saturation' and answer.value.exists()) -> obs.component as comp then {
+      it -> comp.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '59408-5' "cd";
+          it -> cg.display = 'Oxygen saturation in Arterial blood by Pulse oximetry' "dsp";
+        } "coding";
+      } "code";
+      it -> comp then SetComponentValue(it, comp) "value";
+    } "comp_59408_5";
+  } "intraOperativeReading";
+
+  // ── Drugs and fluids given ──────────────────────────────────────────────
+  // MedicationAdministration, not MedicationRequest. These were given, in
+  // theatre, by the anaesthetist; there was no order to fulfil and no pharmacy
+  // in the loop. `status = 'completed'` for the same reason.
+  //
+  // `medication.concept.text` carries the drug name as written. The hospital's
+  // formulary is not coded and a guessed RxNorm or ATC code on a cytotoxic or an
+  // induction agent is a patient-safety risk, not a data-quality nicety.
+  qr.item as g where (linkId = 'drug' and item.where(linkId = 'drug/name').answer.value.exists()) -> bundle.entry as entry, entry.resource = create('MedicationAdministration') as ma then {
+    qr -> ma, entry then BuildMedicationAdministrationBase(qr, ma, entry) "base";
+    g -> ma.status = 'completed' "status";
+    qr.encounter as e -> ma.encounter = e "encounter";
+    qr.source as src -> ma.performer as p, p.actor = create('CodeableReference') as cr, cr.reference = src "performer";
+    g.item as it where (linkId = 'drug/name') then {
+      it.answer first as a then {
+        a.value as txt -> ma.medication as med, med.concept as mc, mc.text = txt "medicationText";
+      } "answer";
+    } "drugNameRule";
+    g.item as it where (linkId = 'drug/dose' and answer.value.exists()) then {
+      it.answer first as a then {
+        a.value as txt -> ma.dosage as dos, dos.text = txt "dosageText";
+      } "answer";
+    } "drugDoseRule";
+    g.item as it where (linkId = 'drug/time' and answer.value.exists()) then {
+      it.answer first as a then {
+        a.value as t -> ma.note as n, n.text = 'Given at the time recorded on the anaesthetic chart' "timeNote";
+      } "answer";
+    } "drugTimeRule";
+    qr.authored as t -> ma.occurence = t "occurrence";
+  } "drugAdministration";
+
+  qr.item as g where (linkId = 'iv-fluid' and item.where(linkId = 'iv-fluid/name').answer.value.exists()) -> bundle.entry as entry, entry.resource = create('MedicationAdministration') as ma then {
+    qr -> ma, entry then BuildMedicationAdministrationBase(qr, ma, entry) "base";
+    g -> ma.status = 'completed' "status";
+    qr.encounter as e -> ma.encounter = e "encounter";
+    qr.source as src -> ma.performer as p, p.actor = create('CodeableReference') as cr, cr.reference = src "performer";
+    g.item as it where (linkId = 'iv-fluid/name') then {
+      it.answer first as a then {
+        a.value as txt -> ma.medication as med, med.concept as mc, mc.text = txt "medicationText";
+      } "answer";
+    } "fluidNameRule";
+    // Guarded on the answer being a Quantity, not merely present. Dosage.dose
+    // takes a Quantity or a Range and nothing else, so a client that submits
+    // a bare string there fails the rule and takes the whole extraction with
+    // it -- which is exactly what the questionnaire tester does: it renders a
+    // `quantity` item as a plain text box and submits valueString "5".
+    // `$validate` on such a response says so plainly ("Answer value must be
+    // of the type Quantity not string"); one non-conformant field should not
+    // cost every other resource on the form.
+    g.item as it where (linkId = 'iv-fluid/volume' and answer.value.ofType(Quantity).exists()) then {
+      it.answer first as a then {
+        a.value as v -> ma.dosage as dos, dos.dose = v "dosageVolume";
+      } "answer";
+    } "fluidVolumeRule";
+    qr.authored as t -> ma.occurence = t "occurrence";
+    g -> ma.note as n, n.text = 'Intravenous fluid given during anaesthesia' "fluidNote";
+  } "fluidAdministration";
+
+  // ── Estimated blood loss ────────────────────────────────────────────────
+  // LOINC 8717-1, the operation note's own term for it, which is exactly what
+  // this is. The note says it is an estimate: the figure drives a transfusion
+  // decision and a reader has to know it was eyeballed, not measured.
+  qr.item as it where (linkId = 'estimated-blood-loss' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+    qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+    qr -> obs then SetProcedureCategory(qr, obs) "category";
+    it -> obs.code as cc then {
+      it -> cc.coding as cg then {
+        it -> cg.system = 'http://loinc.org' "sys";
+        it -> cg.code = '8717-1' "cd";
+        it -> cg.display = 'Surgical operation note estimated blood loss [Volume]' "dsp";
+      } "coding";
+    } "code";
+    it.answer first as a then {
+      a.value as v -> obs.value = v "set";
+    } "answer";
+    it -> obs.note as n, n.text = 'An estimate made in theatre, not a measured volume.' "estimateNote";
+  } "bloodLossObservation";
+
+  // ── Anaesthesia duration ────────────────────────────────────────────────
+  // Extracted only when the form carries it. The questionnaire leaves the field
+  // read-only and expects the client to derive it from the start and completion
+  // times; where the client did, that value is authoritative and is recorded
+  // under LOINC 89874-2. Where it did not, nothing is written -- the Procedure's
+  // period already holds both ends, and a duration computed here from a clock
+  // time with no date could be a day out.
+  qr.item as g where (linkId = 'case') then {
+    g.item as it where (linkId = 'case/duration' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetProcedureCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '89874-2' "cd";
+          it -> cg.display = 'Anesthesia duration' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as v -> obs.value = v "set";
+      } "answer";
+    } "durationObservation";
+  } "durationGroup";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared scaffolding. Repeated in each map rather than imported: the transform
+// engine resolves `imports` against whatever StructureMaps happen to be on the
+// server, and a form that stops extracting because a shared map was not
+// uploaded is a worse failure than a duplicated group.
+//
+// Two notes on what the publisher's StructureMap validator says about this file.
+//
+// Source parameters below are left untyped on purpose. Writing `: Element` makes
+// the validator compare QuestionnaireResponse.item against the literal 'Element'
+// and report them as incompatible with each other, which is noise, not a finding.
+//
+// `evaluate(context, expression)` is flagged as "takes 1 parameter but 2 were
+// found". Leave it. The FML parser in the same jar refuses the one-argument form
+// outright -- it wants a parameter, a comma, then the FHIRPath -- so the
+// publisher is objecting to what its own compiler emits. Two arguments is the
+// only form that compiles, and it is what the R5 transform engine executes.
+// ─────────────────────────────────────────────────────────────────────────────
+
+group BuildObsBase(source qr : QR, target obs : Observation, target entry) {
+  qr -> obs then SetResponseProvenance(qr, obs) "responseProvenance";
+  qr -> obs.id = uuid() then SetObservationFullUrl(obs, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Observation' "requestUrl";
+  } "entryRequest";
+
+  qr -> obs.status = 'final' "status";
+  qr.subject as s -> obs.subject = s "subject";
+  qr.encounter as e -> obs.encounter = e "encounter";
+  qr.authored as t -> obs.effective = t "effective";
+
+  qr.source as src -> obs.performer = src "performerFromSource";
+  qr where (source.exists().not()) then {
+    qr.author as a -> obs.performer = a "performerFromAuthor";
+  } "performerFallback";
+
+  // A stored response's id already reads "QuestionnaireResponse/<id>", so it is
+  // a relative reference as it stands. The hasValue() guard is what stops an
+  // unsaved response -- one posted straight to $extract rather than saved first
+  // -- from writing "QuestionnaireResponse/null" into the record.
+  qr.id as qid where ($this.hasValue()) -> obs.derivedFrom = create('Reference') as ref, ref.reference = qid "linkQuestionnaireResponse";
+}
+
+group SetObservationFullUrl(source obs : Observation, target entry) {
+  obs.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/Observation/', id) "assignFullUrl";
+}
+
+// The two answer shapes a component can carry. Both read the answer through the
+// untyped `.value` accessor: reading `valueCoding` or `valueQuantity` by its
+// typed property name fails at transform time on HAPI R5 with "Attempt to read
+// invalid property ... on QuestionnaireResponse.item.answer".
+group SetComponentCodedValue(source it, target comp) {
+  it.answer first as a then {
+    a.value as cv -> comp.value = create('CodeableConcept') as cc then {
+      cv -> cc.coding = cv "valueCoding";
+      cv.display as d -> cc.text = d "valueText";
+    } "codedValue";
+  } "componentAnswer";
+}
+
+group SetComponentValue(source it, target comp) {
+  it.answer first as a then {
+    a.value as v -> comp.value = v "plainValue";
+  } "componentAnswer";
+}
+
+group SetSurveyCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'survey' "categoryCode";
+      qr -> coding.display = 'Survey' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+group SetVitalSignsCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'vital-signs' "categoryCode";
+      qr -> coding.display = 'Vital Signs' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+group SetProcedureCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'procedure' "categoryCode";
+      qr -> coding.display = 'Procedure' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+group BuildProcedureBase(source qr : QR, target r : Procedure, target entry) {
+  qr -> r then SetResponseProvenance(qr, r) "responseProvenance";
+  qr -> r.id = uuid() then SetProcedureFullUrl(r, entry) "idAndFullUrl";
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Procedure' "requestUrl";
+  } "entryRequest";
+
+  // The response's own time, as a floor, the way BuildObsBase does it. A rule
+  // that reads a time off the form overwrites this; without it a procedure whose
+  // date column was taken off on review has no time at all, and a procedure with
+  // no time cannot be ordered against the rest of the admission.
+  qr.authored as t -> r.occurrence = t "occurrenceFallback";
+  qr.subject as s -> r.subject = s "subject";
+}
+
+group SetProcedureFullUrl(source r : Procedure, target entry) {
+  r.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/Procedure/', id) "assignFullUrl";
+}
+
+group BuildMedicationAdministrationBase(source qr : QR, target r : MedicationAdministration, target entry) {
+  qr -> r then SetResponseProvenance(qr, r) "responseProvenance";
+  qr -> r.id = uuid() then SetMedicationAdministrationFullUrl(r, entry) "idAndFullUrl";
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'MedicationAdministration' "requestUrl";
+  } "entryRequest";
+  qr.subject as s -> r.subject = s "subject";
+
+  // The response's own time, as a floor. A row that names the time it was given
+  // overwrites this; a form whose time column was taken off on review would
+  // otherwise produce an administration with no time at all, which is not a
+  // record of an administration. Same fallback BuildObsBase already applies.
+  qr.authored as t -> r.occurence = t "occurrenceFallback";
+}
+
+group SetMedicationAdministrationFullUrl(source r : MedicationAdministration, target entry) {
+  r.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/MedicationAdministration/', id) "assignFullUrl";
+}
+
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+//
+// Two tags on everything this map creates. The first says which questionnaire
+// produced it, so a form that reopens mid-admission recalls its own earlier
+// entries and not another form's. The second copies the tenant tags off the
+// response, because nothing else on the path puts them there.
+//
+// The code is the form's document type, not the questionnaire's id: every
+// environment mints its own ids, and there is only one set of maps, so an id
+// here would tie the tag to whichever environment stamped it.
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+
+group SetResponseProvenance(source qr : QR, target r) {
+  qr -> r.meta as m then {
+    qr -> m.tag as t then {
+      qr -> t.system = 'http://slade360edi.com/questionnaire-provenance' "provenanceSystem";
+      qr -> t.code = 'anaesthetic-record' "provenanceCode";
+      qr -> t.display = 'Anaesthetic record' "provenanceDisplay";
+    } "provenanceTag";
+  } "provenanceMeta";
+
+  // Every tag the response carries, onto the resource. `meta` is 0..1, so this
+  // lands on the same meta the rule above created rather than a second one.
+  qr.meta as qm then {
+    qm.tag as qt -> r.meta as m, m.tag = qt "copyTag";
+  } "tenantTags";
+}

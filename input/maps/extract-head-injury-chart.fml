@@ -1,0 +1,550 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractHeadInjuryChart"
+/// name = "ExtractHeadInjuryChart"
+/// title = "Head Injury and Craniotomy Chart Extraction"
+/// status = "active"
+/// description = "The conscious level goes out under the chart\'s own four-point scale and a local code, not as a Glasgow Coma Scale total. This sheet prints four levels with its own wording -- fully conscious, conscious but confused, semi conscious, coma -- and forcing them onto GCS or AVPU would invent a precision the paper does not have. Coma carries a critically-low interpretation because that is the row that gets someone to theatre. Pupils are one Observation per eye with a SNOMED body site, because which side is dilating is the whole question, and movement and paralysis are recorded limb by limb for the same reason."
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Observation as target
+
+group ExtractHeadInjuryChart(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  // ── Other injuries ──────────────────────────────────────────────────────
+  // A repeating coded answer, so "chest and spine" stays a different patient
+  // from "chest".
+  qr.item as g where (linkId = 'other-injuries') then {
+    g.item as it where (linkId = 'other-injuries/site' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetExamCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'injury-other-injury-present' "cd";
+          it -> cg.display = 'Other injury present' "dsp";
+        } "coding";
+      } "code";
+      it.answer as a then {
+        a.value as cv -> obs.component as comp then {
+          cv -> comp.code as cc then {
+            cv -> cc.coding as cg then {
+              cv -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+              cv -> cg.code = 'injury-site' "cd";
+              cv -> cg.display = 'Site of another injury' "dsp";
+            } "coding";
+          } "code";
+          cv -> comp.value = create('CodeableConcept') as vc then {
+            cv -> vc.coding = cv "valueCoding";
+            cv.display as d -> vc.text = d "valueText";
+          } "codedValue";
+        } "siteComponent";
+      } "sites";
+      g.item as it where (linkId = 'other-injuries/detail') then {
+        it.answer first as a then {
+          a.value as txt -> obs.note as n, n.text = txt "text";
+        } "answer";
+      } "note";
+    } "otherInjuries";
+  } "otherInjuriesGroup";
+
+  // ── One round ───────────────────────────────────────────────────────────
+  qr.item as g where (linkId = 'round') then {
+    g.item as it where (linkId = 'round/temperature' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '8310-5' "cd";
+          it -> cg.display = 'Body temperature' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as v -> obs.value = v "value";
+      } "answer";
+      g -> obs then SetHeadInjuryRound(g, obs) "roundContext";
+    } "hivital_8310_5";
+
+    g.item as it where (linkId = 'round/pulse' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '8867-4' "cd";
+          it -> cg.display = 'Heart rate' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as v -> obs.value = v "value";
+      } "answer";
+      g -> obs then SetHeadInjuryRound(g, obs) "roundContext";
+    } "hivital_8867_4";
+
+    g.item as it where (linkId = 'round/respiratory-rate' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '9279-1' "cd";
+          it -> cg.display = 'Respiratory rate' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as v -> obs.value = v "value";
+      } "answer";
+      g -> obs then SetHeadInjuryRound(g, obs) "roundContext";
+    } "hivital_9279_1";
+
+    g.item as it where (linkId = 'round/blood-pressure' and item.answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '85354-9' "cd";
+          it -> cg.display = 'Blood pressure panel with all children optional' "dsp";
+        } "coding";
+      } "code";
+      it.item as sbp where (linkId = 'round/blood-pressure/systolic' and answer.value.ofType(Quantity).exists()) -> obs.component as comp then {
+        sbp -> comp.code as cc then {
+          sbp -> cc.coding as cg then {
+            sbp -> cg.system = 'http://loinc.org' "sys";
+            sbp -> cg.code = '8480-6' "cd";
+            sbp -> cg.display = 'Systolic blood pressure' "dsp";
+          } "coding";
+        } "code";
+        sbp -> comp then SetComponentValue(sbp, comp) "value";
+      } "comp_8480_6";
+      it.item as dbp where (linkId = 'round/blood-pressure/diastolic' and answer.value.ofType(Quantity).exists()) -> obs.component as comp then {
+        dbp -> comp.code as cc then {
+          dbp -> cc.coding as cg then {
+            dbp -> cg.system = 'http://loinc.org' "sys";
+            dbp -> cg.code = '8462-4' "cd";
+            dbp -> cg.display = 'Diastolic blood pressure' "dsp";
+          } "coding";
+        } "code";
+        dbp -> comp then SetComponentValue(dbp, comp) "value";
+      } "comp_8462_4";
+      g -> obs then SetHeadInjuryRound(g, obs) "roundContext";
+    } "roundBloodPressure";
+
+    // ── The conscious level ───────────────────────────────────────────────
+    // Coma is flagged critically low. That row is what gets someone to CT and
+    // then to theatre, and a reader should not have to interpret the wording.
+    g.item as it where (linkId = 'round/conscious-level' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetExamCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'head-injury-conscious-level-on-the-head-injury-chart' "cd";
+          it -> cg.display = 'Conscious level on the head injury chart' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as cv -> obs.value = create('CodeableConcept') as vc then {
+          cv -> vc.coding = cv "valueCoding";
+          cv.display as d -> vc.text = d "valueText";
+        } "codedValue";
+      } "answer";
+      it.answer first as a then {
+        a.value as cv where (code = 'conscious-coma') -> obs.interpretation as interp then {
+          cv -> interp.coding as icg then {
+            cv -> icg.system = 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation' "sys";
+            cv -> icg.code = 'LL' "cd";
+            cv -> icg.display = 'Critically low' "dsp";
+          } "coding";
+        } "comaInterp";
+      } "comaInterpretation";
+      it.answer first as a then {
+        a.value as cv where (code = 'conscious-semi') -> obs.interpretation as interp then {
+          cv -> interp.coding as icg then {
+            cv -> icg.system = 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation' "sys";
+            cv -> icg.code = 'A' "cd";
+            cv -> icg.display = 'Abnormal' "dsp";
+          } "coding";
+        } "semiInterp";
+      } "semiInterpretation";
+      g -> obs then SetHeadInjuryRound(g, obs) "roundContext";
+    } "consciousLevel";
+
+    // ── Fits ──────────────────────────────────────────────────────────────
+    g.item as it where (linkId = 'round/fits' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetExamCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://snomed.info/sct' "sys";
+          it -> cg.code = '91175000' "cd";
+          it -> cg.display = 'Seizure' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as cv -> obs.value = create('CodeableConcept') as vc then {
+          cv -> vc.coding = cv "valueCoding";
+          cv.display as d -> vc.text = d "valueText";
+        } "codedValue";
+      } "answer";
+      it.answer first as a then {
+        a.value as cv where (code = 'finding-present') -> obs.interpretation as interp then {
+          cv -> interp.coding as icg then {
+            cv -> icg.system = 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation' "sys";
+            cv -> icg.code = 'A' "cd";
+            cv -> icg.display = 'Abnormal' "dsp";
+          } "coding";
+        } "fitInterp";
+      } "fitInterpretation";
+      g -> obs then SetHeadInjuryRound(g, obs) "roundContext";
+    } "fits";
+
+    g.item as pg where (linkId = 'round/right-pupil' and item.answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetExamCategory(qr, obs) "category";
+      pg -> obs.code as cc then {
+        pg -> cc.coding as cg then {
+          pg -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          pg -> cg.code = 'neuro-right-pupil-assessment' "cd";
+          pg -> cg.display = 'Right pupil assessment' "dsp";
+        } "coding";
+      } "code";
+      pg -> obs.bodySite as bsc then {
+        pg -> bsc.coding as bcg then {
+          pg -> bcg.system = 'http://snomed.info/sct' "sys";
+          pg -> bcg.code = '18944008' "cd";
+          pg -> bcg.display = 'Right eye structure' "dsp";
+        } "coding";
+      } "bodySite";
+      pg.item as it where (linkId = 'round/right-pupil/size' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'neuro-pupil-size' "cd";
+            it -> cg.display = 'Pupil size' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentValue(it, comp) "value";
+      } "comp_neuro_pupil_size";
+      pg.item as it where (linkId = 'round/right-pupil/reaction' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'neuro-pupil-reaction' "cd";
+            it -> cg.display = 'Pupil reaction' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentCodedValue(it, comp) "value";
+      } "comp_neuro_pupil_reaction";
+      g -> obs then SetHeadInjuryRound(g, obs) "roundContext";
+    } "pupil_right";
+
+    g.item as pg where (linkId = 'round/left-pupil' and item.answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetExamCategory(qr, obs) "category";
+      pg -> obs.code as cc then {
+        pg -> cc.coding as cg then {
+          pg -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          pg -> cg.code = 'neuro-left-pupil-assessment' "cd";
+          pg -> cg.display = 'Left pupil assessment' "dsp";
+        } "coding";
+      } "code";
+      pg -> obs.bodySite as bsc then {
+        pg -> bsc.coding as bcg then {
+          pg -> bcg.system = 'http://snomed.info/sct' "sys";
+          pg -> bcg.code = '8966001' "cd";
+          pg -> bcg.display = 'Left eye structure' "dsp";
+        } "coding";
+      } "bodySite";
+      pg.item as it where (linkId = 'round/left-pupil/size' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'neuro-pupil-size' "cd";
+            it -> cg.display = 'Pupil size' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentValue(it, comp) "value";
+      } "comp_neuro_pupil_size2";
+      pg.item as it where (linkId = 'round/left-pupil/reaction' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'neuro-pupil-reaction' "cd";
+            it -> cg.display = 'Pupil reaction' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentCodedValue(it, comp) "value";
+      } "comp_neuro_pupil_reaction2";
+      g -> obs then SetHeadInjuryRound(g, obs) "roundContext";
+    } "pupil_left";
+
+    // ── Movement and paralysis, limb by limb ──────────────────────────────
+    // Two panels rather than eight loose Observations, and limb by limb rather
+    // than one summary, because a new weakness on one side is the finding and a
+    // summary cannot carry it.
+    g.item as m where (linkId = 'round/spontaneous-movement' and item.answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetExamCategory(qr, obs) "category";
+      m -> obs.code as cc then {
+        m -> cc.coding as cg then {
+          m -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          m -> cg.code = 'head-injury-spontaneous-movement-by-limb' "cd";
+          m -> cg.display = 'Spontaneous movement by limb' "dsp";
+        } "coding";
+      } "code";
+      m.item as it where (linkId = 'round/spontaneous-movement/right-arm' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'head-injury-spontaneous-movement-right-arm' "cd";
+            it -> cg.display = 'Spontaneous movement, right arm' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentCodedValue(it, comp) "value";
+      } "comp_head_injury_spontaneous_movement_right_arm";
+      m.item as it where (linkId = 'round/spontaneous-movement/right-leg' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'head-injury-spontaneous-movement-right-leg' "cd";
+            it -> cg.display = 'Spontaneous movement, right leg' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentCodedValue(it, comp) "value";
+      } "comp_head_injury_spontaneous_movement_right_leg";
+      m.item as it where (linkId = 'round/spontaneous-movement/left-arm' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'head-injury-spontaneous-movement-left-arm' "cd";
+            it -> cg.display = 'Spontaneous movement, left arm' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentCodedValue(it, comp) "value";
+      } "comp_head_injury_spontaneous_movement_left_arm";
+      m.item as it where (linkId = 'round/spontaneous-movement/left-leg' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'head-injury-spontaneous-movement-left-leg' "cd";
+            it -> cg.display = 'Spontaneous movement, left leg' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentCodedValue(it, comp) "value";
+      } "comp_head_injury_spontaneous_movement_left_leg";
+      g -> obs then SetHeadInjuryRound(g, obs) "roundContext";
+    } "spontaneousMovement";
+
+    g.item as p where (linkId = 'round/paralysis' and item.answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetExamCategory(qr, obs) "category";
+      p -> obs.code as cc then {
+        p -> cc.coding as cg then {
+          p -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          p -> cg.code = 'head-injury-paralysis-by-limb' "cd";
+          p -> cg.display = 'Paralysis by limb' "dsp";
+        } "coding";
+      } "code";
+      p.item as it where (linkId = 'round/paralysis/right-arm' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'head-injury-paralysis-right-arm' "cd";
+            it -> cg.display = 'Paralysis, right arm' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentCodedValue(it, comp) "value";
+      } "comp_head_injury_paralysis_right_arm";
+      p.item as it where (linkId = 'round/paralysis/right-leg' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'head-injury-paralysis-right-leg' "cd";
+            it -> cg.display = 'Paralysis, right leg' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentCodedValue(it, comp) "value";
+      } "comp_head_injury_paralysis_right_leg";
+      p.item as it where (linkId = 'round/paralysis/left-arm' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'head-injury-paralysis-left-arm' "cd";
+            it -> cg.display = 'Paralysis, left arm' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentCodedValue(it, comp) "value";
+      } "comp_head_injury_paralysis_left_arm";
+      p.item as it where (linkId = 'round/paralysis/left-leg' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'head-injury-paralysis-left-leg' "cd";
+            it -> cg.display = 'Paralysis, left leg' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentCodedValue(it, comp) "value";
+      } "comp_head_injury_paralysis_left_leg";
+      g -> obs then SetHeadInjuryRound(g, obs) "roundContext";
+    } "paralysis";
+    g.item as it where (linkId = 'round/remarks' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'head-injury-remarks-on-a-head-injury-round' "cd";
+          it -> cg.display = 'Remarks on a head injury round' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as txt -> obs.note as n, n.text = txt "text";
+      } "answer";
+    } "narr_head_injury_remarks_on_a_head_injury_round";
+
+  } "roundRows";
+}
+
+// The round's own timestamp on every Observation from it. Unlike the ICU
+// charts this sheet prints a full date and time per column rather than a clock
+// hour, so it becomes Observation.effective properly.
+group SetHeadInjuryRound(source g, target obs : Observation) {
+  g.item as it where (linkId = 'round/at' and answer.value.exists()) then {
+    it.answer first as a then {
+      a.value as v -> obs.effective = v "effective";
+    } "answer";
+  } "roundTimeRule";
+  g.item as it where (linkId = 'round/recorded-by' and answer.value.exists()) then {
+    it.answer first as a then {
+      a.value as ref -> obs.performer = ref "performer";
+    } "answer";
+  } "recordedByRule";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared scaffolding. Repeated in each map rather than imported: the transform
+// engine resolves `imports` against whatever StructureMaps happen to be on the
+// server, and a form that stops extracting because a shared map was not
+// uploaded is a worse failure than a duplicated group.
+//
+// Two notes on what the publisher's StructureMap validator says about this file.
+//
+// Source parameters below are left untyped on purpose. Writing `: Element` makes
+// the validator compare QuestionnaireResponse.item against the literal 'Element'
+// and report them as incompatible with each other, which is noise, not a finding.
+//
+// `evaluate(context, expression)` is flagged as "takes 1 parameter but 2 were
+// found". Leave it. The FML parser in the same jar refuses the one-argument form
+// outright -- it wants a parameter, a comma, then the FHIRPath -- so the
+// publisher is objecting to what its own compiler emits. Two arguments is the
+// only form that compiles, and it is what the R5 transform engine executes.
+// ─────────────────────────────────────────────────────────────────────────────
+
+group BuildObsBase(source qr : QR, target obs : Observation, target entry) {
+  qr -> obs then SetResponseProvenance(qr, obs) "responseProvenance";
+  qr -> obs.id = uuid() then SetObservationFullUrl(obs, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Observation' "requestUrl";
+  } "entryRequest";
+
+  qr -> obs.status = 'final' "status";
+  qr.subject as s -> obs.subject = s "subject";
+  qr.encounter as e -> obs.encounter = e "encounter";
+  qr.authored as t -> obs.effective = t "effective";
+
+  qr.source as src -> obs.performer = src "performerFromSource";
+  qr where (source.exists().not()) then {
+    qr.author as a -> obs.performer = a "performerFromAuthor";
+  } "performerFallback";
+
+  // A stored response's id already reads "QuestionnaireResponse/<id>", so it is
+  // a relative reference as it stands. The hasValue() guard is what stops an
+  // unsaved response -- one posted straight to $extract rather than saved first
+  // -- from writing "QuestionnaireResponse/null" into the record.
+  qr.id as qid where ($this.hasValue()) -> obs.derivedFrom = create('Reference') as ref, ref.reference = qid "linkQuestionnaireResponse";
+}
+
+group SetObservationFullUrl(source obs : Observation, target entry) {
+  obs.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/Observation/', id) "assignFullUrl";
+}
+
+// The two answer shapes a component can carry. Both read the answer through the
+// untyped `.value` accessor: reading `valueCoding` or `valueQuantity` by its
+// typed property name fails at transform time on HAPI R5 with "Attempt to read
+// invalid property ... on QuestionnaireResponse.item.answer".
+group SetComponentCodedValue(source it, target comp) {
+  it.answer first as a then {
+    a.value as cv -> comp.value = create('CodeableConcept') as cc then {
+      cv -> cc.coding = cv "valueCoding";
+      cv.display as d -> cc.text = d "valueText";
+    } "codedValue";
+  } "componentAnswer";
+}
+
+group SetComponentValue(source it, target comp) {
+  it.answer first as a then {
+    a.value as v -> comp.value = v "plainValue";
+  } "componentAnswer";
+}
+
+group SetSurveyCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'survey' "categoryCode";
+      qr -> coding.display = 'Survey' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+group SetVitalSignsCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'vital-signs' "categoryCode";
+      qr -> coding.display = 'Vital Signs' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+group SetExamCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'exam' "categoryCode";
+      qr -> coding.display = 'Exam' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+//
+// Two tags on everything this map creates. The first says which questionnaire
+// produced it, so a form that reopens mid-admission recalls its own earlier
+// entries and not another form's. The second copies the tenant tags off the
+// response, because nothing else on the path puts them there.
+//
+// The code is the form's document type, not the questionnaire's id: every
+// environment mints its own ids, and there is only one set of maps, so an id
+// here would tie the tag to whichever environment stamped it.
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+
+group SetResponseProvenance(source qr : QR, target r) {
+  qr -> r.meta as m then {
+    qr -> m.tag as t then {
+      qr -> t.system = 'http://slade360edi.com/questionnaire-provenance' "provenanceSystem";
+      qr -> t.code = 'head-injury-chart' "provenanceCode";
+      qr -> t.display = 'Head injury and craniotomy chart' "provenanceDisplay";
+    } "provenanceTag";
+  } "provenanceMeta";
+
+  // Every tag the response carries, onto the resource. `meta` is 0..1, so this
+  // lands on the same meta the rule above created rather than a second one.
+  qr.meta as qm then {
+    qm.tag as qt -> r.meta as m, m.tag = qt "copyTag";
+  } "tenantTags";
+}

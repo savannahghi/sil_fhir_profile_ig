@@ -1,0 +1,286 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractPsychologicalReview"
+/// name = "ExtractPsychologicalReview"
+/// title = " Review Extraction"
+/// status = "active"
+/// description = "A SOAP note extracts as a ClinicalImpression whose summary is the assessment -- that is what ClinicalImpression.summary is for -- with the subjective and objective sections as Observations under LOINC 61150-9 and 61149-1 that the impression names in supportingInfo, and the plan as a CarePlan. Four resources rather than one narrative, because the point of SOAP is that a reader can find the assessment without reading the subjective account first, and because a plan a counsellor set at session four is a thing the next session has to review. LOINC has Subjective and Objective Narrative but no plain Assessment or Plan term, so those two carry local concept codes."
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Observation as target
+uses "http://hl7.org/fhir/StructureDefinition/ClinicalImpression" alias ClinicalImpression as target
+uses "http://hl7.org/fhir/StructureDefinition/CarePlan" alias CarePlan as target
+
+group ExtractPsychologicalReview(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  qr.item as g where (linkId = 'session') then {
+    qr -> bundle.entry as entry, entry.resource = create('ClinicalImpression') as ci then {
+      qr -> ci, entry then BuildClinicalImpressionBase(qr, ci, entry) "base";
+      qr -> ci.status = 'completed' "status";
+      qr.encounter as e -> ci.encounter = e "encounter";
+      qr.authored as t -> ci.date = t "date";
+      qr -> ci.description = 'Psychological review, counselling session' "description";
+
+      // The counsellor is the performer, from the form's own signature line
+      // rather than from qr.source: the person who keys a session note in is
+      // not necessarily the person who held the session.
+      g.item as it where (linkId = 'session/counsellor' and answer.value.exists()) then {
+        it.answer first as a then {
+          a.value as ref -> ci.performer = ref "performer";
+        } "answer";
+      } "counsellorRule";
+
+      // Effective time is the session date. A note written up a week later is
+      // still a note about that session.
+      g.item as it where (linkId = 'session/date' and answer.value.exists()) then {
+        it.answer first as a then {
+          a.value as v -> ci.effective = cast(v, 'dateTime') "effective";
+        } "answer";
+      } "sessionDateRule";
+      g.item as it where (linkId = 'session/designation' and answer.value.exists()) then {
+        it.answer first as a then {
+          a.value as txt -> ci.note as n, n.text = txt "designationNote";
+        } "answer";
+      } "designationRule";
+      g.item as it where (linkId = 'session/ward-or-clinic' and answer.value.exists()) then {
+        it.answer first as a then {
+          a.value as txt -> ci.note as n, n.text = txt "wardNote";
+        } "answer";
+      } "wardRule";
+
+      // The assessment as the impression's summary. This is the one section
+      // with a native home on the resource, and putting it anywhere else would
+      // leave ClinicalImpression.summary empty on an impression.
+      qr.item as it where (linkId = 'assessment' and answer.value.exists()) then {
+        it.answer first as a then {
+          a.value as txt -> ci.summary = txt "summary";
+        } "answer";
+      } "assessmentRule";
+
+      // The subjective and objective sections, created here so the impression
+      // can name them. A reference to a resource created in a sibling rule is
+      // not reachable -- the target variable does not exist there -- so they
+      // have to be built inside this rule.
+      qr.item as it where (linkId = 'subjective' and answer.value.exists()) -> bundle.entry as sentry, sentry.resource = create('Observation') as sobs then {
+        qr -> sobs, sentry then BuildObsBase(qr, sobs, sentry) "base";
+        qr -> sobs then SetSurveyCategory(qr, sobs) "category";
+        it -> sobs.code as scc then {
+          it -> scc.coding as scg then {
+            it -> scg.system = 'http://loinc.org' "sys";
+            it -> scg.code = '61150-9' "cd";
+            it -> scg.display = 'Subjective Narrative' "dsp";
+          } "coding";
+          it -> scc.text = 'What the client reported at this session' "codeText";
+        } "code";
+        it.answer first as a then {
+          a.value as txt -> sobs.note as n, n.text = txt "text";
+        } "answer";
+        it -> ci.supportingInfo = create('Reference') as sref, sref.reference = reference(sobs) "linkSupporting";
+      } "soap_subjective";
+
+      qr.item as it where (linkId = 'objective' and answer.value.exists()) -> bundle.entry as sentry, sentry.resource = create('Observation') as sobs then {
+        qr -> sobs, sentry then BuildObsBase(qr, sobs, sentry) "base";
+        qr -> sobs then SetSurveyCategory(qr, sobs) "category";
+        it -> sobs.code as scc then {
+          it -> scc.coding as scg then {
+            it -> scg.system = 'http://loinc.org' "sys";
+            it -> scg.code = '61149-1' "cd";
+            it -> scg.display = 'Objective Narrative' "dsp";
+          } "coding";
+          it -> scc.text = 'What the counsellor observed at this session' "codeText";
+        } "code";
+        it.answer first as a then {
+          a.value as txt -> sobs.note as n, n.text = txt "text";
+        } "answer";
+        it -> ci.supportingInfo = create('Reference') as sref, sref.reference = reference(sobs) "linkSupporting";
+      } "soap_objective";
+
+    } "psychologicalImpression";
+  } "sessionGroup";
+
+  // ── The session number ──────────────────────────────────────────────────
+  // Its own Observation. A counselling episode is a series and "which session
+  // was this" is the question every review of that series starts from; there
+  // is nowhere on ClinicalImpression that a query would find it.
+  qr.item as g where (linkId = 'session') then {
+    g.item as it where (linkId = 'session/number' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'soap-counselling-session-number' "cd";
+          it -> cg.display = 'Counselling session number' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as v -> obs.value = v "set";
+      } "answer";
+    } "measure_soap_component";
+
+  } "sessionNumberGroup";
+
+  // ── The plan ────────────────────────────────────────────────────────────
+  // A CarePlan, because what a counsellor agrees at the end of a session is
+  // what the next session opens by reviewing. As a note on the impression it
+  // would be findable only by reading the last note.
+  qr.item as it where (linkId = 'plan' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('CarePlan') as plan then {
+    qr -> plan, entry then BuildCarePlanBase(qr, plan, entry) "base";
+    it -> plan.status = 'active' "status";
+    it -> plan.intent = 'plan' "intent";
+    it -> plan.title = 'Plan agreed at psychological review' "title";
+    qr.authored as t -> plan.created = t "created";
+    qr.encounter as e -> plan.encounter = e "encounter";
+    it -> plan.category as cat then {
+      it -> cat.coding as cg then {
+        it -> cg.system = 'http://loinc.org' "sys";
+        it -> cg.code = '18776-5' "cd";
+        it -> cg.display = 'Plan of care note' "dsp";
+      } "coding";
+    } "category";
+    it.answer first as a then {
+      a.value as txt -> plan.description = txt "description";
+    } "answer";
+    qr.item as g where (linkId = 'session') then {
+      g.item as c where (linkId = 'session/counsellor' and answer.value.exists()) then {
+        c.answer first as a then {
+          a.value as ref -> plan.contributor = ref "contributor";
+        } "answer";
+      } "counsellorRule";
+    } "sessionGroupForPlan";
+  } "psychologicalPlan";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared scaffolding. Repeated in each map rather than imported: the transform
+// engine resolves `imports` against whatever StructureMaps happen to be on the
+// server, and a form that stops extracting because a shared map was not
+// uploaded is a worse failure than a duplicated group.
+//
+// Two notes on what the publisher's StructureMap validator says about this file.
+//
+// Source parameters below are left untyped on purpose. Writing `: Element` makes
+// the validator compare QuestionnaireResponse.item against the literal 'Element'
+// and report them as incompatible with each other, which is noise, not a finding.
+//
+// `evaluate(context, expression)` is flagged as "takes 1 parameter but 2 were
+// found". Leave it. The FML parser in the same jar refuses the one-argument form
+// outright -- it wants a parameter, a comma, then the FHIRPath -- so the
+// publisher is objecting to what its own compiler emits. Two arguments is the
+// only form that compiles, and it is what the R5 transform engine executes.
+// ─────────────────────────────────────────────────────────────────────────────
+
+group BuildObsBase(source qr : QR, target obs : Observation, target entry) {
+  qr -> obs then SetResponseProvenance(qr, obs) "responseProvenance";
+  qr -> obs.id = uuid() then SetObservationFullUrl(obs, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Observation' "requestUrl";
+  } "entryRequest";
+
+  qr -> obs.status = 'final' "status";
+  qr.subject as s -> obs.subject = s "subject";
+  qr.encounter as e -> obs.encounter = e "encounter";
+  qr.authored as t -> obs.effective = t "effective";
+
+  qr.source as src -> obs.performer = src "performerFromSource";
+  qr where (source.exists().not()) then {
+    qr.author as a -> obs.performer = a "performerFromAuthor";
+  } "performerFallback";
+
+  // A stored response's id already reads "QuestionnaireResponse/<id>", so it is
+  // a relative reference as it stands. The hasValue() guard is what stops an
+  // unsaved response -- one posted straight to $extract rather than saved first
+  // -- from writing "QuestionnaireResponse/null" into the record.
+  qr.id as qid where ($this.hasValue()) -> obs.derivedFrom = create('Reference') as ref, ref.reference = qid "linkQuestionnaireResponse";
+}
+
+group SetObservationFullUrl(source obs : Observation, target entry) {
+  obs.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/Observation/', id) "assignFullUrl";
+}
+
+// The two answer shapes a component can carry. Both read the answer through the
+// untyped `.value` accessor: reading `valueCoding` or `valueQuantity` by its
+// typed property name fails at transform time on HAPI R5 with "Attempt to read
+// invalid property ... on QuestionnaireResponse.item.answer".
+group SetComponentCodedValue(source it, target comp) {
+  it.answer first as a then {
+    a.value as cv -> comp.value = create('CodeableConcept') as cc then {
+      cv -> cc.coding = cv "valueCoding";
+      cv.display as d -> cc.text = d "valueText";
+    } "codedValue";
+  } "componentAnswer";
+}
+
+group SetComponentValue(source it, target comp) {
+  it.answer first as a then {
+    a.value as v -> comp.value = v "plainValue";
+  } "componentAnswer";
+}
+
+group SetSurveyCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'survey' "categoryCode";
+      qr -> coding.display = 'Survey' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+group BuildClinicalImpressionBase(source qr : QR, target r : ClinicalImpression, target entry) {
+  qr -> r then SetResponseProvenance(qr, r) "responseProvenance";
+  qr -> r.id = uuid() then SetClinicalImpressionFullUrl(r, entry) "idAndFullUrl";
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'ClinicalImpression' "requestUrl";
+  } "entryRequest";
+  qr.subject as s -> r.subject = s "subject";
+}
+
+group SetClinicalImpressionFullUrl(source r : ClinicalImpression, target entry) {
+  r.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/ClinicalImpression/', id) "assignFullUrl";
+}
+
+group BuildCarePlanBase(source qr : QR, target r : CarePlan, target entry) {
+  qr -> r then SetResponseProvenance(qr, r) "responseProvenance";
+  qr -> r.id = uuid() then SetCarePlanFullUrl(r, entry) "idAndFullUrl";
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'CarePlan' "requestUrl";
+  } "entryRequest";
+  qr.subject as s -> r.subject = s "subject";
+}
+
+group SetCarePlanFullUrl(source r : CarePlan, target entry) {
+  r.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/CarePlan/', id) "assignFullUrl";
+}
+
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+//
+// Two tags on everything this map creates. The first says which questionnaire
+// produced it, so a form that reopens mid-admission recalls its own earlier
+// entries and not another form's. The second copies the tenant tags off the
+// response, because nothing else on the path puts them there.
+//
+// The code is the form's document type, not the questionnaire's id: every
+// environment mints its own ids, and there is only one set of maps, so an id
+// here would tie the tag to whichever environment stamped it.
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+
+group SetResponseProvenance(source qr : QR, target r) {
+  qr -> r.meta as m then {
+    qr -> m.tag as t then {
+      qr -> t.system = 'http://slade360edi.com/questionnaire-provenance' "provenanceSystem";
+      qr -> t.code = 'psychological-review' "provenanceCode";
+      qr -> t.display = 'Psychological review notes' "provenanceDisplay";
+    } "provenanceTag";
+  } "provenanceMeta";
+
+  // Every tag the response carries, onto the resource. `meta` is 0..1, so this
+  // lands on the same meta the rule above created rather than a second one.
+  qr.meta as qm then {
+    qm.tag as qt -> r.meta as m, m.tag = qt "copyTag";
+  } "tenantTags";
+}
