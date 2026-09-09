@@ -1,0 +1,479 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractDischargeSummary"
+/// name = "ExtractDischargeSummary"
+/// title = "Discharge Summary Extraction"
+/// status = "active"
+/// description = "The discharge summary out as: a Composition coded to LOINC 18842-5, with the clinical summary, the management and the discharge instructions as its sections, because a discharge summary is a document and this is the resource for one; a Condition per discharge diagnosis, reconciled against the problem list where the clinician picked an existing one; a MedicationRequest per line of discharge medication, which is what the pharmacy dispenses against; a ServiceRequest for the follow-up; and an Observation for the ward clearance sign-off, because whether the medication was actually issued is an auditable fact and not a formality."
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/Composition" alias Composition as target
+uses "http://hl7.org/fhir/StructureDefinition/Condition" alias Condition as target
+uses "http://hl7.org/fhir/StructureDefinition/MedicationRequest" alias MedicationRequest as target
+uses "http://hl7.org/fhir/StructureDefinition/ServiceRequest" alias ServiceRequest as target
+uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Observation as target
+
+group ExtractDischargeSummary(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  // ── The document itself ─────────────────────────────────────────────────
+  // A Composition, not a bundle of Observations carrying paragraphs. The
+  // narrative sections of a discharge summary are a document: they are written
+  // once, read as a whole, and given to the patient. Each section's text goes
+  // into `section.text.div` as XHTML, which is where a Composition holds
+  // narrative, with `section.title` naming it.
+  qr -> bundle.entry as entry, entry.resource = create('Composition') as comp then {
+    qr -> comp, entry then BuildCompositionBase(qr, comp, entry) "base";
+    qr -> comp.status = 'final' "status";
+    qr -> comp.title = 'Discharge summary' "title";
+    qr.authored as t -> comp.date = t "date";
+    qr.encounter as e -> comp.encounter = e "encounter";
+    qr.source as src -> comp.author = src "author";
+    qr -> comp.type as tp then {
+      qr -> tp.coding as cg then {
+        qr -> cg.system = 'http://loinc.org' "sys";
+        qr -> cg.code = '18842-5' "cd";
+        qr -> cg.display = 'Discharge summary' "dsp";
+      } "coding";
+    } "type";
+    qr -> comp.category as cat then {
+      qr -> cat.coding as cg then {
+        qr -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/document-type-codesystem' "sys";
+        qr -> cg.code = 'discharge-summary' "cd";
+        qr -> cg.display = 'Discharge summary' "dsp";
+      } "coding";
+    } "category";
+
+    qr.item as it where (linkId = 'clinical-summary' and answer.value.exists()) -> comp.section as sec then {
+      it -> sec.title = 'Clinical summary' "title";
+      it -> sec.code as sc then {
+        it -> sc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '11493-4' "cd";
+          it -> cg.display = 'Hospital discharge studies summary Narrative' "dsp";
+        } "coding";
+      } "code";
+      it -> bundle.entry as sentry, sentry.resource = create('Observation') as sobs then {
+        qr -> sobs, sentry then BuildObsBase(qr, sobs, sentry) "base";
+        qr -> sobs then SetSurveyCategory(qr, sobs) "category";
+        it -> sobs.code as scc then {
+          it -> scc.coding as scg then {
+            it -> scg.system = 'http://loinc.org' "sys";
+            it -> scg.code = '11493-4' "cd";
+            it -> scg.display = 'Hospital discharge studies summary Narrative' "dsp";
+          } "coding";
+        } "code";
+        it.answer first as a then {
+          a.value as txt -> sobs.note as n, n.text = txt "text";
+        } "answer";
+        it -> sec.entry = create('Reference') as sref, sref.reference = reference(sobs) "sectionEntry";
+      } "sectionObservation";
+    } "section_clinical_summary";
+
+    qr.item as it where (linkId = 'management' and answer.value.exists()) -> comp.section as sec then {
+      it -> sec.title = 'Management' "title";
+      it -> sec.code as sc then {
+        it -> sc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '8648-8' "cd";
+          it -> cg.display = 'Hospital course note' "dsp";
+        } "coding";
+      } "code";
+      it -> bundle.entry as sentry, sentry.resource = create('Observation') as sobs then {
+        qr -> sobs, sentry then BuildObsBase(qr, sobs, sentry) "base";
+        qr -> sobs then SetSurveyCategory(qr, sobs) "category";
+        it -> sobs.code as scc then {
+          it -> scc.coding as scg then {
+            it -> scg.system = 'http://loinc.org' "sys";
+            it -> scg.code = '8648-8' "cd";
+            it -> scg.display = 'Hospital course note' "dsp";
+          } "coding";
+        } "code";
+        it.answer first as a then {
+          a.value as txt -> sobs.note as n, n.text = txt "text";
+        } "answer";
+        it -> sec.entry = create('Reference') as sref, sref.reference = reference(sobs) "sectionEntry";
+      } "sectionObservation";
+    } "section_management";
+
+    qr.item as it where (linkId = 'discharge-instructions' and answer.value.exists()) -> comp.section as sec then {
+      it -> sec.title = 'Discharge instructions' "title";
+      it -> sec.code as sc then {
+        it -> sc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '8653-8' "cd";
+          it -> cg.display = 'Hospital Discharge instructions' "dsp";
+        } "coding";
+      } "code";
+      it -> bundle.entry as sentry, sentry.resource = create('Observation') as sobs then {
+        qr -> sobs, sentry then BuildObsBase(qr, sobs, sentry) "base";
+        qr -> sobs then SetSurveyCategory(qr, sobs) "category";
+        it -> sobs.code as scc then {
+          it -> scc.coding as scg then {
+            it -> scg.system = 'http://loinc.org' "sys";
+            it -> scg.code = '8653-8' "cd";
+            it -> scg.display = 'Hospital Discharge instructions' "dsp";
+          } "coding";
+        } "code";
+        it.answer first as a then {
+          a.value as txt -> sobs.note as n, n.text = txt "text";
+        } "answer";
+        it -> sec.entry = create('Reference') as sref, sref.reference = reference(sobs) "sectionEntry";
+      } "sectionObservation";
+    } "section_discharge_instructions";
+
+  } "dischargeComposition";
+
+  // ── Discharge diagnoses ─────────────────────────────────────────────────
+  // A Condition per line, `category = encounter-diagnosis` because these are
+  // the diagnoses for this stay. Where the clinician picked an existing
+  // Condition off the problem list, its reference travels as evidence rather
+  // than a duplicate being created -- reconciling the problem list is the point
+  // of asking, and duplicating it defeats it.
+  qr.item as dg where (linkId = 'diagnoses') then {
+    dg.item as g where (linkId = 'diagnoses/diagnosis') then {
+      g.item as it where (linkId = 'diagnoses/diagnosis/text' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Condition') as cond then {
+        qr -> cond, entry then BuildConditionBase(qr, cond, entry) "base";
+        it -> cond.clinicalStatus as cs then {
+          it -> cs.coding as cg then {
+            it -> cg.system = 'http://terminology.hl7.org/CodeSystem/condition-clinical' "sys";
+            it -> cg.code = 'active' "cd";
+            it -> cg.display = 'Active' "dsp";
+          } "coding";
+        } "clinicalStatus";
+        it -> cond.verificationStatus as vs then {
+          it -> vs.coding as cg then {
+            it -> cg.system = 'http://terminology.hl7.org/CodeSystem/condition-ver-status' "sys";
+            it -> cg.code = 'confirmed' "cd";
+            it -> cg.display = 'Confirmed' "dsp";
+          } "coding";
+        } "verificationStatus";
+        it -> cond.category as cat then {
+          it -> cat.coding as cg then {
+            it -> cg.system = 'http://terminology.hl7.org/CodeSystem/condition-category' "sys";
+            it -> cg.code = 'encounter-diagnosis' "cd";
+            it -> cg.display = 'Encounter Diagnosis' "dsp";
+          } "coding";
+        } "category";
+        it.answer first as a then {
+          a.value as txt -> cond.code as cc, cc.text = txt "codeText";
+        } "answer";
+        qr.authored as t -> cond.recordedDate = t "recordedDate";
+        qr.encounter as e -> cond.encounter = e "encounter";
+        g.item as ex where (linkId = 'diagnoses/diagnosis/condition' and answer.value.exists()) then {
+          ex.answer first as ea then {
+            ea.value as existing -> cond.evidence as ev, ev.reference = existing "evidenceReference";
+          } "answer";
+        } "existingRule";
+      } "dischargeCondition";
+    } "diagnosisRows";
+  } "diagnosesGroup";
+
+  // ── Discharge medication ────────────────────────────────────────────────
+  // A MedicationRequest per line. `status = 'active'` and `intent = 'order'`:
+  // the patient walks out with these and the pharmacy dispenses against them.
+  //
+  // Dose, frequency and route are three separate boxes on the sheet, and they
+  // go into one Dosage: `di.text` for the human-readable instruction the
+  // patient reads, `di.route` for the route, and the duration as
+  // `dispenseRequest.expectedSupplyDuration`, which is what tells the pharmacy
+  // how much to give out.
+  qr.item as mg where (linkId = 'discharge-medication') then {
+    mg.item as g where (linkId = 'discharge-medication/medication' and item.where(linkId = 'discharge-medication/medication/name').answer.value.exists()) -> bundle.entry as entry, entry.resource = create('MedicationRequest') as mr then {
+      qr -> mr, entry then BuildMedicationRequestBase(qr, mr, entry) "base";
+      g -> mr.status = 'active' "status";
+      g -> mr.intent = 'order' "intent";
+      qr.authored as t -> mr.authoredOn = t "authoredOn";
+      qr.encounter as e -> mr.encounter = e "encounter";
+      qr.source as src -> mr.requester = src "requester";
+      g.item as it where (linkId = 'discharge-medication/medication/name') then {
+        it.answer first as a then {
+          a.value as txt -> mr.medication as med, med.concept as mc, mc.text = txt "medicationText";
+        } "answer";
+      } "nameRule";
+      g.item as it where (linkId = 'discharge-medication/medication/dose' and answer.value.exists()) then {
+        it.answer first as a then {
+          a.value as txt -> mr.dosageInstruction as di, di.text = txt "doseText";
+        } "answer";
+      } "doseRule";
+      g.item as it where (linkId = 'discharge-medication/medication/frequency' and answer.value.exists()) then {
+        it.answer first as a then {
+          a.value as txt -> mr.dosageInstruction as di, di.text = txt "frequencyText";
+        } "answer";
+      } "frequencyRule";
+      g.item as it where (linkId = 'discharge-medication/medication/route' and answer.value.exists()) then {
+        it.answer first as a then {
+          a.value as txt -> mr.dosageInstruction as di, di.route as rt, rt.text = txt "routeText";
+        } "answer";
+      } "routeRule";
+      g.item as it where (linkId = 'discharge-medication/medication/instructions' and answer.value.exists()) then {
+        it.answer first as a then {
+          a.value as txt -> mr.dosageInstruction as di, di.patientInstruction = txt "patientInstruction";
+        } "answer";
+      } "instructionsRule";
+      // Guarded on the answer actually being a Quantity, not merely present.
+      // This is the one rule in the whole set that navigates *into* an answer
+      // rather than assigning it across, so it is the one that a client sending
+      // the wrong type can break -- and it broke: the questionnaire tester
+      // renders a `quantity` item as a plain text box and submits
+      // valueString "5", which made this rule fail with "Attempt to read
+      // invalid property 'unit' on type string" and took the whole discharge
+      // summary down with it. `$validate` on that response says plainly that
+      // the client is wrong ("Answer value must be of the type Quantity not
+      // string"), but one non-conformant optional field should cost that field
+      // and not the other eight resources.
+      g.item as it where (linkId = 'discharge-medication/medication/duration' and answer.value.ofType(Quantity).exists()) then {
+        it.answer first as a then {
+          // expectedSupplyDuration is a Duration and the answer is a plain
+          // Quantity. HAPI will not take one for the other, and `cast` refuses
+          // the conversion too, so the Duration is built field by field. The
+          // two datatypes have identical fields, which is why this works and
+          // why it is tedious rather than difficult.
+          a.value as v -> mr.dispenseRequest as dq, dq.expectedSupplyDuration = create('Duration') as dur then {
+            v.value as dval -> dur.value = dval "durValue";
+            v.unit as dunit -> dur.unit = dunit "durUnit";
+            v.system as dsys -> dur.system = dsys "durSystem";
+            v.code as dcode -> dur.code = dcode "durCode";
+          } "supplyDuration";
+        } "answer";
+      } "durationRule";
+      // Where the clinician marked this as a continuation of an existing order,
+      // the new request says so through priorPrescription rather than silently
+      // becoming a second live order for the same drug.
+      g.item as it where (linkId = 'discharge-medication/medication/existing' and answer.value.exists()) then {
+        it.answer first as a then {
+          a.value as existing -> mr.priorPrescription = existing "priorPrescription";
+        } "answer";
+      } "existingRule";
+    } "dischargeMedication";
+  } "dischargeMedicationGroup";
+
+  // ── Follow-up ───────────────────────────────────────────────────────────
+  // A ServiceRequest, not an Appointment. The sheet gives a date but no clinic,
+  // no clinician and no slot, and an Appointment built from a bare date claims
+  // a booking that does not exist.
+  qr.item as it where (linkId = 'follow-up-on' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('ServiceRequest') as sr then {
+    qr -> sr, entry then BuildServiceRequestBase(qr, sr, entry) "base";
+    it -> sr.status = 'active' "status";
+    it -> sr.intent = 'plan' "intent";
+    it -> sr.code as cr, cr.concept as cc then {
+      it -> cc.coding as cg then {
+        it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/inpatient-clinical-concept-codesystem' "sys";
+        it -> cg.code = 'discharge-follow-up' "cd";
+        it -> cg.display = 'Follow-up arranged on discharge' "dsp";
+      } "coding";
+    } "code";
+    it.answer first as a then {
+      a.value as d -> sr.occurrence = cast(d, 'dateTime') "occurrence";
+    } "answer";
+    qr.authored as t -> sr.authoredOn = t "authoredOn";
+    qr.encounter as e -> sr.encounter = e "encounter";
+    qr.source as src -> sr.requester = src "requester";
+    it -> sr.note as n, n.text = 'Follow-up date written on the discharge summary. Not a booked appointment: the sheet names no clinic or clinician.' "provenanceNote";
+  } "followUpRequest";
+
+  // ── Ward clearance ──────────────────────────────────────────────────────
+  // An Observation, because "was the medication actually issued" is a fact
+  // somebody attested to and a discharge audit filters on it. A patient sent
+  // home without their drugs is a readmission waiting to happen, and that is
+  // exactly what this box exists to catch.
+  qr.item as g where (linkId = 'ward-clearance') then {
+    g.item as it where (linkId = 'ward-clearance/medication-issued' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'ward-clearance' "cd";
+          it -> cg.display = 'Ward clearance' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as cv -> obs.value = create('CodeableConcept') as vc then {
+          cv -> vc.coding = cv "valueCoding";
+          cv.display as d -> vc.text = d "valueText";
+        } "codedValue";
+      } "answer";
+      it.answer first as a then {
+        a.value as cv where (code = 'N') -> obs.interpretation as interp then {
+          cv -> interp.coding as icg then {
+            cv -> icg.system = 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation' "sys";
+            cv -> icg.code = 'A' "cd";
+            cv -> icg.display = 'Abnormal' "dsp";
+          } "coding";
+        } "notIssuedInterp";
+      } "clearanceInterpretation";
+      g.item as cb where (linkId = 'ward-clearance/cleared-at' and answer.value.exists()) then {
+        cb.answer first as a then {
+          a.value as t -> obs.effective = t "clearedAt";
+        } "answer";
+      } "clearedAtRule";
+      g.item as ib where (linkId = 'ward-clearance/medication-issued-by' and answer.value.exists()) then {
+        ib.answer first as a then {
+          a.value as ref -> obs.performer = ref "issuedBy";
+        } "answer";
+      } "issuedByRule";
+    } "wardClearanceObservation";
+  } "wardClearanceGroup";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared scaffolding. Repeated in each map rather than imported: the transform
+// engine resolves `imports` against whatever StructureMaps happen to be on the
+// server, and a form that stops extracting because a shared map was not
+// uploaded is a worse failure than a duplicated group.
+//
+// Two notes on what the publisher's StructureMap validator says about this file.
+//
+// Source parameters below are left untyped on purpose. Writing `: Element` makes
+// the validator compare QuestionnaireResponse.item against the literal 'Element'
+// and report them as incompatible with each other, which is noise, not a finding.
+//
+// `evaluate(context, expression)` is flagged as "takes 1 parameter but 2 were
+// found". Leave it. The FML parser in the same jar refuses the one-argument form
+// outright -- it wants a parameter, a comma, then the FHIRPath -- so the
+// publisher is objecting to what its own compiler emits. Two arguments is the
+// only form that compiles, and it is what the R5 transform engine executes.
+// ─────────────────────────────────────────────────────────────────────────────
+
+group BuildObsBase(source qr : QR, target obs : Observation, target entry) {
+  qr -> obs then SetResponseProvenance(qr, obs) "responseProvenance";
+  qr -> obs.id = uuid() then SetObservationFullUrl(obs, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Observation' "requestUrl";
+  } "entryRequest";
+
+  qr -> obs.status = 'final' "status";
+  qr.subject as s -> obs.subject = s "subject";
+  qr.encounter as e -> obs.encounter = e "encounter";
+  qr.authored as t -> obs.effective = t "effective";
+
+  qr.source as src -> obs.performer = src "performerFromSource";
+  qr where (source.exists().not()) then {
+    qr.author as a -> obs.performer = a "performerFromAuthor";
+  } "performerFallback";
+
+  // A stored response's id already reads "QuestionnaireResponse/<id>", so it is
+  // a relative reference as it stands. The hasValue() guard is what stops an
+  // unsaved response -- one posted straight to $extract rather than saved first
+  // -- from writing "QuestionnaireResponse/null" into the record.
+  qr.id as qid where ($this.hasValue()) -> obs.derivedFrom = create('Reference') as ref, ref.reference = qid "linkQuestionnaireResponse";
+}
+
+group SetObservationFullUrl(source obs : Observation, target entry) {
+  obs.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/Observation/', id) "assignFullUrl";
+}
+
+// The two answer shapes a component can carry. Both read the answer through the
+// untyped `.value` accessor: reading `valueCoding` or `valueQuantity` by its
+// typed property name fails at transform time on HAPI R5 with "Attempt to read
+// invalid property ... on QuestionnaireResponse.item.answer".
+group SetComponentCodedValue(source it, target comp) {
+  it.answer first as a then {
+    a.value as cv -> comp.value = create('CodeableConcept') as cc then {
+      cv -> cc.coding = cv "valueCoding";
+      cv.display as d -> cc.text = d "valueText";
+    } "codedValue";
+  } "componentAnswer";
+}
+
+group SetComponentValue(source it, target comp) {
+  it.answer first as a then {
+    a.value as v -> comp.value = v "plainValue";
+  } "componentAnswer";
+}
+
+group SetSurveyCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'survey' "categoryCode";
+      qr -> coding.display = 'Survey' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+group BuildCompositionBase(source qr : QR, target r : Composition, target entry) {
+  qr -> r then SetResponseProvenance(qr, r) "responseProvenance";
+  qr -> r.id = uuid() then SetCompositionFullUrl(r, entry) "idAndFullUrl";
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Composition' "requestUrl";
+  } "entryRequest";
+  qr.subject as s -> r.subject = s "subject";
+}
+
+group SetCompositionFullUrl(source r : Composition, target entry) {
+  r.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/Composition/', id) "assignFullUrl";
+}
+
+group BuildConditionBase(source qr : QR, target r : Condition, target entry) {
+  qr -> r then SetResponseProvenance(qr, r) "responseProvenance";
+  qr -> r.id = uuid() then SetConditionFullUrl(r, entry) "idAndFullUrl";
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Condition' "requestUrl";
+  } "entryRequest";
+  qr.subject as s -> r.subject = s "subject";
+}
+
+group SetConditionFullUrl(source r : Condition, target entry) {
+  r.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/Condition/', id) "assignFullUrl";
+}
+
+group BuildMedicationRequestBase(source qr : QR, target r : MedicationRequest, target entry) {
+  qr -> r then SetResponseProvenance(qr, r) "responseProvenance";
+  qr -> r.id = uuid() then SetMedicationRequestFullUrl(r, entry) "idAndFullUrl";
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'MedicationRequest' "requestUrl";
+  } "entryRequest";
+  qr.subject as s -> r.subject = s "subject";
+}
+
+group SetMedicationRequestFullUrl(source r : MedicationRequest, target entry) {
+  r.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/MedicationRequest/', id) "assignFullUrl";
+}
+
+group BuildServiceRequestBase(source qr : QR, target r : ServiceRequest, target entry) {
+  qr -> r then SetResponseProvenance(qr, r) "responseProvenance";
+  qr -> r.id = uuid() then SetServiceRequestFullUrl(r, entry) "idAndFullUrl";
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'ServiceRequest' "requestUrl";
+  } "entryRequest";
+  qr.subject as s -> r.subject = s "subject";
+}
+
+group SetServiceRequestFullUrl(source r : ServiceRequest, target entry) {
+  r.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/ServiceRequest/', id) "assignFullUrl";
+}
+
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+//
+// Two tags on everything this map creates. The first says which questionnaire
+// produced it, so a form that reopens mid-admission recalls its own earlier
+// entries and not another form's. The second copies the tenant tags off the
+// response, because nothing else on the path puts them there.
+//
+// The code is the form's document type, not the questionnaire's id: every
+// environment mints its own ids, and there is only one set of maps, so an id
+// here would tie the tag to whichever environment stamped it.
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+
+group SetResponseProvenance(source qr : QR, target r) {
+  qr -> r.meta as m then {
+    qr -> m.tag as t then {
+      qr -> t.system = 'http://slade360edi.com/questionnaire-provenance' "provenanceSystem";
+      qr -> t.code = 'discharge-summary' "provenanceCode";
+      qr -> t.display = 'Discharge summary' "provenanceDisplay";
+    } "provenanceTag";
+  } "provenanceMeta";
+
+  // Every tag the response carries, onto the resource. `meta` is 0..1, so this
+  // lands on the same meta the rule above created rather than a second one.
+  qr.meta as qm then {
+    qm.tag as qt -> r.meta as m, m.tag = qt "copyTag";
+  } "tenantTags";
+}

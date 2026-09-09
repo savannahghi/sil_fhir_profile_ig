@@ -1,0 +1,175 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractTheatreMiscellaneousItems"
+/// name = "ExtractTheatreMiscellaneousItems"
+/// title = "Theatre Miscellaneous Items Extraction"
+/// status = "active"
+/// description = "One SupplyDelivery per line issued. This is a stores record that happens to name a patient, so it extracts as a supply movement and not as anything clinical -- treating it as an Observation or a Procedure would put stock issues into the clinical record, where nobody querying the patient\'s care wants to find them."
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/SupplyDelivery" alias SupplyDelivery as target
+
+group ExtractTheatreMiscellaneousItems(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  qr.item as i where (linkId = 'item' and item.where(linkId = 'item/description').answer.value.exists()) -> bundle.entry as entry, entry.resource = create('SupplyDelivery') as sd then {
+    qr -> sd, entry then BuildSupplyDeliveryBase(qr, sd, entry) "base";
+    i -> sd.status = 'completed' "status";
+    i -> sd.type as tp then {
+      i -> tp.coding as cg then {
+        // This one lives at hl7.org/fhir, not under terminology.hl7.org --
+        // supplydelivery-supplyitemtype is a core code system, not a THO one,
+        // and the THO-shaped guess fails the bound value set.
+        i -> cg.system = 'http://hl7.org/fhir/supplydelivery-supplyitemtype' "sys";
+        i -> cg.code = 'device' "cd";
+        i -> cg.display = 'Device' "dsp";
+      } "coding";
+    } "type";
+
+    i -> sd.suppliedItem as si then {
+      i.item as it where (linkId = 'item/description') then {
+        it.answer first as a then {
+          // A CodeableConcept, not a CodeableReference: suppliedItem.item[x] is
+          // a choice of CodeableConcept and Reference. The CodeableReference
+          // form compiles and then fails at transform time.
+          a.value as txt -> si.item = create('CodeableConcept') as ic, ic.text = txt "itemText";
+        } "answer";
+      } "descriptionRule";
+      i.item as it where (linkId = 'item/quantity' and answer.value.exists()) then {
+        it.answer first as a then {
+          a.value as n -> si.quantity = create('Quantity') as q then {
+            n -> q.value = n "qValue";
+            n -> q.unit = 'item' "qUnit";
+          } "quantity";
+        } "answer";
+      } "quantityRule";
+    } "suppliedItem";
+
+    i.item as it where (linkId = 'item/at' and answer.value.exists()) then {
+      it.answer first as a then {
+        a.value as v -> sd.occurrence = v "occurrence";
+      } "answer";
+    } "atRule";
+    i.item as it where (linkId = 'item/issued-by' and answer.value.exists()) then {
+      it.answer first as a then {
+        a.value as ref -> sd.supplier = ref "supplier";
+      } "answer";
+    } "issuedByRule";
+    qr.item as g where (linkId = 'issue') then {
+      g.item as it where (linkId = 'issue/ward' and answer.value.exists()) then {
+        it.answer first as a then {
+          a.value as txt -> sd.destination = create('Reference') as dref, dref.display = txt "destination";
+        } "answer";
+      } "wardRule";
+    } "issueGroup";
+  } "issuedItem";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared scaffolding. Repeated in each map rather than imported: the transform
+// engine resolves `imports` against whatever StructureMaps happen to be on the
+// server, and a form that stops extracting because a shared map was not
+// uploaded is a worse failure than a duplicated group.
+//
+// Two notes on what the publisher's StructureMap validator says about this file.
+//
+// Source parameters below are left untyped on purpose. Writing `: Element` makes
+// the validator compare QuestionnaireResponse.item against the literal 'Element'
+// and report them as incompatible with each other, which is noise, not a finding.
+//
+// `evaluate(context, expression)` is flagged as "takes 1 parameter but 2 were
+// found". Leave it. The FML parser in the same jar refuses the one-argument form
+// outright -- it wants a parameter, a comma, then the FHIRPath -- so the
+// publisher is objecting to what its own compiler emits. Two arguments is the
+// only form that compiles, and it is what the R5 transform engine executes.
+// ─────────────────────────────────────────────────────────────────────────────
+
+group BuildObsBase(source qr : QR, target obs : Observation, target entry) {
+  qr -> obs then SetResponseProvenance(qr, obs) "responseProvenance";
+  qr -> obs.id = uuid() then SetObservationFullUrl(obs, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Observation' "requestUrl";
+  } "entryRequest";
+
+  qr -> obs.status = 'final' "status";
+  qr.subject as s -> obs.subject = s "subject";
+  qr.encounter as e -> obs.encounter = e "encounter";
+  qr.authored as t -> obs.effective = t "effective";
+
+  qr.source as src -> obs.performer = src "performerFromSource";
+  qr where (source.exists().not()) then {
+    qr.author as a -> obs.performer = a "performerFromAuthor";
+  } "performerFallback";
+
+  // A stored response's id already reads "QuestionnaireResponse/<id>", so it is
+  // a relative reference as it stands. The hasValue() guard is what stops an
+  // unsaved response -- one posted straight to $extract rather than saved first
+  // -- from writing "QuestionnaireResponse/null" into the record.
+  qr.id as qid where ($this.hasValue()) -> obs.derivedFrom = create('Reference') as ref, ref.reference = qid "linkQuestionnaireResponse";
+}
+
+group SetObservationFullUrl(source obs : Observation, target entry) {
+  obs.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/Observation/', id) "assignFullUrl";
+}
+
+// The two answer shapes a component can carry. Both read the answer through the
+// untyped `.value` accessor: reading `valueCoding` or `valueQuantity` by its
+// typed property name fails at transform time on HAPI R5 with "Attempt to read
+// invalid property ... on QuestionnaireResponse.item.answer".
+group SetComponentCodedValue(source it, target comp) {
+  it.answer first as a then {
+    a.value as cv -> comp.value = create('CodeableConcept') as cc then {
+      cv -> cc.coding = cv "valueCoding";
+      cv.display as d -> cc.text = d "valueText";
+    } "codedValue";
+  } "componentAnswer";
+}
+
+group SetComponentValue(source it, target comp) {
+  it.answer first as a then {
+    a.value as v -> comp.value = v "plainValue";
+  } "componentAnswer";
+}
+
+group BuildSupplyDeliveryBase(source qr : QR, target r : SupplyDelivery, target entry) {
+  qr -> r then SetResponseProvenance(qr, r) "responseProvenance";
+  qr -> r.id = uuid() then SetSupplyDeliveryFullUrl(r, entry) "idAndFullUrl";
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'SupplyDelivery' "requestUrl";
+  } "entryRequest";
+  qr.subject as s -> r.patient = s "subject";
+}
+
+group SetSupplyDeliveryFullUrl(source r : SupplyDelivery, target entry) {
+  r.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/SupplyDelivery/', id) "assignFullUrl";
+}
+
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+//
+// Two tags on everything this map creates. The first says which questionnaire
+// produced it, so a form that reopens mid-admission recalls its own earlier
+// entries and not another form's. The second copies the tenant tags off the
+// response, because nothing else on the path puts them there.
+//
+// The code is the form's document type, not the questionnaire's id: every
+// environment mints its own ids, and there is only one set of maps, so an id
+// here would tie the tag to whichever environment stamped it.
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+
+group SetResponseProvenance(source qr : QR, target r) {
+  qr -> r.meta as m then {
+    qr -> m.tag as t then {
+      qr -> t.system = 'http://slade360edi.com/questionnaire-provenance' "provenanceSystem";
+      qr -> t.code = 'theatre-miscellaneous-items' "provenanceCode";
+      qr -> t.display = 'Theatre miscellaneous items' "provenanceDisplay";
+    } "provenanceTag";
+  } "provenanceMeta";
+
+  // Every tag the response carries, onto the resource. `meta` is 0..1, so this
+  // lands on the same meta the rule above created rather than a second one.
+  qr.meta as qm then {
+    qm.tag as qt -> r.meta as m, m.tag = qt "copyTag";
+  } "tenantTags";
+}

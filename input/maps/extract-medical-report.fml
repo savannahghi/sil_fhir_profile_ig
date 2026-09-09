@@ -1,0 +1,445 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractMedicalReport"
+/// name = "ExtractMedicalReport"
+/// title = "Medical Report Extraction"
+/// status = "active"
+/// description = "A medical report is written once, read as a whole, and handed to whoever asked for it -- an insurer, a court, another hospital -- so it extracts as a Composition under LOINC 34133-9 with one section per printed heading, plus a Condition per diagnosis line so the report does not become the only place the diagnosis is written down. Each section names an Observation carrying its text: Narrative.div is an XhtmlType this engine cannot build from FML, and referencing an Observation is the better shape anyway, because the text becomes something a query can reach rather than a blob inside a document. The stay itself lands in Composition.event.period, which is what makes the report answer \'when was this admission\'."
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Observation as target
+uses "http://hl7.org/fhir/StructureDefinition/Composition" alias Composition as target
+uses "http://hl7.org/fhir/StructureDefinition/Condition" alias Condition as target
+
+group ExtractMedicalReport(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  qr -> bundle.entry as entry, entry.resource = create('Composition') as comp then {
+    qr -> comp, entry then BuildCompositionBase(qr, comp, entry) "base";
+    qr -> comp.status = 'final' "status";
+    qr -> comp.title = 'Medical report' "title";
+    qr.authored as t -> comp.date = t "date";
+    qr.encounter as e -> comp.encounter = e "encounter";
+    qr -> comp.type as tp then {
+      qr -> tp.coding as cg then {
+        qr -> cg.system = 'http://loinc.org' "sys";
+        qr -> cg.code = '34133-9' "cd";
+        qr -> cg.display = 'Summary of episode note' "dsp";
+      } "coding";
+    } "type";
+    qr -> comp.category as cat then {
+      qr -> cat.coding as cg then {
+        qr -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/document-type-codesystem' "sys";
+        qr -> cg.code = 'medical-report' "cd";
+        qr -> cg.display = 'Medical report' "dsp";
+      } "coding";
+    } "category";
+
+    // The doctor who signed it is the author, and the form's own signature
+    // block is what says so -- not qr.source, which is whoever keyed it in.
+    qr.item as g where (linkId = 'sign-off') then {
+      g.item as it where (linkId = 'sign-off/doctor' and answer.value.exists()) then {
+        it.answer first as a then {
+          a.value as ref -> comp.author = ref "author";
+        } "answer";
+      } "authorRule";
+      g.item as it where (linkId = 'sign-off/purpose' and answer.value.exists()) then {
+        it.answer first as a then {
+          a.value as txt -> comp.note as n, n.text = txt "purposeNote";
+        } "answer";
+      } "purposeRule";
+    } "signOffGroup";
+
+    // ── The admission the report is about ─────────────────────────────────
+    // Composition.event.period is a Period of dateTimes and the form asks for
+    // dates, hence the casts: a DateType into a dateTime element fails at
+    // transform time rather than at compile time.
+    qr.item as g where (linkId = 'stay') then {
+      g -> comp.event as ev then {
+        g -> ev.period as per then {
+          g.item as it where (linkId = 'stay/admitted-on' and answer.value.exists()) then {
+            it.answer first as a then {
+              a.value as v -> per.start = cast(v, 'dateTime') "start";
+            } "answer";
+          } "admittedRule";
+          g.item as it where (linkId = 'stay/discharged-on' and answer.value.exists()) then {
+            it.answer first as a then {
+              a.value as v -> per.end = cast(v, 'dateTime') "end";
+            } "answer";
+          } "dischargedRule";
+        } "period";
+      } "event";
+    } "stayGroup";
+
+    qr.item as it where (linkId = 'clinical-summary' and answer.value.exists()) -> comp.section as sec then {
+      it -> sec.title = 'Clinical summary' "title";
+      it -> sec.code as sc then {
+        it -> sc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '11329-0' "cd";
+          it -> cg.display = 'History general Narrative - Reported' "dsp";
+        } "coding";
+      } "code";
+      it -> bundle.entry as sentry, sentry.resource = create('Observation') as sobs then {
+        qr -> sobs, sentry then BuildObsBase(qr, sobs, sentry) "base";
+        qr -> sobs then SetSurveyCategory(qr, sobs) "category";
+        it -> sobs.code as scc then {
+          it -> scc.coding as scg then {
+            it -> scg.system = 'http://loinc.org' "sys";
+            it -> scg.code = '11329-0' "cd";
+            it -> scg.display = 'History general Narrative - Reported' "dsp";
+          } "coding";
+          it -> scc.text = 'Clinical summary on the Medical report' "codeText";
+        } "code";
+        it.answer first as a then {
+          a.value as txt -> sobs.note as n, n.text = txt "text";
+        } "answer";
+        it -> sec.entry = create('Reference') as sref, sref.reference = reference(sobs) "linkEntry";
+      } "sectionObservation";
+    } "section_clinical_summary";
+
+    qr.item as it where (linkId = 'past-medical-surgical-history' and answer.value.exists()) -> comp.section as sec then {
+      it -> sec.title = 'Past medical and surgical history' "title";
+      it -> sec.code as sc then {
+        it -> sc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '11348-0' "cd";
+          it -> cg.display = 'History of Past illness note' "dsp";
+        } "coding";
+      } "code";
+      it -> bundle.entry as sentry, sentry.resource = create('Observation') as sobs then {
+        qr -> sobs, sentry then BuildObsBase(qr, sobs, sentry) "base";
+        qr -> sobs then SetSurveyCategory(qr, sobs) "category";
+        it -> sobs.code as scc then {
+          it -> scc.coding as scg then {
+            it -> scg.system = 'http://loinc.org' "sys";
+            it -> scg.code = '11348-0' "cd";
+            it -> scg.display = 'History of Past illness note' "dsp";
+          } "coding";
+          it -> scc.text = 'Past medical and surgical history on the Medical report' "codeText";
+        } "code";
+        it.answer first as a then {
+          a.value as txt -> sobs.note as n, n.text = txt "text";
+        } "answer";
+        it -> sec.entry = create('Reference') as sref, sref.reference = reference(sobs) "linkEntry";
+      } "sectionObservation";
+    } "section_past_medical_surgical_history";
+
+    qr.item as it where (linkId = 'investigations' and answer.value.exists()) -> comp.section as sec then {
+      it -> sec.title = 'Investigations' "title";
+      it -> sec.code as sc then {
+        it -> sc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '30954-2' "cd";
+          it -> cg.display = 'Relevant diagnostic tests/laboratory data note' "dsp";
+        } "coding";
+      } "code";
+      it -> bundle.entry as sentry, sentry.resource = create('Observation') as sobs then {
+        qr -> sobs, sentry then BuildObsBase(qr, sobs, sentry) "base";
+        qr -> sobs then SetSurveyCategory(qr, sobs) "category";
+        it -> sobs.code as scc then {
+          it -> scc.coding as scg then {
+            it -> scg.system = 'http://loinc.org' "sys";
+            it -> scg.code = '30954-2' "cd";
+            it -> scg.display = 'Relevant diagnostic tests/laboratory data note' "dsp";
+          } "coding";
+          it -> scc.text = 'Investigations on the Medical report' "codeText";
+        } "code";
+        it.answer first as a then {
+          a.value as txt -> sobs.note as n, n.text = txt "text";
+        } "answer";
+        it -> sec.entry = create('Reference') as sref, sref.reference = reference(sobs) "linkEntry";
+      } "sectionObservation";
+    } "section_investigations";
+
+    qr.item as it where (linkId = 'interventions' and answer.value.exists()) -> comp.section as sec then {
+      it -> sec.title = 'Interventions' "title";
+      it -> sec.code as sc then {
+        it -> sc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '62387-6' "cd";
+          it -> cg.display = 'Interventions Narrative' "dsp";
+        } "coding";
+      } "code";
+      it -> bundle.entry as sentry, sentry.resource = create('Observation') as sobs then {
+        qr -> sobs, sentry then BuildObsBase(qr, sobs, sentry) "base";
+        qr -> sobs then SetSurveyCategory(qr, sobs) "category";
+        it -> sobs.code as scc then {
+          it -> scc.coding as scg then {
+            it -> scg.system = 'http://loinc.org' "sys";
+            it -> scg.code = '62387-6' "cd";
+            it -> scg.display = 'Interventions Narrative' "dsp";
+          } "coding";
+          it -> scc.text = 'Interventions on the Medical report' "codeText";
+        } "code";
+        it.answer first as a then {
+          a.value as txt -> sobs.note as n, n.text = txt "text";
+        } "answer";
+        it -> sec.entry = create('Reference') as sref, sref.reference = reference(sobs) "linkEntry";
+      } "sectionObservation";
+    } "section_interventions";
+
+    qr.item as it where (linkId = 'treatment' and answer.value.exists()) -> comp.section as sec then {
+      it -> sec.title = 'Treatment' "title";
+      it -> sec.code as sc then {
+        it -> sc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '18776-5' "cd";
+          it -> cg.display = 'Plan of care note' "dsp";
+        } "coding";
+      } "code";
+      it -> bundle.entry as sentry, sentry.resource = create('Observation') as sobs then {
+        qr -> sobs, sentry then BuildObsBase(qr, sobs, sentry) "base";
+        qr -> sobs then SetSurveyCategory(qr, sobs) "category";
+        it -> sobs.code as scc then {
+          it -> scc.coding as scg then {
+            it -> scg.system = 'http://loinc.org' "sys";
+            it -> scg.code = '18776-5' "cd";
+            it -> scg.display = 'Plan of care note' "dsp";
+          } "coding";
+          it -> scc.text = 'Treatment on the Medical report' "codeText";
+        } "code";
+        it.answer first as a then {
+          a.value as txt -> sobs.note as n, n.text = txt "text";
+        } "answer";
+        it -> sec.entry = create('Reference') as sref, sref.reference = reference(sobs) "linkEntry";
+      } "sectionObservation";
+    } "section_treatment";
+
+    qr.item as it where (linkId = 'discharge-instructions-and-medications' and answer.value.exists()) -> comp.section as sec then {
+      it -> sec.title = 'Discharge instructions and medications' "title";
+      it -> sec.code as sc then {
+        it -> sc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '8653-8' "cd";
+          it -> cg.display = 'Hospital Discharge instructions' "dsp";
+        } "coding";
+      } "code";
+      it -> bundle.entry as sentry, sentry.resource = create('Observation') as sobs then {
+        qr -> sobs, sentry then BuildObsBase(qr, sobs, sentry) "base";
+        qr -> sobs then SetSurveyCategory(qr, sobs) "category";
+        it -> sobs.code as scc then {
+          it -> scc.coding as scg then {
+            it -> scg.system = 'http://loinc.org' "sys";
+            it -> scg.code = '8653-8' "cd";
+            it -> scg.display = 'Hospital Discharge instructions' "dsp";
+          } "coding";
+          it -> scc.text = 'Discharge instructions and medications on the Medical report' "codeText";
+        } "code";
+        it.answer first as a then {
+          a.value as txt -> sobs.note as n, n.text = txt "text";
+        } "answer";
+        it -> sec.entry = create('Reference') as sref, sref.reference = reference(sobs) "linkEntry";
+      } "sectionObservation";
+    } "section_discharge_instructions_and_medications";
+
+  } "medicalReportComposition";
+
+  // ── The diagnoses ───────────────────────────────────────────────────────
+  // One Condition per line. Where the writer picked a Condition the patient
+  // already has, the reference travels as evidence rather than forking the
+  // problem list -- a report written for an insurer should not add a second
+  // copy of a diagnosis that is already on the record.
+  qr.item as g where (linkId = 'diagnosis') then {
+    g.item as d where (linkId = 'diagnosis/entry') then {
+      d.item as it where (linkId = 'diagnosis/entry/text' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Condition') as cond then {
+        qr -> cond, entry then BuildConditionBase(qr, cond, entry) "base";
+        it -> cond.clinicalStatus as cs then {
+          it -> cs.coding as cg then {
+            it -> cg.system = 'http://terminology.hl7.org/CodeSystem/condition-clinical' "sys";
+            it -> cg.code = 'active' "cd";
+            it -> cg.display = 'Active' "dsp";
+          } "coding";
+        } "clinicalStatus";
+        it -> cond.category as cat then {
+          it -> cat.coding as cg then {
+            it -> cg.system = 'http://terminology.hl7.org/CodeSystem/condition-category' "sys";
+            it -> cg.code = 'encounter-diagnosis' "cd";
+            it -> cg.display = 'Encounter Diagnosis' "dsp";
+          } "coding";
+        } "category";
+        it.answer first as a then {
+          a.value as txt -> cond.code as cc, cc.text = txt "codeText";
+        } "answer";
+        qr.authored as t -> cond.recordedDate = t "recordedDate";
+        qr.encounter as e -> cond.encounter = e "encounter";
+        d.item as ex where (linkId = 'diagnosis/entry/condition' and answer.value.exists()) then {
+          ex.answer first as ea then {
+            ea.value as existing -> cond.evidence as ev, ev.reference = existing "evidenceReference";
+          } "answer";
+        } "existingRule";
+      } "diagnosisCondition";
+    } "diagnosisRows";
+  } "diagnosisGroup";
+
+  // ── The wards ───────────────────────────────────────────────────────────
+  // Observations rather than anything on the Composition. Which ward a patient
+  // was admitted to and which one they left from is a fact about the stay that
+  // gets asked in aggregate, and there is nowhere on a Composition to put it
+  // where a query would find it.
+  qr.item as g where (linkId = 'stay') then {
+    g.item as it where (linkId = 'stay/ward-of-admission' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'discharge-ward-of-admission' "cd";
+          it -> cg.display = 'Ward of admission' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as txt -> obs.note as n, n.text = txt "text";
+      } "answer";
+    } "narr_discharge_ward_of_admission";
+
+    g.item as it where (linkId = 'stay/ward-of-discharge' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'discharge-ward-of-discharge' "cd";
+          it -> cg.display = 'Ward of discharge' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as txt -> obs.note as n, n.text = txt "text";
+      } "answer";
+    } "narr_discharge_ward_of_discharge";
+
+  } "wardGroup";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared scaffolding. Repeated in each map rather than imported: the transform
+// engine resolves `imports` against whatever StructureMaps happen to be on the
+// server, and a form that stops extracting because a shared map was not
+// uploaded is a worse failure than a duplicated group.
+//
+// Two notes on what the publisher's StructureMap validator says about this file.
+//
+// Source parameters below are left untyped on purpose. Writing `: Element` makes
+// the validator compare QuestionnaireResponse.item against the literal 'Element'
+// and report them as incompatible with each other, which is noise, not a finding.
+//
+// `evaluate(context, expression)` is flagged as "takes 1 parameter but 2 were
+// found". Leave it. The FML parser in the same jar refuses the one-argument form
+// outright -- it wants a parameter, a comma, then the FHIRPath -- so the
+// publisher is objecting to what its own compiler emits. Two arguments is the
+// only form that compiles, and it is what the R5 transform engine executes.
+// ─────────────────────────────────────────────────────────────────────────────
+
+group BuildObsBase(source qr : QR, target obs : Observation, target entry) {
+  qr -> obs then SetResponseProvenance(qr, obs) "responseProvenance";
+  qr -> obs.id = uuid() then SetObservationFullUrl(obs, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Observation' "requestUrl";
+  } "entryRequest";
+
+  qr -> obs.status = 'final' "status";
+  qr.subject as s -> obs.subject = s "subject";
+  qr.encounter as e -> obs.encounter = e "encounter";
+  qr.authored as t -> obs.effective = t "effective";
+
+  qr.source as src -> obs.performer = src "performerFromSource";
+  qr where (source.exists().not()) then {
+    qr.author as a -> obs.performer = a "performerFromAuthor";
+  } "performerFallback";
+
+  // A stored response's id already reads "QuestionnaireResponse/<id>", so it is
+  // a relative reference as it stands. The hasValue() guard is what stops an
+  // unsaved response -- one posted straight to $extract rather than saved first
+  // -- from writing "QuestionnaireResponse/null" into the record.
+  qr.id as qid where ($this.hasValue()) -> obs.derivedFrom = create('Reference') as ref, ref.reference = qid "linkQuestionnaireResponse";
+}
+
+group SetObservationFullUrl(source obs : Observation, target entry) {
+  obs.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/Observation/', id) "assignFullUrl";
+}
+
+// The two answer shapes a component can carry. Both read the answer through the
+// untyped `.value` accessor: reading `valueCoding` or `valueQuantity` by its
+// typed property name fails at transform time on HAPI R5 with "Attempt to read
+// invalid property ... on QuestionnaireResponse.item.answer".
+group SetComponentCodedValue(source it, target comp) {
+  it.answer first as a then {
+    a.value as cv -> comp.value = create('CodeableConcept') as cc then {
+      cv -> cc.coding = cv "valueCoding";
+      cv.display as d -> cc.text = d "valueText";
+    } "codedValue";
+  } "componentAnswer";
+}
+
+group SetComponentValue(source it, target comp) {
+  it.answer first as a then {
+    a.value as v -> comp.value = v "plainValue";
+  } "componentAnswer";
+}
+
+group SetSurveyCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'survey' "categoryCode";
+      qr -> coding.display = 'Survey' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+group BuildCompositionBase(source qr : QR, target r : Composition, target entry) {
+  qr -> r then SetResponseProvenance(qr, r) "responseProvenance";
+  qr -> r.id = uuid() then SetCompositionFullUrl(r, entry) "idAndFullUrl";
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Composition' "requestUrl";
+  } "entryRequest";
+  qr.subject as s -> r.subject = s "subject";
+}
+
+group SetCompositionFullUrl(source r : Composition, target entry) {
+  r.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/Composition/', id) "assignFullUrl";
+}
+
+group BuildConditionBase(source qr : QR, target r : Condition, target entry) {
+  qr -> r then SetResponseProvenance(qr, r) "responseProvenance";
+  qr -> r.id = uuid() then SetConditionFullUrl(r, entry) "idAndFullUrl";
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Condition' "requestUrl";
+  } "entryRequest";
+  qr.subject as s -> r.subject = s "subject";
+}
+
+group SetConditionFullUrl(source r : Condition, target entry) {
+  r.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/Condition/', id) "assignFullUrl";
+}
+
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+//
+// Two tags on everything this map creates. The first says which questionnaire
+// produced it, so a form that reopens mid-admission recalls its own earlier
+// entries and not another form's. The second copies the tenant tags off the
+// response, because nothing else on the path puts them there.
+//
+// The code is the form's document type, not the questionnaire's id: every
+// environment mints its own ids, and there is only one set of maps, so an id
+// here would tie the tag to whichever environment stamped it.
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+
+group SetResponseProvenance(source qr : QR, target r) {
+  qr -> r.meta as m then {
+    qr -> m.tag as t then {
+      qr -> t.system = 'http://slade360edi.com/questionnaire-provenance' "provenanceSystem";
+      qr -> t.code = 'medical-report' "provenanceCode";
+      qr -> t.display = 'Medical report' "provenanceDisplay";
+    } "provenanceTag";
+  } "provenanceMeta";
+
+  // Every tag the response carries, onto the resource. `meta` is 0..1, so this
+  // lands on the same meta the rule above created rather than a second one.
+  qr.meta as qm then {
+    qm.tag as qt -> r.meta as m, m.tag = qt "copyTag";
+  } "tenantTags";
+}

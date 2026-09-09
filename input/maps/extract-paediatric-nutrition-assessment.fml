@@ -1,0 +1,612 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractPaediatricNutritionAssessment"
+/// name = "ExtractPaediatricNutritionAssessment"
+/// title = "Paediatric Nutrition Assessment Extraction"
+/// status = "active"
+/// description = "The anthropometry is the part of this form that has to be a time series, so every measurement becomes its own Observation under its real LOINC code -- birth weight 8339-4, weight 29463-7, height 8302-2, head circumference 9843-4, MUAC 56072-2 -- rather than components of a panel nobody can plot. Admission and discharge weight are both 29463-7 and are told apart by their code text, because they are the same measurement taken twice and a growth chart should show them on one line. The two Z-score-style derivations the form computes are decimals with the unit attached by the map. The nutritional diagnosis becomes a Condition and the prescription a CarePlan, so a child discharged on a feeding regimen leaves with a plan and not a paragraph."
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Observation as target
+uses "http://hl7.org/fhir/StructureDefinition/Condition" alias Condition as target
+uses "http://hl7.org/fhir/StructureDefinition/CarePlan" alias CarePlan as target
+
+group ExtractPaediatricNutritionAssessment(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  // ── Anthropometry ───────────────────────────────────────────────────────
+  qr.item as g where (linkId = 'anthropometry') then {
+    g.item as it where (linkId = 'anthropometry/birth-weight' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '8339-4' "cd";
+          it -> cg.display = 'Birth weight Measured' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as v -> obs.value = v "set";
+      } "answer";
+    } "measure_8339_4";
+
+    g.item as it where (linkId = 'anthropometry/admission-weight' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '29463-7' "cd";
+          it -> cg.display = 'Body weight' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as v -> obs.value = v "set";
+      } "answer";
+      it -> obs.note as n, n.text = 'Weight on admission' "note";
+    } "measure_29463_7";
+
+    g.item as it where (linkId = 'anthropometry/height' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '8302-2' "cd";
+          it -> cg.display = 'Body height' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as v -> obs.value = v "set";
+      } "answer";
+    } "measure_8302_2";
+
+    g.item as it where (linkId = 'anthropometry/head-circumference' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '9843-4' "cd";
+          it -> cg.display = 'Head Occipital-frontal circumference' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as v -> obs.value = v "set";
+      } "answer";
+    } "measure_9843_4";
+
+    g.item as it where (linkId = 'anthropometry/muac' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '56072-2' "cd";
+          it -> cg.display = 'Circumference Mid upper arm - right' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as v -> obs.value = v "set";
+      } "answer";
+    } "measure_56072_2";
+
+    g.item as it where (linkId = 'anthropometry/discharge-weight' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '29463-7' "cd";
+          it -> cg.display = 'Body weight' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as v -> obs.value = v "set";
+      } "answer";
+      it -> obs.note as n, n.text = 'Weight on discharge' "note";
+    } "measure_29463_72";
+
+
+    // The two derivations. Decimals, because a calculatedExpression on this
+    // engine cannot produce a unit-bearing Quantity -- `decimal * 1 'kg/m2'`
+    // is rejected as incompatible operand types in both orders -- so the form
+    // computes the number and the map gives it its unit. Safe here because the
+    // unit is fixed by the form and not chosen by whoever fills it in.
+    g.item as it where (linkId = 'anthropometry/weight-for-age-z' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '77606-2' "cd";
+          it -> cg.display = 'Weight-for-length Per age and sex' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as v -> obs.value = create('Quantity') as q then {
+          v -> q.value = v "qValue";
+          v -> q.unit = 'standard deviation' "qUnit";
+          v -> q.system = 'http://unitsofmeasure.org' "qSystem";
+          v -> q.code = '1' "qCode";
+        } "quantity";
+      } "answer";
+      it -> obs.note as n, n.text = 'Weight-for-age Z score as computed on the assessment form' "note";
+    } "measureq_77606_2";
+
+    g.item as it where (linkId = 'anthropometry/weight-for-height-ratio' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'nutrition-weight-for-height-ratio' "cd";
+          it -> cg.display = 'Weight-for-height ratio' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as v -> obs.value = create('Quantity') as q then {
+          v -> q.value = v "qValue";
+          v -> q.unit = 'ratio' "qUnit";
+          v -> q.system = 'http://unitsofmeasure.org' "qSystem";
+          v -> q.code = '1' "qCode";
+        } "quantity";
+      } "answer";
+    } "measureq_nutrition_assessment";
+
+    g.item as it where (linkId = 'anthropometry/clinical' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '29545-1' "cd";
+          it -> cg.display = 'Physical findings note' "dsp";
+        } "coding";
+        it -> cc.text = 'Clinical findings on nutritional examination' "codeText";
+      } "code";
+      it.answer first as a then {
+        a.value as txt -> obs.note as n, n.text = txt "text";
+      } "answer";
+    } "narr_29545_1";
+
+  } "anthropometryGroup";
+
+  // ── Feeding history ─────────────────────────────────────────────────────
+  qr.item as g where (linkId = 'nutrition-history') then {
+    g.item as it where (linkId = 'nutrition-history/breast-feeding' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '63895-7' "cd";
+          it -> cg.display = 'Breastfeeding status' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as txt -> obs.note as n, n.text = txt "text";
+      } "answer";
+    } "narr_63895_7";
+
+    g.item as it where (linkId = 'nutrition-history/age-other-foods-introduced' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'nutrition-age-other-foods-were-introduced' "cd";
+          it -> cg.display = 'Age other foods were introduced' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as v -> obs.value = v "set";
+      } "answer";
+    } "measure_nutrition_assessment";
+
+    g.item as it where (linkId = 'nutrition-history/usual-and-current-intake' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'nutrition-usual-and-current-dietary-intake' "cd";
+          it -> cg.display = 'Usual and current dietary intake' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as txt -> obs.note as n, n.text = txt "text";
+      } "answer";
+    } "narr_nutrition_usual_and_current_dietary_intake";
+
+    g.item as it where (linkId = 'nutrition-history/diet-history' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'nutrition-diet-history' "cd";
+          it -> cg.display = 'Diet history' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as txt -> obs.note as n, n.text = txt "text";
+      } "answer";
+    } "narr_nutrition_diet_history";
+
+  } "nutritionHistoryGroup";
+
+  // ── Family and psychosocial history ─────────────────────────────────────
+  // One Observation with the family facts as components. Together, because
+  // these are read as a picture of the household and not one at a time: a
+  // fifteen-year-old mother with four other children is the finding, and no
+  // single component says it.
+  qr.item as g where (linkId = 'family-history' and item.answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+    qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+    qr -> obs then SetSurveyCategory(qr, obs) "category";
+    g -> obs.code as cc then {
+      g -> cc.coding as cg then {
+        g -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+        g -> cg.code = 'nutrition-family-and-psychosocial-history' "cd";
+        g -> cg.display = 'Family and psychosocial history' "dsp";
+      } "coding";
+    } "code";
+    g.item as it where (linkId = 'family-history/child-birth-order' and answer.value.exists()) -> obs.component as comp then {
+      it -> comp.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'nutrition-birth-order-of-the-child' "cd";
+          it -> cg.display = 'Birth order of the child' "dsp";
+        } "coding";
+      } "code";
+      it -> comp then SetComponentValue(it, comp) "value";
+    } "comp_nutrition_birth_order_of_the_child";
+    g.item as it where (linkId = 'family-history/parents-marital-status' and answer.value.exists()) -> obs.component as comp then {
+      it -> comp.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'nutrition-marital-status-of-the-parents' "cd";
+          it -> cg.display = 'Marital status of the parents' "dsp";
+        } "coding";
+      } "code";
+      it -> comp then SetComponentCodedValue(it, comp) "value";
+    } "comp_nutrition_marital_status_of_the_parents";
+    g.item as it where (linkId = 'family-history/ages-of-siblings' and answer.value.exists()) -> obs.component as comp then {
+      it -> comp.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'nutrition-ages-of-siblings' "cd";
+          it -> cg.display = 'Ages of siblings' "dsp";
+        } "coding";
+      } "code";
+      it -> comp then SetComponentValue(it, comp) "value";
+    } "comp_nutrition_ages_of_siblings";
+    g.item as it where (linkId = 'family-history/mothers-age' and answer.value.exists()) -> obs.component as comp then {
+      it -> comp.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'nutrition-age-of-the-mother' "cd";
+          it -> cg.display = 'Age of the mother' "dsp";
+        } "coding";
+      } "code";
+      it -> comp then SetComponentValue(it, comp) "value";
+    } "comp_nutrition_age_of_the_mother";
+    g.item as it where (linkId = 'family-history/mothers-occupation' and answer.value.exists()) -> obs.component as comp then {
+      it -> comp.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'nutrition-occupation-of-the-mother' "cd";
+          it -> cg.display = 'Occupation of the mother' "dsp";
+        } "coding";
+      } "code";
+      it -> comp then SetComponentValue(it, comp) "value";
+    } "comp_nutrition_occupation_of_the_mother";
+    g.item as it where (linkId = 'family-history/fathers-age' and answer.value.exists()) -> obs.component as comp then {
+      it -> comp.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'nutrition-age-of-the-father' "cd";
+          it -> cg.display = 'Age of the father' "dsp";
+        } "coding";
+      } "code";
+      it -> comp then SetComponentValue(it, comp) "value";
+    } "comp_nutrition_age_of_the_father";
+    g.item as it where (linkId = 'family-history/fathers-occupation' and answer.value.exists()) -> obs.component as comp then {
+      it -> comp.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'nutrition-occupation-of-the-father' "cd";
+          it -> cg.display = 'Occupation of the father' "dsp";
+        } "coding";
+      } "code";
+      it -> comp then SetComponentValue(it, comp) "value";
+    } "comp_nutrition_occupation_of_the_father";
+    g.item as it where (linkId = 'family-history/other-psychosocial') then {
+      it.answer first as a then {
+        a.value as txt -> obs.note as n, n.text = txt "text";
+      } "answer";
+    } "note";
+  } "familyHistoryObservation";
+
+  qr.item as it where (linkId = 'social-economic-education-status' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+    qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+    qr -> obs then SetSurveyCategory(qr, obs) "category";
+    it -> obs.code as cc then {
+      it -> cc.coding as cg then {
+        it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+        it -> cg.code = 'nutrition-social-economic-and-education-status' "cd";
+        it -> cg.display = 'Social, economic and education status' "dsp";
+      } "coding";
+    } "code";
+    it.answer first as a then {
+      a.value as txt -> obs.note as n, n.text = txt "text";
+    } "answer";
+  } "narr_nutrition_social_economic_and_education_status";
+
+  qr.item as it where (linkId = 'medical-history' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+    qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+    qr -> obs then SetSurveyCategory(qr, obs) "category";
+    it -> obs.code as cc then {
+      it -> cc.coding as cg then {
+        it -> cg.system = 'http://loinc.org' "sys";
+        it -> cg.code = '11348-0' "cd";
+        it -> cg.display = 'History of Past illness note' "dsp";
+      } "coding";
+      it -> cc.text = 'Medical history on the nutrition assessment' "codeText";
+    } "code";
+    it.answer first as a then {
+      a.value as txt -> obs.note as n, n.text = txt "text";
+    } "answer";
+  } "narr_11348_0";
+
+
+  qr.item as g where (linkId = 'context') then {
+    g.item as it where (linkId = 'context/residence' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'nutrition-residence-of-the-child' "cd";
+          it -> cg.display = 'Residence of the child' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as txt -> obs.note as n, n.text = txt "text";
+      } "answer";
+    } "narr_nutrition_residence_of_the_child";
+
+  } "contextGroup";
+
+  // ── The nutritional diagnosis ───────────────────────────────────────────
+  // A Condition and not an Observation. Severe acute malnutrition is a
+  // diagnosis a child is treated for and discharged from, which is exactly
+  // what a Condition tracks and an Observation does not.
+  qr.item as g where (linkId = 'assessment') then {
+    g.item as it where (linkId = 'assessment/nutritional-diagnosis' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Condition') as cond then {
+      qr -> cond, entry then BuildConditionBase(qr, cond, entry) "base";
+      it -> cond.clinicalStatus as cs then {
+        it -> cs.coding as cg then {
+          it -> cg.system = 'http://terminology.hl7.org/CodeSystem/condition-clinical' "sys";
+          it -> cg.code = 'active' "cd";
+          it -> cg.display = 'Active' "dsp";
+        } "coding";
+      } "clinicalStatus";
+      it -> cond.category as cat then {
+        it -> cat.coding as cg then {
+          it -> cg.system = 'http://terminology.hl7.org/CodeSystem/condition-category' "sys";
+          it -> cg.code = 'problem-list-item' "cd";
+          it -> cg.display = 'Problem List Item' "dsp";
+        } "coding";
+      } "category";
+      it.answer first as a then {
+        a.value as txt -> cond.code as cc, cc.text = txt "codeText";
+      } "answer";
+      qr.authored as t -> cond.recordedDate = t "recordedDate";
+      qr.encounter as e -> cond.encounter = e "encounter";
+      qr.item as ctx where (linkId = 'context') then {
+        ctx.item as dx where (linkId = 'context/diagnosis' and answer.value.exists()) then {
+          dx.answer first as a then {
+            a.value as txt -> cond.note as n, n.text = txt "admittingDiagnosisNote";
+          } "answer";
+        } "diagnosisRule";
+      } "contextGroupForCondition";
+      // R5 dropped Condition.asserter and .recorder for .participant, which
+      // carries the actor and what part they played. Writing asserter fails at
+      // transform time with "invalid property 'asserter' on type Condition".
+      g.item as ab where (linkId = 'assessment/assessed-by' and answer.value.exists()) then {
+        ab.answer first as a then {
+          a.value as ref -> cond.participant as part then {
+            ref -> part.actor = ref "actor";
+            ref -> part.function as fn then {
+              ref -> fn.coding as fcg then {
+                ref -> fcg.system = 'http://terminology.hl7.org/CodeSystem/provenance-participant-type' "sys";
+                ref -> fcg.code = 'author' "cd";
+                ref -> fcg.display = 'Author' "dsp";
+              } "coding";
+            } "function";
+          } "participant";
+        } "answer";
+      } "asserterRule";
+    } "nutritionalDiagnosis";
+
+    // ── The prescription ──────────────────────────────────────────────────
+    g.item as it where (linkId = 'assessment/prescription' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('CarePlan') as plan then {
+      qr -> plan, entry then BuildCarePlanBase(qr, plan, entry) "base";
+      it -> plan.status = 'active' "status";
+      it -> plan.intent = 'plan' "intent";
+      it -> plan.title = 'Nutrition prescription' "title";
+      qr.authored as t -> plan.created = t "created";
+      qr.encounter as e -> plan.encounter = e "encounter";
+      it -> plan.category as cat then {
+        it -> cat.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '75303-8' "cd";
+          it -> cg.display = 'Nutrition assessment Narrative' "dsp";
+        } "coding";
+      } "category";
+      it.answer first as a then {
+        a.value as txt -> plan.description = txt "description";
+      } "answer";
+      g.item as ab where (linkId = 'assessment/assessed-by' and answer.value.exists()) then {
+        ab.answer first as a then {
+          a.value as ref -> plan.contributor = ref "contributor";
+        } "answer";
+      } "contributorRule";
+      g.item as ao where (linkId = 'assessment/assessed-on' and answer.value.exists()) then {
+        ao.answer first as a then {
+          a.value as v -> plan.period as per, per.start = cast(v, 'dateTime') "periodStart";
+        } "answer";
+      } "assessedOnRule";
+      g.item as rm where (linkId = 'assessment/remarks' and answer.value.exists()) then {
+        rm.answer first as a then {
+          a.value as txt -> plan.note as n, n.text = txt "remarksNote";
+        } "answer";
+      } "remarksRule";
+    } "nutritionCarePlan";
+  } "assessmentGroup";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared scaffolding. Repeated in each map rather than imported: the transform
+// engine resolves `imports` against whatever StructureMaps happen to be on the
+// server, and a form that stops extracting because a shared map was not
+// uploaded is a worse failure than a duplicated group.
+//
+// Two notes on what the publisher's StructureMap validator says about this file.
+//
+// Source parameters below are left untyped on purpose. Writing `: Element` makes
+// the validator compare QuestionnaireResponse.item against the literal 'Element'
+// and report them as incompatible with each other, which is noise, not a finding.
+//
+// `evaluate(context, expression)` is flagged as "takes 1 parameter but 2 were
+// found". Leave it. The FML parser in the same jar refuses the one-argument form
+// outright -- it wants a parameter, a comma, then the FHIRPath -- so the
+// publisher is objecting to what its own compiler emits. Two arguments is the
+// only form that compiles, and it is what the R5 transform engine executes.
+// ─────────────────────────────────────────────────────────────────────────────
+
+group BuildObsBase(source qr : QR, target obs : Observation, target entry) {
+  qr -> obs then SetResponseProvenance(qr, obs) "responseProvenance";
+  qr -> obs.id = uuid() then SetObservationFullUrl(obs, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Observation' "requestUrl";
+  } "entryRequest";
+
+  qr -> obs.status = 'final' "status";
+  qr.subject as s -> obs.subject = s "subject";
+  qr.encounter as e -> obs.encounter = e "encounter";
+  qr.authored as t -> obs.effective = t "effective";
+
+  qr.source as src -> obs.performer = src "performerFromSource";
+  qr where (source.exists().not()) then {
+    qr.author as a -> obs.performer = a "performerFromAuthor";
+  } "performerFallback";
+
+  // A stored response's id already reads "QuestionnaireResponse/<id>", so it is
+  // a relative reference as it stands. The hasValue() guard is what stops an
+  // unsaved response -- one posted straight to $extract rather than saved first
+  // -- from writing "QuestionnaireResponse/null" into the record.
+  qr.id as qid where ($this.hasValue()) -> obs.derivedFrom = create('Reference') as ref, ref.reference = qid "linkQuestionnaireResponse";
+}
+
+group SetObservationFullUrl(source obs : Observation, target entry) {
+  obs.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/Observation/', id) "assignFullUrl";
+}
+
+// The two answer shapes a component can carry. Both read the answer through the
+// untyped `.value` accessor: reading `valueCoding` or `valueQuantity` by its
+// typed property name fails at transform time on HAPI R5 with "Attempt to read
+// invalid property ... on QuestionnaireResponse.item.answer".
+group SetComponentCodedValue(source it, target comp) {
+  it.answer first as a then {
+    a.value as cv -> comp.value = create('CodeableConcept') as cc then {
+      cv -> cc.coding = cv "valueCoding";
+      cv.display as d -> cc.text = d "valueText";
+    } "codedValue";
+  } "componentAnswer";
+}
+
+group SetComponentValue(source it, target comp) {
+  it.answer first as a then {
+    a.value as v -> comp.value = v "plainValue";
+  } "componentAnswer";
+}
+
+group SetSurveyCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'survey' "categoryCode";
+      qr -> coding.display = 'Survey' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+group SetVitalSignsCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'vital-signs' "categoryCode";
+      qr -> coding.display = 'Vital Signs' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+group BuildConditionBase(source qr : QR, target r : Condition, target entry) {
+  qr -> r then SetResponseProvenance(qr, r) "responseProvenance";
+  qr -> r.id = uuid() then SetConditionFullUrl(r, entry) "idAndFullUrl";
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Condition' "requestUrl";
+  } "entryRequest";
+  qr.subject as s -> r.subject = s "subject";
+}
+
+group SetConditionFullUrl(source r : Condition, target entry) {
+  r.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/Condition/', id) "assignFullUrl";
+}
+
+group BuildCarePlanBase(source qr : QR, target r : CarePlan, target entry) {
+  qr -> r then SetResponseProvenance(qr, r) "responseProvenance";
+  qr -> r.id = uuid() then SetCarePlanFullUrl(r, entry) "idAndFullUrl";
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'CarePlan' "requestUrl";
+  } "entryRequest";
+  qr.subject as s -> r.subject = s "subject";
+}
+
+group SetCarePlanFullUrl(source r : CarePlan, target entry) {
+  r.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/CarePlan/', id) "assignFullUrl";
+}
+
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+//
+// Two tags on everything this map creates. The first says which questionnaire
+// produced it, so a form that reopens mid-admission recalls its own earlier
+// entries and not another form's. The second copies the tenant tags off the
+// response, because nothing else on the path puts them there.
+//
+// The code is the form's document type, not the questionnaire's id: every
+// environment mints its own ids, and there is only one set of maps, so an id
+// here would tie the tag to whichever environment stamped it.
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+
+group SetResponseProvenance(source qr : QR, target r) {
+  qr -> r.meta as m then {
+    qr -> m.tag as t then {
+      qr -> t.system = 'http://slade360edi.com/questionnaire-provenance' "provenanceSystem";
+      qr -> t.code = 'paediatric-nutrition-assessment' "provenanceCode";
+      qr -> t.display = 'Paediatric nutrition assessment form' "provenanceDisplay";
+    } "provenanceTag";
+  } "provenanceMeta";
+
+  // Every tag the response carries, onto the resource. `meta` is 0..1, so this
+  // lands on the same meta the rule above created rather than a second one.
+  qr.meta as qm then {
+    qm.tag as qt -> r.meta as m, m.tag = qt "copyTag";
+  } "tenantTags";
+}

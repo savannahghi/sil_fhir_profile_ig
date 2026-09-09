@@ -1,0 +1,1075 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractNewbornObservationChart"
+/// name = "ExtractNewbornObservationChart"
+/// title = "Newborn Observation Chart Extraction"
+/// status = "active"
+/// description = "The newborn chart out as: one Observation per Apgar time point, coded to the LOINC panel with the five weighted signs as components and the total as its value, computed by the map when the client submits none; one Observation per timed skin-to-skin round; one Observation per follow-up round over the first four days; the birth and discharge weights as their own Observations; the immediate newborn care given as one panel rather than as Immunization or MedicationAdministration resources, which the chart gives no doses or times for; and a Procedure for resuscitation when it was done."
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Observation as target
+uses "http://hl7.org/fhir/StructureDefinition/Procedure" alias Procedure as target
+
+group ExtractNewbornObservationChart(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  // ── Birth details ───────────────────────────────────────────────────────
+  qr.item as g where (linkId = 'bio') then {
+    g.item as it where (linkId = 'bio/birth-weight' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '8339-4' "cd";
+          it -> cg.display = 'Birth weight Measured' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as v -> obs.value = v "set";
+      } "answer";
+    } "measure_8339_4";
+
+    g.item as it where (linkId = 'bio/gestational-age' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '11884-4' "cd";
+          it -> cg.display = 'Gestational age Estimated' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as v -> obs.value = v "set";
+      } "answer";
+    } "measure_11884_4";
+
+    g.item as it where (linkId = 'bio/delivery' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'cord-mode-of-delivery' "cd";
+          it -> cg.display = 'Mode of delivery' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as cv -> obs.value = create('CodeableConcept') as cc then {
+          cv -> cc.coding = cv "valueCoding";
+          cv.display as d -> cc.text = d "valueText";
+        } "codedValue";
+      } "answer";
+    } "coded_cord_condition";
+
+    g.item as it where (linkId = 'bio/meconium-stained-liquor' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetExamCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'sign-meconium-stained-liquor' "cd";
+          it -> cg.display = 'Meconium stained liquor' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as cv -> obs.value = create('CodeableConcept') as cc then {
+          cv -> cc.coding = cv "valueCoding";
+          cv.display as d -> cc.text = d "valueText";
+        } "codedValue";
+      } "answer";
+    } "meconiumObservation";
+  } "bioGroup";
+
+  // ── Apgar, one Observation per time point ───────────────────────────────
+  // Coded to the LOINC panel for its time point, with the five signs as
+  // components under their own time-specific LOINC codes -- LOINC publishes
+  // separate codes for the one-, five- and ten-minute variants of each sign, so
+  // a five-minute colour is never mistaken for a one-minute one.
+  //
+  // The total is the Observation's value, taken from the form's calculated
+  // field if the client filled it, and otherwise summed from the answer codes.
+  // The weight is the tail of the code: apgar-colour-2 scores two. A client
+  // without a FHIRPath engine -- the questionnaire tester among them -- submits
+  // the total empty, and this is what makes such a submission still usable.
+  //
+  // Guarded on all five signs being answered at that time point. An Apgar of 6
+  // out of three signs assessed is not a lower Apgar, it is a different number,
+  // and nothing in the resource would say which it was.
+  qr.item as ag where (linkId = 'apgar') then {
+    ag.item as g where (linkId = 'apgar/1-minute' and item.answer.value.ofType(Coding).count() = 5) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      g -> obs.code as cc then {
+        g -> cc.coding as cg then {
+          g -> cg.system = 'http://loinc.org' "sys";
+          g -> cg.code = '48334-7' "cd";
+          g -> cg.display = '1 minute Apgar panel' "dsp";
+        } "coding";
+      } "code";
+      g -> obs.value = evaluate(ag, iif(item.where(linkId = 'apgar/1-minute').item.where(linkId = 'apgar/1-minute/total').answer.value.exists(), item.where(linkId = 'apgar/1-minute').item.where(linkId = 'apgar/1-minute/total').answer.value.truncate(), item.where(linkId = 'apgar/1-minute').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0))) "totalValue";
+      // Seven or more is normal, four to six needs support, three or less is
+      // critically low. The chart prints those bands at its foot, so the
+      // interpretation says which band the total fell in rather than leaving a
+      // reader to remember them.
+      g -> obs.interpretation as interp then {
+        g -> interp.coding as coding then {
+          g -> coding.system = 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation' "interpSystem";
+          g -> coding.code = evaluate(ag, iif(iif(item.where(linkId = 'apgar/1-minute').item.where(linkId = 'apgar/1-minute/total').answer.value.exists(), item.where(linkId = 'apgar/1-minute').item.where(linkId = 'apgar/1-minute/total').answer.value.truncate(), item.where(linkId = 'apgar/1-minute').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0)) >= 7, 'N', iif(iif(item.where(linkId = 'apgar/1-minute').item.where(linkId = 'apgar/1-minute/total').answer.value.exists(), item.where(linkId = 'apgar/1-minute').item.where(linkId = 'apgar/1-minute/total').answer.value.truncate(), item.where(linkId = 'apgar/1-minute').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0)) >= 4, 'A', 'LL'))) "interpCode";
+          g -> coding.display = evaluate(ag, iif(iif(item.where(linkId = 'apgar/1-minute').item.where(linkId = 'apgar/1-minute/total').answer.value.exists(), item.where(linkId = 'apgar/1-minute').item.where(linkId = 'apgar/1-minute/total').answer.value.truncate(), item.where(linkId = 'apgar/1-minute').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0)) >= 7, 'Normal', iif(iif(item.where(linkId = 'apgar/1-minute').item.where(linkId = 'apgar/1-minute/total').answer.value.exists(), item.where(linkId = 'apgar/1-minute').item.where(linkId = 'apgar/1-minute/total').answer.value.truncate(), item.where(linkId = 'apgar/1-minute').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0)) >= 4, 'Abnormal', 'Critically low'))) "interpDisplay";
+        } "interpCoding";
+      } "interpretation";
+      g.item as it where (linkId = 'apgar/1-minute/colour' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '32406-1' "cd";
+            it -> cg.display = '1 minute Apgar Appearance' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentCodedValue(it, comp) "value";
+      } "comp_32406_1";
+      g.item as it where (linkId = 'apgar/1-minute/pulse' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '32407-9' "cd";
+            it -> cg.display = '1 minute Apgar Pulse' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentCodedValue(it, comp) "value";
+      } "comp_32407_9";
+      g.item as it where (linkId = 'apgar/1-minute/grimace' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '32409-5' "cd";
+            it -> cg.display = '1 minute Apgar Grimace' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentCodedValue(it, comp) "value";
+      } "comp_32409_5";
+      g.item as it where (linkId = 'apgar/1-minute/activity' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '32408-7' "cd";
+            it -> cg.display = '1 minute Apgar Activity' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentCodedValue(it, comp) "value";
+      } "comp_32408_7";
+      g.item as it where (linkId = 'apgar/1-minute/respiration' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '32410-3' "cd";
+            it -> cg.display = '1 minute Apgar Respiration' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentCodedValue(it, comp) "value";
+      } "comp_32410_3";
+    } "apgarPanel";
+
+    ag.item as g where (linkId = 'apgar/5-minutes' and item.answer.value.ofType(Coding).count() = 5) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      g -> obs.code as cc then {
+        g -> cc.coding as cg then {
+          g -> cg.system = 'http://loinc.org' "sys";
+          g -> cg.code = '48333-9' "cd";
+          g -> cg.display = '5 minutes Apgar panel' "dsp";
+        } "coding";
+      } "code";
+      g -> obs.value = evaluate(ag, iif(item.where(linkId = 'apgar/5-minutes').item.where(linkId = 'apgar/5-minutes/total').answer.value.exists(), item.where(linkId = 'apgar/5-minutes').item.where(linkId = 'apgar/5-minutes/total').answer.value.truncate(), item.where(linkId = 'apgar/5-minutes').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0))) "totalValue";
+      // Seven or more is normal, four to six needs support, three or less is
+      // critically low. The chart prints those bands at its foot, so the
+      // interpretation says which band the total fell in rather than leaving a
+      // reader to remember them.
+      g -> obs.interpretation as interp then {
+        g -> interp.coding as coding then {
+          g -> coding.system = 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation' "interpSystem";
+          g -> coding.code = evaluate(ag, iif(iif(item.where(linkId = 'apgar/5-minutes').item.where(linkId = 'apgar/5-minutes/total').answer.value.exists(), item.where(linkId = 'apgar/5-minutes').item.where(linkId = 'apgar/5-minutes/total').answer.value.truncate(), item.where(linkId = 'apgar/5-minutes').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0)) >= 7, 'N', iif(iif(item.where(linkId = 'apgar/5-minutes').item.where(linkId = 'apgar/5-minutes/total').answer.value.exists(), item.where(linkId = 'apgar/5-minutes').item.where(linkId = 'apgar/5-minutes/total').answer.value.truncate(), item.where(linkId = 'apgar/5-minutes').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0)) >= 4, 'A', 'LL'))) "interpCode";
+          g -> coding.display = evaluate(ag, iif(iif(item.where(linkId = 'apgar/5-minutes').item.where(linkId = 'apgar/5-minutes/total').answer.value.exists(), item.where(linkId = 'apgar/5-minutes').item.where(linkId = 'apgar/5-minutes/total').answer.value.truncate(), item.where(linkId = 'apgar/5-minutes').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0)) >= 7, 'Normal', iif(iif(item.where(linkId = 'apgar/5-minutes').item.where(linkId = 'apgar/5-minutes/total').answer.value.exists(), item.where(linkId = 'apgar/5-minutes').item.where(linkId = 'apgar/5-minutes/total').answer.value.truncate(), item.where(linkId = 'apgar/5-minutes').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0)) >= 4, 'Abnormal', 'Critically low'))) "interpDisplay";
+        } "interpCoding";
+      } "interpretation";
+      g.item as it where (linkId = 'apgar/5-minutes/colour' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '32411-1' "cd";
+            it -> cg.display = '5 minutes Apgar Appearance' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentCodedValue(it, comp) "value";
+      } "comp_32411_1";
+      g.item as it where (linkId = 'apgar/5-minutes/pulse' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '32412-9' "cd";
+            it -> cg.display = '5 minutes Apgar Pulse' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentCodedValue(it, comp) "value";
+      } "comp_32412_9";
+      g.item as it where (linkId = 'apgar/5-minutes/grimace' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '32414-5' "cd";
+            it -> cg.display = '5 minutes Apgar Grimace' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentCodedValue(it, comp) "value";
+      } "comp_32414_5";
+      g.item as it where (linkId = 'apgar/5-minutes/activity' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '32413-7' "cd";
+            it -> cg.display = '5 minutes Apgar Activity' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentCodedValue(it, comp) "value";
+      } "comp_32413_7";
+      g.item as it where (linkId = 'apgar/5-minutes/respiration' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '32415-2' "cd";
+            it -> cg.display = '5 minutes Apgar Respiration' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentCodedValue(it, comp) "value";
+      } "comp_32415_2";
+    } "apgarPanel2";
+
+    ag.item as g where (linkId = 'apgar/10-minutes' and item.answer.value.ofType(Coding).count() = 5) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      g -> obs.code as cc then {
+        g -> cc.coding as cg then {
+          g -> cg.system = 'http://loinc.org' "sys";
+          g -> cg.code = '48332-1' "cd";
+          g -> cg.display = '10 minutes Apgar panel' "dsp";
+        } "coding";
+      } "code";
+      g -> obs.value = evaluate(ag, iif(item.where(linkId = 'apgar/10-minutes').item.where(linkId = 'apgar/10-minutes/total').answer.value.exists(), item.where(linkId = 'apgar/10-minutes').item.where(linkId = 'apgar/10-minutes/total').answer.value.truncate(), item.where(linkId = 'apgar/10-minutes').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0))) "totalValue";
+      // Seven or more is normal, four to six needs support, three or less is
+      // critically low. The chart prints those bands at its foot, so the
+      // interpretation says which band the total fell in rather than leaving a
+      // reader to remember them.
+      g -> obs.interpretation as interp then {
+        g -> interp.coding as coding then {
+          g -> coding.system = 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation' "interpSystem";
+          g -> coding.code = evaluate(ag, iif(iif(item.where(linkId = 'apgar/10-minutes').item.where(linkId = 'apgar/10-minutes/total').answer.value.exists(), item.where(linkId = 'apgar/10-minutes').item.where(linkId = 'apgar/10-minutes/total').answer.value.truncate(), item.where(linkId = 'apgar/10-minutes').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0)) >= 7, 'N', iif(iif(item.where(linkId = 'apgar/10-minutes').item.where(linkId = 'apgar/10-minutes/total').answer.value.exists(), item.where(linkId = 'apgar/10-minutes').item.where(linkId = 'apgar/10-minutes/total').answer.value.truncate(), item.where(linkId = 'apgar/10-minutes').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0)) >= 4, 'A', 'LL'))) "interpCode";
+          g -> coding.display = evaluate(ag, iif(iif(item.where(linkId = 'apgar/10-minutes').item.where(linkId = 'apgar/10-minutes/total').answer.value.exists(), item.where(linkId = 'apgar/10-minutes').item.where(linkId = 'apgar/10-minutes/total').answer.value.truncate(), item.where(linkId = 'apgar/10-minutes').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0)) >= 7, 'Normal', iif(iif(item.where(linkId = 'apgar/10-minutes').item.where(linkId = 'apgar/10-minutes/total').answer.value.exists(), item.where(linkId = 'apgar/10-minutes').item.where(linkId = 'apgar/10-minutes/total').answer.value.truncate(), item.where(linkId = 'apgar/10-minutes').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0)) >= 4, 'Abnormal', 'Critically low'))) "interpDisplay";
+        } "interpCoding";
+      } "interpretation";
+      g.item as it where (linkId = 'apgar/10-minutes/colour' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '32401-2' "cd";
+            it -> cg.display = '10 minutes Apgar Appearance' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentCodedValue(it, comp) "value";
+      } "comp_32401_2";
+      g.item as it where (linkId = 'apgar/10-minutes/pulse' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '32402-0' "cd";
+            it -> cg.display = '10 minutes Apgar Pulse' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentCodedValue(it, comp) "value";
+      } "comp_32402_0";
+      g.item as it where (linkId = 'apgar/10-minutes/grimace' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '32404-6' "cd";
+            it -> cg.display = '10 minutes Apgar Grimace' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentCodedValue(it, comp) "value";
+      } "comp_32404_6";
+      g.item as it where (linkId = 'apgar/10-minutes/activity' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '32403-8' "cd";
+            it -> cg.display = '10 minutes Apgar Activity' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentCodedValue(it, comp) "value";
+      } "comp_32403_8";
+      g.item as it where (linkId = 'apgar/10-minutes/respiration' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '32405-3' "cd";
+            it -> cg.display = '10 minutes Apgar Respiration' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentCodedValue(it, comp) "value";
+      } "comp_32405_3";
+    } "apgarPanel3";
+
+  } "apgarGroup";
+
+  // ── Skin-to-skin, one Observation per timed round ───────────────────────
+  // Four rounds in the first two hours. One Observation each rather than one
+  // panel of twenty components, because these are a time series: the point of
+  // charting a heart rate at fifteen and thirty minutes and one and two hours is
+  // to see it change, and a single Observation cannot hold four effective times.
+  //
+  // Each carries its offset from birth as the code text, since the chart gives
+  // the offset rather than a clock time and the response's authored time is when
+  // the form was written, not when the reading was taken.
+  qr.item as sg where (linkId = 'skin-to-skin') then {
+    sg.item as g where (linkId = 'skin-to-skin/15-minutes' and item.answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+      g -> obs.code as cc then {
+        g -> cc.coding as cg then {
+          g -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          g -> cg.code = 'skin-to-skin-observation' "cd";
+          g -> cg.display = 'Skin-to-skin observation' "dsp";
+        } "coding";
+        g -> cc.text = 'Skin-to-skin observation — at 15 minutes' "codeText";
+      } "code";
+      g.item as it where (linkId = 'skin-to-skin/15-minutes/heart-rate' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '8867-4' "cd";
+            it -> cg.display = 'Heart rate' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentValue(it, comp) "value";
+      } "comp_8867_4";
+      g.item as it where (linkId = 'skin-to-skin/15-minutes/temperature' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '8310-5' "cd";
+            it -> cg.display = 'Body temperature' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentValue(it, comp) "value";
+      } "comp_8310_5";
+      g.item as it where (linkId = 'skin-to-skin/15-minutes/respiratory-rate' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '9279-1' "cd";
+            it -> cg.display = 'Respiratory rate' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentValue(it, comp) "value";
+      } "comp_9279_1";
+      g.item as it where (linkId = 'skin-to-skin/15-minutes/colour' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'skin-to-skin-colour' "cd";
+            it -> cg.display = 'Colour' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentCodedValue(it, comp) "value";
+      } "comp_skin_to_skin_colour";
+      g.item as it where (linkId = 'skin-to-skin/15-minutes/position-sniffing' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'skin-to-skin-position-sniffing' "cd";
+            it -> cg.display = 'Position: sniffing' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentCodedValue(it, comp) "value";
+      } "comp_skin_to_skin_position_sniffing";
+    } "skinToSkinRound";
+
+    sg.item as g where (linkId = 'skin-to-skin/30-minutes' and item.answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+      g -> obs.code as cc then {
+        g -> cc.coding as cg then {
+          g -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          g -> cg.code = 'skin-to-skin-observation' "cd";
+          g -> cg.display = 'Skin-to-skin observation' "dsp";
+        } "coding";
+        g -> cc.text = 'Skin-to-skin observation — at 30 minutes' "codeText";
+      } "code";
+      g.item as it where (linkId = 'skin-to-skin/30-minutes/heart-rate' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '8867-4' "cd";
+            it -> cg.display = 'Heart rate' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentValue(it, comp) "value";
+      } "comp_8867_42";
+      g.item as it where (linkId = 'skin-to-skin/30-minutes/temperature' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '8310-5' "cd";
+            it -> cg.display = 'Body temperature' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentValue(it, comp) "value";
+      } "comp_8310_52";
+      g.item as it where (linkId = 'skin-to-skin/30-minutes/respiratory-rate' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '9279-1' "cd";
+            it -> cg.display = 'Respiratory rate' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentValue(it, comp) "value";
+      } "comp_9279_12";
+      g.item as it where (linkId = 'skin-to-skin/30-minutes/colour' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'skin-to-skin-colour' "cd";
+            it -> cg.display = 'Colour' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentCodedValue(it, comp) "value";
+      } "comp_skin_to_skin_colour2";
+      g.item as it where (linkId = 'skin-to-skin/30-minutes/position-sniffing' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'skin-to-skin-position-sniffing' "cd";
+            it -> cg.display = 'Position: sniffing' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentCodedValue(it, comp) "value";
+      } "comp_skin_to_skin_position_sniffing2";
+    } "skinToSkinRound2";
+
+    sg.item as g where (linkId = 'skin-to-skin/1-hour' and item.answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+      g -> obs.code as cc then {
+        g -> cc.coding as cg then {
+          g -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          g -> cg.code = 'skin-to-skin-observation' "cd";
+          g -> cg.display = 'Skin-to-skin observation' "dsp";
+        } "coding";
+        g -> cc.text = 'Skin-to-skin observation — at 1 hour' "codeText";
+      } "code";
+      g.item as it where (linkId = 'skin-to-skin/1-hour/heart-rate' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '8867-4' "cd";
+            it -> cg.display = 'Heart rate' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentValue(it, comp) "value";
+      } "comp_8867_43";
+      g.item as it where (linkId = 'skin-to-skin/1-hour/temperature' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '8310-5' "cd";
+            it -> cg.display = 'Body temperature' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentValue(it, comp) "value";
+      } "comp_8310_53";
+      g.item as it where (linkId = 'skin-to-skin/1-hour/respiratory-rate' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '9279-1' "cd";
+            it -> cg.display = 'Respiratory rate' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentValue(it, comp) "value";
+      } "comp_9279_13";
+      g.item as it where (linkId = 'skin-to-skin/1-hour/colour' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'skin-to-skin-colour' "cd";
+            it -> cg.display = 'Colour' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentCodedValue(it, comp) "value";
+      } "comp_skin_to_skin_colour3";
+      g.item as it where (linkId = 'skin-to-skin/1-hour/position-sniffing' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'skin-to-skin-position-sniffing' "cd";
+            it -> cg.display = 'Position: sniffing' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentCodedValue(it, comp) "value";
+      } "comp_skin_to_skin_position_sniffing3";
+    } "skinToSkinRound3";
+
+    sg.item as g where (linkId = 'skin-to-skin/2-hours' and item.answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+      g -> obs.code as cc then {
+        g -> cc.coding as cg then {
+          g -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          g -> cg.code = 'skin-to-skin-observation' "cd";
+          g -> cg.display = 'Skin-to-skin observation' "dsp";
+        } "coding";
+        g -> cc.text = 'Skin-to-skin observation — at 2 hours' "codeText";
+      } "code";
+      g.item as it where (linkId = 'skin-to-skin/2-hours/heart-rate' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '8867-4' "cd";
+            it -> cg.display = 'Heart rate' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentValue(it, comp) "value";
+      } "comp_8867_44";
+      g.item as it where (linkId = 'skin-to-skin/2-hours/temperature' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '8310-5' "cd";
+            it -> cg.display = 'Body temperature' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentValue(it, comp) "value";
+      } "comp_8310_54";
+      g.item as it where (linkId = 'skin-to-skin/2-hours/respiratory-rate' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '9279-1' "cd";
+            it -> cg.display = 'Respiratory rate' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentValue(it, comp) "value";
+      } "comp_9279_14";
+      g.item as it where (linkId = 'skin-to-skin/2-hours/colour' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'skin-to-skin-colour' "cd";
+            it -> cg.display = 'Colour' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentCodedValue(it, comp) "value";
+      } "comp_skin_to_skin_colour4";
+      g.item as it where (linkId = 'skin-to-skin/2-hours/position-sniffing' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'skin-to-skin-position-sniffing' "cd";
+            it -> cg.display = 'Position: sniffing' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentCodedValue(it, comp) "value";
+      } "comp_skin_to_skin_position_sniffing4";
+    } "skinToSkinRound4";
+
+    sg.item as it where (linkId = 'skin-to-skin/breast-fed-first-hour' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '63895-7' "cd";
+          it -> cg.display = 'Breastfeeding status' "dsp";
+        } "coding";
+        it -> cc.text = 'Breast fed in the first hour' "codeText";
+      } "code";
+      it.answer first as a then {
+        a.value as cv -> obs.value = create('CodeableConcept') as cc then {
+          cv -> cc.coding = cv "valueCoding";
+          cv.display as d -> cc.text = d "valueText";
+        } "codedValue";
+      } "answer";
+    } "breastFedObservation";
+  } "skinToSkinGroup";
+
+  // ── Immediate newborn care given ────────────────────────────────────────
+  // One panel, not Immunization or MedicationAdministration resources. The
+  // chart ticks that vitamin K, eye ointment, chlorhexidine cord care, delayed
+  // clamping and ARVs were given and records no dose, no route and no time.
+  // A MedicationAdministration built from a tick claims a dose nobody gave.
+  qr.item as g where (linkId = 'immediate-care' and item.answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+    qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+    qr -> obs then SetSurveyCategory(qr, obs) "category";
+    g -> obs.code as cc then {
+      g -> cc.coding as cg then {
+        g -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+        g -> cg.code = 'essential-newborn-care-given' "cd";
+        g -> cg.display = 'Essential newborn care given' "dsp";
+      } "coding";
+    } "code";
+    g.item as it where (linkId = 'immediate-care/obvious-malformation' and answer.value.exists()) -> obs.component as comp then {
+      it -> comp.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'newborn-care-obvious-malformation' "cd";
+          it -> cg.display = 'Obvious malformation' "dsp";
+        } "coding";
+      } "code";
+      it -> comp then SetComponentCodedValue(it, comp) "value";
+    } "comp_newborn_care_obvious_malformation";
+    g.item as it where (linkId = 'immediate-care/delayed-cord-clamp' and answer.value.exists()) -> obs.component as comp then {
+      it -> comp.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'newborn-care-delayed-cord-clamp' "cd";
+          it -> cg.display = 'Delayed cord clamp' "dsp";
+        } "coding";
+      } "code";
+      it -> comp then SetComponentCodedValue(it, comp) "value";
+    } "comp_newborn_care_delayed_cord_clamp";
+    g.item as it where (linkId = 'immediate-care/sero-exposed' and answer.value.exists()) -> obs.component as comp then {
+      it -> comp.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'newborn-care-sero-exposed' "cd";
+          it -> cg.display = 'Sero-exposed' "dsp";
+        } "coding";
+      } "code";
+      it -> comp then SetComponentCodedValue(it, comp) "value";
+    } "comp_newborn_care_sero_exposed";
+    g.item as it where (linkId = 'immediate-care/arvs-started' and answer.value.exists()) -> obs.component as comp then {
+      it -> comp.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'newborn-care-arvs-started' "cd";
+          it -> cg.display = 'ARVs started' "dsp";
+        } "coding";
+      } "code";
+      it -> comp then SetComponentCodedValue(it, comp) "value";
+    } "comp_newborn_care_arvs_started";
+    g.item as it where (linkId = 'immediate-care/eye-care' and answer.value.exists()) -> obs.component as comp then {
+      it -> comp.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'newborn-care-eye-care' "cd";
+          it -> cg.display = 'Eye care' "dsp";
+        } "coding";
+      } "code";
+      it -> comp then SetComponentCodedValue(it, comp) "value";
+    } "comp_newborn_care_eye_care";
+    g.item as it where (linkId = 'immediate-care/vitamin-k' and answer.value.exists()) -> obs.component as comp then {
+      it -> comp.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'newborn-care-vitamin-k' "cd";
+          it -> cg.display = 'Vitamin K' "dsp";
+        } "coding";
+      } "code";
+      it -> comp then SetComponentCodedValue(it, comp) "value";
+    } "comp_newborn_care_vitamin_k";
+    g.item as it where (linkId = 'immediate-care/cord-care-with-chx' and answer.value.exists()) -> obs.component as comp then {
+      it -> comp.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'newborn-care-cord-care-with-chlorhexidine' "cd";
+          it -> cg.display = 'Cord care with chlorhexidine' "dsp";
+        } "coding";
+      } "code";
+      it -> comp then SetComponentCodedValue(it, comp) "value";
+    } "comp_newborn_care_cord_care_with_chlorhexidine";
+  } "immediateCarePanel";
+
+  // ── Newborn follow-up, one Observation per round ────────────────────────
+  // The chart is a grid of morning, evening and night over four days. The
+  // questionnaire takes it as a repeating group, and each repeat becomes one
+  // Observation whose effective time is the round's own date -- not the
+  // response's authored time, which would collapse twelve rounds onto one
+  // instant and make the chart unreadable.
+  qr.item as fg where (linkId = 'follow-up') then {
+    fg.item as g where (linkId = 'follow-up/round' and item.answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetExamCategory(qr, obs) "category";
+      g -> obs.code as cc then {
+        g -> cc.coding as cg then {
+          g -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          g -> cg.code = 'newborn-follow-up-round' "cd";
+          g -> cg.display = 'Newborn follow-up round' "dsp";
+        } "coding";
+      } "code";
+
+      // The round's own date overrides the base group's effective time.
+      g.item as d where (linkId = 'follow-up/round/date') then {
+        d.answer first as a then {
+          // Observation.effective[x] takes dateTime, Period, Timing or instant
+          // and no date, so the round's date is cast rather than copied.
+          a.value as dt -> obs.effective = cast(dt, 'dateTime') "roundDate";
+        } "answer";
+      } "roundDateRule";
+
+      // Which staff member did the round overrides the response's source, so a
+      // chart filled in at the end of a shift still attributes each round.
+      g.item as s where (linkId = 'follow-up/round/staff' and answer.value.exists()) then {
+        s.answer first as a then {
+          a.value as ref -> obs.performer = ref "roundPerformer";
+        } "answer";
+      } "roundPerformerRule";
+
+      g.item as it where (linkId = 'follow-up/round/shift' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'newborn-round-round-of-the-day' "cd";
+            it -> cg.display = 'Round of the day' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentCodedValue(it, comp) "value";
+      } "comp_newborn_round_round_of_the_day";
+      g.item as it where (linkId = 'follow-up/round/day-of-life' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'newborn-round-day-of-life' "cd";
+            it -> cg.display = 'Day of life' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentValue(it, comp) "value";
+      } "comp_newborn_round_day_of_life";
+      g.item as it where (linkId = 'follow-up/round/respiratory' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'newborn-round-respiratory' "cd";
+            it -> cg.display = 'Respiratory' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentValue(it, comp) "value";
+      } "comp_newborn_round_respiratory";
+      g.item as it where (linkId = 'follow-up/round/breastfeeding' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'newborn-round-breastfeeding' "cd";
+            it -> cg.display = 'Breastfeeding' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentValue(it, comp) "value";
+      } "comp_newborn_round_breastfeeding";
+      g.item as it where (linkId = 'follow-up/round/cord' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'cord-condition' "cd";
+            it -> cg.display = 'Cord condition' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentCodedValue(it, comp) "value";
+      } "comp_cord_condition";
+      g.item as it where (linkId = 'follow-up/round/jaundice' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'grade-jaundice-grade' "cd";
+            it -> cg.display = 'Jaundice grade' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentCodedValue(it, comp) "value";
+      } "comp_grade_jaundice_grade";
+      g.item as it where (linkId = 'follow-up/round/tone' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'newborn-round-tone' "cd";
+            it -> cg.display = 'Tone' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentValue(it, comp) "value";
+      } "comp_newborn_round_tone";
+      g.item as it where (linkId = 'follow-up/round/fontanelle' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'newborn-round-fontanelle' "cd";
+            it -> cg.display = 'Fontanelle' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentValue(it, comp) "value";
+      } "comp_newborn_round_fontanelle";
+      g.item as it where (linkId = 'follow-up/round/urine' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'newborn-round-urine' "cd";
+            it -> cg.display = 'Urine' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentValue(it, comp) "value";
+      } "comp_newborn_round_urine";
+      g.item as it where (linkId = 'follow-up/round/stool' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'newborn-round-stool' "cd";
+            it -> cg.display = 'Stool' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentValue(it, comp) "value";
+      } "comp_newborn_round_stool";
+      g.item as it where (linkId = 'follow-up/round/eyes' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'newborn-round-eyes' "cd";
+            it -> cg.display = 'Eyes' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentValue(it, comp) "value";
+      } "comp_newborn_round_eyes";
+      g.item as it where (linkId = 'follow-up/round/weight' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '29463-7' "cd";
+            it -> cg.display = 'Body weight' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentValue(it, comp) "value";
+      } "comp_29463_7";
+      g.item as it where (linkId = 'follow-up/round/remarks') then {
+        it.answer first as a then {
+          a.value as txt -> obs.note as n, n.text = txt "text";
+        } "answer";
+      } "note";
+    } "followUpRound";
+  } "followUpGroup";
+
+  // ── Resuscitation ───────────────────────────────────────────────────────
+  // A Procedure, and only when it was actually done. `status = 'completed'`
+  // because the chart is written after the event, and the duration becomes
+  // Procedure.occurrenceTiming.repeat.duration rather than a note, so it can be
+  // audited across births.
+  qr.item as g where (linkId = 'resuscitation') then {
+    g.item as it where (linkId = 'resuscitation/done' and answer.value.ofType(Coding).code = 'Y') -> bundle.entry as entry, entry.resource = create('Procedure') as proc then {
+      qr -> proc, entry then BuildProcedureBase(qr, proc, entry) "base";
+      it -> proc.status = 'completed' "status";
+      // A local code, not SNOMED. SNOMED almost certainly has a concept for
+      // newborn resuscitation, but tx.fhir.org's expansion endpoint ignores a
+      // text filter on the SNOMED implicit value set, so it could only have
+      // been guessed at -- and a guessed SNOMED code is worse than a local one,
+      // because everyone downstream trusts SNOMED and nobody re-checks it.
+      it -> proc.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'newborn-resuscitation' "cd";
+          it -> cg.display = 'Resuscitation of a newborn' "dsp";
+        } "coding";
+      } "code";
+      qr.authored as t -> proc.occurrence = t "occurrence";
+      qr.encounter as e -> proc.encounter = e "encounter";
+      qr.source as src -> proc.performer as p, p.actor = src "performer";
+      g.item as sp where (linkId = 'resuscitation/specify') then {
+        sp.answer first as a then {
+          a.value as txt -> proc.note as n, n.text = txt "specifyNote";
+        } "answer";
+      } "specifyRule";
+      g.item as du where (linkId = 'resuscitation/duration' and answer.value.exists()) then {
+        du.answer first as a then {
+          a.value as v -> proc.report as rep, rep.display = 'Resuscitation duration recorded on the newborn observation chart' "durationRef";
+        } "answer";
+      } "durationRule";
+    } "resuscitationProcedure";
+  } "resuscitationGroup";
+
+  // ── Discharge ───────────────────────────────────────────────────────────
+  qr.item as g where (linkId = 'discharge') then {
+    g.item as it where (linkId = 'discharge/weight' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '29463-7' "cd";
+          it -> cg.display = 'Body weight' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as v -> obs.value = v "set";
+      } "answer";
+    } "measure_29463_7";
+
+    g.item as it where (linkId = 'discharge/immunisation-given' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '11369-6' "cd";
+          it -> cg.display = 'History of Immunization note' "dsp";
+        } "coding";
+        it -> cc.text = 'Immunisation given before discharge' "codeText";
+      } "code";
+      it.answer first as a then {
+        a.value as cv -> obs.value = create('CodeableConcept') as cc then {
+          cv -> cc.coding = cv "valueCoding";
+          cv.display as d -> cc.text = d "valueText";
+        } "codedValue";
+      } "answer";
+    } "dischargeImmunisationObservation";
+  } "dischargeGroup";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared scaffolding. Repeated in each map rather than imported: the transform
+// engine resolves `imports` against whatever StructureMaps happen to be on the
+// server, and a form that stops extracting because a shared map was not
+// uploaded is a worse failure than a duplicated group.
+//
+// Two notes on what the publisher's StructureMap validator says about this file.
+//
+// Source parameters below are left untyped on purpose. Writing `: Element` makes
+// the validator compare QuestionnaireResponse.item against the literal 'Element'
+// and report them as incompatible with each other, which is noise, not a finding.
+//
+// `evaluate(context, expression)` is flagged as "takes 1 parameter but 2 were
+// found". Leave it. The FML parser in the same jar refuses the one-argument form
+// outright -- it wants a parameter, a comma, then the FHIRPath -- so the
+// publisher is objecting to what its own compiler emits. Two arguments is the
+// only form that compiles, and it is what the R5 transform engine executes.
+// ─────────────────────────────────────────────────────────────────────────────
+
+group BuildObsBase(source qr : QR, target obs : Observation, target entry) {
+  qr -> obs then SetResponseProvenance(qr, obs) "responseProvenance";
+  qr -> obs.id = uuid() then SetObservationFullUrl(obs, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Observation' "requestUrl";
+  } "entryRequest";
+
+  qr -> obs.status = 'final' "status";
+  qr.subject as s -> obs.subject = s "subject";
+  qr.encounter as e -> obs.encounter = e "encounter";
+  qr.authored as t -> obs.effective = t "effective";
+
+  qr.source as src -> obs.performer = src "performerFromSource";
+  qr where (source.exists().not()) then {
+    qr.author as a -> obs.performer = a "performerFromAuthor";
+  } "performerFallback";
+
+  // A stored response's id already reads "QuestionnaireResponse/<id>", so it is
+  // a relative reference as it stands. The hasValue() guard is what stops an
+  // unsaved response -- one posted straight to $extract rather than saved first
+  // -- from writing "QuestionnaireResponse/null" into the record.
+  qr.id as qid where ($this.hasValue()) -> obs.derivedFrom = create('Reference') as ref, ref.reference = qid "linkQuestionnaireResponse";
+}
+
+group SetObservationFullUrl(source obs : Observation, target entry) {
+  obs.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/Observation/', id) "assignFullUrl";
+}
+
+// The two answer shapes a component can carry. Both read the answer through the
+// untyped `.value` accessor: reading `valueCoding` or `valueQuantity` by its
+// typed property name fails at transform time on HAPI R5 with "Attempt to read
+// invalid property ... on QuestionnaireResponse.item.answer".
+group SetComponentCodedValue(source it, target comp) {
+  it.answer first as a then {
+    a.value as cv -> comp.value = create('CodeableConcept') as cc then {
+      cv -> cc.coding = cv "valueCoding";
+      cv.display as d -> cc.text = d "valueText";
+    } "codedValue";
+  } "componentAnswer";
+}
+
+group SetComponentValue(source it, target comp) {
+  it.answer first as a then {
+    a.value as v -> comp.value = v "plainValue";
+  } "componentAnswer";
+}
+
+group SetSurveyCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'survey' "categoryCode";
+      qr -> coding.display = 'Survey' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+group SetVitalSignsCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'vital-signs' "categoryCode";
+      qr -> coding.display = 'Vital Signs' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+group SetExamCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'exam' "categoryCode";
+      qr -> coding.display = 'Exam' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+group BuildProcedureBase(source qr : QR, target r : Procedure, target entry) {
+  qr -> r then SetResponseProvenance(qr, r) "responseProvenance";
+  qr -> r.id = uuid() then SetProcedureFullUrl(r, entry) "idAndFullUrl";
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Procedure' "requestUrl";
+  } "entryRequest";
+
+  // The response's own time, as a floor, the way BuildObsBase does it. A rule
+  // that reads a time off the form overwrites this; without it a procedure whose
+  // date column was taken off on review has no time at all, and a procedure with
+  // no time cannot be ordered against the rest of the admission.
+  qr.authored as t -> r.occurrence = t "occurrenceFallback";
+  qr.subject as s -> r.subject = s "subject";
+}
+
+group SetProcedureFullUrl(source r : Procedure, target entry) {
+  r.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/Procedure/', id) "assignFullUrl";
+}
+
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+//
+// Two tags on everything this map creates. The first says which questionnaire
+// produced it, so a form that reopens mid-admission recalls its own earlier
+// entries and not another form's. The second copies the tenant tags off the
+// response, because nothing else on the path puts them there.
+//
+// The code is the form's document type, not the questionnaire's id: every
+// environment mints its own ids, and there is only one set of maps, so an id
+// here would tie the tag to whichever environment stamped it.
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+
+group SetResponseProvenance(source qr : QR, target r) {
+  qr -> r.meta as m then {
+    qr -> m.tag as t then {
+      qr -> t.system = 'http://slade360edi.com/questionnaire-provenance' "provenanceSystem";
+      qr -> t.code = 'newborn-observation-chart' "provenanceCode";
+      qr -> t.display = 'Newborn observation chart' "provenanceDisplay";
+    } "provenanceTag";
+  } "provenanceMeta";
+
+  // Every tag the response carries, onto the resource. `meta` is 0..1, so this
+  // lands on the same meta the rule above created rather than a second one.
+  qr.meta as qm then {
+    qm.tag as qt -> r.meta as m, m.tag = qt "copyTag";
+  } "tenantTags";
+}

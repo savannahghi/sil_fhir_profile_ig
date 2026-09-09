@@ -1,0 +1,170 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractPaediatricNebulizationChart"
+/// name = "ExtractPaediatricNebulizationChart"
+/// title = "Paediatric Nebulization Chart Extraction"
+/// status = "active"
+/// description = "One MedicationAdministration per row. Unlike the tick-box charts in this set, this one records the drug, the amount and the time it was given -- which is exactly what a MedicationAdministration needs in order to be an honest claim. The drug name and the amount travel as written: the hospital\'s formulary is not coded and a guessed code on a bronchodilator dose is the wrong place to be wrong."
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/MedicationAdministration" alias MedicationAdministration as target
+
+group ExtractPaediatricNebulizationChart(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  qr.item as row where (linkId = 'nebulisation' and item.where(linkId = 'nebulisation/drug').answer.value.exists()) -> bundle.entry as entry, entry.resource = create('MedicationAdministration') as ma then {
+    qr -> ma, entry then BuildMedicationAdministrationBase(qr, ma, entry) "base";
+    row -> ma.status = 'completed' "status";
+    qr.encounter as e -> ma.encounter = e "encounter";
+    row.item as it where (linkId = 'nebulisation/drug') then {
+      it.answer first as a then {
+        a.value as txt -> ma.medication as med, med.concept as mc, mc.text = txt "medicationText";
+      } "answer";
+    } "drugRule";
+    row.item as it where (linkId = 'nebulisation/amount' and answer.value.exists()) then {
+      it.answer first as a then {
+        a.value as txt -> ma.dosage as dos, dos.text = txt "dosageText";
+      } "answer";
+    } "amountRule";
+    row.item as it where (linkId = 'nebulisation/frequency' and answer.value.exists()) then {
+      it.answer first as a then {
+        a.value as txt -> ma.note as n, n.text = txt "frequencyNote";
+      } "answer";
+    } "frequencyRule";
+    row.item as it where (linkId = 'nebulisation/at' and answer.value.exists()) then {
+      it.answer first as a then {
+        a.value as v -> ma.occurence = v "occurrence";
+      } "answer";
+    } "atRule";
+    row.item as it where (linkId = 'nebulisation/given-by' and answer.value.exists()) then {
+      it.answer first as a then {
+        a.value as ref -> ma.performer as p, p.actor = create('CodeableReference') as cr, cr.reference = ref "performer";
+      } "answer";
+    } "givenByRule";
+
+    // The route. Every row on this chart is a nebulisation, so it is stated
+    // rather than asked -- the sheet's title is the route.
+    row -> ma.dosage as dos, dos.route as rt then {
+      row -> rt.coding as cg then {
+        row -> cg.system = 'http://snomed.info/sct' "sys";
+        row -> cg.code = '447694001' "cd";
+        row -> cg.display = 'Respiratory tract route' "dsp";
+      } "coding";
+    } "route";
+  } "nebulisationRow";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared scaffolding. Repeated in each map rather than imported: the transform
+// engine resolves `imports` against whatever StructureMaps happen to be on the
+// server, and a form that stops extracting because a shared map was not
+// uploaded is a worse failure than a duplicated group.
+//
+// Two notes on what the publisher's StructureMap validator says about this file.
+//
+// Source parameters below are left untyped on purpose. Writing `: Element` makes
+// the validator compare QuestionnaireResponse.item against the literal 'Element'
+// and report them as incompatible with each other, which is noise, not a finding.
+//
+// `evaluate(context, expression)` is flagged as "takes 1 parameter but 2 were
+// found". Leave it. The FML parser in the same jar refuses the one-argument form
+// outright -- it wants a parameter, a comma, then the FHIRPath -- so the
+// publisher is objecting to what its own compiler emits. Two arguments is the
+// only form that compiles, and it is what the R5 transform engine executes.
+// ─────────────────────────────────────────────────────────────────────────────
+
+group BuildObsBase(source qr : QR, target obs : Observation, target entry) {
+  qr -> obs then SetResponseProvenance(qr, obs) "responseProvenance";
+  qr -> obs.id = uuid() then SetObservationFullUrl(obs, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Observation' "requestUrl";
+  } "entryRequest";
+
+  qr -> obs.status = 'final' "status";
+  qr.subject as s -> obs.subject = s "subject";
+  qr.encounter as e -> obs.encounter = e "encounter";
+  qr.authored as t -> obs.effective = t "effective";
+
+  qr.source as src -> obs.performer = src "performerFromSource";
+  qr where (source.exists().not()) then {
+    qr.author as a -> obs.performer = a "performerFromAuthor";
+  } "performerFallback";
+
+  // A stored response's id already reads "QuestionnaireResponse/<id>", so it is
+  // a relative reference as it stands. The hasValue() guard is what stops an
+  // unsaved response -- one posted straight to $extract rather than saved first
+  // -- from writing "QuestionnaireResponse/null" into the record.
+  qr.id as qid where ($this.hasValue()) -> obs.derivedFrom = create('Reference') as ref, ref.reference = qid "linkQuestionnaireResponse";
+}
+
+group SetObservationFullUrl(source obs : Observation, target entry) {
+  obs.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/Observation/', id) "assignFullUrl";
+}
+
+// The two answer shapes a component can carry. Both read the answer through the
+// untyped `.value` accessor: reading `valueCoding` or `valueQuantity` by its
+// typed property name fails at transform time on HAPI R5 with "Attempt to read
+// invalid property ... on QuestionnaireResponse.item.answer".
+group SetComponentCodedValue(source it, target comp) {
+  it.answer first as a then {
+    a.value as cv -> comp.value = create('CodeableConcept') as cc then {
+      cv -> cc.coding = cv "valueCoding";
+      cv.display as d -> cc.text = d "valueText";
+    } "codedValue";
+  } "componentAnswer";
+}
+
+group SetComponentValue(source it, target comp) {
+  it.answer first as a then {
+    a.value as v -> comp.value = v "plainValue";
+  } "componentAnswer";
+}
+
+group BuildMedicationAdministrationBase(source qr : QR, target r : MedicationAdministration, target entry) {
+  qr -> r then SetResponseProvenance(qr, r) "responseProvenance";
+  qr -> r.id = uuid() then SetMedicationAdministrationFullUrl(r, entry) "idAndFullUrl";
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'MedicationAdministration' "requestUrl";
+  } "entryRequest";
+  qr.subject as s -> r.subject = s "subject";
+
+  // The response's own time, as a floor. A row that names the time it was given
+  // overwrites this; a form whose time column was taken off on review would
+  // otherwise produce an administration with no time at all, which is not a
+  // record of an administration. Same fallback BuildObsBase already applies.
+  qr.authored as t -> r.occurence = t "occurrenceFallback";
+}
+
+group SetMedicationAdministrationFullUrl(source r : MedicationAdministration, target entry) {
+  r.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/MedicationAdministration/', id) "assignFullUrl";
+}
+
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+//
+// Two tags on everything this map creates. The first says which questionnaire
+// produced it, so a form that reopens mid-admission recalls its own earlier
+// entries and not another form's. The second copies the tenant tags off the
+// response, because nothing else on the path puts them there.
+//
+// The code is the form's document type, not the questionnaire's id: every
+// environment mints its own ids, and there is only one set of maps, so an id
+// here would tie the tag to whichever environment stamped it.
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+
+group SetResponseProvenance(source qr : QR, target r) {
+  qr -> r.meta as m then {
+    qr -> m.tag as t then {
+      qr -> t.system = 'http://slade360edi.com/questionnaire-provenance' "provenanceSystem";
+      qr -> t.code = 'paediatric-nebulization-chart' "provenanceCode";
+      qr -> t.display = 'Paediatric nebulization chart' "provenanceDisplay";
+    } "provenanceTag";
+  } "provenanceMeta";
+
+  // Every tag the response carries, onto the resource. `meta` is 0..1, so this
+  // lands on the same meta the rule above created rather than a second one.
+  qr.meta as qm then {
+    qm.tag as qt -> r.meta as m, m.tag = qt "copyTag";
+  } "tenantTags";
+}

@@ -19,3 +19,9 @@ application.yaml
 _build.*
 .playwright*
 sil-templates/*
+
+# Offline FML compile output. `make ig` writes the real StructureMaps to
+# /output; this directory only exists so a single map can be compiled without a
+# full publisher run, and it is a throwaway either way.
+/input/compiled-maps
+*.pdf

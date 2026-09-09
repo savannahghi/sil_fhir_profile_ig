@@ -1,0 +1,334 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractBishopScore"
+/// name = "ExtractBishopScore"
+/// title = "Bishop Score Extraction"
+/// description = "The Bishop score out as one Observation carrying the total, with the five weighted items as components and the fetal heart rate, the position of the presenting part and the membrane status alongside them. The total prefers what the form submitted and otherwise sums the item weights itself, and it only extracts when all five items have been answered — a Bishop of 6 out of three items answered reads as a favourable cervix and is not one."
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Observation as target
+
+group ExtractBishopScore(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  // Anchored on any item of the assessment group being answered rather than on
+  // the total, because the total is calculated and a client without a FHIRPath
+  // engine submits it empty. Anchoring on the total would mean such a client
+  // extracted nothing at all.
+  qr where (item.where(linkId = 'assessment').item.answer.value.ofType(Coding).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+    qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+    qr -> obs then SetSurveyCategory(qr, obs) "category";
+
+    // LOINC has no term for the Bishop score, nor for cervical dilation at all,
+    // so the code is local. Searched both "Bishop" and "Dilation Cervix" in
+    // LOINC's implicit value set; neither returns anything.
+    qr -> obs.code as code then {
+      qr -> code.coding as coding then {
+        qr -> coding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "codeSystem";
+        qr -> coding.code = 'bishop-total' "codeCode";
+        qr -> coding.display = 'Bishop score total' "codeDisplay";
+      } "codeCoding";
+      qr -> code.text = 'Bishop score' "codeText";
+    } "code";
+
+    // The submitted total wins; otherwise sum the five item weights.
+    //
+    // The weight is read off the tail of the answer code, which is why the codes
+    // are namespaced instrument-item-weight. Order matters in the nested iif:
+    // '-3' has to be tested before '-1', or bishop-station-3 would never match
+    // -- endsWith('-1') is false for it, but a naive test on the last character
+    // is not what is written here, and the explicit chain keeps it obvious.
+    //
+    // Guarded on all five items being answered. Bishop is a sum over five items
+    // and a partial sum is not a smaller Bishop score, it is a different
+    // number; nothing in the resource would say which it was.
+    qr where (item.where(linkId = 'assessment').item.answer.value.ofType(Coding).count() = 5) then {
+      qr -> obs.value = evaluate(qr, iif(item.where(linkId = 'total').answer.value.exists(), item.where(linkId = 'total').answer.value.truncate(), item.where(linkId = 'assessment').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-3'), 3, iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0)))).aggregate($this + $total, 0))) "totalValue";
+
+      // Six or more is a favourable cervix. Stated as the interpretation rather
+      // than left for a reader to recall, because the whole point of the score
+      // is the induction decision it drives.
+      qr -> obs.interpretation as interp then {
+        qr -> interp.coding as coding then {
+          qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation' "interpSystem";
+          qr -> coding.code = evaluate(qr, iif(iif(item.where(linkId = 'total').answer.value.exists(), item.where(linkId = 'total').answer.value.truncate(), item.where(linkId = 'assessment').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-3'), 3, iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0)))).aggregate($this + $total, 0)) >= 6, 'POS', 'NEG')) "interpCode";
+          qr -> coding.display = evaluate(qr, iif(iif(item.where(linkId = 'total').answer.value.exists(), item.where(linkId = 'total').answer.value.truncate(), item.where(linkId = 'assessment').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-3'), 3, iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0)))).aggregate($this + $total, 0)) >= 6, 'Favourable cervix', 'Unfavourable cervix')) "interpDisplay";
+        } "interpCoding";
+      } "interpretation";
+    } "totalRule";
+
+    // ── The five weighted items ─────────────────────────────────────────────
+    qr.item as g where (linkId = 'assessment') then {
+      g.item as it where (linkId = 'assessment/dilation' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'bishop-dilation' "cd";
+            it -> cg.display = 'Cervical dilation (Bishop)' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentCodedValue(it, comp) "value";
+      } "dilationRule";
+
+      // Effacement is the one item where LOINC has the underlying measurement:
+      // 11867-9 Effacement Cervix. The component below carries the scored band,
+      // and the second component further down carries the same answer under the
+      // LOINC code, so a query for "effacement" finds it either way.
+      g.item as it where (linkId = 'assessment/effacement' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'bishop-effacement' "cd";
+            it -> cg.display = 'Cervical effacement (Bishop)' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentCodedValue(it, comp) "value";
+      } "effacementRule";
+
+      g.item as it where (linkId = 'assessment/effacement' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '11867-9' "cd";
+            it -> cg.display = 'Effacement Cervix' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentCodedValue(it, comp) "value";
+      } "effacementLoincRule";
+
+      g.item as it where (linkId = 'assessment/consistency' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'bishop-consistency' "cd";
+            it -> cg.display = 'Cervical consistency (Bishop)' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentCodedValue(it, comp) "value";
+      } "consistencyRule";
+
+      g.item as it where (linkId = 'assessment/position' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'bishop-position' "cd";
+            it -> cg.display = 'Cervical position (Bishop)' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentCodedValue(it, comp) "value";
+      } "positionRule";
+
+      g.item as it where (linkId = 'assessment/station' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'bishop-station' "cd";
+            it -> cg.display = 'Head station (Bishop)' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentCodedValue(it, comp) "value";
+      } "stationRule";
+    } "assessmentItems";
+
+    // ── Recorded alongside the score ────────────────────────────────────────
+    // These are not part of the score and carry no weight, but they belong on
+    // the same Observation: they were taken at the same examination, and the
+    // membrane status in particular changes what the next examination may do.
+    qr.item as g where (linkId = 'alongside') then {
+      g.item as it where (linkId = 'alongside/fetal-heart-rate' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '55283-6' "cd";
+            it -> cg.display = 'Fetal Heart rate' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentValue(it, comp) "value";
+      } "fetalHeartRateRule";
+
+      g.item as it where (linkId = 'alongside/membranes' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'membrane-status' "cd";
+            it -> cg.display = 'Membrane status' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentCodedValue(it, comp) "value";
+      } "membraneStatusRule";
+
+      g.item as it where (linkId = 'alongside/presenting-part-position' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '11876-0' "cd";
+            it -> cg.display = 'Fetal presentation palpation' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentValue(it, comp) "value";
+      } "presentingPartRule";
+
+      // Remarks become Observation.note rather than a component. A component
+      // needs a code saying what the value means, and "whatever the examiner
+      // wanted to add" is not one.
+      g.item as it where (linkId = 'alongside/remarks') then {
+        it.answer first as a then {
+          a.value as txt -> obs.note as note then {
+            txt -> note.text = txt "noteText";
+          } "createNote";
+        } "remarksAnswer";
+      } "remarksRule";
+    } "alongsideItems";
+
+    // Gestation at the assessment. Not a component: it is a fact about the
+    // pregnancy on the day, not a part of the cervical assessment, so it rides
+    // as its own Observation in the entry below.
+    qr.item as g where (linkId = 'context') then {
+      // The indication is why induction was being considered, which is the
+      // reason for the whole examination. Observation has no `reason`, so it
+      // goes to note alongside any remarks.
+      g.item as it where (linkId = 'context/indication') then {
+        it.answer first as a then {
+          a.value as txt -> obs.note as note then {
+            txt -> note.text = txt "noteText";
+          } "createNote";
+        } "indicationAnswer";
+      } "indicationRule";
+    } "contextItems";
+  } "bishopObservation";
+
+  // Gestation, as its own Observation. Separate from the score because it is a
+  // property of the pregnancy that other forms also record, and folding it into
+  // the Bishop Observation would hide it from a query for gestational age.
+  qr.item as g where (linkId = 'context') then {
+    g.item as it where (linkId = 'context/gestation' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '11884-4' "cd";
+          it -> cg.display = 'Gestational age Estimated' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as v -> obs.value = v "gestationValue";
+      } "gestationAnswer";
+    } "gestationObservation";
+  } "gestationRule";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared scaffolding. Repeated in each map rather than imported: the transform
+// engine resolves `imports` against whatever StructureMaps happen to be on the
+// server, and a form that stops extracting because a shared map was not
+// uploaded is a worse failure than a duplicated group.
+//
+// Two notes on what the publisher's StructureMap validator says about this file.
+//
+// Source parameters below are left untyped on purpose. Writing `: Element` makes
+// the validator compare QuestionnaireResponse.item against the literal 'Element'
+// and report them as incompatible with each other, which is noise, not a finding.
+//
+// `evaluate(context, expression)` is flagged as "takes 1 parameter but 2 were
+// found". Leave it. The FML parser in the same jar refuses the one-argument form
+// outright -- it wants a parameter, a comma, then the FHIRPath -- so the
+// publisher is objecting to what its own compiler emits. Two arguments is the
+// only form that compiles, and it is what the R5 transform engine executes.
+// ─────────────────────────────────────────────────────────────────────────────
+
+group BuildObsBase(source qr : QR, target obs : Observation, target entry) {
+  qr -> obs then SetResponseProvenance(qr, obs) "responseProvenance";
+  qr -> obs.id = uuid() then SetObservationFullUrl(obs, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Observation' "requestUrl";
+  } "entryRequest";
+
+  qr -> obs.status = 'final' "status";
+  qr.subject as s -> obs.subject = s "subject";
+  qr.encounter as e -> obs.encounter = e "encounter";
+  qr.authored as t -> obs.effective = t "effective";
+
+  qr.source as src -> obs.performer = src "performerFromSource";
+  qr where (source.exists().not()) then {
+    qr.author as a -> obs.performer = a "performerFromAuthor";
+  } "performerFallback";
+
+  // A stored response's id already reads "QuestionnaireResponse/<id>", so it is
+  // a relative reference as it stands. The hasValue() guard is what stops an
+  // unsaved response -- one posted straight to $extract rather than saved first
+  // -- from writing "QuestionnaireResponse/null" into the record.
+  qr.id as qid where ($this.hasValue()) -> obs.derivedFrom = create('Reference') as ref, ref.reference = qid "linkQuestionnaireResponse";
+}
+
+group SetObservationFullUrl(source obs : Observation, target entry) {
+  obs.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/Observation/', id) "assignFullUrl";
+}
+
+// The two answer shapes a component can carry. Both read the answer through the
+// untyped `.value` accessor: reading `valueCoding` or `valueQuantity` by its
+// typed property name fails at transform time on HAPI R5 with "Attempt to read
+// invalid property ... on QuestionnaireResponse.item.answer".
+group SetComponentCodedValue(source it, target comp) {
+  it.answer first as a then {
+    a.value as cv -> comp.value = create('CodeableConcept') as cc then {
+      cv -> cc.coding = cv "valueCoding";
+      cv.display as d -> cc.text = d "valueText";
+    } "codedValue";
+  } "componentAnswer";
+}
+
+group SetComponentValue(source it, target comp) {
+  it.answer first as a then {
+    a.value as v -> comp.value = v "plainValue";
+  } "componentAnswer";
+}
+
+group SetSurveyCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'survey' "categoryCode";
+      qr -> coding.display = 'Survey' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+group SetVitalSignsCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'vital-signs' "categoryCode";
+      qr -> coding.display = 'Vital Signs' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+//
+// Two tags on everything this map creates. The first says which questionnaire
+// produced it, so a form that reopens mid-admission recalls its own earlier
+// entries and not another form's. The second copies the tenant tags off the
+// response, because nothing else on the path puts them there.
+//
+// The code is the form's document type, not the questionnaire's id: every
+// environment mints its own ids, and there is only one set of maps, so an id
+// here would tie the tag to whichever environment stamped it.
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+
+group SetResponseProvenance(source qr : QR, target r) {
+  qr -> r.meta as m then {
+    qr -> m.tag as t then {
+      qr -> t.system = 'http://slade360edi.com/questionnaire-provenance' "provenanceSystem";
+      qr -> t.code = 'bishop-score' "provenanceCode";
+      qr -> t.display = 'Bishop score' "provenanceDisplay";
+    } "provenanceTag";
+  } "provenanceMeta";
+
+  // Every tag the response carries, onto the resource. `meta` is 0..1, so this
+  // lands on the same meta the rule above created rather than a second one.
+  qr.meta as qm then {
+    qm.tag as qt -> r.meta as m, m.tag = qt "copyTag";
+  } "tenantTags";
+}

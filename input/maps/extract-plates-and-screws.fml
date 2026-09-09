@@ -1,0 +1,584 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractPlatesAndScrews"
+/// name = "ExtractPlatesAndScrews"
+/// title = "Plates and Screws Extraction"
+/// status = "active"
+/// description = "One DeviceUsage per implant actually used, and only where the count is above zero -- forty DeviceUsage resources of quantity nil would be worse than none at all. What went into a patient is the question an implant recall asks, and a tally sheet in a theatre file cannot answer it. The implant type carries the printed line as its text: the hospital\'s implant stock is not coded and a guessed SNOMED device code on an orthopaedic implant is worse than the words on the paper."
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/DeviceUsage" alias DeviceUsage as target
+
+group ExtractPlatesAndScrews(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  qr.item as g where (linkId = 'implants') then {
+    g.item as it where (linkId = 'implants/cortical-screw-45' and answer.value.exists() and answer.value > 0) -> bundle.entry as entry, entry.resource = create('DeviceUsage') as du then {
+      qr -> du, entry then BuildDeviceUsageBase(qr, du, entry) "base";
+      it -> du.status = 'completed' "status";
+      it -> du.device = create('CodeableReference') as dr, dr.concept as dc then {
+        it -> dc.text = 'Cortical screw ø4.5 mm' "deviceText";
+      } "device";
+      it.answer first as a then {
+        a.value as n -> du.note as note, note.text = 'Count of this implant used, as tallied on the plates and screws sheet' "countNote";
+      } "answer";
+      qr -> du then SetImplantContext(qr, du) "context";
+    } "implant_cortical_screw_45";
+    g.item as it where (linkId = 'implants/cancellous-screw-65' and answer.value.exists() and answer.value > 0) -> bundle.entry as entry, entry.resource = create('DeviceUsage') as du then {
+      qr -> du, entry then BuildDeviceUsageBase(qr, du, entry) "base";
+      it -> du.status = 'completed' "status";
+      it -> du.device = create('CodeableReference') as dr, dr.concept as dc then {
+        it -> dc.text = 'Cancellous screw ø6.5 mm' "deviceText";
+      } "device";
+      it.answer first as a then {
+        a.value as n -> du.note as note, note.text = 'Count of this implant used, as tallied on the plates and screws sheet' "countNote";
+      } "answer";
+      qr -> du then SetImplantContext(qr, du) "context";
+    } "implant_cancellous_screw_65";
+    g.item as it where (linkId = 'implants/malleolar-screw' and answer.value.exists() and answer.value > 0) -> bundle.entry as entry, entry.resource = create('DeviceUsage') as du then {
+      qr -> du, entry then BuildDeviceUsageBase(qr, du, entry) "base";
+      it -> du.status = 'completed' "status";
+      it -> du.device = create('CodeableReference') as dr, dr.concept as dc then {
+        it -> dc.text = 'Malleolar screw' "deviceText";
+      } "device";
+      it.answer first as a then {
+        a.value as n -> du.note as note, note.text = 'Count of this implant used, as tallied on the plates and screws sheet' "countNote";
+      } "answer";
+      qr -> du then SetImplantContext(qr, du) "context";
+    } "implant_malleolar_screw";
+    g.item as it where (linkId = 'implants/washer' and answer.value.exists() and answer.value > 0) -> bundle.entry as entry, entry.resource = create('DeviceUsage') as du then {
+      qr -> du, entry then BuildDeviceUsageBase(qr, du, entry) "base";
+      it -> du.status = 'completed' "status";
+      it -> du.device = create('CodeableReference') as dr, dr.concept as dc then {
+        it -> dc.text = 'Washer' "deviceText";
+      } "device";
+      it.answer first as a then {
+        a.value as n -> du.note as note, note.text = 'Count of this implant used, as tallied on the plates and screws sheet' "countNote";
+      } "answer";
+      qr -> du then SetImplantContext(qr, du) "context";
+    } "implant_washer";
+    g.item as it where (linkId = 'implants/locking-screw-49' and answer.value.exists() and answer.value > 0) -> bundle.entry as entry, entry.resource = create('DeviceUsage') as du then {
+      qr -> du, entry then BuildDeviceUsageBase(qr, du, entry) "base";
+      it -> du.status = 'completed' "status";
+      it -> du.device = create('CodeableReference') as dr, dr.concept as dc then {
+        it -> dc.text = 'Locking screw ø4.9 mm' "deviceText";
+      } "device";
+      it.answer first as a then {
+        a.value as n -> du.note as note, note.text = 'Count of this implant used, as tallied on the plates and screws sheet' "countNote";
+      } "answer";
+      qr -> du then SetImplantContext(qr, du) "context";
+    } "implant_locking_screw_49";
+    g.item as it where (linkId = 'implants/pfn-bolt' and answer.value.exists() and answer.value > 0) -> bundle.entry as entry, entry.resource = create('DeviceUsage') as du then {
+      qr -> du, entry then BuildDeviceUsageBase(qr, du, entry) "base";
+      it -> du.status = 'completed' "status";
+      it -> du.device = create('CodeableReference') as dr, dr.concept as dc then {
+        it -> dc.text = 'PFN bolt ø8.0 / 6.2' "deviceText";
+      } "device";
+      it.answer first as a then {
+        a.value as n -> du.note as note, note.text = 'Count of this implant used, as tallied on the plates and screws sheet' "countNote";
+      } "answer";
+      qr -> du then SetImplantContext(qr, du) "context";
+    } "implant_pfn_bolt";
+    g.item as it where (linkId = 'implants/firm-lock-screw-cortical-50' and answer.value.exists() and answer.value > 0) -> bundle.entry as entry, entry.resource = create('DeviceUsage') as du then {
+      qr -> du, entry then BuildDeviceUsageBase(qr, du, entry) "base";
+      it -> du.status = 'completed' "status";
+      it -> du.device = create('CodeableReference') as dr, dr.concept as dc then {
+        it -> dc.text = 'Firm-lock screw cortical ø5.0 mm' "deviceText";
+      } "device";
+      it.answer first as a then {
+        a.value as n -> du.note as note, note.text = 'Count of this implant used, as tallied on the plates and screws sheet' "countNote";
+      } "answer";
+      qr -> du then SetImplantContext(qr, du) "context";
+    } "implant_firm_lock_screw_cortical_50";
+    g.item as it where (linkId = 'implants/firm-lock-screw-cancellous-50' and answer.value.exists() and answer.value > 0) -> bundle.entry as entry, entry.resource = create('DeviceUsage') as du then {
+      qr -> du, entry then BuildDeviceUsageBase(qr, du, entry) "base";
+      it -> du.status = 'completed' "status";
+      it -> du.device = create('CodeableReference') as dr, dr.concept as dc then {
+        it -> dc.text = 'Firm-lock screw cancellous ø5.0 mm' "deviceText";
+      } "device";
+      it.answer first as a then {
+        a.value as n -> du.note as note, note.text = 'Count of this implant used, as tallied on the plates and screws sheet' "countNote";
+      } "answer";
+      qr -> du then SetImplantContext(qr, du) "context";
+    } "implant_firm_lock_screw_cancellous_50";
+    g.item as it where (linkId = 'implants/proximal-femur-locking-screw-65' and answer.value.exists() and answer.value > 0) -> bundle.entry as entry, entry.resource = create('DeviceUsage') as du then {
+      qr -> du, entry then BuildDeviceUsageBase(qr, du, entry) "base";
+      it -> du.status = 'completed' "status";
+      it -> du.device = create('CodeableReference') as dr, dr.concept as dc then {
+        it -> dc.text = 'Proximal femur locking screw ø6.5 mm' "deviceText";
+      } "device";
+      it.answer first as a then {
+        a.value as n -> du.note as note, note.text = 'Count of this implant used, as tallied on the plates and screws sheet' "countNote";
+      } "answer";
+      qr -> du then SetImplantContext(qr, du) "context";
+    } "implant_proximal_femur_locking_screw_65";
+    g.item as it where (linkId = 'implants/proximal-femur-locking-bolt-80' and answer.value.exists() and answer.value > 0) -> bundle.entry as entry, entry.resource = create('DeviceUsage') as du then {
+      qr -> du, entry then BuildDeviceUsageBase(qr, du, entry) "base";
+      it -> du.status = 'completed' "status";
+      it -> du.device = create('CodeableReference') as dr, dr.concept as dc then {
+        it -> dc.text = 'Proximal femur locking bolt ø8.0 mm' "deviceText";
+      } "device";
+      it.answer first as a then {
+        a.value as n -> du.note as note, note.text = 'Count of this implant used, as tallied on the plates and screws sheet' "countNote";
+      } "answer";
+      qr -> du then SetImplantContext(qr, du) "context";
+    } "implant_proximal_femur_locking_bolt_80";
+    g.item as it where (linkId = 'implants/proximal-femur-locking-bolt-62' and answer.value.exists() and answer.value > 0) -> bundle.entry as entry, entry.resource = create('DeviceUsage') as du then {
+      qr -> du, entry then BuildDeviceUsageBase(qr, du, entry) "base";
+      it -> du.status = 'completed' "status";
+      it -> du.device = create('CodeableReference') as dr, dr.concept as dc then {
+        it -> dc.text = 'Proximal femur locking bolt ø6.2 mm' "deviceText";
+      } "device";
+      it.answer first as a then {
+        a.value as n -> du.note as note, note.text = 'Count of this implant used, as tallied on the plates and screws sheet' "countNote";
+      } "answer";
+      qr -> du then SetImplantContext(qr, du) "context";
+    } "implant_proximal_femur_locking_bolt_62";
+    g.item as it where (linkId = 'implants/cortical-screw-35' and answer.value.exists() and answer.value > 0) -> bundle.entry as entry, entry.resource = create('DeviceUsage') as du then {
+      qr -> du, entry then BuildDeviceUsageBase(qr, du, entry) "base";
+      it -> du.status = 'completed' "status";
+      it -> du.device = create('CodeableReference') as dr, dr.concept as dc then {
+        it -> dc.text = 'Cortical screw ø3.5 mm' "deviceText";
+      } "device";
+      it.answer first as a then {
+        a.value as n -> du.note as note, note.text = 'Count of this implant used, as tallied on the plates and screws sheet' "countNote";
+      } "answer";
+      qr -> du then SetImplantContext(qr, du) "context";
+    } "implant_cortical_screw_35";
+    g.item as it where (linkId = 'implants/cancellous-screw-40' and answer.value.exists() and answer.value > 0) -> bundle.entry as entry, entry.resource = create('DeviceUsage') as du then {
+      qr -> du, entry then BuildDeviceUsageBase(qr, du, entry) "base";
+      it -> du.status = 'completed' "status";
+      it -> du.device = create('CodeableReference') as dr, dr.concept as dc then {
+        it -> dc.text = 'Cancellous screw ø4.0 mm' "deviceText";
+      } "device";
+      it.answer first as a then {
+        a.value as n -> du.note as note, note.text = 'Count of this implant used, as tallied on the plates and screws sheet' "countNote";
+      } "answer";
+      qr -> du then SetImplantContext(qr, du) "context";
+    } "implant_cancellous_screw_40";
+    g.item as it where (linkId = 'implants/cannulated-screw' and answer.value.exists() and answer.value > 0) -> bundle.entry as entry, entry.resource = create('DeviceUsage') as du then {
+      qr -> du, entry then BuildDeviceUsageBase(qr, du, entry) "base";
+      it -> du.status = 'completed' "status";
+      it -> du.device = create('CodeableReference') as dr, dr.concept as dc then {
+        it -> dc.text = 'Cannulated screw' "deviceText";
+      } "device";
+      it.answer first as a then {
+        a.value as n -> du.note as note, note.text = 'Count of this implant used, as tallied on the plates and screws sheet' "countNote";
+      } "answer";
+      qr -> du then SetImplantContext(qr, du) "context";
+    } "implant_cannulated_screw";
+    g.item as it where (linkId = 'implants/recon-plate' and answer.value.exists() and answer.value > 0) -> bundle.entry as entry, entry.resource = create('DeviceUsage') as du then {
+      qr -> du, entry then BuildDeviceUsageBase(qr, du, entry) "base";
+      it -> du.status = 'completed' "status";
+      it -> du.device = create('CodeableReference') as dr, dr.concept as dc then {
+        it -> dc.text = 'Recon plate' "deviceText";
+      } "device";
+      it.answer first as a then {
+        a.value as n -> du.note as note, note.text = 'Count of this implant used, as tallied on the plates and screws sheet' "countNote";
+      } "answer";
+      qr -> du then SetImplantContext(qr, du) "context";
+    } "implant_recon_plate";
+    g.item as it where (linkId = 'implants/one-third-tubular-plate' and answer.value.exists() and answer.value > 0) -> bundle.entry as entry, entry.resource = create('DeviceUsage') as du then {
+      qr -> du, entry then BuildDeviceUsageBase(qr, du, entry) "base";
+      it -> du.status = 'completed' "status";
+      it -> du.device = create('CodeableReference') as dr, dr.concept as dc then {
+        it -> dc.text = 'One-third tubular plate' "deviceText";
+      } "device";
+      it.answer first as a then {
+        a.value as n -> du.note as note, note.text = 'Count of this implant used, as tallied on the plates and screws sheet' "countNote";
+      } "answer";
+      qr -> du then SetImplantContext(qr, du) "context";
+    } "implant_one_third_tubular_plate";
+    g.item as it where (linkId = 'implants/semi-tubular-plate' and answer.value.exists() and answer.value > 0) -> bundle.entry as entry, entry.resource = create('DeviceUsage') as du then {
+      qr -> du, entry then BuildDeviceUsageBase(qr, du, entry) "base";
+      it -> du.status = 'completed' "status";
+      it -> du.device = create('CodeableReference') as dr, dr.concept as dc then {
+        it -> dc.text = 'Semi-tubular plate' "deviceText";
+      } "device";
+      it.answer first as a then {
+        a.value as n -> du.note as note, note.text = 'Count of this implant used, as tallied on the plates and screws sheet' "countNote";
+      } "answer";
+      qr -> du then SetImplantContext(qr, du) "context";
+    } "implant_semi_tubular_plate";
+    g.item as it where (linkId = 'implants/broad-dcp-plate-45' and answer.value.exists() and answer.value > 0) -> bundle.entry as entry, entry.resource = create('DeviceUsage') as du then {
+      qr -> du, entry then BuildDeviceUsageBase(qr, du, entry) "base";
+      it -> du.status = 'completed' "status";
+      it -> du.device = create('CodeableReference') as dr, dr.concept as dc then {
+        it -> dc.text = 'Broad DCP plate ø4.5 mm' "deviceText";
+      } "device";
+      it.answer first as a then {
+        a.value as n -> du.note as note, note.text = 'Count of this implant used, as tallied on the plates and screws sheet' "countNote";
+      } "answer";
+      qr -> du then SetImplantContext(qr, du) "context";
+    } "implant_broad_dcp_plate_45";
+    g.item as it where (linkId = 'implants/narrow-dcp-plate-45' and answer.value.exists() and answer.value > 0) -> bundle.entry as entry, entry.resource = create('DeviceUsage') as du then {
+      qr -> du, entry then BuildDeviceUsageBase(qr, du, entry) "base";
+      it -> du.status = 'completed' "status";
+      it -> du.device = create('CodeableReference') as dr, dr.concept as dc then {
+        it -> dc.text = 'Narrow DCP plate ø4.5 mm' "deviceText";
+      } "device";
+      it.answer first as a then {
+        a.value as n -> du.note as note, note.text = 'Count of this implant used, as tallied on the plates and screws sheet' "countNote";
+      } "answer";
+      qr -> du then SetImplantContext(qr, du) "context";
+    } "implant_narrow_dcp_plate_45";
+    g.item as it where (linkId = 'implants/small-dcp-plate-45' and answer.value.exists() and answer.value > 0) -> bundle.entry as entry, entry.resource = create('DeviceUsage') as du then {
+      qr -> du, entry then BuildDeviceUsageBase(qr, du, entry) "base";
+      it -> du.status = 'completed' "status";
+      it -> du.device = create('CodeableReference') as dr, dr.concept as dc then {
+        it -> dc.text = 'Small DCP plate ø4.5 mm' "deviceText";
+      } "device";
+      it.answer first as a then {
+        a.value as n -> du.note as note, note.text = 'Count of this implant used, as tallied on the plates and screws sheet' "countNote";
+      } "answer";
+      qr -> du then SetImplantContext(qr, du) "context";
+    } "implant_small_dcp_plate_45";
+    g.item as it where (linkId = 'implants/t-plate' and answer.value.exists() and answer.value > 0) -> bundle.entry as entry, entry.resource = create('DeviceUsage') as du then {
+      qr -> du, entry then BuildDeviceUsageBase(qr, du, entry) "base";
+      it -> du.status = 'completed' "status";
+      it -> du.device = create('CodeableReference') as dr, dr.concept as dc then {
+        it -> dc.text = 'T-plate' "deviceText";
+      } "device";
+      it.answer first as a then {
+        a.value as n -> du.note as note, note.text = 'Count of this implant used, as tallied on the plates and screws sheet' "countNote";
+      } "answer";
+      qr -> du then SetImplantContext(qr, du) "context";
+    } "implant_t_plate";
+    g.item as it where (linkId = 'implants/small-t-plate' and answer.value.exists() and answer.value > 0) -> bundle.entry as entry, entry.resource = create('DeviceUsage') as du then {
+      qr -> du, entry then BuildDeviceUsageBase(qr, du, entry) "base";
+      it -> du.status = 'completed' "status";
+      it -> du.device = create('CodeableReference') as dr, dr.concept as dc then {
+        it -> dc.text = 'Small T-plate' "deviceText";
+      } "device";
+      it.answer first as a then {
+        a.value as n -> du.note as note, note.text = 'Count of this implant used, as tallied on the plates and screws sheet' "countNote";
+      } "answer";
+      qr -> du then SetImplantContext(qr, du) "context";
+    } "implant_small_t_plate";
+    g.item as it where (linkId = 'implants/dhs-plate' and answer.value.exists() and answer.value > 0) -> bundle.entry as entry, entry.resource = create('DeviceUsage') as du then {
+      qr -> du, entry then BuildDeviceUsageBase(qr, du, entry) "base";
+      it -> du.status = 'completed' "status";
+      it -> du.device = create('CodeableReference') as dr, dr.concept as dc then {
+        it -> dc.text = 'DHS plate' "deviceText";
+      } "device";
+      it.answer first as a then {
+        a.value as n -> du.note as note, note.text = 'Count of this implant used, as tallied on the plates and screws sheet' "countNote";
+      } "answer";
+      qr -> du then SetImplantContext(qr, du) "context";
+    } "implant_dhs_plate";
+    g.item as it where (linkId = 'implants/dhs-screw' and answer.value.exists() and answer.value > 0) -> bundle.entry as entry, entry.resource = create('DeviceUsage') as du then {
+      qr -> du, entry then BuildDeviceUsageBase(qr, du, entry) "base";
+      it -> du.status = 'completed' "status";
+      it -> du.device = create('CodeableReference') as dr, dr.concept as dc then {
+        it -> dc.text = 'DHS screw' "deviceText";
+      } "device";
+      it.answer first as a then {
+        a.value as n -> du.note as note, note.text = 'Count of this implant used, as tallied on the plates and screws sheet' "countNote";
+      } "answer";
+      qr -> du then SetImplantContext(qr, du) "context";
+    } "implant_dhs_screw";
+    g.item as it where (linkId = 'implants/proximal-femur-locking-plate' and answer.value.exists() and answer.value > 0) -> bundle.entry as entry, entry.resource = create('DeviceUsage') as du then {
+      qr -> du, entry then BuildDeviceUsageBase(qr, du, entry) "base";
+      it -> du.status = 'completed' "status";
+      it -> du.device = create('CodeableReference') as dr, dr.concept as dc then {
+        it -> dc.text = 'Proximal femur locking plate' "deviceText";
+      } "device";
+      it.answer first as a then {
+        a.value as n -> du.note as note, note.text = 'Count of this implant used, as tallied on the plates and screws sheet' "countNote";
+      } "answer";
+      qr -> du then SetImplantContext(qr, du) "context";
+    } "implant_proximal_femur_locking_plate";
+    g.item as it where (linkId = 'implants/distal-femur-locking-plate' and answer.value.exists() and answer.value > 0) -> bundle.entry as entry, entry.resource = create('DeviceUsage') as du then {
+      qr -> du, entry then BuildDeviceUsageBase(qr, du, entry) "base";
+      it -> du.status = 'completed' "status";
+      it -> du.device = create('CodeableReference') as dr, dr.concept as dc then {
+        it -> dc.text = 'Distal femur locking plate' "deviceText";
+      } "device";
+      it.answer first as a then {
+        a.value as n -> du.note as note, note.text = 'Count of this implant used, as tallied on the plates and screws sheet' "countNote";
+      } "answer";
+      qr -> du then SetImplantContext(qr, du) "context";
+    } "implant_distal_femur_locking_plate";
+    g.item as it where (linkId = 'implants/proximal-tibia-locking-plate' and answer.value.exists() and answer.value > 0) -> bundle.entry as entry, entry.resource = create('DeviceUsage') as du then {
+      qr -> du, entry then BuildDeviceUsageBase(qr, du, entry) "base";
+      it -> du.status = 'completed' "status";
+      it -> du.device = create('CodeableReference') as dr, dr.concept as dc then {
+        it -> dc.text = 'Proximal tibia locking plate' "deviceText";
+      } "device";
+      it.answer first as a then {
+        a.value as n -> du.note as note, note.text = 'Count of this implant used, as tallied on the plates and screws sheet' "countNote";
+      } "answer";
+      qr -> du then SetImplantContext(qr, du) "context";
+    } "implant_proximal_tibia_locking_plate";
+    g.item as it where (linkId = 'implants/distal-tibia-locking-plate' and answer.value.exists() and answer.value > 0) -> bundle.entry as entry, entry.resource = create('DeviceUsage') as du then {
+      qr -> du, entry then BuildDeviceUsageBase(qr, du, entry) "base";
+      it -> du.status = 'completed' "status";
+      it -> du.device = create('CodeableReference') as dr, dr.concept as dc then {
+        it -> dc.text = 'Distal tibia locking plate' "deviceText";
+      } "device";
+      it.answer first as a then {
+        a.value as n -> du.note as note, note.text = 'Count of this implant used, as tallied on the plates and screws sheet' "countNote";
+      } "answer";
+      qr -> du then SetImplantContext(qr, du) "context";
+    } "implant_distal_tibia_locking_plate";
+    g.item as it where (linkId = 'implants/condylar-plate-95' and answer.value.exists() and answer.value > 0) -> bundle.entry as entry, entry.resource = create('DeviceUsage') as du then {
+      qr -> du, entry then BuildDeviceUsageBase(qr, du, entry) "base";
+      it -> du.status = 'completed' "status";
+      it -> du.device = create('CodeableReference') as dr, dr.concept as dc then {
+        it -> dc.text = 'Condylar plate 95 degrees' "deviceText";
+      } "device";
+      it.answer first as a then {
+        a.value as n -> du.note as note, note.text = 'Count of this implant used, as tallied on the plates and screws sheet' "countNote";
+      } "answer";
+      qr -> du then SetImplantContext(qr, du) "context";
+    } "implant_condylar_plate_95";
+    g.item as it where (linkId = 'implants/l-buttress-plate' and answer.value.exists() and answer.value > 0) -> bundle.entry as entry, entry.resource = create('DeviceUsage') as du then {
+      qr -> du, entry then BuildDeviceUsageBase(qr, du, entry) "base";
+      it -> du.status = 'completed' "status";
+      it -> du.device = create('CodeableReference') as dr, dr.concept as dc then {
+        it -> dc.text = 'L-buttress plate' "deviceText";
+      } "device";
+      it.answer first as a then {
+        a.value as n -> du.note as note, note.text = 'Count of this implant used, as tallied on the plates and screws sheet' "countNote";
+      } "answer";
+      qr -> du then SetImplantContext(qr, du) "context";
+    } "implant_l_buttress_plate";
+    g.item as it where (linkId = 'implants/interlocking-nail-femur' and answer.value.exists() and answer.value > 0) -> bundle.entry as entry, entry.resource = create('DeviceUsage') as du then {
+      qr -> du, entry then BuildDeviceUsageBase(qr, du, entry) "base";
+      it -> du.status = 'completed' "status";
+      it -> du.device = create('CodeableReference') as dr, dr.concept as dc then {
+        it -> dc.text = 'Interlocking nail, femur' "deviceText";
+      } "device";
+      it.answer first as a then {
+        a.value as n -> du.note as note, note.text = 'Count of this implant used, as tallied on the plates and screws sheet' "countNote";
+      } "answer";
+      qr -> du then SetImplantContext(qr, du) "context";
+    } "implant_interlocking_nail_femur";
+    g.item as it where (linkId = 'implants/interlocking-nail-tibia' and answer.value.exists() and answer.value > 0) -> bundle.entry as entry, entry.resource = create('DeviceUsage') as du then {
+      qr -> du, entry then BuildDeviceUsageBase(qr, du, entry) "base";
+      it -> du.status = 'completed' "status";
+      it -> du.device = create('CodeableReference') as dr, dr.concept as dc then {
+        it -> dc.text = 'Interlocking nail, tibia' "deviceText";
+      } "device";
+      it.answer first as a then {
+        a.value as n -> du.note as note, note.text = 'Count of this implant used, as tallied on the plates and screws sheet' "countNote";
+      } "answer";
+      qr -> du then SetImplantContext(qr, du) "context";
+    } "implant_interlocking_nail_tibia";
+    g.item as it where (linkId = 'implants/proximal-femur-nail' and answer.value.exists() and answer.value > 0) -> bundle.entry as entry, entry.resource = create('DeviceUsage') as du then {
+      qr -> du, entry then BuildDeviceUsageBase(qr, du, entry) "base";
+      it -> du.status = 'completed' "status";
+      it -> du.device = create('CodeableReference') as dr, dr.concept as dc then {
+        it -> dc.text = 'Proximal femur nail' "deviceText";
+      } "device";
+      it.answer first as a then {
+        a.value as n -> du.note as note, note.text = 'Count of this implant used, as tallied on the plates and screws sheet' "countNote";
+      } "answer";
+      qr -> du then SetImplantContext(qr, du) "context";
+    } "implant_proximal_femur_nail";
+    g.item as it where (linkId = 'implants/austin-moore-hip-prosthesis' and answer.value.exists() and answer.value > 0) -> bundle.entry as entry, entry.resource = create('DeviceUsage') as du then {
+      qr -> du, entry then BuildDeviceUsageBase(qr, du, entry) "base";
+      it -> du.status = 'completed' "status";
+      it -> du.device = create('CodeableReference') as dr, dr.concept as dc then {
+        it -> dc.text = 'Austin Moore hip prosthesis' "deviceText";
+      } "device";
+      it.answer first as a then {
+        a.value as n -> du.note as note, note.text = 'Count of this implant used, as tallied on the plates and screws sheet' "countNote";
+      } "answer";
+      qr -> du then SetImplantContext(qr, du) "context";
+    } "implant_austin_moore_hip_prosthesis";
+    g.item as it where (linkId = 'implants/kuntscher-nail' and answer.value.exists() and answer.value > 0) -> bundle.entry as entry, entry.resource = create('DeviceUsage') as du then {
+      qr -> du, entry then BuildDeviceUsageBase(qr, du, entry) "base";
+      it -> du.status = 'completed' "status";
+      it -> du.device = create('CodeableReference') as dr, dr.concept as dc then {
+        it -> dc.text = 'Kuntscher nail' "deviceText";
+      } "device";
+      it.answer first as a then {
+        a.value as n -> du.note as note, note.text = 'Count of this implant used, as tallied on the plates and screws sheet' "countNote";
+      } "answer";
+      qr -> du then SetImplantContext(qr, du) "context";
+    } "implant_kuntscher_nail";
+    g.item as it where (linkId = 'implants/kirschner-wire' and answer.value.exists() and answer.value > 0) -> bundle.entry as entry, entry.resource = create('DeviceUsage') as du then {
+      qr -> du, entry then BuildDeviceUsageBase(qr, du, entry) "base";
+      it -> du.status = 'completed' "status";
+      it -> du.device = create('CodeableReference') as dr, dr.concept as dc then {
+        it -> dc.text = 'Kirschner wire' "deviceText";
+      } "device";
+      it.answer first as a then {
+        a.value as n -> du.note as note, note.text = 'Count of this implant used, as tallied on the plates and screws sheet' "countNote";
+      } "answer";
+      qr -> du then SetImplantContext(qr, du) "context";
+    } "implant_kirschner_wire";
+    g.item as it where (linkId = 'implants/cerclage-wire' and answer.value.exists() and answer.value > 0) -> bundle.entry as entry, entry.resource = create('DeviceUsage') as du then {
+      qr -> du, entry then BuildDeviceUsageBase(qr, du, entry) "base";
+      it -> du.status = 'completed' "status";
+      it -> du.device = create('CodeableReference') as dr, dr.concept as dc then {
+        it -> dc.text = 'Cerclage wire' "deviceText";
+      } "device";
+      it.answer first as a then {
+        a.value as n -> du.note as note, note.text = 'Count of this implant used, as tallied on the plates and screws sheet' "countNote";
+      } "answer";
+      qr -> du then SetImplantContext(qr, du) "context";
+    } "implant_cerclage_wire";
+    g.item as it where (linkId = 'implants/firm-lock-screw-cortical-50-b' and answer.value.exists() and answer.value > 0) -> bundle.entry as entry, entry.resource = create('DeviceUsage') as du then {
+      qr -> du, entry then BuildDeviceUsageBase(qr, du, entry) "base";
+      it -> du.status = 'completed' "status";
+      it -> du.device = create('CodeableReference') as dr, dr.concept as dc then {
+        it -> dc.text = 'Firm-lock screw o5.0 cortical' "deviceText";
+      } "device";
+      it.answer first as a then {
+        a.value as n -> du.note as note, note.text = 'Count of this implant used, as tallied on the plates and screws sheet' "countNote";
+      } "answer";
+      qr -> du then SetImplantContext(qr, du) "context";
+    } "implant_firm_lock_screw_cortical_50_b";
+    g.item as it where (linkId = 'implants/firm-lock-screw-cancellous-65' and answer.value.exists() and answer.value > 0) -> bundle.entry as entry, entry.resource = create('DeviceUsage') as du then {
+      qr -> du, entry then BuildDeviceUsageBase(qr, du, entry) "base";
+      it -> du.status = 'completed' "status";
+      it -> du.device = create('CodeableReference') as dr, dr.concept as dc then {
+        it -> dc.text = 'Firm-lock screw cancellous ø6.5 mm' "deviceText";
+      } "device";
+      it.answer first as a then {
+        a.value as n -> du.note as note, note.text = 'Count of this implant used, as tallied on the plates and screws sheet' "countNote";
+      } "answer";
+      qr -> du then SetImplantContext(qr, du) "context";
+    } "implant_firm_lock_screw_cancellous_65";
+  } "implantGroup";
+}
+
+// When and by whom, on every implant recorded. The operation date overrides the
+// response's authored time: an implant log written up the next morning is still
+// a log of yesterday's operation, and a recall traces by date.
+group SetImplantContext(source qr : QR, target du : DeviceUsage) {
+  qr.encounter as e -> du.context = e "context";
+  qr.item as g where (linkId = 'operation') then {
+    g.item as it where (linkId = 'operation/date' and answer.value.exists()) then {
+      it.answer first as a then {
+        a.value as v -> du.timing = cast(v, 'dateTime') "timing";
+      } "answer";
+    } "dateRule";
+    g.item as it where (linkId = 'operation/procedure' and answer.value.exists()) then {
+      it.answer first as a then {
+        a.value as txt -> du.reason as rsn, rsn.concept as rc, rc.text = txt "reasonText";
+      } "answer";
+    } "procedureRule";
+    g.item as it where (linkId = 'operation/ward' and answer.value.exists()) then {
+      it.answer first as a then {
+        a.value as txt -> du.note as n, n.text = txt "wardNote";
+      } "answer";
+    } "wardRule";
+  } "operationGroup";
+  qr.item as it where (linkId = 'signed-by' and answer.value.exists()) then {
+    it.answer first as a then {
+      a.value as ref -> du.informationSource = ref "informationSource";
+    } "answer";
+  } "signedByRule";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared scaffolding. Repeated in each map rather than imported: the transform
+// engine resolves `imports` against whatever StructureMaps happen to be on the
+// server, and a form that stops extracting because a shared map was not
+// uploaded is a worse failure than a duplicated group.
+//
+// Two notes on what the publisher's StructureMap validator says about this file.
+//
+// Source parameters below are left untyped on purpose. Writing `: Element` makes
+// the validator compare QuestionnaireResponse.item against the literal 'Element'
+// and report them as incompatible with each other, which is noise, not a finding.
+//
+// `evaluate(context, expression)` is flagged as "takes 1 parameter but 2 were
+// found". Leave it. The FML parser in the same jar refuses the one-argument form
+// outright -- it wants a parameter, a comma, then the FHIRPath -- so the
+// publisher is objecting to what its own compiler emits. Two arguments is the
+// only form that compiles, and it is what the R5 transform engine executes.
+// ─────────────────────────────────────────────────────────────────────────────
+
+group BuildObsBase(source qr : QR, target obs : Observation, target entry) {
+  qr -> obs then SetResponseProvenance(qr, obs) "responseProvenance";
+  qr -> obs.id = uuid() then SetObservationFullUrl(obs, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Observation' "requestUrl";
+  } "entryRequest";
+
+  qr -> obs.status = 'final' "status";
+  qr.subject as s -> obs.subject = s "subject";
+  qr.encounter as e -> obs.encounter = e "encounter";
+  qr.authored as t -> obs.effective = t "effective";
+
+  qr.source as src -> obs.performer = src "performerFromSource";
+  qr where (source.exists().not()) then {
+    qr.author as a -> obs.performer = a "performerFromAuthor";
+  } "performerFallback";
+
+  // A stored response's id already reads "QuestionnaireResponse/<id>", so it is
+  // a relative reference as it stands. The hasValue() guard is what stops an
+  // unsaved response -- one posted straight to $extract rather than saved first
+  // -- from writing "QuestionnaireResponse/null" into the record.
+  qr.id as qid where ($this.hasValue()) -> obs.derivedFrom = create('Reference') as ref, ref.reference = qid "linkQuestionnaireResponse";
+}
+
+group SetObservationFullUrl(source obs : Observation, target entry) {
+  obs.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/Observation/', id) "assignFullUrl";
+}
+
+// The two answer shapes a component can carry. Both read the answer through the
+// untyped `.value` accessor: reading `valueCoding` or `valueQuantity` by its
+// typed property name fails at transform time on HAPI R5 with "Attempt to read
+// invalid property ... on QuestionnaireResponse.item.answer".
+group SetComponentCodedValue(source it, target comp) {
+  it.answer first as a then {
+    a.value as cv -> comp.value = create('CodeableConcept') as cc then {
+      cv -> cc.coding = cv "valueCoding";
+      cv.display as d -> cc.text = d "valueText";
+    } "codedValue";
+  } "componentAnswer";
+}
+
+group SetComponentValue(source it, target comp) {
+  it.answer first as a then {
+    a.value as v -> comp.value = v "plainValue";
+  } "componentAnswer";
+}
+
+group BuildDeviceUsageBase(source qr : QR, target r : DeviceUsage, target entry) {
+  qr -> r then SetResponseProvenance(qr, r) "responseProvenance";
+  qr -> r.id = uuid() then SetDeviceUsageFullUrl(r, entry) "idAndFullUrl";
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'DeviceUsage' "requestUrl";
+  } "entryRequest";
+  qr.subject as s -> r.patient = s "subject";
+}
+
+group SetDeviceUsageFullUrl(source r : DeviceUsage, target entry) {
+  r.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/DeviceUsage/', id) "assignFullUrl";
+}
+
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+//
+// Two tags on everything this map creates. The first says which questionnaire
+// produced it, so a form that reopens mid-admission recalls its own earlier
+// entries and not another form's. The second copies the tenant tags off the
+// response, because nothing else on the path puts them there.
+//
+// The code is the form's document type, not the questionnaire's id: every
+// environment mints its own ids, and there is only one set of maps, so an id
+// here would tie the tag to whichever environment stamped it.
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+
+group SetResponseProvenance(source qr : QR, target r) {
+  qr -> r.meta as m then {
+    qr -> m.tag as t then {
+      qr -> t.system = 'http://slade360edi.com/questionnaire-provenance' "provenanceSystem";
+      qr -> t.code = 'plates-and-screws' "provenanceCode";
+      qr -> t.display = 'Plates and screws' "provenanceDisplay";
+    } "provenanceTag";
+  } "provenanceMeta";
+
+  // Every tag the response carries, onto the resource. `meta` is 0..1, so this
+  // lands on the same meta the rule above created rather than a second one.
+  qr.meta as qm then {
+    qm.tag as qt -> r.meta as m, m.tag = qt "copyTag";
+  } "tenantTags";
+}
