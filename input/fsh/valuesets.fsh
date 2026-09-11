@@ -880,6 +880,39 @@ Description: "A ValueSet for the mode of delivery recorded in PNC and ANC workfl
 * include SGHISpecialClinicCodeSystem#delivery-cs "CS (Caesarean Section)"
 * include SGHISpecialClinicCodeSystem#delivery-breech "Breech"
 * include SGHISpecialClinicCodeSystem#delivery-avd "AVD (Assisted Vaginal Delivery)"
+* include SGHISpecialClinicCodeSystem#delivery-other "Other (specify)"
+
+ValueSet: SGHIDeliveryInstrument
+Id: delivery-instrument
+Title: "SGHI Delivery Instrument"
+Description: "Which instrument was applied for an assisted vaginal delivery. Offered only where the mode of delivery is #delivery-avd, and required there: 'assisted' on its own does not say what was used, and a vacuum and a forceps birth carry different neonatal injury profiles that no later reading of the record can separate."
+* ^status = #active
+* ^experimental = false
+* include SGHISpecialClinicCodeSystem#delivery-instr-vacuum "Vacuum"
+* include SGHISpecialClinicCodeSystem#delivery-instr-forceps "Forceps"
+
+ValueSet: SGHICaesareanKind
+Id: caesarean-kind
+Title: "SGHI Caesarean Kind"
+Description: "Whether a caesarean section was booked in advance or decided once labour or an urgent indication had begun. Offered only where the mode of delivery is #delivery-cs. It is asked rather than inferred because nothing else on the record carries the distinction: the time of operation does not give it, and it is the split maternity audit reports on."
+* ^status = #active
+* ^experimental = false
+* include SGHISpecialClinicCodeSystem#cs-kind-elective "Elective"
+* include SGHISpecialClinicCodeSystem#cs-kind-emergency "Emergency"
+
+ValueSet: SGHIDeliveryOtherReason
+Id: delivery-other-reason
+Title: "SGHI Other Delivery Reason"
+Description: "The modes of delivery that 'Other (specify)' stands for, offered only where the mode of delivery is #delivery-other. Closed and coded rather than free text so that a delivery recorded here can still be counted later; a free-text box returns several spellings of the same operation and no denominator. Every entry is a mode in its own right, not a reason for one."
+* ^status = #active
+* ^experimental = false
+* include SGHISpecialClinicCodeSystem#delivery-other-assisted-breech-extraction "Assisted breech extraction"
+* include SGHISpecialClinicCodeSystem#delivery-other-internal-podalic-version "Internal podalic version and breech extraction"
+* include SGHISpecialClinicCodeSystem#delivery-other-vbac "Vaginal birth after caesarean"
+* include SGHISpecialClinicCodeSystem#delivery-other-twin-second-cs "Twin, second delivered by caesarean"
+* include SGHISpecialClinicCodeSystem#delivery-other-delivered-before-arrival "Delivered before arrival"
+* include SGHISpecialClinicCodeSystem#delivery-other-symphysiotomy "Symphysiotomy"
+* include SGHISpecialClinicCodeSystem#delivery-other-destructive-operation "Destructive operation"
 
 ValueSet: SGHIPNCVisitTiming
 Id: pnc-visit-timing
