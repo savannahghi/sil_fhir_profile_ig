@@ -1,0 +1,395 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractPaediatricTbIcfScreening"
+/// name = "ExtractPaediatricTbIcfScreening"
+/// title = "Paediatric TB Intensified Case Finding Screening Extraction"
+/// status = "active"
+/// description = "The paediatric intensified case finding screen out as one Observation carrying the screen result, with the five questions as components, plus a RiskAssessment for the band that result falls in. The tool has no score: it is answered yes to any one question or no to all five, so the band is binary and the arithmetic is a disjunction rather than a sum. Both branches extract. A screen that came back negative is the record that the screen was done, which is what makes the guideline's `repeat screening on subsequent visits` a thing the notes can show, and it is what carries the IPT workup as its mitigation. The result is derived from the five answers rather than read off an outcome item the form does not have, so the questions and the conclusion cannot disagree."
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Observation as target
+uses "http://hl7.org/fhir/StructureDefinition/RiskAssessment" alias RiskAssessment as target
+
+group ExtractPaediatricTbIcfScreening(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  // The paper is a flat five-row table, so the questions are top-level items and
+  // the response itself is the anchor. One answered question is enough to make
+  // an Observation: a partly filled screen still records findings worth keeping.
+  // Whether it is enough to conclude anything is a separate question, and
+  // SetScreenOutcome is where that is decided.
+  qr where (item.where(linkId in ('cough'|'fever'|'failure-to-thrive'|'lethargy'|'tb-contact')).answer.value.ofType(Coding).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+    qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+    qr -> obs then SetSurveyCategory(qr, obs) "category";
+
+    // Local, from concept-codesystem, because no code system this IG can resolve
+    // names this screen. LOINC publishes no paediatric TB symptom screen -- only
+    // the CPHS exposure-screen family, which is about exposure follow-up in a US
+    // public-health programme -- and the ICD-10 and ICD-11 resources here are
+    // `content: fragment` stubs with no url, so an ICD code could not be
+    // validated against anything. The same code goes on the RiskAssessment: the
+    // resource type already says which of the two is the observation and which
+    // is the assessment, so a second code would only be a second thing to keep
+    // in step.
+    qr -> obs.code as code then {
+      qr -> code.coding as coding then {
+        qr -> coding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "codeSystem";
+        qr -> coding.code = 'tb-screen' "codeCode";
+        qr -> coding.display = 'Paediatric TB intensified case finding screen' "codeDisplay";
+      } "codeCoding";
+      qr -> code.text = 'Paediatric TB intensified case finding screen' "codeText";
+    } "code";
+
+    // The five questions, each coded to the finding it asks about rather than to
+    // one bucket code with the question in the display. Observation.component
+    // .code is what a query filters on, so `which children screened positive for
+    // a TB contact` has to be a question the record can answer.
+    qr.item as it where (linkId = 'cough' and answer.value.exists()) -> obs.component as comp then {
+      it -> comp.code as code then {
+        it -> code.coding as coding then {
+          it -> coding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "codeSystem";
+          it -> coding.code = 'tb-screen-cough' "codeCode";
+          it -> coding.display = 'Cough of any duration' "codeDisplay";
+        } "codeCoding";
+        it -> code.text = 'Cough of any duration' "codeText";
+      } "coughCode";
+      it -> comp then SetComponentCodedValue(it, comp) "coughValue";
+    } "coughRule";
+
+    qr.item as it where (linkId = 'fever' and answer.value.exists()) -> obs.component as comp then {
+      it -> comp.code as code then {
+        it -> code.coding as coding then {
+          it -> coding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "codeSystem";
+          it -> coding.code = 'tb-screen-fever' "codeCode";
+          it -> coding.display = 'Fever' "codeDisplay";
+        } "codeCoding";
+        it -> code.text = 'Fever' "codeText";
+      } "feverCode";
+      it -> comp then SetComponentCodedValue(it, comp) "feverValue";
+    } "feverRule";
+
+    // One item on the paper, and one component here. The tool asks failure to
+    // thrive *or* poor weight gain as a single question and the reviewer wrote
+    // `malnutrition` against it, so splitting it into two components would
+    // invent a distinction the nurse was never asked to make. The question as
+    // printed is what the code and its text both say.
+    qr.item as it where (linkId = 'failure-to-thrive' and answer.value.exists()) -> obs.component as comp then {
+      it -> comp.code as code then {
+        it -> code.coding as coding then {
+          it -> coding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "codeSystem";
+          it -> coding.code = 'tb-screen-failure-to-thrive' "codeCode";
+          it -> coding.display = 'Failure to thrive or poor weight gain' "codeDisplay";
+        } "codeCoding";
+        it -> code.text = 'Failure to thrive or poor weight gain' "codeText";
+      } "thriveCode";
+      it -> comp then SetComponentCodedValue(it, comp) "thriveValue";
+    } "thriveRule";
+
+    qr.item as it where (linkId = 'lethargy' and answer.value.exists()) -> obs.component as comp then {
+      it -> comp.code as code then {
+        it -> code.coding as coding then {
+          it -> coding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "codeSystem";
+          it -> coding.code = 'tb-screen-lethargy' "codeCode";
+          it -> coding.display = 'Lethargy, less playful than usual' "codeDisplay";
+        } "codeCoding";
+        it -> code.text = 'Lethargy, less playful than usual' "codeText";
+      } "lethargyCode";
+      it -> comp then SetComponentCodedValue(it, comp) "lethargyValue";
+    } "lethargyRule";
+
+    // The one question of the five that is about exposure rather than about the
+    // child. It stays a component of the same screen rather than becoming its
+    // own resource: what makes it meaningful is the four answers beside it.
+    qr.item as it where (linkId = 'tb-contact' and answer.value.exists()) -> obs.component as comp then {
+      it -> comp.code as code then {
+        it -> code.coding as coding then {
+          it -> coding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "codeSystem";
+          it -> coding.code = 'tb-screen-contact' "codeCode";
+          it -> coding.display = 'Contact with a TB case' "codeDisplay";
+        } "codeCoding";
+        it -> code.text = 'Contact with a TB case' "codeText";
+      } "contactCode";
+      it -> comp then SetComponentCodedValue(it, comp) "contactValue";
+    } "contactRule";
+
+    qr -> obs then SetScreenOutcome(qr, obs) "outcome";
+    qr -> obs, bundle then AddTbScreenRiskAssessment(obs, qr, bundle) "band";
+  } "screenRule";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// The screen result
+//
+// The tool states its own rule, in the two bullets printed under the table: yes
+// to any one question means suspect TB, no to all of them means initiate workup
+// for IPT and screen again next visit. So the result is a disjunction over five
+// yes/no answers, and there is nothing to sum.
+//
+// **Both branches are guarded on all five having been answered.** The positive
+// branch does not need to be for the yes to be true -- one yes is one yes -- but
+// it does need to be for the *negative* branch to be safe, and the two have to
+// agree about what a complete screen is or a form answered `no, no, yes` to the
+// first three questions would extract a positive result while `no, no, no` to
+// the same three extracted nothing at all. A screen short of an item is not this
+// screen: four questions answered no says nothing about the fifth, and a clinician
+// reading `no signs of TB` off a form where nobody asked about the TB contact is
+// being told something the form does not know.
+//
+// The answers are `Y` and `N`, from CodeSystem/v2-0532. The value set the form
+// binds is ValueSet/v2-0136, whose codes come from 0532 -- table 0136 was folded
+// into it -- so a guard testing 'yes' compiles, never fires, and silently
+// extracts nothing.
+//
+// The result reuses `special-clinic-code-system#presumed-tb` and `#no-tb-signs`,
+// which this IG already defines for TB screening in the ANC and CWC workflows.
+// Nothing new was minted for it: a query for presumed TB should find this form
+// and those together, and a second code saying the same thing in a different
+// system would be a synonym to keep in step rather than information.
+// ─────────────────────────────────────────────────────────────────────────────
+
+group SetScreenOutcome(source qr : QR, target obs : Observation) {
+  qr where (item.where(linkId in ('cough'|'fever'|'failure-to-thrive'|'lethargy'|'tb-contact')).answer.value.ofType(Coding).count() = 5 and item.where(linkId in ('cough'|'fever'|'failure-to-thrive'|'lethargy'|'tb-contact')).answer.value.ofType(Coding).where(code = 'Y').exists()) -> obs.value = create('CodeableConcept') as cc then {
+    qr -> cc.coding as local then {
+      qr -> local.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/special-clinic-code-system' "localSystem";
+      qr -> local.code = 'presumed-tb' "localCode";
+      qr -> local.display = 'Presumed TB' "localDisplay";
+    } "localCoding";
+    qr -> cc.text = 'Presumed TB — at least one screening question answered yes' "outcomeText";
+  } "screenPositive";
+
+  qr where (item.where(linkId in ('cough'|'fever'|'failure-to-thrive'|'lethargy'|'tb-contact')).answer.value.ofType(Coding).count() = 5 and item.where(linkId in ('cough'|'fever'|'failure-to-thrive'|'lethargy'|'tb-contact')).answer.value.ofType(Coding).where(code = 'Y').exists().not()) -> obs.value = create('CodeableConcept') as cc then {
+    qr -> cc.coding as local then {
+      qr -> local.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/special-clinic-code-system' "localSystem";
+      qr -> local.code = 'no-tb-signs' "localCode";
+      qr -> local.display = 'No Signs of TB' "localDisplay";
+    } "localCoding";
+    qr -> cc.text = 'No signs of TB — all five screening questions answered no' "outcomeText";
+  } "screenNegative";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// The band
+//
+// Read off the Observation the rule above just built, not recomputed from the
+// answers. Deriving it a second time would be a second implementation of the
+// same disjunction, and two implementations of one rule is one more than can be
+// kept in agreement. It is also why a partly answered screen produces no
+// RiskAssessment at all: no result, nothing to band.
+//
+// `qualitativeRisk` carries HL7 risk-probability -- which is what a consumer
+// escalates on -- alongside the local screen-result code, and the plain wording
+// in `.text`. `prediction.outcome` is the disease being predicted, which is the
+// question a RiskAssessment exists to answer and is the same concept in both
+// branches; only the likelihood differs.
+//
+// `mitigation` is the guideline's own instruction, verbatim in substance. That
+// element is the right home for it: it is what to do to reduce the risk, it
+// travels with the assessment, and it means a screen recorded at a health centre
+// arrives at the next clinician with the action already attached.
+//
+// A negative screen bands `low`, not `negligible`. The tool does not clear a
+// child -- it sends them for IPT workup and asks for the screen again next visit
+// -- so a code that reads as no further action would misstate it.
+// ─────────────────────────────────────────────────────────────────────────────
+
+group AddTbScreenRiskAssessment(source obs : Observation, source qr : QR, target bundle : Bundle) {
+  obs where (value.ofType(CodeableConcept).coding.where(code = 'presumed-tb').exists()) -> bundle.entry as entry, entry.resource = create('RiskAssessment') as ra then {
+    qr -> ra, entry then BuildRiskBase(qr, obs, ra, entry) "riskBase";
+    qr -> ra then SetTbScreenRiskCode(qr, ra) "riskCode";
+    qr -> ra.prediction as pred then {
+      qr -> pred then SetTbPredictionOutcome(qr, pred) "predictionOutcome";
+      qr -> pred.qualitativeRisk as risk then {
+        qr -> risk.coding as coding then {
+          qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/risk-probability' "riskSystem";
+          qr -> coding.code = 'high' "riskCode";
+          qr -> coding.display = 'High likelihood' "riskDisplay";
+        } "hl7Coding";
+        qr -> risk.coding as local then {
+          qr -> local.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/special-clinic-code-system' "localSystem";
+          qr -> local.code = 'presumed-tb' "localCode";
+          qr -> local.display = 'Presumed TB' "localDisplay";
+        } "localCoding";
+        qr -> risk.text = 'Presumed TB' "riskText";
+      } "qualitativeRisk";
+      qr -> pred.rationale = 'At least one of the five intensified case finding questions was answered yes.' "rationale";
+    } "prediction";
+    qr -> ra.mitigation = 'Suspect TB. Examine the child and use the paediatric TB diagnostic algorithm to evaluate for active disease. Rule out underlying conditions and refer if necessary.' "mitigation";
+  } "presumedTb";
+
+  obs where (value.ofType(CodeableConcept).coding.where(code = 'no-tb-signs').exists()) -> bundle.entry as entry, entry.resource = create('RiskAssessment') as ra then {
+    qr -> ra, entry then BuildRiskBase(qr, obs, ra, entry) "riskBase";
+    qr -> ra then SetTbScreenRiskCode(qr, ra) "riskCode";
+    qr -> ra.prediction as pred then {
+      qr -> pred then SetTbPredictionOutcome(qr, pred) "predictionOutcome";
+      qr -> pred.qualitativeRisk as risk then {
+        qr -> risk.coding as coding then {
+          qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/risk-probability' "riskSystem";
+          qr -> coding.code = 'low' "riskCode";
+          qr -> coding.display = 'Low likelihood' "riskDisplay";
+        } "hl7Coding";
+        qr -> risk.coding as local then {
+          qr -> local.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/special-clinic-code-system' "localSystem";
+          qr -> local.code = 'no-tb-signs' "localCode";
+          qr -> local.display = 'No Signs of TB' "localDisplay";
+        } "localCoding";
+        qr -> risk.text = 'No signs of TB' "riskText";
+      } "qualitativeRisk";
+      qr -> pred.rationale = 'All five intensified case finding questions were answered no.' "rationale";
+    } "prediction";
+    qr -> ra.mitigation = 'Initiate workup for isoniazid preventive therapy and repeat this screen at subsequent visits.' "mitigation";
+  } "noTbSigns";
+}
+
+group SetTbScreenRiskCode(source qr : QR, target ra : RiskAssessment) {
+  qr -> ra.code as code then {
+    qr -> code.coding as coding then {
+      qr -> coding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "codeSystem";
+      qr -> coding.code = 'tb-screen' "codeCode";
+      qr -> coding.display = 'Paediatric TB intensified case finding screen' "codeDisplay";
+    } "codeCoding";
+    qr -> code.text = 'Paediatric TB intensified case finding screen' "codeText";
+  } "code";
+}
+
+group SetTbPredictionOutcome(source qr : QR, target pred) {
+  qr -> pred.outcome as outcome then {
+    qr -> outcome.coding as coding then {
+      qr -> coding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "outcomeSystem";
+      qr -> coding.code = 'tb-screen-tuberculosis' "outcomeCode";
+      qr -> coding.display = 'Tuberculosis' "outcomeDisplay";
+    } "outcomeCoding";
+  } "predictionOutcome";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared scaffolding. Repeated in each map rather than imported: the transform
+// engine resolves `imports` against whatever StructureMaps happen to be on the
+// server, and a form that stops extracting because a shared map was not
+// uploaded is a worse failure than a duplicated group.
+//
+// Two notes on what the publisher's StructureMap validator says about this file.
+//
+// Source parameters below are left untyped on purpose. Writing `: Element` makes
+// the validator compare QuestionnaireResponse.item against the literal 'Element'
+// and report them as incompatible with each other, which is noise, not a finding.
+//
+// `evaluate(context, expression)` is flagged as "takes 1 parameter but 2 were
+// found". Leave it. The FML parser in the same jar refuses the one-argument form
+// outright -- it wants a parameter, a comma, then the FHIRPath -- so the
+// publisher is objecting to what its own compiler emits. Two arguments is the
+// only form that compiles, and it is what the R5 transform engine executes.
+// ─────────────────────────────────────────────────────────────────────────────
+
+group BuildObsBase(source qr : QR, target obs : Observation, target entry) {
+  qr -> obs then SetResponseProvenance(qr, obs) "responseProvenance";
+  qr -> obs.id = uuid() then SetObservationFullUrl(obs, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Observation' "requestUrl";
+  } "entryRequest";
+
+  qr -> obs.status = 'final' "status";
+  qr.subject as s -> obs.subject = s "subject";
+  qr.encounter as e -> obs.encounter = e "encounter";
+  qr.authored as t -> obs.effective = t "effective";
+
+  qr.source as src -> obs.performer = src "performerFromSource";
+  qr where (source.exists().not()) then {
+    qr.author as a -> obs.performer = a "performerFromAuthor";
+  } "performerFallback";
+
+  // A stored response's id already reads "QuestionnaireResponse/<id>", so it is
+  // a relative reference as it stands. The hasValue() guard is what stops an
+  // unsaved response -- one posted straight to $extract rather than saved first
+  // -- from writing "QuestionnaireResponse/null" into the record.
+  qr.id as qid where ($this.hasValue()) -> obs.derivedFrom = create('Reference') as ref, ref.reference = qid "linkQuestionnaireResponse";
+}
+
+// The RiskAssessment stands on two things: the response that was filled in and
+// the Observation that holds the result. Both go in basis, which is what the
+// SGHI RiskAssessment profile binds to a QuestionnaireResponse.
+group BuildRiskBase(source qr : QR, source obs : Observation, target ra : RiskAssessment, target entry) {
+  qr -> ra then SetResponseProvenance(qr, ra) "responseProvenance";
+  qr -> ra.id = uuid() then SetRiskAssessmentFullUrl(ra, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'RiskAssessment' "requestUrl";
+  } "entryRequest";
+
+  qr -> ra.status = 'final' "status";
+  qr.subject as s -> ra.subject = s "subject";
+  qr.encounter as e -> ra.encounter = e "encounter";
+  qr.authored as t -> ra.occurrence = t "occurrence";
+
+  qr.author as a -> ra.performer = a "performerFromAuthor";
+  qr where (author.exists().not()) then {
+    qr.source as src -> ra.performer = src "performerFromSource";
+  } "performerFallback";
+
+  qr.id as qid where ($this.hasValue()) -> ra.basis = create('Reference') as qref, qref.reference = qid "basisResponse";
+
+  obs.id as oid -> ra.basis = create('Reference') as oref then {
+    oid -> oref.reference = append('Observation/', oid) "basisObservationRef";
+  } "basisObservation";
+}
+
+// The two answer shapes a component can carry. Both read the answer through the
+// untyped `.value` accessor: reading `valueCoding` or `valueQuantity` by its
+// typed property name fails at transform time on HAPI R5 with "Attempt to read
+// invalid property ... on QuestionnaireResponse.item.answer".
+group SetComponentCodedValue(source it, target comp) {
+  it.answer first as a then {
+    a.value as cv -> comp.value = create('CodeableConcept') as cc then {
+      cv -> cc.coding = cv "valueCoding";
+      cv.display as d -> cc.text = d "valueText";
+    } "codedValue";
+  } "componentAnswer";
+}
+
+group SetSurveyCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'survey' "categoryCode";
+      qr -> coding.display = 'Survey' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+group SetObservationFullUrl(source obs : Observation, target entry) {
+  obs.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/Observation/', id) "assignFullUrl";
+}
+
+group SetRiskAssessmentFullUrl(source ra : RiskAssessment, target entry) {
+  ra.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/RiskAssessment/', id) "assignFullUrl";
+}
+
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+//
+// Two tags on everything this map creates. The first says which questionnaire
+// produced it, so a screen recorded at one visit can be told from the screen
+// recorded at the next and from every other form that codes the same findings.
+// The second copies the tenant tags off the response, because nothing else on
+// the path puts them there.
+//
+// The code is the form's document type, not the questionnaire's id: every
+// environment mints its own ids, and there is only one set of maps, so an id
+// here would tie the tag to whichever environment stamped it.
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+
+group SetResponseProvenance(source qr : QR, target r) {
+  qr -> r.meta as m then {
+    qr -> m.tag as t then {
+      qr -> t.system = 'http://slade360edi.com/questionnaire-provenance' "provenanceSystem";
+      qr -> t.code = 'paediatric-tb-icf-screening' "provenanceCode";
+      qr -> t.display = 'Paediatric TB intensified case finding screening tool' "provenanceDisplay";
+    } "provenanceTag";
+  } "provenanceMeta";
+
+  // Every tag the response carries, onto the resource. `meta` is 0..1, so this
+  // lands on the same meta the rule above created rather than a second one.
+  qr.meta as qm then {
+    qm.tag as qt -> r.meta as m, m.tag = qt "copyTag";
+  } "tenantTags";
+}
