@@ -89,12 +89,13 @@ Description: "The hospital paper forms that have been modelled as Questionnaires
 * #nursing-care-plan "Nursing care plan" "The full nursing process per problem: assessment, nursing diagnosis, expected outcome, intervention, the scientific rationale for it, what was implemented and the evaluation."
 * #intake-output-record "Intake and output record" "The 24-hour fluid balance: oral, IV and nasogastric intake against urine, stool, vomit, nasogastric suction and drainage, with the totals the sheet asks to be circled."
 * #antenatal-vital-signs "Antenatal vital signs" "Timed antenatal observations: temperature, pulse, respiration and blood pressure with the lie, the presentation, the fetal heart tones and whether the bowels have opened."
+* #paediatric-tb-icf-screening "Paediatric TB intensified case finding screening tool" "The five-question intensified case finding screen asked of every child at every contact -- cough of any duration, fever, failure to thrive or poor weight gain, lethargy, and contact with a TB case -- and the action the answers decide. Table 22.9 of the paediatric TB guideline."
 
 
 CodeSystem: SGHIConceptCodeSystem
 Id: concept-codesystem
 Title: "SGHI Concept Code System"
-Description: "What the forms record where no LOINC or SNOMED concept says the same thing. These appear as Observation.code, ServiceRequest.code, Procedure.code and CarePlan.category on the resources the extraction maps build. Anything LOINC already names — the vital signs, the Glasgow Coma Scale, the Apgar components, body weight and height, head circumference, MUAC — is coded to LOINC in the map and is deliberately absent here."
+Description: "What the forms record where no code system this IG can resolve says the same thing. These appear as Observation.code, Observation.component.code, ServiceRequest.code, Procedure.code, CarePlan.category, RiskAssessment.code and RiskAssessment.prediction.outcome on the resources the extraction maps build. Anything LOINC already names — the vital signs, the Glasgow Coma Scale, the Apgar components, body weight and height, head circumference, MUAC — is coded to LOINC in the map and is deliberately absent here."
 * ^status = #active
 * ^experimental = false
 * ^content = #complete
@@ -709,6 +710,28 @@ Description: "What the forms record where no LOINC or SNOMED concept says the sa
 // ── Triage ──────────────────────────────────────────────────────────────
 * #triage-avpu-conscious-level "AVPU conscious level" "A triage decision or the conscious-level screen behind it. Recorded on the paediatric admission record and the paediatric triage record."
 * #triage-level "Triage level" "How urgently the child needs to be seen, from the four levels the paediatric triage sheet offers."
+
+// ── Tuberculosis screening ──────────────────────────────────────────────
+// The five questions on Table 22.9 and the screen they add up to. Local
+// because no code system this IG can resolve names them as questions. LOINC
+// publishes no paediatric TB symptom screen -- only the CPHS exposure-screen
+// family, which is about exposure follow-up in a US public-health programme --
+// and the ICD-10 and ICD-11 resources here are `content: fragment` stubs with
+// no url, so ICD codes cannot be validated against anything. ICD would be the
+// wrong shape anyway: it classifies diagnoses, and a question answered "no"
+// coded as a diagnosis reads as an assertion nobody made.
+//
+// One code per question, not one bucket code with the question in the display.
+// Observation.component.code is what a query filters on, so "which children
+// screened positive for a TB contact" has to be a question the record can
+// answer.
+* #tb-screen "Paediatric TB intensified case finding screen" "The five-question screen for TB in a child, as a whole: what the Observation carrying the result is about, and the kind of assessment the RiskAssessment beside it records. Recorded on the paediatric TB intensified case finding screening tool."
+* #tb-screen-cough "Cough of any duration" "Whether the child has a cough, of any duration. The first of the five intensified case finding questions -- duration is deliberately not asked, because the screen trades specificity for sensitivity. Recorded on the paediatric TB intensified case finding screening tool."
+* #tb-screen-fever "Fever" "Whether the child has fever. The second of the five intensified case finding questions. Recorded on the paediatric TB intensified case finding screening tool."
+* #tb-screen-failure-to-thrive "Failure to thrive or poor weight gain" "Whether the child is failing to thrive or gaining weight poorly. One question on the paper and one code here: the tool asks the two together, so splitting them would invent a distinction nobody was asked to make. Recorded on the paediatric TB intensified case finding screening tool."
+* #tb-screen-lethargy "Lethargy, less playful than usual" "Whether the child is lethargic or less playful than usual. Worded against the child's own baseline, which is what the parent is being asked to compare with. Recorded on the paediatric TB intensified case finding screening tool."
+* #tb-screen-contact "Contact with a TB case" "Whether the child has had contact with a known TB case. The one question of the five that is about exposure rather than about the child. Recorded on the paediatric TB intensified case finding screening tool."
+* #tb-screen-tuberculosis "Tuberculosis" "Tuberculosis at any site, as the outcome a positive screen predicts. Carried on RiskAssessment.prediction.outcome. Local rather than classified: the screen does not say where the disease would be, and every ICD-10 tuberculosis code does."
 
 // ── Umbilical stump appearance ──────────────────────────────────────────
 * #umbilicus-appearance "Umbilical stump appearance" "Whether a newborn's cord stump is clean, discharging pus, or has surrounding redness of the skin."
