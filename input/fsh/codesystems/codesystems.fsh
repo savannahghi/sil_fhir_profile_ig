@@ -936,6 +936,40 @@ Description: "A code system enumerating local codes used across ANC, PNC, CWC an
 * #delivery-cs "CS (Caesarean Section)" "Caesarean section delivery."
 * #delivery-breech "Breech" "Breech delivery."
 * #delivery-avd "AVD (Assisted Vaginal Delivery)" "Assisted vaginal delivery."
+* #delivery-other "Other (specify)" "Other mode of delivery, to be specified."
+
+// --- Mode of Delivery: Detail ---
+// Three lists that qualify a mode of delivery, one per mode that does not say
+// enough on its own. They are kept apart rather than folded into one flat list
+// because the three are never offered together: an instrument only applies to
+// an assisted delivery, the booked/decided-in-labour split only to a caesarean,
+// and the named operations only where the mode was recorded as other.
+
+// Which instrument was applied for an assisted vaginal delivery (#delivery-avd).
+// Recorded apart because the two carry different neonatal injury profiles, and
+// an audit that has only "assisted" cannot separate them afterwards.
+* #delivery-instr-vacuum "Vacuum" "Assisted vaginal delivery by vacuum extraction."
+* #delivery-instr-forceps "Forceps" "Assisted vaginal delivery by forceps."
+
+// Whether a caesarean (#delivery-cs) was booked or decided once labour or an
+// urgent indication had begun. Nothing else on the record carries the
+// distinction and it cannot be derived from the time of operation. Prefixed
+// cs-kind- rather than taking the bare #elective and #emergency, which
+// SGHIAdmissionCodeSystem already uses for how the patient was admitted.
+* #cs-kind-elective "Elective" "A caesarean section booked in advance and performed before labour began or before an indication for urgent delivery arose."
+* #cs-kind-emergency "Emergency" "A caesarean section decided on after labour began or after an indication for urgent delivery arose."
+
+// What #delivery-other stands for. Coded rather than left as the free text the
+// "Other (specify)" box invites: free text returns several spellings of the same
+// operation and no denominator, so a delivery recorded there cannot be counted.
+// The list is closed for the same reason.
+* #delivery-other-assisted-breech-extraction "Assisted breech extraction" "A breech birth the attendant assists, using manoeuvres to deliver the arms and head once the buttocks and trunk have descended. Distinct from #delivery-breech, which is the mode recorded when the breech birth needed no assistance."
+* #delivery-other-internal-podalic-version "Internal podalic version and breech extraction" "The attendant turns the fetus to a breech lie by hand inside the uterus and delivers it by breech extraction. In practice almost always the second of twins."
+* #delivery-other-vbac "Vaginal birth after caesarean" "A vaginal birth in a woman whose previous delivery was by caesarean section."
+* #delivery-other-twin-second-cs "Twin, second delivered by caesarean" "A twin birth in which the first twin was born vaginally and the second by caesarean section. It sits here because it is the one delivery that no single mode describes."
+* #delivery-other-delivered-before-arrival "Delivered before arrival" "The baby was born before the mother reached the facility, so no mode was observed by the staff who received her. Where the place of delivery is also being recorded, #delivery-bba says the same thing of the place."
+* #delivery-other-symphysiotomy "Symphysiotomy" "Vaginal birth achieved by surgically dividing the pubic symphysis to enlarge the pelvis."
+* #delivery-other-destructive-operation "Destructive operation" "Vaginal delivery of a dead fetus achieved by an operation that reduces its size, such as craniotomy."
 
 // --- PNC Visit Timing ---
 * #pnc-0-48h "0–48 hours postpartum" "PNC visit occurring within 48 hours of delivery."
