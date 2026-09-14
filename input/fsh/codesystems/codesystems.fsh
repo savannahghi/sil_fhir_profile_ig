@@ -62,6 +62,8 @@ Description: "A code system different identifiers used to identify an animal, pa
   * ^definition = "A unique identifier assigned by the Refugee Affairs Secretariat (RAS) under the Ministry of Interior, in collaboration with UNHCR."
 * #birth-certificate "Birth Certificate Number"
   * ^definition = "A unique identifier assigned by the Civil Registration Department under the Ministry of Interior and National Administration."
+* #birth-notification-number "Birth Notification Number"
+  * ^definition = "A unique identifier assigned at birth notification/registration by the Civil Registration Department, issued before a birth certificate is obtained."
 * #mandate-number "Mandate Number"
   * ^definition = "A regulatory or legal identifier assigned by relevant government agencies."
 * #client-registry-number "Client Registry Number"

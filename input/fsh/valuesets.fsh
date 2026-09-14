@@ -691,6 +691,7 @@ Description: "A ValueSet defining the possible identifiers that can be used for 
 * include SGHIPersonIdentifierCodeSystem#alien-id "Alien ID"
 * include SGHIPersonIdentifierCodeSystem#refugee-id "Refugee ID"
 * include SGHIPersonIdentifierCodeSystem#birth-certificate "Birth Certificate Number"
+* include SGHIPersonIdentifierCodeSystem#birth-notification-number "Birth Notification"
 * include SGHIPersonIdentifierCodeSystem#payer-member-number "Insurance"
 
 // ============================================================
