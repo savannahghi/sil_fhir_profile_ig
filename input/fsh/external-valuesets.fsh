@@ -203,6 +203,45 @@ Description: "Which of the WHO checklist's three phases a set of answers belongs
 * include SGHIAnswerCodeSystem#phase-time-out "Time out — before skin incision"
 * include SGHIAnswerCodeSystem#phase-sign-out "Sign out — before the patient leaves the operating room"
 
+// The five checks a team clears before a procedure starts. Every code here is
+// one the WHO checklist already mints and that
+// extract-surgical-safety-checklist.fml already extracts, so a theatre running
+// the short pause and one running the full three-phase checklist emit the same
+// codes and roll up to one compliance count.
+//
+// Reusing those codes costs three distinctions the pause draws in its own
+// wording, and anything binding this set has to know it:
+//   - identity is not separable. The WHO code confirms identity, site,
+//     procedure and consent in a single tick, so a pause meaning to record
+//     identity alone records all four.
+//   - side is not carried. #who-check-site-marked says the site was marked and
+//     is silent on laterality — which is the half of "site and side" that a
+//     wrong-side procedure turns on.
+//   - implants are not carried. The equipment code names equipment, and the
+//     nearest the WHO sheet comes to an implant check is sterility, which asks
+//     something else.
+// Five local codes would keep all three. The trade taken here is a shared
+// vocabulary over a precise one.
+ValueSet: SGHISafetyCheck
+Id: safety-check
+Title: "SGHI Safety Check"
+Description: "The five safety checks a team clears before a procedure starts: identity, site and side, allergies, equipment and implants, and team introductions. Built from the WHO checklist's own codes rather than local ones, so the short pause and the full three-phase checklist are countable together. Each check takes its answer from SGHIChecklistAnswer — confirmed, not applicable, or not done — which is what keeps a correctly skipped check distinguishable from a missed one. The reused codes are broader than the wording of the pause: identity arrives bundled with site, procedure and consent, and neither laterality nor implants is separately expressible."
+* ^status = #active
+* ^experimental = false
+// Patient identity confirmed out loud. Broader than asked: site, procedure and
+// consent are confirmed in the same tick.
+* include SGHIConceptCodeSystem#who-check-patient-confirmed-identity-site-procedure-and "Patient confirmed identity, site, procedure and consent"
+// Site and side confirmed, and marked where it applies. "Where it applies" needs
+// no code of its own — a procedure with no side to mark is answered
+// #check-not-applicable, which is the distinction SGHIChecklistAnswer exists for.
+* include SGHIConceptCodeSystem#who-check-site-marked "Site marked"
+// Allergies checked against the record.
+* include SGHIConceptCodeSystem#who-check-known-allergy-reviewed "Known allergy reviewed"
+// Equipment and implants present and working. The WHO code names equipment only.
+* include SGHIConceptCodeSystem#who-check-equipment-issues-or-concerns-reviewed "Equipment issues or concerns reviewed"
+// Team introduced and roles agreed.
+* include SGHIConceptCodeSystem#who-check-all-team-members-introduced-by-name-and-role "All team members introduced by name and role"
+
 ValueSet: SGHIDialysisAccess
 Id: dialysis-access
 Title: "SGHI Dialysis Access"
