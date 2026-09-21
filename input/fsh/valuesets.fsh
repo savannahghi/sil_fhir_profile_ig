@@ -1279,6 +1279,7 @@ Description: "A ValueSet defining the possible visit types in SGHI's systems."
 * include SGHIVisitTypeCodeSystem#eye-clinic "Eye Clinic"
 * include SGHIVisitTypeCodeSystem#tb-leprosy "TB and Leprosy"
 * include SGHIVisitTypeCodeSystem#psychiatry "Psychiatry"
+* include SGHIVisitTypeCodeSystem#mental-health "MENTAL_HEALTH"
 * include SGHIVisitTypeCodeSystem#orthopaedic-clinic "Orthopaedic Clinic"
 * include SGHIVisitTypeCodeSystem#occupational-therapy-clinic "Occupational Therapy Clinic"
 * include SGHIVisitTypeCodeSystem#physiotherapy-clinic "Physiotherapy Clinic"
@@ -1449,6 +1450,7 @@ Description: "The kind of admission being requested. Changing it on an in-flight
 * include SGHIAdmissionCodeSystem#maternity "Maternity"
 * include SGHIAdmissionCodeSystem#newborn "Newborn"
 * include SGHIAdmissionCodeSystem#day-case "Day case"
+* include SGHIAdmissionCodeSystem#mental-health "MENTAL_HEALTH"
 
 // The subset a consultation can raise. A consultation cannot originate a
 // transfer in, a newborn or a day case, so those three are withheld here.
@@ -1461,6 +1463,7 @@ Description: "The admission types that can be requested from a consultation."
 * include SGHIAdmissionCodeSystem#emergency "Emergency"
 * include SGHIAdmissionCodeSystem#elective "Elective"
 * include SGHIAdmissionCodeSystem#maternity "Maternity"
+* include SGHIAdmissionCodeSystem#mental-health "MENTAL_HEALTH"
 
 // HL7 covers three of the five. Inter-ward transfer and direct admission have no
 // admit-source concept, so they come from the SGHI system alongside them.

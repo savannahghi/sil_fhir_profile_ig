@@ -415,6 +415,7 @@ Description: "A code system enumerating the different visit types used across SG
 * #eye-clinic "Eye Clinic" "A visit to an eye clinic for the diagnosis and treatment of ophthalmic conditions."
 * #tb-leprosy "TB and Leprosy" "A visit for the screening, diagnosis, treatment, or follow-up of tuberculosis (TB) and leprosy."
 * #psychiatry "Psychiatry" "A visit to a psychiatry clinic for the assessment and management of mental health conditions."
+* #mental-health "MENTAL_HEALTH" "A visit for mental health care, covering psychiatric, psychological and psychosocial services rather than a single named clinic."
 * #orthopaedic-clinic "Orthopaedic Clinic" "A visit to an orthopaedic clinic for the diagnosis and treatment of musculoskeletal conditions."
 * #occupational-therapy-clinic "Occupational Therapy Clinic" "A visit to an occupational therapy clinic to support participation in daily activities and functional independence."
 * #physiotherapy-clinic "Physiotherapy Clinic" "A visit to a physiotherapy clinic for physical rehabilitation and management of movement disorders."
@@ -1293,6 +1294,7 @@ Description: "A code system enumerating the concepts used to request, triage, pl
 * #maternity "Maternity" "An admission for labour, delivery or antenatal care."
 * #newborn "Newborn" "An admission of a baby born in, or brought in with, the mother whose stay it attaches to."
 * #day-case "Day case" "An admission expected to be admitted and discharged the same day."
+* #mental-health "MENTAL_HEALTH" "An admission to a psychiatric or mental health unit, whether voluntary or under a mental health order."
 
 // Admission source — only the two HL7's admit-source has no concept for.
 * #inter-ward-transfer "Inter-ward transfer" "The patient came from another ward within this facility."
