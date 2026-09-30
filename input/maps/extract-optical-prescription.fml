@@ -1,0 +1,570 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractOpticalPrescription"
+/// name = "ExtractOpticalPrescription"
+/// title = "Optical Prescription Extraction"
+/// status = "active"
+/// description = "The optical prescription out as one VisionPrescription plus one Observation per pupillary distance and visual acuity the prescriber wrote. VisionPrescription is the resource R5 defines for exactly this -- an authorization for the provision of glasses and/or contact lenses -- and it takes the powers: sphere, cylinder, axis and the reading addition for each eye, and the contact lens power, back curve, diameter, brand, colour and wear period. It has no element for pupillary distance or visual acuity, and LOINC names both on a glasses lens prescription per eye at distance and near, so those become LOINC-coded Observations rather than notes. Lens type and coating, which VisionPrescription also cannot code, go into lensSpecification.note, which R5 defines as notes for special requirements such as coatings and lens materials."
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/VisionPrescription" alias VisionPrescription as target
+uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Observation as target
+
+group ExtractOpticalPrescription(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  // The prescription itself, created only when every element VisionPrescription
+  // makes 1..1 can be filled from the response -- not bent to fit:
+  //
+  //   lensSpecification  at least one lens power. The patterns are every power
+  //                      item on the form -- the eyewear distance and near rows,
+  //                      the reading addition and the contact lens rows -- and
+  //                      deliberately not the pupillary distance or the visual
+  //                      acuity, which are measurements and extract on their own
+  //                      below, nor the transposed rows, which are the same
+  //                      prescription computed the other way round.
+  //   patient            the response's subject, when it is a Patient.
+  //   dateWritten,       the response's authored. The form does not ask for a
+  //   created            date; the client stamps it.
+  //   prescriber         the response's author (else source) when it is a
+  //                      Practitioner or a PractitionerRole. The form does not
+  //                      ask who; the client stamps the practitioner recording
+  //                      it.
+  //
+  // A response short of any of these extracts no VisionPrescription. That is
+  // the rule held rather than worked round: the alternative is a prescription
+  // stored without a prescriber, or with one invented. The pupillary distances
+  // and visual acuities still extract, because they need none of it.
+  qr where ((repeat(item).where(linkId.matches('^(eyewear|contact-lens)/(right|left)/((distance|near)/)?(sph|cyl|add|power|base-curve|diameter)$')).answer.value.ofType(decimal).exists() or repeat(item).where(linkId.matches('^(eyewear|contact-lens)/(right|left)/((distance|near)/)?axis$')).answer.value.ofType(integer).exists()) and subject.where(reference.matches('(^|/)Patient/[^/]+$')).exists() and authored.exists() and (author.where(reference.matches('(^|/)(Practitioner|PractitionerRole)/[^/]+$')).exists() or source.where(reference.matches('(^|/)(Practitioner|PractitionerRole)/[^/]+$')).exists())) -> bundle.entry as entry, entry.resource = create('VisionPrescription') as vp then {
+    qr -> vp, entry then BuildVisionPrescriptionBase(qr, vp, entry) "base";
+    qr -> vp then SetPrescriber(qr, vp) "prescriber";
+    qr.item as ew where (linkId = 'eyewear') then SpectacleLenses(qr, ew, vp) "eyewear";
+    qr.item as cl where (linkId = 'contact-lens') then ContactLenses(qr, cl, vp) "contactLens";
+  } "prescription";
+
+  // Pupillary distance and visual acuity, one Observation each. These extract
+  // whether or not there is a prescription: a PD taken for a frame fitting is
+  // worth keeping on its own.
+  qr.item as ew where (linkId = 'eyewear') then EyewearMeasurements(qr, ew, bundle) "measurements";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// The prescription
+// ─────────────────────────────────────────────────────────────────────────────
+
+group BuildVisionPrescriptionBase(source qr : QR, target vp : VisionPrescription, target entry) {
+  qr -> vp then SetResponseProvenance(qr, vp) "responseProvenance";
+  qr -> vp.id = uuid() then SetVisionPrescriptionFullUrl(vp, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'VisionPrescription' "requestUrl";
+  } "entryRequest";
+
+  // `active`: a prescription recorded on this form is one somebody is about to
+  // dispense against. fm-status has no `completed`.
+  qr -> vp.status = 'active' "status";
+  qr.subject as s -> vp.patient = s "patient";
+  qr.encounter as e -> vp.encounter = e "encounter";
+
+  // Both dates, 1..1 each, are the response's `authored`. The form does not ask
+  // for a prescription date: the client stamps the moment it was recorded, and
+  // that is when this prescription was written and when this record was made.
+  qr.authored as t -> vp.dateWritten = t "dateWritten";
+  qr.authored as t -> vp.created = t "created";
+}
+
+// The prescriber is 1..1, and the form does not ask for one. It is the
+// practitioner who recorded the prescription, which the client stamps on the
+// response as `author`; `source` is taken when there is no author. Either is
+// copied across only when it points at a Practitioner or a PractitionerRole --
+// the two types VisionPrescription.prescriber allows -- because `author` may
+// also name a Device, a Patient or an Organization.
+//
+// Nothing is guessed when neither qualifies: the rule that creates the
+// prescription is guarded on one of them, so this group always finds one.
+group SetPrescriber(source qr : QR, target vp : VisionPrescription) {
+  qr.author as a where (reference.matches('(^|/)(Practitioner|PractitionerRole)/[^/]+$')) -> vp.prescriber = a "prescriberFromAuthor";
+  qr where (author.where(reference.matches('(^|/)(Practitioner|PractitionerRole)/[^/]+$')).exists().not()) then {
+    qr.source as s where (reference.matches('(^|/)(Practitioner|PractitionerRole)/[^/]+$')) -> vp.prescriber = s "prescriberFromSource";
+  } "sourceFallback";
+}
+
+// ── Spectacle lenses ─────────────────────────────────────────────────────────
+//
+// Up to two lens specifications per eye, one per row the prescriber filled in.
+//
+// The distance specification carries the distance vision (DV) row and the
+// reading addition. That is the shape R5 itself uses for a spectacle
+// prescription -- one specification per eye with the distance powers and
+// `add` -- so a consumer that reads only that one still gets a complete
+// multifocal prescription.
+//
+// The near specification carries the near vision (NV) row, when one was
+// written. It is not derived from DV + ADD and it is not dropped when an ADD is
+// present: the prescriber wrote it, and for reading glasses it is the whole
+// prescription. The two cannot be told apart by any element R5 gives a lens
+// specification, so `product` carries HL7's `lens` beside the local
+// `spectacle-lens-distance` or `spectacle-lens-near` -- the same product at a
+// finer grain, which the example-strength binding allows.
+//
+// linkIds are matched by suffix inside an eye, so the two eyes share one set
+// of groups. The eye code is set by the caller, which is the only place that
+// knows which eye it is in.
+
+group SpectacleLenses(source qr : QR, source ew, target vp : VisionPrescription) {
+  ew.item as eye where (linkId = 'eyewear/right') then {
+    eye where (item.where(linkId.endsWith('/distance')).item.where(linkId.endsWith('/sph') or linkId.endsWith('/cyl')).answer.value.ofType(decimal).exists() or item.where(linkId.endsWith('/distance')).item.where(linkId.endsWith('/axis')).answer.value.ofType(integer).exists() or item.where(linkId.endsWith('/add')).answer.value.ofType(decimal).exists()) -> vp.lensSpecification as spec then {
+      eye -> spec then DistanceSpectacleLens(qr, ew, eye, spec) "lens";
+      eye -> spec.eye = 'right' "eyeCode";
+    } "rightDistance";
+    eye where (item.where(linkId.endsWith('/near')).item.where(linkId.endsWith('/sph') or linkId.endsWith('/cyl')).answer.value.ofType(decimal).exists() or item.where(linkId.endsWith('/near')).item.where(linkId.endsWith('/axis')).answer.value.ofType(integer).exists()) -> vp.lensSpecification as spec then {
+      eye -> spec then NearSpectacleLens(qr, ew, eye, spec) "lens";
+      eye -> spec.eye = 'right' "eyeCode";
+    } "rightNear";
+  } "right";
+
+  ew.item as eye where (linkId = 'eyewear/left') then {
+    eye where (item.where(linkId.endsWith('/distance')).item.where(linkId.endsWith('/sph') or linkId.endsWith('/cyl')).answer.value.ofType(decimal).exists() or item.where(linkId.endsWith('/distance')).item.where(linkId.endsWith('/axis')).answer.value.ofType(integer).exists() or item.where(linkId.endsWith('/add')).answer.value.ofType(decimal).exists()) -> vp.lensSpecification as spec then {
+      eye -> spec then DistanceSpectacleLens(qr, ew, eye, spec) "lens";
+      eye -> spec.eye = 'left' "eyeCode";
+    } "leftDistance";
+    eye where (item.where(linkId.endsWith('/near')).item.where(linkId.endsWith('/sph') or linkId.endsWith('/cyl')).answer.value.ofType(decimal).exists() or item.where(linkId.endsWith('/near')).item.where(linkId.endsWith('/axis')).answer.value.ofType(integer).exists()) -> vp.lensSpecification as spec then {
+      eye -> spec then NearSpectacleLens(qr, ew, eye, spec) "lens";
+      eye -> spec.eye = 'left' "eyeCode";
+    } "leftNear";
+  } "left";
+}
+
+group DistanceSpectacleLens(source qr : QR, source ew, source eye, target spec) {
+  eye -> spec.product as product then {
+    eye -> product.coding as coding then {
+      eye -> coding.system = 'http://terminology.hl7.org/CodeSystem/ex-visionprescriptionproduct' "hl7System";
+      eye -> coding.code = 'lens' "hl7Code";
+      eye -> coding.display = 'Lens' "hl7Display";
+    } "hl7Coding";
+    eye -> product.coding as coding then {
+      eye -> coding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "rowSystem";
+      eye -> coding.code = 'spectacle-lens-distance' "rowCode";
+      eye -> coding.display = 'Spectacle lens for distance vision' "rowDisplay";
+    } "rowCoding";
+    eye -> product.text = 'Spectacle lens — distance vision (DV)' "productText";
+  } "product";
+  eye.item as row where (linkId.endsWith('/distance')) then {
+    row -> spec then LensPowers(row, spec) "powers";
+  } "distanceRow";
+  eye.item as it where (linkId.endsWith('/add') and answer.value.ofType(decimal).exists()) then {
+    it.answer first as a then {
+      a.value as v -> spec.add = v "addValue";
+    } "addAnswer";
+  } "addition";
+  ew -> spec then SpectacleLensNotes(qr, ew, spec) "notes";
+}
+
+group NearSpectacleLens(source qr : QR, source ew, source eye, target spec) {
+  eye -> spec.product as product then {
+    eye -> product.coding as coding then {
+      eye -> coding.system = 'http://terminology.hl7.org/CodeSystem/ex-visionprescriptionproduct' "hl7System";
+      eye -> coding.code = 'lens' "hl7Code";
+      eye -> coding.display = 'Lens' "hl7Display";
+    } "hl7Coding";
+    eye -> product.coding as coding then {
+      eye -> coding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "rowSystem";
+      eye -> coding.code = 'spectacle-lens-near' "rowCode";
+      eye -> coding.display = 'Spectacle lens for near vision' "rowDisplay";
+    } "rowCoding";
+    eye -> product.text = 'Spectacle lens — near vision (NV)' "productText";
+  } "product";
+  eye.item as row where (linkId.endsWith('/near')) then {
+    row -> spec then LensPowers(row, spec) "powers";
+  } "nearRow";
+  ew -> spec then SpectacleLensNotes(qr, ew, spec) "notes";
+}
+
+// Sphere, cylinder and axis off one row. Typed guards, because a rule that
+// assigns an answer of the wrong type to a decimal element does not skip -- it
+// fails the whole extraction.
+group LensPowers(source row, target spec) {
+  row.item as it where (linkId.endsWith('/sph') and answer.value.ofType(decimal).exists()) then {
+    it.answer first as a then {
+      a.value as v -> spec.sphere = v "sphereValue";
+    } "sphereAnswer";
+  } "sphere";
+  row.item as it where (linkId.endsWith('/cyl') and answer.value.ofType(decimal).exists()) then {
+    it.answer first as a then {
+      a.value as v -> spec.cylinder = v "cylinderValue";
+    } "cylinderAnswer";
+  } "cylinder";
+  row.item as it where (linkId.endsWith('/axis') and answer.value.ofType(integer).exists()) then {
+    it.answer first as a then {
+      a.value as v -> spec.axis = v "axisValue";
+    } "axisAnswer";
+  } "axis";
+}
+
+// Lens type and coating, as the words the prescriber ticked. VisionPrescription
+// has no coded element for either; `note` is where R5 says they go ("notes for
+// special requirements such as coatings and lens materials"), and the codes
+// themselves stay on the response. Both go on every spectacle specification,
+// because the paper ticks them once for the pair.
+group SpectacleLensNotes(source qr : QR, source ew, target spec) {
+  ew.item as it where (linkId = 'eyewear/lens-types' and answer.value.ofType(Coding).exists()) -> spec.note as note then {
+    it -> note.text = evaluate(it, 'Lens type: ' & answer.value.ofType(Coding).select(iif(display.exists(), display, code)).join(', ')) "lensTypeText";
+  } "lensTypes";
+  ew.item as it where (linkId = 'eyewear/lens-coating' and answer.value.ofType(Coding).exists()) -> spec.note as note then {
+    it -> note.text = evaluate(it, 'Lens coating: ' & answer.value.ofType(Coding).select(iif(display.exists(), display, code)).join(', ')) "lensCoatingText";
+  } "lensCoating";
+  qr -> spec then PrescriptionNotes(qr, spec) "prescriptionNotes";
+}
+
+// The free-text prescription notes. VisionPrescription has no note of its own,
+// only one per lens specification, so the notes go on each specification --
+// repeated rather than put on whichever happens to be first, which a consumer
+// reading one eye would miss.
+group PrescriptionNotes(source qr : QR, target spec) {
+  qr.item as it where (linkId = 'notes' and answer.value.ofType(string).exists()) -> spec.note as note then {
+    it.answer first as a then {
+      a.value as v -> note.text = v "noteText";
+    } "noteAnswer";
+  } "notes";
+}
+
+// ── Contact lenses ───────────────────────────────────────────────────────────
+//
+// One specification per eye with anything written on it. The contact lens
+// power goes to `power`, R5's "contact lens power", which is what its own
+// contact lens example uses; `sphere` stays the spectacle lens power. Brand,
+// colour and the replacement schedule are asked once for the pair and copied
+// onto both eyes, because R5 holds them per specification.
+
+group ContactLenses(source qr : QR, source cl, target vp : VisionPrescription) {
+  cl.item as eye where (linkId = 'contact-lens/right' and (item.answer.value.ofType(decimal).exists() or item.answer.value.ofType(integer).exists())) -> vp.lensSpecification as spec then {
+    eye -> spec then ContactLens(qr, cl, eye, spec) "lens";
+    eye -> spec.eye = 'right' "eyeCode";
+  } "right";
+  cl.item as eye where (linkId = 'contact-lens/left' and (item.answer.value.ofType(decimal).exists() or item.answer.value.ofType(integer).exists())) -> vp.lensSpecification as spec then {
+    eye -> spec then ContactLens(qr, cl, eye, spec) "lens";
+    eye -> spec.eye = 'left' "eyeCode";
+  } "left";
+}
+
+group ContactLens(source qr : QR, source cl, source eye, target spec) {
+  eye -> spec.product as product then {
+    eye -> product.coding as coding then {
+      eye -> coding.system = 'http://terminology.hl7.org/CodeSystem/ex-visionprescriptionproduct' "hl7System";
+      eye -> coding.code = 'contact' "hl7Code";
+      eye -> coding.display = 'Contact Lens' "hl7Display";
+    } "hl7Coding";
+    eye -> product.text = 'Contact lens' "productText";
+  } "product";
+
+  eye.item as it where (linkId.endsWith('/power') and answer.value.ofType(decimal).exists()) then {
+    it.answer first as a then {
+      a.value as v -> spec.power = v "powerValue";
+    } "powerAnswer";
+  } "power";
+  eye.item as it where (linkId.endsWith('/cyl') and answer.value.ofType(decimal).exists()) then {
+    it.answer first as a then {
+      a.value as v -> spec.cylinder = v "cylinderValue";
+    } "cylinderAnswer";
+  } "cylinder";
+  eye.item as it where (linkId.endsWith('/axis') and answer.value.ofType(integer).exists()) then {
+    it.answer first as a then {
+      a.value as v -> spec.axis = v "axisValue";
+    } "axisAnswer";
+  } "axis";
+  eye.item as it where (linkId.endsWith('/add') and answer.value.ofType(decimal).exists()) then {
+    it.answer first as a then {
+      a.value as v -> spec.add = v "addValue";
+    } "addAnswer";
+  } "addition";
+  eye.item as it where (linkId.endsWith('/base-curve') and answer.value.ofType(decimal).exists()) then {
+    it.answer first as a then {
+      a.value as v -> spec.backCurve = v "backCurveValue";
+    } "backCurveAnswer";
+  } "backCurve";
+  eye.item as it where (linkId.endsWith('/diameter') and answer.value.ofType(decimal).exists()) then {
+    it.answer first as a then {
+      a.value as v -> spec.diameter = v "diameterValue";
+    } "diameterAnswer";
+  } "diameter";
+
+  cl.item as it where (linkId = 'contact-lens/brand' and answer.value.ofType(string).exists()) then {
+    it.answer first as a then {
+      a.value as v -> spec.brand = v "brandValue";
+    } "brandAnswer";
+  } "brand";
+  cl.item as it where (linkId = 'contact-lens/colour' and answer.value.ofType(string).exists()) then {
+    it.answer first as a then {
+      a.value as v -> spec.color = v "colourValue";
+    } "colourAnswer";
+  } "colour";
+
+  // The replacement schedule is R5's `duration`, "the recommended maximum wear
+  // period for the lens", as a UCUM Quantity. One rule per answer, each guarded
+  // on its own code, so an answer this map does not know writes no duration
+  // rather than an empty Quantity.
+  cl.item as it where (linkId = 'contact-lens/replacement' and answer.value.ofType(Coding).code = 'contact-lens-replace-daily') -> spec.duration as d then {
+    it -> d.value = 1 "value";
+    it -> d.unit = 'day' "unit";
+    it -> d.system = 'http://unitsofmeasure.org' "system";
+    it -> d.code = 'd' "code";
+  } "daily";
+  cl.item as it where (linkId = 'contact-lens/replacement' and answer.value.ofType(Coding).code = 'contact-lens-replace-two-weekly') -> spec.duration as d then {
+    it -> d.value = 2 "value";
+    it -> d.unit = 'weeks' "unit";
+    it -> d.system = 'http://unitsofmeasure.org' "system";
+    it -> d.code = 'wk' "code";
+  } "twoWeekly";
+  cl.item as it where (linkId = 'contact-lens/replacement' and answer.value.ofType(Coding).code = 'contact-lens-replace-monthly') -> spec.duration as d then {
+    it -> d.value = 1 "value";
+    it -> d.unit = 'month' "unit";
+    it -> d.system = 'http://unitsofmeasure.org' "system";
+    it -> d.code = 'mo' "code";
+  } "monthly";
+  cl.item as it where (linkId = 'contact-lens/replacement' and answer.value.ofType(Coding).code = 'contact-lens-replace-quarterly') -> spec.duration as d then {
+    it -> d.value = 3 "value";
+    it -> d.unit = 'months' "unit";
+    it -> d.system = 'http://unitsofmeasure.org' "system";
+    it -> d.code = 'mo' "code";
+  } "quarterly";
+  cl.item as it where (linkId = 'contact-lens/replacement' and answer.value.ofType(Coding).code = 'contact-lens-replace-yearly') -> spec.duration as d then {
+    it -> d.value = 1 "value";
+    it -> d.unit = 'year' "unit";
+    it -> d.system = 'http://unitsofmeasure.org' "system";
+    it -> d.code = 'a' "code";
+  } "yearly";
+
+  qr -> spec then PrescriptionNotes(qr, spec) "prescriptionNotes";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Pupillary distance and visual acuity
+//
+// Neither has a home in VisionPrescription, and LOINC names both exactly, per
+// eye, on a glasses lens prescription -- so each is its own Observation under
+// its own code rather than prose in a note. The codes were looked up, not
+// assumed; each display below is LOINC's own:
+//
+//              distance (DV)            near (NV)
+//   R-PD       28840-7                  28841-5       mm
+//   L-PD       28857-1                  55985-6       mm
+//   R-VA       28831-6                  28839-9       as written
+//   L-VA       28847-2                  28856-3       as written
+//
+// The PD without a qualifier is LOINC's distance PD; near is the one it
+// qualifies. Visual acuity is kept as the string the prescriber wrote -- 6/6,
+// 6/9, N6, CF -- because the notations mix Snellen fractions, N-point print
+// sizes and counting fingers, and forcing them into a Ratio would lose the ones
+// that are not fractions.
+//
+// Nothing on VisionPrescription can point at these. They are tied to it by the
+// encounter, by `derivedFrom` naming the same response, and by the same
+// provenance tag.
+// ─────────────────────────────────────────────────────────────────────────────
+
+group EyewearMeasurements(source qr : QR, source ew, target bundle : Bundle) {
+  ew.item as eye where (linkId = 'eyewear/right') then {
+    eye.item as row where (linkId = 'eyewear/right/distance') then {
+      row.item as it where (linkId = 'eyewear/right/distance/pd' and answer.value.ofType(decimal).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObservationBase(qr, obs, entry) "base";
+        it -> obs.code as code then {
+          it -> code.coding as coding then {
+            it -> coding.system = 'http://loinc.org' "system";
+            it -> coding.code = '28840-7' "code";
+            it -> coding.display = 'Right glasses lens prescription Pupillary distance.monocular' "display";
+          } "coding";
+          it -> code.text = 'Right eye pupillary distance, distance vision (R-PD, DV)' "text";
+        } "code";
+        it -> obs then SetMillimetres(it, obs) "value";
+      } "rightDistancePd";
+      row.item as it where (linkId = 'eyewear/right/distance/va' and answer.value.ofType(string).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObservationBase(qr, obs, entry) "base";
+        it -> obs.code as code then {
+          it -> code.coding as coding then {
+            it -> coding.system = 'http://loinc.org' "system";
+            it -> coding.code = '28831-6' "code";
+            it -> coding.display = 'Right glasses lens prescription Visual acuity far' "display";
+          } "coding";
+          it -> code.text = 'Right eye visual acuity, distance vision (R-VA, DV)' "text";
+        } "code";
+        it -> obs then SetAcuity(it, obs) "value";
+      } "rightDistanceVa";
+    } "rightDistance";
+    eye.item as row where (linkId = 'eyewear/right/near') then {
+      row.item as it where (linkId = 'eyewear/right/near/pd' and answer.value.ofType(decimal).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObservationBase(qr, obs, entry) "base";
+        it -> obs.code as code then {
+          it -> code.coding as coding then {
+            it -> coding.system = 'http://loinc.org' "system";
+            it -> coding.code = '28841-5' "code";
+            it -> coding.display = 'Right glasses lens prescription Pupillary distance.monocular near' "display";
+          } "coding";
+          it -> code.text = 'Right eye pupillary distance, near vision (R-PD, NV)' "text";
+        } "code";
+        it -> obs then SetMillimetres(it, obs) "value";
+      } "rightNearPd";
+      row.item as it where (linkId = 'eyewear/right/near/va' and answer.value.ofType(string).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObservationBase(qr, obs, entry) "base";
+        it -> obs.code as code then {
+          it -> code.coding as coding then {
+            it -> coding.system = 'http://loinc.org' "system";
+            it -> coding.code = '28839-9' "code";
+            it -> coding.display = 'Right glasses lens prescription Visual acuity near' "display";
+          } "coding";
+          it -> code.text = 'Right eye visual acuity, near vision (R-VA, NV)' "text";
+        } "code";
+        it -> obs then SetAcuity(it, obs) "value";
+      } "rightNearVa";
+    } "rightNear";
+  } "right";
+
+  ew.item as eye where (linkId = 'eyewear/left') then {
+    eye.item as row where (linkId = 'eyewear/left/distance') then {
+      row.item as it where (linkId = 'eyewear/left/distance/pd' and answer.value.ofType(decimal).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObservationBase(qr, obs, entry) "base";
+        it -> obs.code as code then {
+          it -> code.coding as coding then {
+            it -> coding.system = 'http://loinc.org' "system";
+            it -> coding.code = '28857-1' "code";
+            it -> coding.display = 'Left glasses lens prescription Pupillary distance.monocular' "display";
+          } "coding";
+          it -> code.text = 'Left eye pupillary distance, distance vision (L-PD, DV)' "text";
+        } "code";
+        it -> obs then SetMillimetres(it, obs) "value";
+      } "leftDistancePd";
+      row.item as it where (linkId = 'eyewear/left/distance/va' and answer.value.ofType(string).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObservationBase(qr, obs, entry) "base";
+        it -> obs.code as code then {
+          it -> code.coding as coding then {
+            it -> coding.system = 'http://loinc.org' "system";
+            it -> coding.code = '28847-2' "code";
+            it -> coding.display = 'Left glasses lens prescription Visual acuity far' "display";
+          } "coding";
+          it -> code.text = 'Left eye visual acuity, distance vision (L-VA, DV)' "text";
+        } "code";
+        it -> obs then SetAcuity(it, obs) "value";
+      } "leftDistanceVa";
+    } "leftDistance";
+    eye.item as row where (linkId = 'eyewear/left/near') then {
+      row.item as it where (linkId = 'eyewear/left/near/pd' and answer.value.ofType(decimal).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObservationBase(qr, obs, entry) "base";
+        it -> obs.code as code then {
+          it -> code.coding as coding then {
+            it -> coding.system = 'http://loinc.org' "system";
+            it -> coding.code = '55985-6' "code";
+            it -> coding.display = 'Left glasses lens prescription Pupillary distance.monocular near' "display";
+          } "coding";
+          it -> code.text = 'Left eye pupillary distance, near vision (L-PD, NV)' "text";
+        } "code";
+        it -> obs then SetMillimetres(it, obs) "value";
+      } "leftNearPd";
+      row.item as it where (linkId = 'eyewear/left/near/va' and answer.value.ofType(string).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObservationBase(qr, obs, entry) "base";
+        it -> obs.code as code then {
+          it -> code.coding as coding then {
+            it -> coding.system = 'http://loinc.org' "system";
+            it -> coding.code = '28856-3' "code";
+            it -> coding.display = 'Left glasses lens prescription Visual acuity near' "display";
+          } "coding";
+          it -> code.text = 'Left eye visual acuity, near vision (L-VA, NV)' "text";
+        } "code";
+        it -> obs then SetAcuity(it, obs) "value";
+      } "leftNearVa";
+    } "leftNear";
+  } "left";
+}
+
+// `Observation.value[x]` has no decimal choice, so the PD is built as a UCUM
+// Quantity. The unit is fixed by the form.
+group SetMillimetres(source it, target obs : Observation) {
+  it.answer first as a then {
+    a.value as v -> obs.value = create('Quantity') as q then {
+      v -> q.value = v "quantityValue";
+      v -> q.unit = 'mm' "quantityUnit";
+      v -> q.system = 'http://unitsofmeasure.org' "quantitySystem";
+      v -> q.code = 'mm' "quantityCode";
+    } "quantity";
+  } "answer";
+}
+
+group SetAcuity(source it, target obs : Observation) {
+  it.answer first as a then {
+    a.value as v -> obs.value = v "acuityValue";
+  } "answer";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared scaffolding. Repeated in each map rather than imported: the transform
+// engine resolves `imports` against whatever StructureMaps happen to be on the
+// server, and a form that stops extracting because a shared map was not
+// uploaded is a worse failure than a duplicated group.
+// ─────────────────────────────────────────────────────────────────────────────
+
+group BuildObservationBase(source qr : QR, target obs : Observation, target entry) {
+  qr -> obs then SetResponseProvenance(qr, obs) "responseProvenance";
+  qr -> obs.id = uuid() then SetObservationFullUrl(obs, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Observation' "requestUrl";
+  } "entryRequest";
+
+  qr -> obs.status = 'final' "status";
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'exam' "categoryCode";
+      qr -> coding.display = 'Exam' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+  qr.subject as s -> obs.subject = s "subject";
+  qr.encounter as e -> obs.encounter = e "encounter";
+
+  // Measured when the prescription was written, which is the response's
+  // `authored` -- the form does not ask for a date.
+  qr.authored as t -> obs.effective = t "effective";
+
+  // Measured by the prescriber, chosen the same way as on the prescription.
+  qr.author as a where (reference.matches('(^|/)(Practitioner|PractitionerRole)/[^/]+$')) -> obs.performer = a "performerFromAuthor";
+  qr where (author.where(reference.matches('(^|/)(Practitioner|PractitionerRole)/[^/]+$')).exists().not()) then {
+    qr.source as s where (reference.matches('(^|/)(Practitioner|PractitionerRole)/[^/]+$')) -> obs.performer = s "performerFromSource";
+  } "performerSourceFallback";
+
+  // A stored response's id already reads "QuestionnaireResponse/<id>", so it is
+  // a relative reference as it stands. The hasValue() guard is what stops an
+  // unsaved response -- one posted straight to $extract rather than saved first
+  // -- from writing "QuestionnaireResponse/null" into the record.
+  qr.id as qid where ($this.hasValue()) -> obs.derivedFrom = create('Reference') as ref, ref.reference = qid "linkQuestionnaireResponse";
+}
+
+group SetObservationFullUrl(source obs : Observation, target entry) {
+  obs.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/Observation/', id) "assignFullUrl";
+}
+
+group SetVisionPrescriptionFullUrl(source vp : VisionPrescription, target entry) {
+  vp.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/VisionPrescription/', id) "assignFullUrl";
+}
+
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+//
+// Two tags on everything this map creates. The first says which form produced
+// it -- the form's document type, not the questionnaire's id, because every
+// environment mints its own ids and there is one set of maps. The second copies
+// the tenant tags off the response, because nothing else on the path puts them
+// there.
+
+group SetResponseProvenance(source qr : QR, target r) {
+  qr -> r.meta as m then {
+    qr -> m.tag as t then {
+      qr -> t.system = 'http://slade360edi.com/questionnaire-provenance' "provenanceSystem";
+      qr -> t.code = 'optical-prescription' "provenanceCode";
+      qr -> t.display = 'Optical prescription' "provenanceDisplay";
+    } "provenanceTag";
+  } "provenanceMeta";
+
+  // `meta` is 0..1, so this lands on the same meta the rule above created
+  // rather than a second one.
+  qr.meta as qm then {
+    qm.tag as qt -> r.meta as m, m.tag = qt "copyTag";
+  } "tenantTags";
+}

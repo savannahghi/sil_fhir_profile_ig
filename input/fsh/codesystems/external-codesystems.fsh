@@ -90,12 +90,13 @@ Description: "The hospital paper forms that have been modelled as Questionnaires
 * #intake-output-record "Intake and output record" "The 24-hour fluid balance: oral, IV and nasogastric intake against urine, stool, vomit, nasogastric suction and drainage, with the totals the sheet asks to be circled."
 * #antenatal-vital-signs "Antenatal vital signs" "Timed antenatal observations: temperature, pulse, respiration and blood pressure with the lie, the presentation, the fetal heart tones and whether the bowels have opened."
 * #paediatric-tb-icf-screening "Paediatric TB intensified case finding screening tool" "The five-question intensified case finding screen asked of every child at every contact -- cough of any duration, fever, failure to thrive or poor weight gain, lethargy, and contact with a TB case -- and the action the answers decide. Table 22.9 of the paediatric TB guideline."
+* #optical-prescription "Optical prescription" "The eyewear prescription an optometrist or ophthalmologist writes: sphere, cylinder, axis, pupillary distance and visual acuity for each eye at distance and near, the reading addition, the lens type and coating, and the prescriber -- plus the contact lens prescription where one is written."
 
 
 CodeSystem: SGHIConceptCodeSystem
 Id: concept-codesystem
 Title: "SGHI Concept Code System"
-Description: "What the forms record where no code system this IG can resolve says the same thing. These appear as Observation.code, Observation.component.code, ServiceRequest.code, Procedure.code, CarePlan.category, RiskAssessment.code and RiskAssessment.prediction.outcome on the resources the extraction maps build. Anything LOINC already names — the vital signs, the Glasgow Coma Scale, the Apgar components, body weight and height, head circumference, MUAC — is coded to LOINC in the map and is deliberately absent here."
+Description: "What the forms record where no code system this IG can resolve says the same thing. These appear as Observation.code, Observation.component.code, ServiceRequest.code, Procedure.code, CarePlan.category, RiskAssessment.code, RiskAssessment.prediction.outcome and VisionPrescription.lensSpecification.product on the resources the extraction maps build. Anything LOINC already names — the vital signs, the Glasgow Coma Scale, the Apgar components, body weight and height, head circumference, MUAC — is coded to LOINC in the map and is deliberately absent here."
 * ^status = #active
 * ^experimental = false
 * ^content = #complete
@@ -747,6 +748,21 @@ Description: "What the forms record where no code system this IG can resolve say
 * #ventilator-setting-tracheostomy-tube-size "Tracheostomy tube size" "A ventilator setting from the ICU observation chart that LOINC does not name — an I:E ratio, a tube size, or one of the on/off states the chart prints beside them. Recorded on the ICU observation chart."
 * #ventilator-setting-weaning-from-the-ventilator "Weaning from the ventilator" "A ventilator setting from the ICU observation chart that LOINC does not name — an I:E ratio, a tube size, or one of the on/off states the chart prints beside them. Recorded on the ICU observation chart."
 
+// ── Vision prescription ─────────────────────────────────────────────────
+// Which row of the eyewear prescription a VisionPrescription.lensSpecification
+// was written from. The paper prints a distance row and a near row for each
+// eye, and a lens specification carries no element that says which one it is
+// -- R5 assumes a single row plus `add`, which is what the distance
+// specification here holds. Without a code the two right-eye specifications a
+// full prescription produces cannot be told apart by anything but prose.
+//
+// Carried on lensSpecification.product next to HL7's
+// ex-visionprescriptionproduct#lens, as the same product at a finer grain. That
+// binding is example strength, so a second coding is allowed; nothing HL7 or
+// LOINC publishes says "spectacle lens for distance vision" as a product.
+* #spectacle-lens-distance "Spectacle lens for distance vision" "A spectacle lens prescribed from the distance vision (DV) row of an eyewear prescription: sphere, cylinder and axis for distance, with the reading addition where one is written. Carried on VisionPrescription.lensSpecification.product beside HL7's lens code. Recorded on the optical prescription."
+* #spectacle-lens-near "Spectacle lens for near vision" "A spectacle lens prescribed from the near vision (NV) row of an eyewear prescription: sphere, cylinder and axis for reading distance. Carried on VisionPrescription.lensSpecification.product beside HL7's lens code. Recorded on the optical prescription."
+
 // ── Surgical safety checklist ───────────────────────────────────────────
 * #who-check-all-team-members-introduced-by-name-and-role "All team members introduced by name and role" "One confirmation on the surgical safety checklist. The answer says whether it was confirmed, was not applicable, or was not done — three distinct answers, because a correctly skipped item is not a missed one. Recorded on the surgical safety checklist."
 * #who-check-anaesthesia-machine-and-medication-check-complete "Anaesthesia machine and medication check complete" "One confirmation on the surgical safety checklist. The answer says whether it was confirmed, was not applicable, or was not done — three distinct answers, because a correctly skipped item is not a missed one. Recorded on the surgical safety checklist."
@@ -1127,6 +1143,34 @@ Description: "The answers the pick lists offer, where the list is local to these
 * #urine-rose "Rose" "Rose or lightly blood-tinged return."
 * #urine-blood-stained "Blood stained" "Frankly blood-stained return."
 * #urine-clots "With clots" "Return carrying clots -- the finding that stops an irrigation and calls a surgeon."
+
+// ── Optical prescription ────────────────────────────────────────────────────
+// The lens types and the coating the eyewear prescription offers as tick
+// boxes, and how often a contact lens is replaced. Displays are the paper's own
+// wording. The paper prints the seven lens types on one line, but they answer
+// two different questions -- how the lens is used (constant, reading,
+// distance) and how it is made (single vision, progressive, bifocal,
+// trifocal) -- so a prescription can tick one of each and neither is wrong.
+//
+// Nothing in VisionPrescription holds these as codes. The extraction map
+// writes their displays into lensSpecification.note, which R5 defines as
+// "notes for special requirements such as coatings and lens materials"; the
+// codes stay on the QuestionnaireResponse.
+* #eyewear-constant-use "Constant Use" "Spectacles to be worn all the time. Recorded on the optical prescription."
+* #eyewear-reading-wear "Reading Wear" "Spectacles for reading and other near work only. Recorded on the optical prescription."
+* #eyewear-distance-wear "Distance Wear" "Spectacles for distance vision only -- driving, the board, television. Recorded on the optical prescription."
+* #eyewear-single-vision "Single Vision" "A lens with one power across the whole lens. Recorded on the optical prescription."
+* #eyewear-progressive "Progressive" "A multifocal lens whose power changes gradually from distance at the top to near at the bottom, with no visible line. Recorded on the optical prescription."
+* #eyewear-bifocal "Bifocal" "A lens with two powers, distance above and near below a visible segment line. Recorded on the optical prescription."
+* #eyewear-trifocal "Trifocal" "A lens with three powers -- distance, intermediate and near -- in separate segments. Recorded on the optical prescription."
+* #eyewear-coating-antiglare "Antiglare" "An anti-reflective coating on the spectacle lens. Recorded on the optical prescription."
+// Contact lens replacement. Each answer is a wear period, so the map turns it
+// into VisionPrescription.lensSpecification.duration, a Quantity in UCUM.
+* #contact-lens-replace-daily "Daily" "Daily disposable lenses, discarded after one day's wear. Extracted as a wear duration of 1 d. Recorded on the optical prescription."
+* #contact-lens-replace-two-weekly "Two-weekly" "Lenses replaced every two weeks. Extracted as a wear duration of 2 wk. Recorded on the optical prescription."
+* #contact-lens-replace-monthly "Monthly" "Lenses replaced every month. Extracted as a wear duration of 1 mo. Recorded on the optical prescription."
+* #contact-lens-replace-quarterly "Three-monthly" "Lenses replaced every three months. Extracted as a wear duration of 3 mo. Recorded on the optical prescription."
+* #contact-lens-replace-yearly "Yearly" "Conventional lenses replaced once a year. Extracted as a wear duration of 1 a. Recorded on the optical prescription."
 
 
 CodeSystem: SGHIScoreCodeSystem
