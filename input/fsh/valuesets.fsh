@@ -1286,6 +1286,9 @@ Description: "A ValueSet defining the possible visit types in SGHI's systems."
 * include SGHIVisitTypeCodeSystem#medical-clinics "Medical Clinics"
 * include SGHIVisitTypeCodeSystem#surgical-clinics "Surgical Clinics"
 * include SGHIVisitTypeCodeSystem#paediatrics "Paediatrics"
+* include SGHIVisitTypeCodeSystem#community-health-services "Community Health Services"
+* include SGHIVisitTypeCodeSystem#palliative-care-hospice "Palliative Care and Hospice Services"
+* include SGHIVisitTypeCodeSystem#dental-oral-health "Dental and Oral Health Services"
 
 ValueSet: SGHIGeneralResult
 Id: general-result
