@@ -419,6 +419,9 @@ Description: "A code system enumerating the different visit types used across SG
 * #medical-clinics "Medical Clinics" "A visit to a general or specialised medical clinic for the diagnosis and management of medical conditions."
 * #surgical-clinics "Surgical Clinics" "A visit to a surgical clinic for surgical assessment, consultation, or follow-up."
 * #paediatrics "Paediatrics" "A visit to a paediatrics clinic for the diagnosis and treatment of conditions affecting infants, children, and adolescents."
+* #community-health-services "Community Health Services" "A visit for community-based health services delivered at or through the community health unit level."
+* #palliative-care-hospice "Palliative Care and Hospice Services" "A visit for palliative or hospice care focused on symptom relief, comfort, and quality of life for patients with serious or life-limiting illness."
+* #dental-oral-health "Dental and Oral Health Services" "A visit for the diagnosis, prevention, and treatment of dental and oral health conditions."
 
 
 
