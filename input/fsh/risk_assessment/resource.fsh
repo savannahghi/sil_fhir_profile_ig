@@ -9,7 +9,7 @@ Description:    "An assessment of the likely outcome(s) for a patient or other s
   * insert CommonIdentifierRules
 
 * basis only SGHIReference
-* basis only Reference(QuestionnaireResponse)
+* basis only Reference(QuestionnaireResponse or SGHIObservation)
 
 * basedOn only SGHIReference
 

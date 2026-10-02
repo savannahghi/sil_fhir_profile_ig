@@ -173,13 +173,13 @@ group BuildObsBase(source qr : QR, target obs : Observation, target entry) {
   } "entryRequest";
 
   qr -> obs.status = 'final' "status";
-  qr.subject as s -> obs.subject = s "subject";
-  qr.encounter as e -> obs.encounter = e "encounter";
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> obs.subject = s "subject";
+  qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> obs.encounter = e "encounter";
   qr.authored as t -> obs.effective = t "effective";
 
-  qr.source as src -> obs.performer = src "performerFromSource";
-  qr where (source.exists().not()) then {
-    qr.author as a -> obs.performer = a "performerFromAuthor";
+  qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> obs.performer = src "performerFromSource";
+  qr where (source.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))).exists().not()) then {
+    qr.author as a where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> obs.performer = a "performerFromAuthor";
   } "performerFallback";
 
   // A stored response's id already reads "QuestionnaireResponse/<id>", so it is a

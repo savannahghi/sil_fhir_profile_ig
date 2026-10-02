@@ -62,7 +62,7 @@ Description: "Measurements and simple assertions made about a patient, device or
 * hasMember only Reference(SGHIObservation)
 
 * derivedFrom only SGHIReference
-* derivedFrom only Reference(SGHIObservation)
+* derivedFrom only Reference(SGHIObservation or SGHIQuestionnaireResponse)
 
 
 * valueString only string

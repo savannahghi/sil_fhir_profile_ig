@@ -1,152 +1,158 @@
-/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractDeclineForm"
-/// name = "ExtractDeclineForm"
-/// title = "Decline Form Extraction"
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractCancerTreatmentConsent"
+/// name = "ExtractCancerTreatmentConsent"
+/// title = "Cancer Treatment Consent Extraction"
 /// status = "active"
-/// description = "The refusal out as a Consent with `decision = \'deny\'` -- the only deny decision in this whole set -- with one provision per thing actually being refused, so a patient refusing a single procedure is not recorded as having refused all care. An Observation records whether they understood the explanation and in which language, because that is what makes the refusal informed and it is the fact a later dispute turns on."
+/// description = "The cancer centre\'s informed consent out as one Consent, built only once the patient has signed: the patient as grantor, the doctor as grantee and as the clinician who verified it, the signing time as the period start, and a provision for each kind of therapy ticked -- the local code with SNOMED\'s procedure code beside it -- and one each for the regimen, the diagnosis, the intended purpose and the side effects and risks that were explained. Where an interpreter took part, an Observation records who, and whether they signed, pointing at the Consent."
 
 uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
 uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
 uses "http://hl7.org/fhir/StructureDefinition/Consent" alias Consent as target
 uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Observation as target
 
-group ExtractDeclineForm(source qr : QR, target bundle : Bundle) {
+group ExtractCancerTreatmentConsent(source qr : QR, target bundle : Bundle) {
   qr -> bundle.type = 'transaction' "setBundleType";
 
-  // Guarded on the person having actually signed. A refusal built from a
-  // half-filled form asserts that somebody declined care when they may not have.
-  qr where (item.where(linkId = 'signatures').item.where(linkId = 'signatures/person-signed').answer.value = true) -> bundle.entry as entry, entry.resource = create('Consent') as consent then {
+  // ── The Consent ─────────────────────────────────────────────────────────
+  // Guarded on the patient having signed, as the procedure consent is on the
+  // consenter. A Consent built from a form nobody signed asserts a permission
+  // that was never given.
+  qr where (item.where(linkId = 'patient').item.where(linkId = 'patient/signed').answer.value = true) -> bundle.entry as entry, entry.resource = create('Consent') as consent then {
     qr -> consent, entry then BuildConsentBase(qr, consent, entry) "base";
     qr -> consent.status = 'active' "status";
-
-    // `deny`, not `permit`. This is the one form in the set that records a
-    // refusal, and the whole resource turns on this single code.
-    qr -> consent.decision = 'deny' "decision";
-
+    qr -> consent.decision = 'permit' "decision";
     qr -> consent.category as cat then {
       qr -> cat.coding as cg then {
-        qr -> cg.system = 'http://terminology.hl7.org/CodeSystem/consentcategorycodes' "sys";
-        qr -> cg.code = 'acd' "cd";
-        qr -> cg.display = 'Advance Directive' "dsp";
+        qr -> cg.system = 'http://loinc.org' "sys";
+        qr -> cg.code = '64293-4' "cd";
+        qr -> cg.display = 'Procedure consent Document' "dsp";
       } "coding";
-      qr -> cat.text = 'Decline of care, procedure or assessment' "categoryText";
+      qr -> cat.text = 'Consent to systemic anti-cancer therapy' "categoryText";
     } "category";
 
-    qr.item as sg where (linkId = 'signatures') then {
-      sg.item as it where (linkId = 'signatures/signed-on' and answer.value.exists()) then {
+    // The patient consents for themselves: the form has no line for anyone
+    // else to sign on their behalf.
+    qr.subject as s where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> consent.grantor = s "grantorPatient";
+
+    // The signing time, from the form, not qr.authored. Consent.date is a
+    // `date` and this is a date and time, so it goes to period.start.
+    qr.item as pg where (linkId = 'patient') then {
+      pg.item as it where (linkId = 'patient/signed-at' and answer.value.exists()) then {
         it.answer first as a then {
-          a.value as d -> consent.date = d "signedDate";
+          a.value as t -> consent.period as per, per.start = t "signedPeriodStart";
         } "answer";
-      } "signedOnRule";
-      // The witness verifies the refusal. On this form that matters more than on
-      // a consent: the hospital is recording that somebody left against advice.
-      sg.item as it where (linkId = 'signatures/witness-signed' and answer.value = true) -> consent.verification as ver then {
-        it -> ver.verified = true "verified";
-        sg.item as wn where (linkId = 'signatures/witness-name' and answer.value.exists()) then {
-          wn.answer first as wa then {
-            wa.value as txt -> ver.verifiedBy = create('Reference') as ref, ref.display = txt "witnessDisplay";
-          } "answer";
-        } "witnessNameRule";
-      } "witnessVerification";
-    } "signaturesGroup";
+      } "signedAtRule";
+    } "patientGroup";
 
-    qr.item as pg where (linkId = 'person-declining') then {
-      pg.item as it where (linkId = 'person-declining/name' and answer.value.exists()) then {
+    // The grantee, controller and manager are the facility, set by
+    // ConformConsent: SGHIConsent allows only an Organization or the Patient
+    // there. Once the doctor has signed, they are the verifier -- their
+    // signature is the attestation that the treatment was explained and
+    // understood. SGHIConsent wants an Organization as verifier too; the doctor
+    // is kept, because who explained a consent is the fact a dispute turns on.
+    qr.item as dg where (linkId = 'doctor') then {
+      dg.item as it where (linkId = 'doctor/clinician' and answer.value.exists()) then {
         it.answer first as a then {
-          a.value as txt -> consent.grantor = create('Reference') as ref, ref.display = txt "grantorDisplay";
+          dg.item as ds where (linkId = 'doctor/signed' and answer.value = true) then {
+            a.value as ref -> consent.verification as ver then {
+              ref -> ver.verified = true "verified";
+              ref where (((reference.exists() and (reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization'))))) -> ver.verifiedBy = ref "verifiedBy";
+              qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> ver.verifiedWith = s "verifiedWith";
+              qr.item as pg2 where (linkId = 'patient') then {
+                pg2.item as st where (linkId = 'patient/signed-at' and answer.value.exists()) then {
+                  st.answer first as sa then {
+                    sa.value as t -> ver.verificationDate = t "verificationDate";
+                  } "signedAtAnswer";
+                } "signedAtRule";
+              } "patientGroupForVerification";
+            } "verification";
+          } "doctorSignedRule";
         } "answer";
-      } "nameRule";
-      pg.item as it where (linkId = 'person-declining/relationship' and answer.value.exists()) then {
+      } "clinicianRule";
+    } "doctorGroup";
+
+    // ── The provisions ────────────────────────────────────────────────────
+    // One per kind of therapy ticked, so a consent to hormonal therapy cannot
+    // be read as covering chemotherapy. The local code is what the form
+    // offered; the SNOMED procedure code beside it is what another system
+    // will recognise.
+    //
+    // The regimen and what was explained are provisions too, each labelled.
+    // Consent has no note in R5, and this is where the procedure consent puts
+    // the same prose.
+    qr.item as tg where (linkId = 'treatment') then {
+      tg.item as it where (linkId = 'treatment/therapy') then {
+        it.answer as a -> consent.provision as prov then {
+          a.value as cv -> prov.code as pc then {
+            cv -> pc.coding = cv "localCoding";
+            cv.display as d -> pc.text = d "text";
+            cv where (code = 'anti-cancer-chemotherapy') -> pc.coding as sct then {
+              cv -> sct.system = 'http://snomed.info/sct' "sys";
+              cv -> sct.code = '367336001' "cd";
+              cv -> sct.display = 'Chemotherapy' "dsp";
+            } "chemotherapySnomed";
+            cv where (code = 'anti-cancer-hormonal-therapy') -> pc.coding as sct then {
+              cv -> sct.system = 'http://snomed.info/sct' "sys";
+              cv -> sct.code = '169413002' "cd";
+              cv -> sct.display = 'Hormone therapy' "dsp";
+            } "hormonalSnomed";
+            cv where (code = 'anti-cancer-targeted-therapy') -> pc.coding as sct then {
+              cv -> sct.system = 'http://snomed.info/sct' "sys";
+              cv -> sct.code = '1255831008' "cd";
+              cv -> sct.display = 'Targeted chemotherapy for cancer' "dsp";
+            } "targetedSnomed";
+          } "therapyCode";
+        } "therapyProvision";
+      } "therapyRule";
+
+      tg.item as it where (linkId = 'treatment/regimen' and answer.value.exists()) then {
         it.answer first as a then {
-          a.value as txt -> consent.grantor = create('Reference') as ref, ref.display = txt "relationshipDisplay";
+          a.value as txt -> consent.provision as prov, prov.code as pc, pc.text = append('Drug regimen: ', txt) "regimenProvision";
         } "answer";
-      } "relationshipRule";
-    } "personGroup";
-
-    qr.item as eg where (linkId = 'what-was-explained') then {
-      eg.item as it where (linkId = 'what-was-explained/doctor' and answer.value.exists()) then {
+      } "regimenRule";
+      tg.item as it where (linkId = 'treatment/diagnosis' and answer.value.exists()) then {
         it.answer first as a then {
-          a.value as ref where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> consent.manager = ref "manager";
+          a.value as txt -> consent.provision as prov, prov.code as pc, pc.text = append('Diagnosis explained: ', txt) "diagnosisProvision";
         } "answer";
-      } "doctorRule";
-    } "explainedGroup";
+      } "diagnosisRule";
+      tg.item as it where (linkId = 'treatment/intended-purpose' and answer.value.exists()) then {
+        it.answer first as a then {
+          a.value as txt -> consent.provision as prov, prov.code as pc, pc.text = append('Intended purpose explained: ', txt) "purposeProvision";
+        } "answer";
+      } "purposeRule";
+      tg.item as it where (linkId = 'treatment/side-effects-and-risks' and answer.value.exists()) then {
+        it.answer first as a then {
+          a.value as txt -> consent.provision as prov, prov.code as pc, pc.text = append('Side effects and risks explained: ', txt) "sideEffectsProvision";
+        } "answer";
+      } "sideEffectsRule";
+    } "treatmentGroup";
 
-    // ── One provision per thing refused ─────────────────────────────────────
-    // The sheet prints "care/procedure/assessment" as one slashed phrase. A
-    // single provision saying all three would record a patient who declined one
-    // investigation as having refused every kind of care, which is both wrong
-    // and the sort of wrong that ends up in a coroner's court.
-    qr.item as it where (linkId = 'declining') then {
-      it.answer as a -> consent.provision as prov then {
-        a.value as cv -> prov.code as pc then {
-          cv -> pc.coding = cv "coding";
-          cv.display as d -> pc.text = d "text";
-        } "declineCode";
-      } "declineProvision";
-    } "decliningGroup";
-
-    qr.item as it where (linkId = 'procedure-declined' and answer.value.exists()) -> consent.provision as prov then {
-      it.answer first as a then {
-        a.value as txt -> prov.code as pc, pc.text = txt "procedureText";
-      } "answer";
-    } "procedureDeclinedProvision";
-
-    // Where the patient is going. Recorded on the Consent because it is part of
-    // the refusal -- a patient transferring to another hospital and one going
-    // home carry different follow-up obligations.
-    qr.item as it where (linkId = 'destination' and answer.value.exists()) -> consent.provision as prov then {
-      it.answer first as a then {
-        a.value as cv -> prov.code as pc then {
-          cv -> pc.coding = cv "coding";
-          cv.display as d -> pc.text = append('Opting to go to: ', d) "text";
-        } "destinationCode";
-      } "answer";
-    } "destinationProvision";
-  } "createDeclineConsent";
-
-  // ── Was the refusal informed? ───────────────────────────────────────────
-  // Its own Observation. Not a provision -- it is not a thing being refused --
-  // but it is the fact that makes the refusal defensible, and it carries the
-  // language the discussion was held in. The paper form is bilingual and the
-  // language was previously only implied by which half of the sheet was signed.
-  qr.item as g where (linkId = 'what-was-explained') then {
-    g.item as it where (linkId = 'what-was-explained/understood' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
-      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
-      qr -> obs then SetSurveyCategory(qr, obs) "category";
-      it -> obs.code as cc then {
-        it -> cc.coding as cg then {
-          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/inpatient-clinical-concept-codesystem' "sys";
-          it -> cg.code = 'capacity-to-consent' "cd";
-          it -> cg.display = 'Capacity to consent' "dsp";
-        } "coding";
-        it -> cc.text = 'Understood the explanation of the condition and the risks of declining' "codeText";
-      } "code";
-      it.answer first as a then {
-        a.value as cv -> obs.value = create('CodeableConcept') as vc then {
-          cv -> vc.coding = cv "valueCoding";
-          cv.display as d -> vc.text = d "valueText";
-        } "codedValue";
-      } "answer";
-      it.answer first as a then {
-        a.value as cv where (code = 'N') -> obs.interpretation as interp then {
-          cv -> interp.coding as icg then {
-            cv -> icg.system = 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation' "sys";
-            cv -> icg.code = 'A' "cd";
-            cv -> icg.display = 'Abnormal' "dsp";
+    // ── The interpreter ───────────────────────────────────────────────────
+    // An Observation, as on the procedure consent: an interpreter is not a
+    // permission, so not a provision, but whether the explanation reached the
+    // patient in a language they understood is what makes the consent
+    // informed. It points at the Consent it belongs to.
+    qr.item as ig where (linkId = 'interpreter') then {
+      ig.item as it where (linkId = 'interpreter/name' and answer.value.exists()) -> bundle.entry as oentry, oentry.resource = create('Observation') as obs then {
+        qr -> obs, oentry then BuildObsBase(qr, obs, oentry) "base";
+        qr -> obs then SetSurveyCategory(qr, obs) "category";
+        it -> obs.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'consent-interpreter-used' "cd";
+            it -> cg.display = 'Interpreter used for the consent discussion' "dsp";
           } "coding";
-        } "notUnderstoodInterp";
-      } "understoodInterpretation";
-      g.item as it where (linkId = 'what-was-explained/language') then {
+        } "code";
+        it -> obs.value = true "interpreterUsed";
+        it -> obs.focus = create('Reference') as fref, fref.reference = reference(consent) "focusConsent";
         it.answer first as a then {
-          a.value as txt -> obs.note as n, n.text = txt "text";
+          a.value as txt -> obs.note as n, n.text = append('Interpreter: ', txt) "interpreterName";
         } "answer";
-      } "note";
-      g.item as it where (linkId = 'what-was-explained/condition-and-risks') then {
-        it.answer first as a then {
-          a.value as txt -> obs.note as n, n.text = txt "text";
-        } "answer";
-      } "note2";
-    } "understoodObservation";
-  } "explainedGroup";
+        ig.item as sg where (linkId = 'interpreter/signed' and answer.value = true) then {
+          sg -> obs.note as n2, n2.text = 'The interpreter signed the consent form.' "interpreterSigned";
+        } "signedRule";
+      } "interpreterObservation";
+    } "interpreterGroup";
+  } "createConsent";
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -154,18 +160,6 @@ group ExtractDeclineForm(source qr : QR, target bundle : Bundle) {
 // engine resolves `imports` against whatever StructureMaps happen to be on the
 // server, and a form that stops extracting because a shared map was not
 // uploaded is a worse failure than a duplicated group.
-//
-// Two notes on what the publisher's StructureMap validator says about this file.
-//
-// Source parameters below are left untyped on purpose. Writing `: Element` makes
-// the validator compare QuestionnaireResponse.item against the literal 'Element'
-// and report them as incompatible with each other, which is noise, not a finding.
-//
-// `evaluate(context, expression)` is flagged as "takes 1 parameter but 2 were
-// found". Leave it. The FML parser in the same jar refuses the one-argument form
-// outright -- it wants a parameter, a comma, then the FHIRPath -- so the
-// publisher is objecting to what its own compiler emits. Two arguments is the
-// only form that compiles, and it is what the R5 transform engine executes.
 // ─────────────────────────────────────────────────────────────────────────────
 
 group BuildObsBase(source qr : QR, target obs : Observation, target entry) {
@@ -191,25 +185,6 @@ group BuildObsBase(source qr : QR, target obs : Observation, target entry) {
 
 group SetObservationFullUrl(source obs : Observation, target entry) {
   obs.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/Observation/', id) "assignFullUrl";
-}
-
-// The two answer shapes a component can carry. Both read the answer through the
-// untyped `.value` accessor: reading `valueCoding` or `valueQuantity` by its
-// typed property name fails at transform time on HAPI R5 with "Attempt to read
-// invalid property ... on QuestionnaireResponse.item.answer".
-group SetComponentCodedValue(source it, target comp) {
-  it.answer first as a then {
-    a.value as cv -> comp.value = create('CodeableConcept') as cc then {
-      cv -> cc.coding = cv "valueCoding";
-      cv.display as d -> cc.text = d "valueText";
-    } "codedValue";
-  } "componentAnswer";
-}
-
-group SetComponentValue(source it, target comp) {
-  it.answer first as a then {
-    a.value as v -> comp.value = v "plainValue";
-  } "componentAnswer";
 }
 
 group SetSurveyCategory(source qr : QR, target obs : Observation) {
@@ -255,8 +230,8 @@ group SetResponseProvenance(source qr : QR, target r) {
   qr -> r.meta as m then {
     qr -> m.tag as t then {
       qr -> t.system = 'http://slade360edi.com/questionnaire-provenance' "provenanceSystem";
-      qr -> t.code = 'decline-form' "provenanceCode";
-      qr -> t.display = 'Decline form' "provenanceDisplay";
+      qr -> t.code = 'cancer-treatment-consent' "provenanceCode";
+      qr -> t.display = 'Cancer centre informed consent' "provenanceDisplay";
     } "provenanceTag";
   } "provenanceMeta";
 

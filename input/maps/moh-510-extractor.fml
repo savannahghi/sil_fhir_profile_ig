@@ -821,22 +821,22 @@ group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) 
             qr -> idAp.system = 'https://fhir.slade360.co.ke/fhir/Identifier/moh510-register-cell' "apptCellSystem";
             dvAp -> idAp.value = append('IMM-ED-Q4-next-visit-date@', dvAp) "apptCellValue";
           } "apptCellIdentifier";
-          qr.subject as subjAp then {
-            subjAp.reference as prefAp then {
-              aE4.value as dvAp2 -> eE4.request as rqAp then {
-                qr -> rqAp.method = 'POST' "apptReqMethod";
-                qr -> rqAp.url = 'Appointment' "apptReqUrl";
-                qr -> rqAp.ifNoneExist = append('actor=', prefAp, '&identifier=https://fhir.slade360.co.ke/fhir/Identifier/moh510-register-cell|IMM-ED-Q4-next-visit-date@', dvAp2) "apptIfNoneExist";
-              } "apptReq";
-            } "apptPatientRef";
-          } "apptSubject";
+          // As for the register entries below: the request always, the conditional
+          // create only for a subject that is a Patient.
+          aE4.value as dvAp2 -> eE4.request as rqAp then {
+            qr -> rqAp.method = 'POST' "apptReqMethod";
+            qr -> rqAp.url = 'Appointment' "apptReqUrl";
+            qr.subject as subjAp where (reference.startsWith('Patient/')) then {
+              subjAp.reference as prefAp -> rqAp.ifNoneExist = append('actor=', prefAp, '&identifier=https://fhir.slade360.co.ke/fhir/Identifier/moh510-register-cell|IMM-ED-Q4-next-visit-date@', dvAp2) "apptIfNoneExist";
+            } "apptSubject";
+          } "apptReq";
           qr -> appt.id = uuid() "apptId";
           qr -> appt.status = 'proposed' "apptStatus";
           qr -> appt.description = 'Next scheduled immunisation visit (MOH 510)' "apptDescription";
-          qr.subject as s -> appt.subject = s "apptSubject";
+          qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> appt.subject = s "apptSubject";
           qr -> appt.participant as prt then {
             qr -> prt.status = 'needs-action' "apptParticipantStatus";
-            qr.subject as s -> prt.actor = s "apptParticipantActor";
+            qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('Location/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/Location') or ('/' + type).endsWith('/PractitionerRole'))))) -> prt.actor = s "apptParticipantActor";
           } "apptParticipant";
           aE4.value as dv -> appt.requestedPeriod as rp then {
             dv -> rp.start = cast(dv, 'dateTime') "apptRequestedStart";
@@ -883,8 +883,8 @@ group BuildObsBase(source qr : QR, target obs : Observation, target entry) {
   } "obsReq";
   qr -> obs.id = uuid() "obsId";
   qr -> obs.status = 'final' "obsStatus";
-  qr.subject as s -> obs.subject = s "obsSubject";
-  qr.encounter as e -> obs.encounter = e "obsEncounter";
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> obs.subject = s "obsSubject";
+  qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> obs.encounter = e "obsEncounter";
   qr.authored as t -> obs.effective = t "obsEffective";
   // qr.id is already type-qualified ("QuestionnaireResponse/1008") when the
   // response is read from the server, so prepending the type -- or using
@@ -903,22 +903,24 @@ group BuildImm(source qr : QR, source it, source a, target imm : Immunization, t
     qr -> idc.system = 'https://fhir.slade360.co.ke/fhir/Identifier/moh510-register-cell' "immCellSystem";
     lk -> idc.value = lk "immCellValue";
   } "immCellIdentifier";
-  qr.subject as subjImm then {
-    subjImm.reference as pref then {
-      it.linkId as lk2 -> entry.request as rq then {
-        qr -> rq.method = 'POST' "immReqMethod";
-        qr -> rq.url = 'Immunization' "immReqUrl";
-        qr -> rq.ifNoneExist = append('patient=', pref, '&identifier=https://fhir.slade360.co.ke/fhir/Identifier/moh510-register-cell|', lk2) "immIfNoneExist";
-      } "immReq";
-    } "immPatientRef";
-  } "immSubject";
+  // The request is built whatever the subject is: an entry without one is refused, and
+  // the whole transaction with it. Only the conditional create needs the patient, so only
+  // it waits for a subject that is a Patient; a conditional URL naming anything else is
+  // invalid (HAPI-0539) and refused the same way.
+  it.linkId as lk2 -> entry.request as rq then {
+    qr -> rq.method = 'POST' "immReqMethod";
+    qr -> rq.url = 'Immunization' "immReqUrl";
+    qr.subject as subjImm where (reference.startsWith('Patient/')) then {
+      subjImm.reference as pref -> rq.ifNoneExist = append('patient=', pref, '&identifier=https://fhir.slade360.co.ke/fhir/Identifier/moh510-register-cell|', lk2) "immIfNoneExist";
+    } "immSubject";
+  } "immReq";
   qr -> imm.id = uuid() "immId";
   qr -> imm.status = 'completed' "immStatus";
   // Register entries are transcribed from the child's card, so the recording
   // facility is not necessarily the administering one.
   qr -> imm.primarySource = false "immPrimarySource";
-  qr.subject as s -> imm.patient = s "immPatient";
-  qr.encounter as e -> imm.encounter = e "immEncounter";
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> imm.patient = s "immPatient";
+  qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> imm.encounter = e "immEncounter";
   a.value as dv -> imm.occurrence = cast(dv, 'dateTime') "immOccurrence";
 }
 
@@ -927,19 +929,21 @@ group BuildMedAdmin(source qr : QR, source it, source a, target ma : MedicationA
     qr -> idc.system = 'https://fhir.slade360.co.ke/fhir/Identifier/moh510-register-cell' "maCellSystem";
     lk -> idc.value = lk "maCellValue";
   } "maCellIdentifier";
-  qr.subject as subjMa then {
-    subjMa.reference as pref then {
-      it.linkId as lk2 -> entry.request as rq then {
-        qr -> rq.method = 'POST' "maReqMethod";
-        qr -> rq.url = 'MedicationAdministration' "maReqUrl";
-        qr -> rq.ifNoneExist = append('subject=', pref, '&identifier=https://fhir.slade360.co.ke/fhir/Identifier/moh510-register-cell|', lk2) "maIfNoneExist";
-      } "maReq";
-    } "maPatientRef";
-  } "maSubject";
+  // The request is built whatever the subject is: an entry without one is refused, and
+  // the whole transaction with it. Only the conditional create needs the patient, so only
+  // it waits for a subject that is a Patient; a conditional URL naming anything else is
+  // invalid (HAPI-0539) and refused the same way.
+  it.linkId as lk2 -> entry.request as rq then {
+    qr -> rq.method = 'POST' "maReqMethod";
+    qr -> rq.url = 'MedicationAdministration' "maReqUrl";
+    qr.subject as subjMa where (reference.startsWith('Patient/')) then {
+      subjMa.reference as pref -> rq.ifNoneExist = append('subject=', pref, '&identifier=https://fhir.slade360.co.ke/fhir/Identifier/moh510-register-cell|', lk2) "maIfNoneExist";
+    } "maSubject";
+  } "maReq";
   qr -> ma.id = uuid() "maId";
   qr -> ma.status = 'completed' "maStatus";
-  qr.subject as s -> ma.subject = s "maSubject";
-  qr.encounter as e -> ma.encounter = e "maEncounter";
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> ma.subject = s "maSubject";
+  qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> ma.encounter = e "maEncounter";
   a.value as dv -> ma.occurence = cast(dv, 'dateTime') "maOccurence";
 }
 
@@ -948,18 +952,20 @@ group BuildRelatedPerson(source qr : QR, source it, target rp : RelatedPerson, t
     qr -> idc.system = 'https://fhir.slade360.co.ke/fhir/Identifier/moh510-register-cell' "rpCellSystem";
     lk -> idc.value = lk "rpCellValue";
   } "rpCellIdentifier";
-  qr.subject as subjRp then {
-    subjRp.reference as pref then {
-      it.linkId as lk2 -> entry.request as rq then {
-        qr -> rq.method = 'POST' "rpReqMethod";
-        qr -> rq.url = 'RelatedPerson' "rpReqUrl";
-        qr -> rq.ifNoneExist = append('patient=', pref, '&identifier=https://fhir.slade360.co.ke/fhir/Identifier/moh510-register-cell|', lk2) "rpIfNoneExist";
-      } "rpReq";
-    } "rpPatientRef";
-  } "rpSubject";
+  // The request is built whatever the subject is: an entry without one is refused, and
+  // the whole transaction with it. Only the conditional create needs the patient, so only
+  // it waits for a subject that is a Patient; a conditional URL naming anything else is
+  // invalid (HAPI-0539) and refused the same way.
+  it.linkId as lk2 -> entry.request as rq then {
+    qr -> rq.method = 'POST' "rpReqMethod";
+    qr -> rq.url = 'RelatedPerson' "rpReqUrl";
+    qr.subject as subjRp where (reference.startsWith('Patient/')) then {
+      subjRp.reference as pref -> rq.ifNoneExist = append('patient=', pref, '&identifier=https://fhir.slade360.co.ke/fhir/Identifier/moh510-register-cell|', lk2) "rpIfNoneExist";
+    } "rpSubject";
+  } "rpReq";
   qr -> rp.id = uuid() "rpId";
   qr -> rp.active = true "rpActive";
-  qr.subject as s -> rp.patient = s "rpPatient";
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> rp.patient = s "rpPatient";
 }
 
 group VitalSignsCategory(source qr : QR, target obs : Observation) {

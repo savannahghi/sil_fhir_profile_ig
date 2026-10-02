@@ -155,15 +155,15 @@ group ExtractInpatientMentalHealthRiskAssessment(source qr : QR, target bundle :
           v -> code.text = v "codeText";
         } "flagCode";
 
-        qr.subject as s -> flag.subject = s "subject";
-        qr.encounter as e -> flag.encounter = e "encounter";
+        qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('RelatedPerson/') or reference.startsWith('Location/') or reference.startsWith('Group/') or reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/') or reference.startsWith('PlanDefinition/') or reference.startsWith('Medication/') or reference.startsWith('Procedure/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/RelatedPerson') or ('/' + type).endsWith('/Location') or ('/' + type).endsWith('/Group') or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole') or ('/' + type).endsWith('/PlanDefinition') or ('/' + type).endsWith('/Medication') or ('/' + type).endsWith('/Procedure'))))) -> flag.subject = s "subject";
+        qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> flag.encounter = e "encounter";
         qr.authored as t -> flag.period as period then {
           t -> period.start = t "periodStart";
         } "period";
 
-        qr.author as a -> flag.author = a "authorFromAuthor";
-        qr where (author.exists().not()) then {
-          qr.source as src -> flag.author = src "authorFromSource";
+        qr.author as a where (((reference.exists() and (reference.startsWith('Device/') or reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('RelatedPerson/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Device') or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/RelatedPerson') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> flag.author = a "authorFromAuthor";
+        qr where (author.where(((reference.exists() and (reference.startsWith('Device/') or reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('RelatedPerson/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Device') or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/RelatedPerson') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+          qr.source as src where (((reference.exists() and (reference.startsWith('Device/') or reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('RelatedPerson/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Device') or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/RelatedPerson') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> flag.author = src "authorFromSource";
         } "authorFallback";
       } "flag";
     } "safeguardingAnswer";
@@ -203,13 +203,13 @@ group BuildObsBase(source qr : QR, target obs : Observation, target entry) {
   } "entryRequest";
 
   qr -> obs.status = 'final' "status";
-  qr.subject as s -> obs.subject = s "subject";
-  qr.encounter as e -> obs.encounter = e "encounter";
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> obs.subject = s "subject";
+  qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> obs.encounter = e "encounter";
   qr.authored as t -> obs.effective = t "effective";
 
-  qr.source as src -> obs.performer = src "performerFromSource";
-  qr where (source.exists().not()) then {
-    qr.author as a -> obs.performer = a "performerFromAuthor";
+  qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> obs.performer = src "performerFromSource";
+  qr where (source.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))).exists().not()) then {
+    qr.author as a where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> obs.performer = a "performerFromAuthor";
   } "performerFallback";
 
   qr -> obs.derivedFrom = create('Reference') as ref then {
@@ -238,13 +238,13 @@ group BuildRiskBase(source qr : QR, target ra : RiskAssessment, target entry) {
     qr -> code.text = 'Risk of self-harm' "codeText";
   } "code";
 
-  qr.subject as s -> ra.subject = s "subject";
-  qr.encounter as e -> ra.encounter = e "encounter";
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> ra.subject = s "subject";
+  qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> ra.encounter = e "encounter";
   qr.authored as t -> ra.occurrence = t "occurrence";
 
-  qr.author as a -> ra.performer = a "performerFromAuthor";
-  qr where (author.exists().not()) then {
-    qr.source as src -> ra.performer = src "performerFromSource";
+  qr.author as a where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Practitioner/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner'))))) -> ra.performer = a "performerFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Practitioner/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Practitioner/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner'))))) -> ra.performer = src "performerFromSource";
   } "performerFallback";
 
   qr -> ra.basis = create('Reference') as qref then {

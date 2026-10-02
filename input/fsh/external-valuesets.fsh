@@ -967,3 +967,56 @@ Description: "The colour of the return on the surgical continuous irrigation rec
 * include SGHIAnswerCodeSystem#urine-rose
 * include SGHIAnswerCodeSystem#urine-blood-stained
 * include SGHIAnswerCodeSystem#urine-clots
+
+// ── Oncology ────────────────────────────────────────────────────────────────
+ValueSet: SGHIGeneralCondition
+Id: general-condition
+Title: "SGHI General Condition"
+Description: "The patient's general condition on examination, as the oncology initial assessment form prints it: good or fair. There is no third box on the paper, so there is none here."
+* ^status = #active
+* ^experimental = false
+* include SGHIAnswerCodeSystem#general-condition-good "Good"
+* include SGHIAnswerCodeSystem#general-condition-fair "Fair"
+
+ValueSet: SGHIMenopausalStatus
+Id: menopausal-status
+Title: "SGHI Menopausal Status"
+Description: "Pre-, peri- or postmenopausal, the three boxes the oncology initial assessment form prints. Asked because it decides which hormonal treatment a hormone-sensitive breast cancer is offered."
+* ^status = #active
+* ^experimental = false
+* include SGHIAnswerCodeSystem#menopausal-pre "Pre"
+* include SGHIAnswerCodeSystem#menopausal-peri "Peri"
+* include SGHIAnswerCodeSystem#menopausal-post "Post"
+
+ValueSet: SGHIHIVStatus
+Id: hiv-status
+Title: "SGHI HIV Status"
+Description: "The patient's own HIV status, as the oncology initial assessment form asks it: negative, positive or unknown. Separate from the maternal PMTCT status, which is a statement about a mother in a programme rather than about the patient, and from the test-result value sets, which record a test rather than what is known."
+* ^status = #active
+* ^experimental = false
+* include SGHIAnswerCodeSystem#hiv-status-negative "Negative"
+* include SGHIAnswerCodeSystem#hiv-status-positive "Positive"
+* include SGHIAnswerCodeSystem#hiv-status-unknown "Unknown"
+
+// The one place the paper prints N/A beside yes and no. Not the yes / no / not
+// known set: "not applicable" says the question does not arise for this patient,
+// which is a different answer from "nobody knows".
+ValueSet: SGHIYesNoNotApplicable
+Id: yes-no-not-applicable
+Title: "SGHI Yes / No / Not applicable"
+Description: "Yes, no, or the question does not apply to this patient. Bound to contraceptive or HRT use on the oncology initial assessment form, which prints the three boxes."
+* ^status = #active
+* ^experimental = false
+* include SGHIAnswerCodeSystem#yes "Yes"
+* include SGHIAnswerCodeSystem#no "No"
+* include SGHIAnswerCodeSystem#not-applicable "N/A"
+
+ValueSet: SGHIAntiCancerTherapy
+Id: anti-cancer-therapy
+Title: "SGHI Systemic Anti-Cancer Therapy"
+Description: "The kinds of systemic anti-cancer therapy the cancer centre informed consent covers: chemotherapy, hormonal therapy and targeted therapy. The paper prints them as one line to strike through; this asks which apply, and more than one can."
+* ^status = #active
+* ^experimental = false
+* include SGHIAnswerCodeSystem#anti-cancer-chemotherapy "Chemotherapy"
+* include SGHIAnswerCodeSystem#anti-cancer-hormonal-therapy "Hormonal therapy"
+* include SGHIAnswerCodeSystem#anti-cancer-targeted-therapy "Targeted therapy"

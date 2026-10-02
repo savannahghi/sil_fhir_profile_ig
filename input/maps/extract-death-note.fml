@@ -45,7 +45,7 @@ group ExtractInpatientDeathNote(source qr : QR, target bundle : Bundle) {
               aT.value as tv -> att.time = tv "attesterTimeFromConfirmedAt";
             } "confirmedAtAnswer";
           } "attesterTimeRule";
-          cv -> att.party = cv "attesterParty";
+          cv where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization'))))) -> att.party = cv "attesterParty";
         } "attester";
       } "confirmedByAnswer";
     } "confirmedByRule";
@@ -101,18 +101,20 @@ group ExtractInpatientDeathNote(source qr : QR, target bundle : Bundle) {
     } "causeAnswer";
   } "causeConditionRule";
 
-  // Patient.deceasedDateTime, by FHIRPath PATCH.
+  // Patient.deceasedDateTime, by FHIRPath PATCH, and only when the response's subject
+  // is a Patient. The patch is addressed to whatever the subject names, so one sent
+  // anywhere else, or with no reference to address, would make the server refuse the
+  // whole transaction; the entry is not built at all rather than built half.
   qr.item as itAt where (linkId = 'confirmedAt' and answer.value.exists()) then {
     itAt.answer first as aAt then {
-      aAt -> bundle.entry as entryP, entryP.resource = create('Parameters') as params then {
-        qr.subject as s then {
+      qr.subject as s where (reference.startsWith('Patient/')) then {
+        aAt -> bundle.entry as entryP, entryP.resource = create('Parameters') as params then {
           s.reference as sref -> entryP.request as request then {
             qr -> request.method = 'PATCH' "requestMethod";
             // The patient reference is already relative ("Patient/1051"), which
             // is exactly what a transaction entry URL wants.
             sref -> request.url = sref "requestUrl";
           } "entryRequest";
-        } "patientReference";
 
         aAt.value as dv -> params.parameter as op then {
           aAt -> op.name = 'operation' "operationName";
@@ -133,7 +135,8 @@ group ExtractInpatientDeathNote(source qr : QR, target bundle : Bundle) {
             dv -> partValue.value = dv "valueValue";
           } "operationValue";
         } "operation";
-      } "patientPatch";
+        } "patientPatch";
+      } "patientSubject";
     } "confirmedAtAnswer";
   } "deceasedPatchRule";
 }
@@ -167,8 +170,8 @@ group BuildNoteBase(source qr : QR, target comp : Composition, target entry) {
   } "entryRequest";
 
   qr -> comp.status = 'final' "status";
-  qr.subject as s -> comp.subject = s "subject";
-  qr.encounter as e -> comp.encounter = e "encounter";
+  qr.subject as s where (((reference.exists() and (reference.contains('://').not() and reference.startsWith('#').not() and reference.startsWith('urn:').not())) or reference.empty())) -> comp.subject = s "subject";
+  qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> comp.encounter = e "encounter";
   // Composition.date is 1..1. `authored` is only 0..1 on the response, so when a
   // client sends none the extraction time stands in. It is a poor substitute for
   // when the note was written, but a document with no date at all is worse, and
@@ -185,9 +188,9 @@ group BuildNoteBase(source qr : QR, target comp : Composition, target entry) {
   // the note comes out unauthored -- there is nothing on a QuestionnaireResponse
   // to invent one from, and guessing at who wrote a clinical note is not a thing
   // a map should do.
-  qr.author as a -> comp.author = a "authorFromAuthor";
-  qr where (author.exists().not()) then {
-    qr.source as src -> comp.author = src "authorFromSource";
+  qr.author as a where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization'))))) -> comp.author = a "authorFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization'))))) -> comp.author = src "authorFromSource";
   } "authorFallback";
 
   qr -> comp.relatesTo as rel then {
@@ -240,15 +243,15 @@ group BuildConditionBase(source qr : QR, target cond : Condition, target entry) 
     } "catCoding";
   } "category";
 
-  qr.subject as s -> cond.subject = s "subject";
-  qr.encounter as e -> cond.encounter = e "encounter";
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> cond.subject = s "subject";
+  qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> cond.encounter = e "encounter";
   qr.authored as t -> cond.recordedDate = t "recordedDate";
 
-  qr.author as a -> cond.participant as part then {
+  qr.author as a where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization'))))) -> cond.participant as part then {
     qr -> part.actor = a "participantActor";
   } "participantFromAuthor";
-  qr where (author.exists().not()) then {
-    qr.source as src -> cond.participant as part2 then {
+  qr where (author.where(((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization'))))) -> cond.participant as part2 then {
       qr -> part2.actor = src "participantActorFromSource";
     } "participantFromSource";
   } "participantFallback";
