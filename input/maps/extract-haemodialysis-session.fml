@@ -27,7 +27,7 @@ group ExtractHaemodialysisSession(source qr : QR, target bundle : Bundle) {
         g -> cg.display = 'Haemodialysis' "dsp";
       } "coding";
     } "code";
-    qr.encounter as e -> proc.encounter = e "encounter";
+    qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> proc.encounter = e "encounter";
     g.item as d where (linkId = 'session/date' and answer.value.exists()) then {
       d.answer first as a then {
         a.value as t -> proc.occurrence = t "occurrence";
@@ -35,7 +35,7 @@ group ExtractHaemodialysisSession(source qr : QR, target bundle : Bundle) {
     } "dateRule";
     g.item as ph where (linkId = 'session/physician' and answer.value.exists()) then {
       ph.answer first as a then {
-        a.value as ref -> proc.performer as p, p.actor = ref "physician";
+        a.value as ref where (((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> proc.performer as p, p.actor = ref "physician";
       } "answer";
     } "physicianRule";
     g.item as ac where (linkId = 'session/access' and answer.value.exists()) then {
@@ -47,10 +47,10 @@ group ExtractHaemodialysisSession(source qr : QR, target bundle : Bundle) {
     } "accessRule";
     g.item as tn where (linkId = 'session/treatment-number' and answer.value.exists()) then {
       tn.answer first as a then {
-        a.value as txt -> proc.identifier as ident then {
-          txt -> ident.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "identSystem";
-          txt -> ident.value = txt "identValue";
-        } "identifier";
+        a.value as txt -> proc.note as n then {
+          txt -> n.text = append('Treatment number: ', txt) "text";
+          qr.authored as t -> n.time = t "time";
+        } "treatmentNumberNote";
       } "answer";
     } "treatmentNumberRule";
 
@@ -59,12 +59,12 @@ group ExtractHaemodialysisSession(source qr : QR, target bundle : Bundle) {
     qr.item as tg where (linkId = 'timing') then {
       tg.item as nc where (linkId = 'timing/nurse-commencing' and answer.value.exists()) then {
         nc.answer first as a then {
-          a.value as ref -> proc.performer as p, p.actor = ref "nurseCommencing";
+          a.value as ref where (((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> proc.performer as p, p.actor = ref "nurseCommencing";
         } "answer";
       } "nurseCommencingRule";
       tg.item as nt where (linkId = 'timing/nurse-terminating' and answer.value.exists()) then {
         nt.answer first as a then {
-          a.value as ref -> proc.performer as p, p.actor = ref "nurseTerminating";
+          a.value as ref where (((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> proc.performer as p, p.actor = ref "nurseTerminating";
         } "answer";
       } "nurseTerminatingRule";
     } "timingGroup";
@@ -490,20 +490,15 @@ group BuildObsBase(source qr : QR, target obs : Observation, target entry) {
   } "entryRequest";
 
   qr -> obs.status = 'final' "status";
-  qr.subject as s -> obs.subject = s "subject";
-  qr.encounter as e -> obs.encounter = e "encounter";
-  qr.authored as t -> obs.effective = t "effective";
-
-  qr.source as src -> obs.performer = src "performerFromSource";
-  qr where (source.exists().not()) then {
-    qr.author as a -> obs.performer = a "performerFromAuthor";
-  } "performerFallback";
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> obs.subject = s "subject";
+  qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> obs.encounter = e "encounter";
 
   // A stored response's id already reads "QuestionnaireResponse/<id>", so it is
   // a relative reference as it stands. The hasValue() guard is what stops an
   // unsaved response -- one posted straight to $extract rather than saved first
   // -- from writing "QuestionnaireResponse/null" into the record.
   qr.id as qid where ($this.hasValue()) -> obs.derivedFrom = create('Reference') as ref, ref.reference = qid "linkQuestionnaireResponse";
+  qr -> obs then ConformObservation(qr, obs) "profileConformance";
 }
 
 group SetObservationFullUrl(source obs : Observation, target entry) {
@@ -582,7 +577,8 @@ group BuildProcedureBase(source qr : QR, target r : Procedure, target entry) {
   // date column was taken off on review has no time at all, and a procedure with
   // no time cannot be ordered against the rest of the admission.
   qr.authored as t -> r.occurrence = t "occurrenceFallback";
-  qr.subject as s -> r.subject = s "subject";
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Practitioner/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner'))))) -> r.subject = s "subject";
+  qr -> r then ConformProcedure(qr, r) "profileConformance";
 }
 
 group SetProcedureFullUrl(source r : Procedure, target entry) {
@@ -594,7 +590,8 @@ group SetProcedureFullUrl(source r : Procedure, target entry) {
 // Two tags on everything this map creates. The first says which questionnaire
 // produced it, so a form that reopens mid-admission recalls its own earlier
 // entries and not another form's. The second copies the tenant tags off the
-// response, because nothing else on the path puts them there.
+// response, because nothing else on the path puts them there. The response's
+// identifier is copied the same way.
 //
 // The code is the form's document type, not the questionnaire's id: every
 // environment mints its own ids, and there is only one set of maps, so an id
@@ -615,4 +612,35 @@ group SetResponseProvenance(source qr : QR, target r) {
   qr.meta as qm then {
     qm.tag as qt -> r.meta as m, m.tag = qt "copyTag";
   } "tenantTags";
+
+  // The response's identifiers, as they are. Every profile wants one, and it is
+  // the response's to give: nothing here mints one, so a response without an
+  // identifier extracts resources without one. One whose assigner is not of a
+  // type the profiles allow there is left behind whole, not altered.
+  qr.identifier as qid where (assigner.empty() or assigner.where(((reference.exists() and (reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization'))))).exists()) -> r.identifier = qid "identifier";
+}
+
+// ── Conformance to the IG profiles ───────────────────────────────────────────
+//
+// What the IG's profiles require that the response itself can supply. Called at
+// the end of each base group. The encounter and every who-element are the
+// response's own; see mapmeta.py for what is and is not here.
+// ── Conformance to the IG profiles ───────────────────────────────────────────
+
+group ConformObservation(source qr : QR, target r) {
+  qr.authored as t where ($this.toString().length() >= 20) -> r.issued = cast(t, 'instant') "issued";
+  qr.authored as t where ($this.toString().length() >= 20) -> r.effective = cast(t, 'instant') "effective";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = au "performerFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = src "performerFromSource";
+  } "performerFallback";
+}
+
+group ConformProcedure(source qr : QR, target r) {
+  qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> r.encounter = e "encounter";
+  qr.authored as t -> r.recorded = t "recorded";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.recorder = au "recorderFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.recorder = src "recorderFromSource";
+  } "recorderFallback";
 }

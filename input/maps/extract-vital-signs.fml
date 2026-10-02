@@ -657,8 +657,8 @@ group SetPainBodySite(source qr : QR, target obs : Observation) {
 
 group BuildBaseObs(source qr : QR, target obs : Observation, target entry) {
   qr -> obs.status = 'final' "status";
-  qr.subject as s -> obs.subject = s "subject";
-  qr.encounter as e -> obs.encounter = e "encounter";
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> obs.subject = s "subject";
+  qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> obs.encounter = e "encounter";
   // `effective`, not `effectiveDateTime`: the R5 transform engine writes choice
   // elements by their base name and rejects the typed form with "Attempt to write
   // to invalid property 'effectiveDateTime' on type Observation". The value is a
@@ -679,7 +679,7 @@ group BuildBaseObs(source qr : QR, target obs : Observation, target entry) {
   } "authoredFallback";
 
   // Performer from QuestionnaireResponse.source
-  qr.source as src -> obs.performer = create('Reference') as perf then {
+  qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> obs.performer = create('Reference') as perf then {
     src.reference as ref -> perf.reference = ref "perfRef";
     src.display as disp -> perf.display = disp "perfDisplay";
   } "performer";

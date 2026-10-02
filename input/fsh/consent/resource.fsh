@@ -60,7 +60,7 @@ Description: "A record of a healthcare consumer’s choices or choices made on t
 * sourceAttachment only SGHIAttachment
 
 * sourceReference only SGHIReference
-* sourceReference only Reference(SGHIConsent)
+* sourceReference only Reference(SGHIConsent or SGHIQuestionnaireResponse)
 
 * regulatoryBasis only SGHICodeableConcept
 

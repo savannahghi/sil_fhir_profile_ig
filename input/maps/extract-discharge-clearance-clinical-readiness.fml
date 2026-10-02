@@ -120,8 +120,8 @@ group BuildClearanceObs(source qr : QR, target obs : Observation, target entry) 
     } "categoryCodingRule";
   } "category";
 
-  qr.subject as s -> obs.subject = s "subject";
-  qr.encounter as e -> obs.encounter = e "encounter";
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> obs.subject = s "subject";
+  qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> obs.encounter = e "encounter";
 
   // `effective`, not `effectiveInstant`: the R5 transform engine writes choice
   // elements by their base name and rejects the typed form.
@@ -132,12 +132,12 @@ group BuildClearanceObs(source qr : QR, target obs : Observation, target entry) 
   // response would fix it at the source; there is nothing on the response for a
   // map to read it from.
   qr.authored as t -> obs.effective = t "effective";
-  qr.authored as t -> obs.issued = cast(t, 'instant') "issued";
+  qr.authored as t where ($this.toString().length() >= 20) -> obs.issued = cast(t, 'instant') "issued";
 
   // The facility, not the person who signed: SGHIObservation admits only an
   // Organization or a Patient as performer, and the form's signature is a typed
   // name that resolves to neither.
-  qr.source as src -> obs.performer = create('Reference') as perf then {
+  qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> obs.performer = create('Reference') as perf then {
     src.reference as ref -> perf.reference = ref "performerRef";
     src.display as disp -> perf.display = disp "performerDisplay";
   } "performer";
@@ -155,7 +155,7 @@ group BuildClearanceObs(source qr : QR, target obs : Observation, target entry) 
     } "identifierType";
     qr -> ident.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/default-identifier-codesystem' "identifierSystem";
     qr -> ident.value = uuid() "identifierValue";
-    qr.source as src -> ident.assigner = src "identifierAssigner";
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization'))))) -> ident.assigner = src "identifierAssigner";
   } "identifier";
 
   // No append: under this engine `qr.id` already resolves to the type-qualified

@@ -42,7 +42,7 @@ group ExtractInpatientDischargeNote(source qr : QR, target bundle : Bundle) {
     qr.item as itM where (linkId = 'medsOnDischarge' and answer.value.exists()) -> comp.section as secM then {
       itM -> secM.title = 'Medication on discharge' "medsTitle";
       itM.answer as aM then {
-        aM.value as mv -> secM.entry = mv "medsEntry";
+        aM.value as mv where (((reference.exists() and (reference.contains('://').not() and reference.startsWith('#').not() and reference.startsWith('urn:').not())) or reference.empty())) -> secM.entry = mv "medsEntry";
       } "medsAnswers";
     } "medsRule";
 
@@ -85,13 +85,13 @@ group ExtractInpatientDischargeNote(source qr : QR, target bundle : Bundle) {
           } "codeConcept";
         } "serviceRequestCode";
 
-        qr.subject as s -> sr.subject = s "subject";
-        qr.encounter as e -> sr.encounter = e "encounter";
+        qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> sr.subject = s "subject";
+        qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> sr.encounter = e "encounter";
         qr.authored as t -> sr.authoredOn = t "authoredOn";
 
-        qr.author as a -> sr.requester = a "requesterFromAuthor";
-        qr where (author.exists().not()) then {
-          qr.source as src -> sr.requester = src "requesterFromSource";
+        qr.author as a where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> sr.requester = a "requesterFromAuthor";
+        qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))).exists().not()) then {
+          qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> sr.requester = src "requesterFromSource";
         } "requesterFallback";
 
         qr -> sr.supportingInfo as si then {
@@ -133,8 +133,8 @@ group BuildNoteBase(source qr : QR, target comp : Composition, target entry) {
   } "entryRequest";
 
   qr -> comp.status = 'final' "status";
-  qr.subject as s -> comp.subject = s "subject";
-  qr.encounter as e -> comp.encounter = e "encounter";
+  qr.subject as s where (((reference.exists() and (reference.contains('://').not() and reference.startsWith('#').not() and reference.startsWith('urn:').not())) or reference.empty())) -> comp.subject = s "subject";
+  qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> comp.encounter = e "encounter";
   // Composition.date is 1..1. `authored` is only 0..1 on the response, so when a
   // client sends none the extraction time stands in. It is a poor substitute for
   // when the note was written, but a document with no date at all is worse, and
@@ -151,9 +151,9 @@ group BuildNoteBase(source qr : QR, target comp : Composition, target entry) {
   // the note comes out unauthored -- there is nothing on a QuestionnaireResponse
   // to invent one from, and guessing at who wrote a clinical note is not a thing
   // a map should do.
-  qr.author as a -> comp.author = a "authorFromAuthor";
-  qr where (author.exists().not()) then {
-    qr.source as src -> comp.author = src "authorFromSource";
+  qr.author as a where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization'))))) -> comp.author = a "authorFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization'))))) -> comp.author = src "authorFromSource";
   } "authorFallback";
 
   qr -> comp.relatesTo as rel then {

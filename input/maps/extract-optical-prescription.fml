@@ -63,8 +63,8 @@ group BuildVisionPrescriptionBase(source qr : QR, target vp : VisionPrescription
   // `active`: a prescription recorded on this form is one somebody is about to
   // dispense against. fm-status has no `completed`.
   qr -> vp.status = 'active' "status";
-  qr.subject as s -> vp.patient = s "patient";
-  qr.encounter as e -> vp.encounter = e "encounter";
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> vp.patient = s "patient";
+  qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> vp.encounter = e "encounter";
 
   // Both dates, 1..1 each, are the response's `authored`. The form does not ask
   // for a prescription date: the client stamps the moment it was recorded, and
@@ -83,9 +83,9 @@ group BuildVisionPrescriptionBase(source qr : QR, target vp : VisionPrescription
 // Nothing is guessed when neither qualifies: the rule that creates the
 // prescription is guarded on one of them, so this group always finds one.
 group SetPrescriber(source qr : QR, target vp : VisionPrescription) {
-  qr.author as a where (reference.matches('(^|/)(Practitioner|PractitionerRole)/[^/]+$')) -> vp.prescriber = a "prescriberFromAuthor";
-  qr where (author.where(reference.matches('(^|/)(Practitioner|PractitionerRole)/[^/]+$')).exists().not()) then {
-    qr.source as s where (reference.matches('(^|/)(Practitioner|PractitionerRole)/[^/]+$')) -> vp.prescriber = s "prescriberFromSource";
+  qr.author as a where ((reference.matches('(^|/)(Practitioner|PractitionerRole)/[^/]+$')) and ((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> vp.prescriber = a "prescriberFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as s where ((reference.matches('(^|/)(Practitioner|PractitionerRole)/[^/]+$')) and ((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> vp.prescriber = s "prescriberFromSource";
   } "sourceFallback";
 }
 
@@ -517,17 +517,17 @@ group BuildObservationBase(source qr : QR, target obs : Observation, target entr
       qr -> coding.display = 'Exam' "categoryDisplay";
     } "categoryCoding";
   } "category";
-  qr.subject as s -> obs.subject = s "subject";
-  qr.encounter as e -> obs.encounter = e "encounter";
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> obs.subject = s "subject";
+  qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> obs.encounter = e "encounter";
 
   // Measured when the prescription was written, which is the response's
   // `authored` -- the form does not ask for a date.
   qr.authored as t -> obs.effective = t "effective";
 
   // Measured by the prescriber, chosen the same way as on the prescription.
-  qr.author as a where (reference.matches('(^|/)(Practitioner|PractitionerRole)/[^/]+$')) -> obs.performer = a "performerFromAuthor";
-  qr where (author.where(reference.matches('(^|/)(Practitioner|PractitionerRole)/[^/]+$')).exists().not()) then {
-    qr.source as s where (reference.matches('(^|/)(Practitioner|PractitionerRole)/[^/]+$')) -> obs.performer = s "performerFromSource";
+  qr.author as a where ((reference.matches('(^|/)(Practitioner|PractitionerRole)/[^/]+$')) and ((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> obs.performer = a "performerFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))).exists().not()) then {
+    qr.source as s where ((reference.matches('(^|/)(Practitioner|PractitionerRole)/[^/]+$')) and ((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> obs.performer = s "performerFromSource";
   } "performerSourceFallback";
 
   // A stored response's id already reads "QuestionnaireResponse/<id>", so it is

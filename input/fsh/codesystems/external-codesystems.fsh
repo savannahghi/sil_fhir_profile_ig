@@ -91,6 +91,9 @@ Description: "The hospital paper forms that have been modelled as Questionnaires
 * #antenatal-vital-signs "Antenatal vital signs" "Timed antenatal observations: temperature, pulse, respiration and blood pressure with the lie, the presentation, the fetal heart tones and whether the bowels have opened."
 * #paediatric-tb-icf-screening "Paediatric TB intensified case finding screening tool" "The five-question intensified case finding screen asked of every child at every contact -- cough of any duration, fever, failure to thrive or poor weight gain, lethargy, and contact with a TB case -- and the action the answers decide. Table 22.9 of the paediatric TB guideline."
 * #optical-prescription "Optical prescription" "The eyewear prescription an optometrist or ophthalmologist writes: sphere, cylinder, axis, pupillary distance and visual acuity for each eye at distance and near, the reading addition, the lens type and coating, and the prescriber -- plus the contact lens prescription where one is written."
+* #oncology-initial-assessment "Oncology initial assessment form" "The oncology clinic's first assessment of a new patient: measurements and vital signs, the referral, the diagnosis and stage, the history including family history of cancer, the female patient section, social history, histology and immunohistochemistry, previous treatment, examination with the ECOG performance status, the radiology summary and the treatment plan."
+* #cancer-treatment-consent "Cancer centre informed consent" "The patient's consent to chemotherapy, hormonal or targeted therapy: the diagnosis and the drug regimen explained, the intended purpose of the treatment, the common side effects and risks, and the signatures of the patient, any interpreter and the doctor."
+* #hormonal-therapy-treatment-plan "Hormonal therapy treatment plan" "The running sheet for a patient on hormonal therapy, one row per cycle: the date, the cycle number, the drug given, the PSA, calcium and alkaline phosphatase, remarks, and the date to come again."
 
 
 CodeSystem: SGHIConceptCodeSystem
@@ -553,6 +556,24 @@ Description: "What the forms record where no code system this IG can resolve say
 
 // ── Obstetric history ───────────────────────────────────────────────────
 * #obstetric-history-parity "Parity" "A fact about previous pregnancies carried on an antenatal sheet. Recorded on the antenatal vital signs sheet."
+
+// ── Oncology ────────────────────────────────────────────────────────────
+// What the oncology forms record where LOINC and SNOMED have nothing that says
+// the same thing. Searched first: LOINC's referral codes are all deprecated
+// treatment-plan fields, and it has no menopausal status, no cycle regularity,
+// no contraceptive or HRT use, and no history of radiotherapy or of
+// chemotherapy outside PhenX survey questions that ask something narrower.
+* #oncology-referred-by "Referred by" "The doctor or hospital that referred the patient to the oncology clinic, as written. Recorded on the oncology initial assessment form."
+* #menopausal-status "Menopausal status" "Whether the patient is pre-, peri- or postmenopausal, which decides the hormonal treatment a breast cancer is offered. Recorded on the oncology initial assessment form."
+* #years-since-menopause "Years since menopause" "How long ago the patient's periods stopped. Asked as years ago rather than as an age at menopause, because that is how the form prints it. Recorded on the oncology initial assessment form."
+* #menstrual-cycle-regular "Menstrual cycle regular" "Whether the patient's menstrual cycle is regular. Recorded on the oncology initial assessment form."
+* #using-contraceptives-or-hrt "Using contraceptives or HRT" "Whether the patient is using hormonal contraception or hormone replacement therapy, which matters for a hormone-sensitive cancer. Recorded on the oncology initial assessment form."
+* #oncology-previous-radiotherapy "Previous radiotherapy" "Radiotherapy the patient has already had, as written. Recorded on the oncology initial assessment form."
+* #oncology-previous-chemotherapy "Previous chemotherapy" "Chemotherapy the patient has already had, as written. Recorded on the oncology initial assessment form."
+* #consent-interpreter-used "Interpreter used for the consent discussion" "An interpreter took part in explaining the treatment to the patient, with their name and whether they signed. Recorded on the cancer centre informed consent."
+* #hormonal-therapy-cycle-number "Hormonal therapy cycle number" "Which cycle of hormonal therapy a row of the treatment plan records. Recorded on the hormonal therapy treatment plan."
+* #hormonal-therapy-remarks "Remarks on a hormonal therapy cycle" "The free-text remarks written against one cycle. Recorded on the hormonal therapy treatment plan."
+* #hormonal-therapy-next-review "Next hormonal therapy review" "The date the patient is to come again (TCA) for the next cycle or review. Carried on ServiceRequest.code. Recorded on the hormonal therapy treatment plan."
 
 // ── Palliative care ─────────────────────────────────────────────────────
 * #palliative-abdominal-pain "Abdominal pain" "A symptom, goal or problem from the palliative care assessment. The symptoms are the twenty-two-item checklist; the goals are recorded separately for the patient and for the carer, because the two often differ. Recorded on the palliative care assessment."
@@ -1171,6 +1192,26 @@ Description: "The answers the pick lists offer, where the list is local to these
 * #contact-lens-replace-monthly "Monthly" "Lenses replaced every month. Extracted as a wear duration of 1 mo. Recorded on the optical prescription."
 * #contact-lens-replace-quarterly "Three-monthly" "Lenses replaced every three months. Extracted as a wear duration of 3 mo. Recorded on the optical prescription."
 * #contact-lens-replace-yearly "Yearly" "Conventional lenses replaced once a year. Extracted as a wear duration of 1 a. Recorded on the optical prescription."
+
+// ── Oncology ────────────────────────────────────────────────────────────
+// The general condition offers the two boxes the form prints and no third:
+// there is no "Poor" on the paper, and adding one would change the question.
+* #general-condition-good "Good" "The patient's general condition on examination is good. Recorded on the oncology initial assessment form."
+* #general-condition-fair "Fair" "The patient's general condition on examination is fair. Recorded on the oncology initial assessment form."
+* #menopausal-pre "Pre" "Premenopausal. Recorded on the oncology initial assessment form."
+* #menopausal-peri "Peri" "Perimenopausal. Recorded on the oncology initial assessment form."
+* #menopausal-post "Post" "Postmenopausal. Recorded on the oncology initial assessment form."
+* #hiv-status-negative "Negative" "The patient is known to be HIV negative. Recorded on the oncology initial assessment form."
+* #hiv-status-positive "Positive" "The patient is known to be HIV positive. Recorded on the oncology initial assessment form."
+* #hiv-status-unknown "Unknown" "The patient's HIV status is not known. Recorded on the oncology initial assessment form."
+* #not-applicable "N/A" "The question does not apply to this patient. Recorded on the oncology initial assessment form, against contraceptive or HRT use."
+// The three kinds of systemic anti-cancer therapy the consent names. Local so
+// the picker resolves on every server; the extraction map adds the SNOMED
+// procedure code beside each one -- 367336001, 169413002 and 1255831008 --
+// on the Consent it writes.
+* #anti-cancer-chemotherapy "Chemotherapy" "Cytotoxic chemotherapy. Recorded on the cancer centre informed consent."
+* #anti-cancer-hormonal-therapy "Hormonal therapy" "Hormonal therapy, such as an LHRH agonist, an anti-androgen, an anti-oestrogen or an aromatase inhibitor. Recorded on the cancer centre informed consent."
+* #anti-cancer-targeted-therapy "Targeted therapy" "Targeted therapy against a molecular feature of the cancer, such as a HER2 antibody or a tyrosine kinase inhibitor. Recorded on the cancer centre informed consent."
 
 
 CodeSystem: SGHIScoreCodeSystem

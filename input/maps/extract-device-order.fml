@@ -22,13 +22,13 @@ group BuildDeviceRequest(source qr : QR, source requestGroup, target devReq : De
   // review step is added later this becomes 'draft', as it is on the medication order.
   qr -> devReq.status = 'active' "setStatus";
 
-  qr.subject as s -> devReq.subject = s "setSubject";
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Group/') or reference.startsWith('Location/') or reference.startsWith('Device/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Group') or ('/' + type).endsWith('/Location') or ('/' + type).endsWith('/Device'))))) -> devReq.subject = s "setSubject";
 
-  qr.encounter as enc -> devReq.encounter = enc "setEncounter";
+  qr.encounter as enc where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> devReq.encounter = enc "setEncounter";
 
   qr.authored as authored -> devReq.authoredOn = authored "setAuthoredOn";
 
-  qr.source as src -> devReq.requester = src "setRequester";
+  qr.source as src where (((reference.exists() and (reference.startsWith('Device/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Device') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole') or ('/' + type).endsWith('/Organization'))))) -> devReq.requester = src "setRequester";
 
   qr.identifier first as qrIdent -> devReq.identifier = qrIdent "copyIdentifier";
 

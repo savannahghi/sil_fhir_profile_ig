@@ -18,7 +18,7 @@ group ExtractMilkFeedingChart(source qr : QR, target bundle : Bundle) {
     row -> bundle.entry as entry, entry.resource = create('NutritionIntake') as ni then {
       qr -> ni, entry then BuildNutritionIntakeBase(qr, ni, entry) "base";
       row -> ni.status = 'completed' "status";
-      qr.encounter as e -> ni.encounter = e "encounter";
+      qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> ni.encounter = e "encounter";
       row.item as it where (linkId = 'feed/at' and answer.value.exists()) then {
         it.answer first as a then {
           a.value as v -> ni.occurrence = v "occurrence";
@@ -61,7 +61,7 @@ group ExtractMilkFeedingChart(source qr : QR, target bundle : Bundle) {
       } "consumedItem";
       row.item as it where (linkId = 'feed/given-by' and answer.value.exists()) then {
         it.answer first as a then {
-          a.value as ref -> ni.performer as p, p.actor = ref "performer";
+          a.value as ref where (((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/') or reference.startsWith('Organization/') or reference.startsWith('CareTeam/') or reference.startsWith('Patient/') or reference.startsWith('Device/') or reference.startsWith('RelatedPerson/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole') or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/CareTeam') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Device') or ('/' + type).endsWith('/RelatedPerson'))))) -> ni.performer as p, p.actor = ref "performer";
         } "answer";
       } "byRule";
     } "feedIntake";
@@ -138,12 +138,12 @@ group ExtractMilkFeedingChart(source qr : QR, target bundle : Bundle) {
 group SetFeedRowTime(source row, target obs : Observation) {
   row.item as it where (linkId = 'feed/at' and answer.value.exists()) then {
     it.answer first as a then {
-      a.value as v -> obs.effective = v "effective";
+      a.value as v where ($this.toString().length() >= 20) -> obs.effective = cast(v, 'instant') "effective";
     } "answer";
   } "rowTimeRule";
   row.item as it where (linkId = 'feed/given-by' and answer.value.exists()) then {
     it.answer first as a then {
-      a.value as ref -> obs.performer = ref "by";
+      a.value as ref where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> obs.performer = ref "by";
     } "answer";
   } "rowByRule";
 }
@@ -177,20 +177,15 @@ group BuildObsBase(source qr : QR, target obs : Observation, target entry) {
   } "entryRequest";
 
   qr -> obs.status = 'final' "status";
-  qr.subject as s -> obs.subject = s "subject";
-  qr.encounter as e -> obs.encounter = e "encounter";
-  qr.authored as t -> obs.effective = t "effective";
-
-  qr.source as src -> obs.performer = src "performerFromSource";
-  qr where (source.exists().not()) then {
-    qr.author as a -> obs.performer = a "performerFromAuthor";
-  } "performerFallback";
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> obs.subject = s "subject";
+  qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> obs.encounter = e "encounter";
 
   // A stored response's id already reads "QuestionnaireResponse/<id>", so it is
   // a relative reference as it stands. The hasValue() guard is what stops an
   // unsaved response -- one posted straight to $extract rather than saved first
   // -- from writing "QuestionnaireResponse/null" into the record.
   qr.id as qid where ($this.hasValue()) -> obs.derivedFrom = create('Reference') as ref, ref.reference = qid "linkQuestionnaireResponse";
+  qr -> obs then ConformObservation(qr, obs) "profileConformance";
 }
 
 group SetObservationFullUrl(source obs : Observation, target entry) {
@@ -233,7 +228,7 @@ group BuildNutritionIntakeBase(source qr : QR, target r : NutritionIntake, targe
     qr -> request.method = 'POST' "requestMethod";
     qr -> request.url = 'NutritionIntake' "requestUrl";
   } "entryRequest";
-  qr.subject as s -> r.subject = s "subject";
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Group/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Group'))))) -> r.subject = s "subject";
 }
 
 group SetNutritionIntakeFullUrl(source r : NutritionIntake, target entry) {
@@ -245,7 +240,8 @@ group SetNutritionIntakeFullUrl(source r : NutritionIntake, target entry) {
 // Two tags on everything this map creates. The first says which questionnaire
 // produced it, so a form that reopens mid-admission recalls its own earlier
 // entries and not another form's. The second copies the tenant tags off the
-// response, because nothing else on the path puts them there.
+// response, because nothing else on the path puts them there. The response's
+// identifier is copied the same way.
 //
 // The code is the form's document type, not the questionnaire's id: every
 // environment mints its own ids, and there is only one set of maps, so an id
@@ -266,4 +262,26 @@ group SetResponseProvenance(source qr : QR, target r) {
   qr.meta as qm then {
     qm.tag as qt -> r.meta as m, m.tag = qt "copyTag";
   } "tenantTags";
+
+  // The response's identifiers, as they are. Every profile wants one, and it is
+  // the response's to give: nothing here mints one, so a response without an
+  // identifier extracts resources without one. One whose assigner is not of a
+  // type the profiles allow there is left behind whole, not altered.
+  qr.identifier as qid where (assigner.empty() or assigner.where(((reference.exists() and (reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization'))))).exists()) -> r.identifier = qid "identifier";
+}
+
+// ── Conformance to the IG profiles ───────────────────────────────────────────
+//
+// What the IG's profiles require that the response itself can supply. Called at
+// the end of each base group. The encounter and every who-element are the
+// response's own; see mapmeta.py for what is and is not here.
+// ── Conformance to the IG profiles ───────────────────────────────────────────
+
+group ConformObservation(source qr : QR, target r) {
+  qr.authored as t where ($this.toString().length() >= 20) -> r.issued = cast(t, 'instant') "issued";
+  qr.authored as t where ($this.toString().length() >= 20) -> r.effective = cast(t, 'instant') "effective";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = au "performerFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = src "performerFromSource";
+  } "performerFallback";
 }

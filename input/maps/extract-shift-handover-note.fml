@@ -74,8 +74,8 @@ group BuildNoteBase(source qr : QR, target comp : Composition, target entry) {
   } "entryRequest";
 
   qr -> comp.status = 'final' "status";
-  qr.subject as s -> comp.subject = s "subject";
-  qr.encounter as e -> comp.encounter = e "encounter";
+  qr.subject as s where (((reference.exists() and (reference.contains('://').not() and reference.startsWith('#').not() and reference.startsWith('urn:').not())) or reference.empty())) -> comp.subject = s "subject";
+  qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> comp.encounter = e "encounter";
   // Composition.date is 1..1. `authored` is only 0..1 on the response, so when a
   // client sends none the extraction time stands in. It is a poor substitute for
   // when the note was written, but a document with no date at all is worse, and
@@ -92,9 +92,9 @@ group BuildNoteBase(source qr : QR, target comp : Composition, target entry) {
   // the note comes out unauthored -- there is nothing on a QuestionnaireResponse
   // to invent one from, and guessing at who wrote a clinical note is not a thing
   // a map should do.
-  qr.author as a -> comp.author = a "authorFromAuthor";
-  qr where (author.exists().not()) then {
-    qr.source as src -> comp.author = src "authorFromSource";
+  qr.author as a where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization'))))) -> comp.author = a "authorFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization'))))) -> comp.author = src "authorFromSource";
   } "authorFallback";
 
   // The note is derived from the response, not a copy of it. relatesTo is the

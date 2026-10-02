@@ -1,165 +1,170 @@
-/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractTheatrePacuObservation"
-/// name = "ExtractTheatrePacuObservation"
-/// title = "Theatre PACU Observation Extraction"
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractHormonalTherapyTreatmentPlan"
+/// name = "ExtractHormonalTherapyTreatmentPlan"
+/// title = "Hormonal Therapy Treatment Plan Extraction"
 /// status = "active"
-/// description = "Every reading as its own Observation under its real LOINC code, taking the round\'s own timestamp, plus a MedicationAdministration for anything given. Recovery is the window in which a patient deteriorates fastest, and a set of observations collapsed onto one instant cannot show a trend at all."
+/// description = "Each cycle on the hormonal therapy sheet out as: a MedicationAdministration for the drug given, as written, on the cycle\'s date; laboratory Observations for the PSA, serum calcium and alkaline phosphatase; an Observation for the cycle number, so the next cycle can see which one this was; the remarks as a note; and a ServiceRequest for the date to come again. Everything takes the cycle\'s own date rather than the form\'s, because the sheet exists to be read as a series."
 
 uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
 uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
 uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Observation as target
 uses "http://hl7.org/fhir/StructureDefinition/MedicationAdministration" alias MedicationAdministration as target
+uses "http://hl7.org/fhir/StructureDefinition/ServiceRequest" alias ServiceRequest as target
 
-group ExtractTheatrePacuObservation(source qr : QR, target bundle : Bundle) {
+group ExtractHormonalTherapyTreatmentPlan(source qr : QR, target bundle : Bundle) {
   qr -> bundle.type = 'transaction' "setBundleType";
 
-  qr.item as row where (linkId = 'round') then {
-    row.item as it where (linkId = 'round/temperature' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
-      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
-      qr -> obs then SetVitalSignsCategory(qr, obs) "category";
-      it -> obs.code as cc then {
-        it -> cc.coding as cg then {
-          it -> cg.system = 'http://loinc.org' "sys";
-          it -> cg.code = '8310-5' "cd";
-          it -> cg.display = 'Body temperature' "dsp";
-        } "coding";
-      } "code";
-      it.answer first as a then {
-        a.value as v -> obs.value = v "value";
-      } "answer";
-      row -> obs then SetPacuRowTime(row, obs) "rowTime";
-    } "vital_round_8310_5";
+  // ── One cycle at a time ─────────────────────────────────────────────────
+  qr.item as c where (linkId = 'cycle') then {
 
-    row.item as it where (linkId = 'round/pulse' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
-      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
-      qr -> obs then SetVitalSignsCategory(qr, obs) "category";
-      it -> obs.code as cc then {
-        it -> cc.coding as cg then {
-          it -> cg.system = 'http://loinc.org' "sys";
-          it -> cg.code = '8867-4' "cd";
-          it -> cg.display = 'Heart rate' "dsp";
-        } "coding";
-      } "code";
-      it.answer first as a then {
-        a.value as v -> obs.value = v "value";
-      } "answer";
-      row -> obs then SetPacuRowTime(row, obs) "rowTime";
-    } "vital_round_8867_4";
-
-    row.item as it where (linkId = 'round/respiratory-rate' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
-      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
-      qr -> obs then SetVitalSignsCategory(qr, obs) "category";
-      it -> obs.code as cc then {
-        it -> cc.coding as cg then {
-          it -> cg.system = 'http://loinc.org' "sys";
-          it -> cg.code = '9279-1' "cd";
-          it -> cg.display = 'Respiratory rate' "dsp";
-        } "coding";
-      } "code";
-      it.answer first as a then {
-        a.value as v -> obs.value = v "value";
-      } "answer";
-      row -> obs then SetPacuRowTime(row, obs) "rowTime";
-    } "vital_round_9279_1";
-
-    row.item as it where (linkId = 'round/oxygen-saturation' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
-      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
-      qr -> obs then SetVitalSignsCategory(qr, obs) "category";
-      it -> obs.code as cc then {
-        it -> cc.coding as cg then {
-          it -> cg.system = 'http://loinc.org' "sys";
-          it -> cg.code = '59408-5' "cd";
-          it -> cg.display = 'Oxygen saturation in Arterial blood by Pulse oximetry' "dsp";
-        } "coding";
-      } "code";
-      it.answer first as a then {
-        a.value as v -> obs.value = v "value";
-      } "answer";
-      row -> obs then SetPacuRowTime(row, obs) "rowTime";
-    } "vital_round_59408_5";
-
-    row.item as it where (linkId = 'round/blood-pressure' and item.answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
-      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
-      qr -> obs then SetVitalSignsCategory(qr, obs) "category";
-      it -> obs.code as cc then {
-        it -> cc.coding as cg then {
-          it -> cg.system = 'http://loinc.org' "sys";
-          it -> cg.code = '85354-9' "cd";
-          it -> cg.display = 'Blood pressure panel with all children optional' "dsp";
-        } "coding";
-      } "code";
-      it.item as sbp where (linkId = 'round/blood-pressure/systolic' and answer.value.ofType(Quantity).exists()) -> obs.component as comp then {
-        sbp -> comp.code as cc then {
-          sbp -> cc.coding as cg then {
-            sbp -> cg.system = 'http://loinc.org' "sys";
-            sbp -> cg.code = '8480-6' "cd";
-            sbp -> cg.display = 'Systolic blood pressure' "dsp";
-          } "coding";
-        } "code";
-        sbp -> comp then SetComponentValue(sbp, comp) "value";
-      } "comp_8480_6";
-      it.item as dbp where (linkId = 'round/blood-pressure/diastolic' and answer.value.ofType(Quantity).exists()) -> obs.component as comp then {
-        dbp -> comp.code as cc then {
-          dbp -> cc.coding as cg then {
-            dbp -> cg.system = 'http://loinc.org' "sys";
-            dbp -> cg.code = '8462-4' "cd";
-            dbp -> cg.display = 'Diastolic blood pressure' "dsp";
-          } "coding";
-        } "code";
-        dbp -> comp then SetComponentValue(dbp, comp) "value";
-      } "comp_8462_4";
-      row -> obs then SetPacuRowTime(row, obs) "rowTime";
-    } "bp_round";
-
-    row.item as it where (linkId = 'round/drugs' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('MedicationAdministration') as ma then {
+    // The drug given. A MedicationAdministration, because the sheet records
+    // what was given at that cycle, not what was ordered. The drug travels as
+    // written: the hospital's formulary is not coded, and the strength is part
+    // of what the clinician wrote.
+    c where (item.where(linkId = 'cycle/drug').answer.value.exists()) -> bundle.entry as entry, entry.resource = create('MedicationAdministration') as ma then {
       qr -> ma, entry then BuildMedicationAdministrationBase(qr, ma, entry) "base";
-      it -> ma.status = 'completed' "status";
+      c -> ma.status = 'completed' "status";
       qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> ma.encounter = e "encounter";
-      it.answer first as a then {
-        a.value as txt -> ma.medication as med, med.concept as mc, mc.text = txt "medicationText";
-        a.value as txt -> ma.dosage as dos, dos.text = txt "dosageAsWritten";
-      } "answer";
-      row.item as at where (linkId = 'round/at' and answer.value.exists()) then {
-        at.answer first as a then {
-          a.value as v -> ma.occurence = v "occurrence";
+      c.item as it where (linkId = 'cycle/drug') then {
+        it.answer first as a then {
+          a.value as txt -> ma.medication as med, med.concept as mc, mc.text = txt "medicationText";
+          a.value as txt -> ma.dosage as dos, dos.text = txt "dosageAsWritten";
         } "answer";
-      } "atRule";
-      row.item as rb where (linkId = 'round/recorded-by' and answer.value.exists()) then {
-        rb.answer first as a then {
-          a.value as ref where (((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/') or reference.startsWith('Patient/') or reference.startsWith('RelatedPerson/') or reference.startsWith('Device/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/RelatedPerson') or ('/' + type).endsWith('/Device'))))) -> ma.performer as p, p.actor = create('CodeableReference') as cr, cr.reference = ref "performer";
+      } "drugRule";
+      c.item as it where (linkId = 'cycle/date' and answer.value.exists()) then {
+        it.answer first as a then {
+          a.value as d -> ma.occurence = cast(d, 'dateTime') "occurrence";
         } "answer";
-      } "byRule";
-    } "pacuDrug";
-    row.item as it where (linkId = 'round/remarks' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      } "dateRule";
+      c.item as it where (linkId = 'cycle/number' and answer.value.exists()) then {
+        it.answer first as a then {
+          a.value as n -> ma.note as note then {
+            n -> note.text = evaluate(n, 'Hormonal therapy cycle ' & $this.toString()) "cycleText";
+            qr.authored as noteTime -> note.time = noteTime "cycleTime";
+          } "cycleNote";
+        } "answer";
+      } "cycleRule";
+    } "hormonalDrug";
+
+    // The cycle number as an Observation of its own. It is what tells the
+    // next cycle which one this was, and a number inside a note cannot be
+    // read back as one.
+    c.item as it where (linkId = 'cycle/number' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
       qr -> obs then SetSurveyCategory(qr, obs) "category";
       it -> obs.code as cc then {
         it -> cc.coding as cg then {
-          it -> cg.system = 'http://loinc.org' "sys";
-          it -> cg.code = '34746-8' "cd";
-          it -> cg.display = 'Nurse Note' "dsp";
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'hormonal-therapy-cycle-number' "cd";
+          it -> cg.display = 'Hormonal therapy cycle number' "dsp";
         } "coding";
-        it -> cc.text = 'Remark on a recovery-room observation round' "codeText";
+      } "code";
+      it.answer first as a then {
+        a.value as v -> obs.value = v "value";
+      } "answer";
+      c -> obs then SetHormonalCycleContext(c, obs) "cycleContext";
+    } "cycleNumber";
+
+    c.item as it where (linkId = 'cycle/psa' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetLaboratoryCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '2857-1' "cd";
+          it -> cg.display = 'Prostate specific Ag [Mass/volume] in Serum or Plasma' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as v -> obs.value = v "value";
+      } "answer";
+      c -> obs then SetHormonalCycleContext(c, obs) "cycleContext";
+    } "cyclePsa";
+
+    // "CA2+" on the paper. Read as serum calcium in mmol/L, the routine
+    // measure on a patient with bone disease; an ionised calcium would need a
+    // blood gas analyser and its own code, 1995-0.
+    c.item as it where (linkId = 'cycle/calcium' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetLaboratoryCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '2000-8' "cd";
+          it -> cg.display = 'Calcium [Moles/volume] in Serum or Plasma' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as v -> obs.value = v "value";
+      } "answer";
+      c -> obs then SetHormonalCycleContext(c, obs) "cycleContext";
+    } "cycleCalcium";
+
+    c.item as it where (linkId = 'cycle/alp' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetLaboratoryCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '6768-6' "cd";
+          it -> cg.display = 'Alkaline phosphatase [Enzymatic activity/volume] in Serum or Plasma' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as v -> obs.value = v "value";
+      } "answer";
+      c -> obs then SetHormonalCycleContext(c, obs) "cycleContext";
+    } "cycleAlp";
+
+    c.item as it where (linkId = 'cycle/remarks' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'hormonal-therapy-remarks' "cd";
+          it -> cg.display = 'Remarks on a hormonal therapy cycle' "dsp";
+        } "coding";
       } "code";
       it.answer first as a then {
         a.value as txt -> obs.note as n, n.text = txt "text";
       } "answer";
-    } "narr_34746_8";
+      c -> obs then SetHormonalCycleContext(c, obs) "cycleContext";
+    } "cycleRemarks";
 
-  } "roundRows";
+    // TCA, "to come again". A ServiceRequest, not an Appointment, for the
+    // reason the discharge summary gives: a date with no clinic, clinician or
+    // slot is a request for a follow-up, and an Appointment built from it
+    // would claim a booking that does not exist.
+    c.item as it where (linkId = 'cycle/next-visit' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('ServiceRequest') as sr then {
+      qr -> sr, entry then BuildServiceRequestBase(qr, sr, entry) "base";
+      it -> sr.status = 'active' "status";
+      it -> sr.intent = 'plan' "intent";
+      it -> sr.code as cr, cr.concept as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'hormonal-therapy-next-review' "cd";
+          it -> cg.display = 'Next hormonal therapy review' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as d -> sr.occurrence = cast(d, 'dateTime') "occurrence";
+      } "answer";
+      qr.authored as t -> sr.authoredOn = t "authoredOn";
+      qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> sr.encounter = e "encounter";
+      it -> sr.note as n, n.text = 'Date to come again, written on the hormonal therapy treatment plan. Not a booked appointment: the sheet names no clinic, clinician or slot.' "provenanceNote";
+    } "nextVisit";
+  } "cycleRows";
 }
 
-// The row's own timestamp on everything extracted from that row.
-group SetPacuRowTime(source row, target obs : Observation) {
-  row.item as it where (linkId = 'round/at' and answer.value.exists()) then {
+// The cycle's own date on every Observation from that cycle. It overrides the
+// response's authored time: several rows keyed in at one sitting would
+// otherwise collapse onto one instant and the series would be gone.
+group SetHormonalCycleContext(source c, target obs : Observation) {
+  c.item as it where (linkId = 'cycle/date' and answer.value.exists()) then {
     it.answer first as a then {
-      a.value as v where ($this.toString().length() >= 20) -> obs.effective = cast(v, 'instant') "effective";
+      a.value as v where ($this.toString().length() = 10) -> evaluate(v, $this.toString() + 'T00:00:00+03:00') as midnight, obs.effective = cast(midnight, 'instant') "effectiveFromCycle";
     } "answer";
-  } "rowTimeRule";
-  row.item as it where (linkId = 'round/recorded-by' and answer.value.exists()) then {
-    it.answer first as a then {
-      a.value as ref where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> obs.performer = ref "by";
-    } "answer";
-  } "rowByRule";
+  } "cycleDateRule";
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -167,18 +172,6 @@ group SetPacuRowTime(source row, target obs : Observation) {
 // engine resolves `imports` against whatever StructureMaps happen to be on the
 // server, and a form that stops extracting because a shared map was not
 // uploaded is a worse failure than a duplicated group.
-//
-// Two notes on what the publisher's StructureMap validator says about this file.
-//
-// Source parameters below are left untyped on purpose. Writing `: Element` makes
-// the validator compare QuestionnaireResponse.item against the literal 'Element'
-// and report them as incompatible with each other, which is noise, not a finding.
-//
-// `evaluate(context, expression)` is flagged as "takes 1 parameter but 2 were
-// found". Leave it. The FML parser in the same jar refuses the one-argument form
-// outright -- it wants a parameter, a comma, then the FHIRPath -- so the
-// publisher is objecting to what its own compiler emits. Two arguments is the
-// only form that compiles, and it is what the R5 transform engine executes.
 // ─────────────────────────────────────────────────────────────────────────────
 
 group BuildObsBase(source qr : QR, target obs : Observation, target entry) {
@@ -206,25 +199,6 @@ group SetObservationFullUrl(source obs : Observation, target entry) {
   obs.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/Observation/', id) "assignFullUrl";
 }
 
-// The two answer shapes a component can carry. Both read the answer through the
-// untyped `.value` accessor: reading `valueCoding` or `valueQuantity` by its
-// typed property name fails at transform time on HAPI R5 with "Attempt to read
-// invalid property ... on QuestionnaireResponse.item.answer".
-group SetComponentCodedValue(source it, target comp) {
-  it.answer first as a then {
-    a.value as cv -> comp.value = create('CodeableConcept') as cc then {
-      cv -> cc.coding = cv "valueCoding";
-      cv.display as d -> cc.text = d "valueText";
-    } "codedValue";
-  } "componentAnswer";
-}
-
-group SetComponentValue(source it, target comp) {
-  it.answer first as a then {
-    a.value as v -> comp.value = v "plainValue";
-  } "componentAnswer";
-}
-
 group SetSurveyCategory(source qr : QR, target obs : Observation) {
   qr -> obs.category as cat then {
     qr -> cat.coding as coding then {
@@ -235,12 +209,12 @@ group SetSurveyCategory(source qr : QR, target obs : Observation) {
   } "category";
 }
 
-group SetVitalSignsCategory(source qr : QR, target obs : Observation) {
+group SetLaboratoryCategory(source qr : QR, target obs : Observation) {
   qr -> obs.category as cat then {
     qr -> cat.coding as coding then {
       qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
-      qr -> coding.code = 'vital-signs' "categoryCode";
-      qr -> coding.display = 'Vital Signs' "categoryDisplay";
+      qr -> coding.code = 'laboratory' "categoryCode";
+      qr -> coding.display = 'Laboratory' "categoryDisplay";
     } "categoryCoding";
   } "category";
 }
@@ -254,16 +228,30 @@ group BuildMedicationAdministrationBase(source qr : QR, target r : MedicationAdm
   } "entryRequest";
   qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> r.subject = s "subject";
 
-  // The response's own time, as a floor. A row that names the time it was given
-  // overwrites this; a form whose time column was taken off on review would
-  // otherwise produce an administration with no time at all, which is not a
-  // record of an administration. Same fallback BuildObsBase already applies.
+  // The response's own time, as a floor. A row that names its date overwrites
+  // this; without it a row missing its date would produce an administration
+  // with no time at all, which is not a record of an administration.
   qr.authored as t -> r.occurence = t "occurrenceFallback";
   qr -> r then ConformMedicationAdministration(qr, r) "profileConformance";
 }
 
 group SetMedicationAdministrationFullUrl(source r : MedicationAdministration, target entry) {
   r.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/MedicationAdministration/', id) "assignFullUrl";
+}
+
+group BuildServiceRequestBase(source qr : QR, target r : ServiceRequest, target entry) {
+  qr -> r then SetResponseProvenance(qr, r) "responseProvenance";
+  qr -> r.id = uuid() then SetServiceRequestFullUrl(r, entry) "idAndFullUrl";
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'ServiceRequest' "requestUrl";
+  } "entryRequest";
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> r.subject = s "subject";
+  qr -> r then ConformServiceRequest(qr, r) "profileConformance";
+}
+
+group SetServiceRequestFullUrl(source r : ServiceRequest, target entry) {
+  r.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/ServiceRequest/', id) "assignFullUrl";
 }
 
 // ── Provenance and tenancy ───────────────────────────────────────────────────
@@ -283,8 +271,8 @@ group SetResponseProvenance(source qr : QR, target r) {
   qr -> r.meta as m then {
     qr -> m.tag as t then {
       qr -> t.system = 'http://slade360edi.com/questionnaire-provenance' "provenanceSystem";
-      qr -> t.code = 'theatre-pacu-observation' "provenanceCode";
-      qr -> t.display = 'Theatre PACU observation form' "provenanceDisplay";
+      qr -> t.code = 'hormonal-therapy-treatment-plan' "provenanceCode";
+      qr -> t.display = 'Hormonal therapy treatment plan' "provenanceDisplay";
     } "provenanceTag";
   } "provenanceMeta";
 
@@ -323,4 +311,14 @@ group ConformMedicationAdministration(source qr : QR, target r) {
   qr where (author.where(((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/') or reference.startsWith('Patient/') or reference.startsWith('RelatedPerson/') or reference.startsWith('Device/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/RelatedPerson') or ('/' + type).endsWith('/Device'))))).exists().not()) then {
     qr.source as src where (((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/') or reference.startsWith('Patient/') or reference.startsWith('RelatedPerson/') or reference.startsWith('Device/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/RelatedPerson') or ('/' + type).endsWith('/Device'))))) -> r.performer as p, p.actor = create('CodeableReference') as cr, cr.reference = src "performerFromSource";
   } "performerFallback";
+}
+
+group ConformServiceRequest(source qr : QR, target r) {
+  qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> r.encounter = e "encounter";
+  qr.authored as t -> r.authoredOn = t "authoredOn";
+  qr -> r.priority = 'routine' "priority";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.requester = au "requesterFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.requester = src "requesterFromSource";
+  } "requesterFallback";
 }

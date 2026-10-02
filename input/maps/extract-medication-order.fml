@@ -22,31 +22,35 @@ group BuildMedicationRequest(source qr : QR, source prescriptionGroup, target me
   qr -> medReq.intent = 'order'  "setIntent";
   
   // Subject from QuestionnaireResponse
-  qr.subject as s -> medReq.subject = s "setSubject";
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> medReq.subject = s "setSubject";
   
   // Encounter from QuestionnaireResponse
-  qr.encounter as enc -> medReq.encounter = enc "setEncounter";
+  qr.encounter as enc where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> medReq.encounter = enc "setEncounter";
   
   // AuthoredOn from QuestionnaireResponse.authored
   qr.authored as authored -> medReq.authoredOn = authored "setAuthoredOn";
   
   // Requester from QuestionnaireResponse.source (the Organization)
-  qr.source as src -> medReq.requester = src "setRequester";
+  qr.source as src where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization'))))) -> medReq.requester = src "setRequester";
 
   // Performer from QuestionnaireResponse.source (the Organization)
-  qr.source as src -> medReq.performer = create('Reference') as perf then {
+  qr.source as src where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization'))))) -> medReq.performer = create('Reference') as perf then {
     src.reference as ref -> perf.reference = ref "perfRef";
     src.display as disp -> perf.display = disp "perfDisplay";
   } "performer";
 
-  // Copy identifier from QuestionnaireResponse to MedicationRequest
-  qr.identifier first as qrIdent -> medReq.identifier = qrIdent "copyIdentifier";
+  // Copy identifier from QuestionnaireResponse to MedicationRequest, unless its
+  // assigner is something an identifier cannot be assigned by.
+  qr.identifier first as qrIdent where (assigner.empty() or assigner.where(((reference.exists() and (reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization'))))).exists()) -> medReq.identifier = qrIdent "copyIdentifier";
   
-  // Medication as CodeableReference from QR extension (using concept).
-  // Assigning the whole CodeableConcept carries its codings and their systems,
-  // so there is nothing further to copy.
-  qr.extension first as ext then {
-    ext.valueCodeableConcept as medCC -> medReq.medication as med then {
+  // Medication as CodeableReference from the medication-reference extension, which
+  // the platform writes under either canonical. Assigning the whole CodeableConcept
+  // carries its codings and their systems, so there is nothing further to copy.
+  //
+  // R5's engine reads a choice as `value`: `valueCodeableConcept`, and every
+  // `valueX` below, is an invalid property here and failed the whole extraction.
+  qr.extension as ext where (url.endsWith('/StructureDefinition/medication-reference')) then {
+    ext.value as medCC where ($this is CodeableConcept) -> medReq.medication as med then {
       medCC -> med.concept = medCC "setMedConcept";
     } "accessMedication";
   } "findMedicationExt";
@@ -56,7 +60,7 @@ group BuildMedicationRequest(source qr : QR, source prescriptionGroup, target me
     priorityItem.answer first as priorityAns then {
       // MedicationRequest.priority is a code, not a Coding: it holds the code
       // alone and has nowhere to put the system it came from.
-      priorityAns.valueCoding as priorityCoding then {
+      priorityAns.value as priorityCoding where ($this is Coding) then {
         priorityCoding.code as pCode -> medReq.priority = pCode "setPriorityCode";
       } "extractPriorityCode";
     } "extractPriority";
@@ -70,8 +74,9 @@ group BuildMedicationRequest(source qr : QR, source prescriptionGroup, target me
   // Substitution
   prescriptionGroup.item as substItem where (linkId = 'substitutable') then {
     substItem.answer first as substAns then {
-      substAns.valueBoolean as substBool -> medReq.substitution as subst then {
-        substBool -> subst.allowedBoolean = substBool "setSubstValue";
+      substAns.value as substBool where ($this is boolean) -> medReq.substitution as subst then {
+        // allowed[x] is written as `allowed`; the engine picks the type from the value.
+        substBool -> subst.allowed = substBool "setSubstValue";
       } "createSubst";
     } "extractSubst";
   } "findSubst";
@@ -94,13 +99,14 @@ group BuildMedicationRequest(source qr : QR, source prescriptionGroup, target me
 group BuildDosage(source prescriptionGroup, target dosage : Dosage) {
   prescriptionGroup -> dosage.timing as timing then {
     prescriptionGroup -> timing.repeat as repeat then {
-      // Frequency (OD, BD, TID, QID)
+      // Frequency (OD, BD, TID, QID). A positiveInt, which an integer is not converted
+      // to, so each is cast.
       prescriptionGroup.item as freqItem where (linkId = 'frequency') then {
         freqItem.answer first as freqAns then {
-          freqAns.valueCoding as freqCoding where (code = 'OD') -> repeat.frequency = 1 "setFreqOD";
-          freqAns.valueCoding as freqCoding where (code = 'BD') -> repeat.frequency = 2 "setFreqBD";
-          freqAns.valueCoding as freqCoding where (code = 'TID') -> repeat.frequency = 3 "setFreqTID";
-          freqAns.valueCoding as freqCoding where (code = 'QID') -> repeat.frequency = 4 "setFreqQID";
+          freqAns.value as freqCoding where ($this is Coding and code = 'OD') -> repeat.frequency = cast('1', 'positiveInt') "setFreqOD";
+          freqAns.value as freqCoding where ($this is Coding and code = 'BD') -> repeat.frequency = cast('2', 'positiveInt') "setFreqBD";
+          freqAns.value as freqCoding where ($this is Coding and code = 'TID') -> repeat.frequency = cast('3', 'positiveInt') "setFreqTID";
+          freqAns.value as freqCoding where ($this is Coding and code = 'QID') -> repeat.frequency = cast('4', 'positiveInt') "setFreqQID";
         } "extractFreq";
       } "findFreq";
       
@@ -111,14 +117,14 @@ group BuildDosage(source prescriptionGroup, target dosage : Dosage) {
       // Duration
       prescriptionGroup.item as durItem where (linkId = 'duration') then {
         durItem.answer first as durAns then {
-          durAns.valueInteger as durValue -> repeat.duration = durValue "setDuration";
+          durAns.value as durValue where ($this is integer) -> repeat.duration = durValue "setDuration";
         } "extractDuration";
       } "findDuration";
       
       // Duration UOM - directly use the code from unitsofmeasure.org (h, d, wk, mo, a)
       prescriptionGroup.item as durUomItem where (linkId = 'duration-uom') then {
         durUomItem.answer first as durUomAns then {
-          durUomAns.valueCoding as durUomCoding then {
+          durUomAns.value as durUomCoding where ($this is Coding) then {
             durUomCoding.code as durUomCode -> repeat.durationUnit = durUomCode "setDurationUnit";
           } "extractDurUomCode";
         } "extractDurUom";
@@ -128,7 +134,7 @@ group BuildDosage(source prescriptionGroup, target dosage : Dosage) {
       // Handles both single answer and array of answers
       prescriptionGroup.item as whenItem where (linkId = 'when-to-take') then {
         whenItem.answer as whenAns then {
-          whenAns.valueCoding as whenCoding then {
+          whenAns.value as whenCoding where ($this is Coding) then {
             whenCoding.code as whenCode -> repeat.when = whenCode "setWhenCode";
           } "extractWhenCode";
         } "extractWhen";
@@ -137,11 +143,11 @@ group BuildDosage(source prescriptionGroup, target dosage : Dosage) {
       // Bounds Period from start-date and end-date
       prescriptionGroup.item as startItem where (linkId = 'start-date') then {
         startItem.answer first as startAns then {
-          startAns.valueDate as startDate -> repeat.boundsPeriod as boundsPeriod then {
+          startAns.value as startDate where ($this is date) -> repeat.bounds = create('Period') as boundsPeriod then {
             startDate -> boundsPeriod.start = startDate "setBoundsStart";
             prescriptionGroup.item as endItem where (linkId = 'end-date') then {
               endItem.answer first as endAns then {
-                endAns.valueDate as endDate -> boundsPeriod.end = endDate "setBoundsEnd";
+                endAns.value as endDate where ($this is date) -> boundsPeriod.end = endDate "setBoundsEnd";
               } "extractEndDate";
             } "findEndDate";
           } "createBoundsPeriod";
@@ -153,7 +159,7 @@ group BuildDosage(source prescriptionGroup, target dosage : Dosage) {
   // Route
   prescriptionGroup.item as routeItem where (linkId = 'route') then {
     routeItem.answer first as routeAns then {
-      routeAns.valueCoding as routeCoding -> dosage.route = create('CodeableConcept') as routeCC then {
+      routeAns.value as routeCoding where ($this is Coding) -> dosage.route = create('CodeableConcept') as routeCC then {
         routeCoding -> routeCC.coding = routeCoding "setRouteCoding";
         routeCoding.display as disp -> routeCC.text = disp "setRouteText";
       } "setRouteCC";
@@ -163,11 +169,11 @@ group BuildDosage(source prescriptionGroup, target dosage : Dosage) {
   // Dose and Rate
   prescriptionGroup.item as doseItem where (linkId = 'dose') then {
     doseItem.answer first as doseAns then {
-      doseAns.valueInteger as doseValue -> dosage.doseAndRate as doseRate, doseRate.doseQuantity as doseQty then {
+      doseAns.value as doseValue where ($this is integer) -> dosage.doseAndRate as doseRate, doseRate.dose = create('Quantity') as doseQty then {
         doseValue -> doseQty.value = doseValue "setDoseValue";
         prescriptionGroup.item as doseUnitItem where (linkId = 'dosage-unit') then {
           doseUnitItem.answer first as doseUnitAns then {
-            doseUnitAns.valueCoding as unitCoding then {
+            doseUnitAns.value as unitCoding where ($this is Coding) then {
               unitCoding.display as unitDisp -> doseQty.unit = unitDisp "setDoseUnit";
               unitCoding.code as unitCode -> doseQty.code = unitCode "setDoseCode";
               unitCoding.system as unitSys -> doseQty.system = unitSys "setDoseSystem";
@@ -181,14 +187,14 @@ group BuildDosage(source prescriptionGroup, target dosage : Dosage) {
   // Dosage Instructions (patient instruction)
   prescriptionGroup.item as instrItem where (linkId = 'dosage-instructions') then {
     instrItem.answer first as instrAns then {
-      instrAns.valueString as instrText -> dosage.patientInstruction = instrText "setPatientInstruction";
+      instrAns.value as instrText where ($this is string) -> dosage.patientInstruction = instrText "setPatientInstruction";
     } "extractInstr";
   } "findDosageInstr";
   
   // Additional Instructions (text)
   prescriptionGroup.item as addInstrItem where (linkId = 'additional-instructions') then {
     addInstrItem.answer first as addInstrAns then {
-      addInstrAns.valueString as addInstrText -> dosage.text = addInstrText "setDosageText";
+      addInstrAns.value as addInstrText where ($this is string) -> dosage.text = addInstrText "setDosageText";
     } "extractAddInstr";
   } "findAddInstr";
 }
@@ -197,18 +203,19 @@ group BuildDispenseRequest(source qr : QR, source prescriptionGroup, target disp
   // Refills
   prescriptionGroup.item as refillsItem where (linkId = 'refills') then {
     refillsItem.answer first as refillsAns then {
-      refillsAns.valueInteger as refillsValue -> dispReq.numberOfRepeatsAllowed = refillsValue "setRefills";
+      // An unsignedInt, which an integer is not converted to: cast, and only from zero up.
+      refillsAns.value as refillsValue where ($this is integer and $this >= 0) -> dispReq.numberOfRepeatsAllowed = cast(refillsValue, 'unsignedInt') "setRefills";
     } "extractRefills";
   } "findRefills";
   
   // Validity Period from start-date and end-date
   prescriptionGroup.item as startItem where (linkId = 'start-date') then {
     startItem.answer first as startAns then {
-      startAns.valueDate as startDate -> dispReq.validityPeriod as validPeriod then {
+      startAns.value as startDate where ($this is date) -> dispReq.validityPeriod as validPeriod then {
         startDate -> validPeriod.start = startDate "setValidityStart";
         prescriptionGroup.item as endItem where (linkId = 'end-date') then {
           endItem.answer first as endAns then {
-            endAns.valueDate as endDate -> validPeriod.end = endDate "setValidityEnd";
+            endAns.value as endDate where ($this is date) -> validPeriod.end = endDate "setValidityEnd";
           } "extractValidityEnd";
         } "findValidityEnd";
       } "createValidityPeriod";
@@ -218,11 +225,11 @@ group BuildDispenseRequest(source qr : QR, source prescriptionGroup, target disp
   // Expected Supply Duration
   prescriptionGroup.item as durItem where (linkId = 'duration') then {
     durItem.answer first as durAns then {
-      durAns.valueInteger as durValue -> dispReq.expectedSupplyDuration as supplyDur then {
+      durAns.value as durValue where ($this is integer) -> dispReq.expectedSupplyDuration as supplyDur then {
         durValue -> supplyDur.value = durValue "setSupplyDurValue";
         prescriptionGroup.item as durUomItem where (linkId = 'duration-uom') then {
           durUomItem.answer first as durUomAns then {
-            durUomAns.valueCoding as durUomCoding then {
+            durUomAns.value as durUomCoding where ($this is Coding) then {
               durUomCoding.code as uomCode -> supplyDur.code = uomCode "setSupplyDurCode";
               durUomCoding.display as uomDisplay -> supplyDur.unit = uomDisplay "setSupplyDurUnit";
               durUomCoding.system as uomSystem -> supplyDur.system = uomSystem "setSupplyDurSystem";
@@ -234,7 +241,7 @@ group BuildDispenseRequest(source qr : QR, source prescriptionGroup, target disp
   } "findSupplyDuration";
   
   // Dispenser - from QuestionnaireResponse.source (Organization)
-  qr.source as src -> dispReq.dispenser = src "setDispenser";
+  qr.source as src where (((reference.exists() and (reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization'))))) -> dispReq.dispenser = src "setDispenser";
 }
 
 group SetMedicationRequestFullUrl(source medReq : MedicationRequest, target entry) {
