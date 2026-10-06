@@ -15,6 +15,7 @@ group ExtractInpatientPaediatricAdmissionAssessment(source qr : QR, target bundl
   qr.item as itW where (linkId = 'weight' and answer.value.exists()) then {
     itW.answer first as aW then {
       aW -> bundle.entry as entryW, entryW.resource = create('Observation') as obsW then {
+        qr -> obsW then CopyResponseTags(qr, obsW) "responseTags";
         qr -> obsW, entryW then BuildObsBase(qr, obsW, entryW) "weightBase";
         qr -> obsW then SetVitalSignsCategory(qr, obsW) "weightCategory";
         qr -> obsW.code as code then {
@@ -34,6 +35,7 @@ group ExtractInpatientPaediatricAdmissionAssessment(source qr : QR, target bundl
   qr.item as itI where (linkId = 'immunisation' and answer.value.exists()) then {
     itI.answer first as aI then {
       aI -> bundle.entry as entryI, entryI.resource = create('Observation') as obsI then {
+        qr -> obsI then CopyResponseTags(qr, obsI) "responseTags";
         qr -> obsI, entryI then BuildObsBase(qr, obsI, entryI) "immunisationBase";
         qr -> obsI then SetSocialHistoryCategory(qr, obsI) "immunisationCategory";
         qr -> obsI.code as code then {
@@ -51,6 +53,7 @@ group ExtractInpatientPaediatricAdmissionAssessment(source qr : QR, target bundl
   qr.item as itF where (linkId = 'feeding' and answer.value.exists()) then {
     itF.answer first as aF then {
       aF -> bundle.entry as entryF, entryF.resource = create('Observation') as obsF then {
+        qr -> obsF then CopyResponseTags(qr, obsF) "responseTags";
         qr -> obsF, entryF then BuildObsBase(qr, obsF, entryF) "feedingBase";
         qr -> obsF then SetSocialHistoryCategory(qr, obsF) "feedingCategory";
         // No LOINC concept for a free-text account of how a child is fed, so a
@@ -75,6 +78,7 @@ group ExtractInpatientPaediatricAdmissionAssessment(source qr : QR, target bundl
   qr.item as itG where (linkId = 'guardianName' and answer.value.exists()) then {
     itG.answer first as aG then {
       aG -> bundle.entry as entryG, entryG.resource = create('RelatedPerson') as rp then {
+        qr -> rp then CopyResponseTags(qr, rp) "responseTags";
         qr -> rp.id = uuid() then SetRelatedPersonFullUrl(rp, entryG) "idAndFullUrl";
 
         qr -> entryG.request as request then {
@@ -181,4 +185,17 @@ group SetRelatedPersonFullUrl(source rp : RelatedPerson, target entry) {
     'https://fhir.slade360.co.ke/fhir/RelatedPerson/',
     id
   ) "assignFullUrl";
+}
+
+// ── Tenancy ──────────────────────────────────────────────────────────────────
+//
+// Whose this is. The platform says which tenant a response belongs to with a
+// tag on the response, and every tag the response carries is copied onto
+// everything this map creates, as it is. Copied rather than named here, so the
+// map never has to know which tenant it is running for, nor which system the
+// tag is under: that system has moved more than once.
+group CopyResponseTags(source qr : QR, target r) {
+  qr.meta as qm then {
+    qm.tag as qt -> r.meta as m, m.tag = qt "copyTag";
+  } "tenantTags";
 }

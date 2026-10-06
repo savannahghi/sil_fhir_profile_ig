@@ -18,9 +18,9 @@ Description: "A record of a healthcare consumer’s choices or choices made on t
 
 * date 1..1
 
-* grantee 1..1
+* grantee 1..*
 * grantee only SGHIReference
-* grantee only Reference(SGHIPatient or SGHIOrganization)
+* grantee only Reference(SGHIPatient or SGHIOrganization or SGHIPractitioner or SGHIPractitionerRole)
 
 * grantor 1..1
 * grantor only SGHIReference
@@ -41,7 +41,7 @@ Description: "A record of a healthcare consumer’s choices or choices made on t
   * verifiedWith only Reference(SGHIPatient)
   * verifiedBy 1..1
   * verifiedBy only SGHIReference
-  * verifiedBy only Reference(SGHIOrganization)
+  * verifiedBy only Reference(SGHIOrganization or SGHIPractitioner or SGHIPractitionerRole)
   * verificationDate 1..1
 
 * decision 1..1

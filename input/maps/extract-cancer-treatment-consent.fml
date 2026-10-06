@@ -2,12 +2,11 @@
 /// name = "ExtractCancerTreatmentConsent"
 /// title = "Cancer Treatment Consent Extraction"
 /// status = "active"
-/// description = "The cancer centre\'s informed consent out as one Consent, built only once the patient has signed: the patient as grantor, the doctor as grantee and as the clinician who verified it, the signing time as the period start, and a provision for each kind of therapy ticked -- the local code with SNOMED\'s procedure code beside it -- and one each for the regimen, the diagnosis, the intended purpose and the side effects and risks that were explained. Where an interpreter took part, an Observation records who, and whether they signed, pointing at the Consent."
+/// description = "The cancer centre\'s informed consent as one Consent holding everything on the form, built only once the patient has signed: the patient as grantor, the patient and the doctor who recorded it (the response\'s author) as its grantees, that doctor and any interpreter as its two verifications, and the treatment and what was explained as its provisions."
 
 uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
 uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
 uses "http://hl7.org/fhir/StructureDefinition/Consent" alias Consent as target
-uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Observation as target
 
 group ExtractCancerTreatmentConsent(source qr : QR, target bundle : Bundle) {
   qr -> bundle.type = 'transaction' "setBundleType";
@@ -33,6 +32,12 @@ group ExtractCancerTreatmentConsent(source qr : QR, target bundle : Bundle) {
     // else to sign on their behalf.
     qr.subject as s where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> consent.grantor = s "grantorPatient";
 
+    // The grantees are both parties to the consent: the patient, written here and only
+    // when the subject is one, and the practitioner who recorded it, the response's
+    // author, which ConformConsent adds. The stamped copy never names the patient
+    // itself; see mapmeta's WHO_NEVER.
+    qr.subject as s where (reference.startsWith('Patient/') and ((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> consent.grantee = s "granteePatient";
+
     // The signing time, from the form, not qr.authored. Consent.date is a
     // `date` and this is a date and time, so it goes to period.start.
     qr.item as pg where (linkId = 'patient') then {
@@ -43,38 +48,80 @@ group ExtractCancerTreatmentConsent(source qr : QR, target bundle : Bundle) {
       } "signedAtRule";
     } "patientGroup";
 
-    // The grantee, controller and manager are the facility, set by
-    // ConformConsent: SGHIConsent allows only an Organization or the Patient
-    // there. Once the doctor has signed, they are the verifier -- their
-    // signature is the attestation that the treatment was explained and
-    // understood. SGHIConsent wants an Organization as verifier too; the doctor
-    // is kept, because who explained a consent is the fact a dispute turns on.
-    qr.item as dg where (linkId = 'doctor') then {
-      dg.item as it where (linkId = 'doctor/clinician' and answer.value.exists()) then {
+    // ── The verifications ─────────────────────────────────────────────────
+    // The doctor's, and the interpreter's when one was used.
+    //
+    // The doctor who explained the treatment is the response's author. The form
+    // stopped asking for the doctor's name, designation and signature on
+    // 2026-10-06, because whoever records the consent is that doctor. So the
+    // verification is made when the response has an author who is a person, a
+    // Practitioner or a PractitionerRole (an Organization is not a doctor), and
+    // it is verified by them: recording the form is their attestation. No such
+    // author, no doctor's verification. Dated with the patient's signing, the
+    // only time the form records.
+    qr.author as au where (((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> consent.verification as ver then {
+      au -> ver.verified = true "verified";
+      au -> ver.verificationType as vt then {
+        au -> vt.coding as vc then {
+          au -> vc.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          au -> vc.code = 'consent-verified-by-doctor' "cd";
+          au -> vc.display = 'Verified by the doctor who explained the treatment' "dsp";
+        } "coding";
+        au -> vt.text = 'Doctor' "text";
+      } "doctorVerificationType";
+      au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> ver.verifiedBy = au "verifiedBy";
+      qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> ver.verifiedWith = s "verifiedWith";
+      qr.item as pg2 where (linkId = 'patient') then {
+        pg2.item as st where (linkId = 'patient/signed-at' and answer.value.exists()) then {
+          st.answer first as sa then {
+            sa.value as t -> ver.verificationDate = t "verificationDate";
+          } "signedAtAnswer";
+        } "signedAtRule";
+      } "patientGroupForVerification";
+    } "doctorVerification";
+
+    // The interpreter, if one was used: whether the explanation reached the patient
+    // in a language they understood is what makes the consent informed. Verified
+    // when they have signed. It names no verifier, because the interpreter is a name
+    // on the form, not a record anything could point at; the name is in its type.
+    qr.item as ig where (linkId = 'interpreter') then {
+      ig.item as it where (linkId = 'interpreter/name' and answer.value.exists()) then {
         it.answer first as a then {
-          dg.item as ds where (linkId = 'doctor/signed' and answer.value = true) then {
-            a.value as ref -> consent.verification as ver then {
-              ref -> ver.verified = true "verified";
-              ref where (((reference.exists() and (reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization'))))) -> ver.verifiedBy = ref "verifiedBy";
-              qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> ver.verifiedWith = s "verifiedWith";
-              qr.item as pg2 where (linkId = 'patient') then {
-                pg2.item as st where (linkId = 'patient/signed-at' and answer.value.exists()) then {
-                  st.answer first as sa then {
-                    sa.value as t -> ver.verificationDate = t "verificationDate";
-                  } "signedAtAnswer";
-                } "signedAtRule";
-              } "patientGroupForVerification";
-            } "verification";
-          } "doctorSignedRule";
+          a.value as name where ($this is string) -> consent.verification as iv then {
+            name -> iv.verified = false "verifiedUnlessSigned";
+            ig.item as sg where (linkId = 'interpreter/signed' and answer.value = true) then {
+              sg -> iv.verified = true "interpreterSigned";
+            } "interpreterSignedRule";
+            name -> iv.verificationType as ivt then {
+              name -> ivt.coding as ic then {
+                name -> ic.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+                name -> ic.code = 'consent-interpreter-used' "cd";
+                name -> ic.display = 'Interpreter used for the consent discussion' "dsp";
+              } "coding";
+              name -> ivt.text = append('Interpreter: ', name) "text";
+            } "interpreterVerificationType";
+            qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> iv.verifiedWith = s "verifiedWith";
+            qr.item as pg3 where (linkId = 'patient') then {
+              pg3.item as st where (linkId = 'patient/signed-at' and answer.value.exists()) then {
+                st.answer first as sa then {
+                  sa.value as t -> iv.verificationDate = t "verificationDate";
+                } "signedAtAnswer";
+              } "signedAtRule";
+            } "patientGroupForInterpreter";
+          } "interpreterVerification";
         } "answer";
-      } "clinicianRule";
-    } "doctorGroup";
+      } "nameRule";
+    } "interpreterGroup";
 
     // ── The provisions ────────────────────────────────────────────────────
     // One per kind of therapy ticked, so a consent to hormonal therapy cannot
     // be read as covering chemotherapy. The local code is what the form
-    // offered; the SNOMED procedure code beside it is what another system
-    // will recognise.
+    // offered; the LOINC answer code beside it is what another system will
+    // recognise, and LOINC is what SGHIConsent binds provision.code to
+    // (consent-content-code, required). Both LOINC codes come from LOINC's
+    // own list of cancer treatments, LL1479-6, and the display is LOINC's to
+    // the letter, trailing slash included. LOINC has no code for targeted
+    // therapy, so that one carries the local code alone.
     //
     // The regimen and what was explained are provisions too, each labelled.
     // Consent has no note in R5, and this is where the procedure consent puts
@@ -85,21 +132,16 @@ group ExtractCancerTreatmentConsent(source qr : QR, target bundle : Bundle) {
           a.value as cv -> prov.code as pc then {
             cv -> pc.coding = cv "localCoding";
             cv.display as d -> pc.text = d "text";
-            cv where (code = 'anti-cancer-chemotherapy') -> pc.coding as sct then {
-              cv -> sct.system = 'http://snomed.info/sct' "sys";
-              cv -> sct.code = '367336001' "cd";
-              cv -> sct.display = 'Chemotherapy' "dsp";
-            } "chemotherapySnomed";
-            cv where (code = 'anti-cancer-hormonal-therapy') -> pc.coding as sct then {
-              cv -> sct.system = 'http://snomed.info/sct' "sys";
-              cv -> sct.code = '169413002' "cd";
-              cv -> sct.display = 'Hormone therapy' "dsp";
-            } "hormonalSnomed";
-            cv where (code = 'anti-cancer-targeted-therapy') -> pc.coding as sct then {
-              cv -> sct.system = 'http://snomed.info/sct' "sys";
-              cv -> sct.code = '1255831008' "cd";
-              cv -> sct.display = 'Targeted chemotherapy for cancer' "dsp";
-            } "targetedSnomed";
+            cv where (code = 'anti-cancer-chemotherapy') -> pc.coding as loinc then {
+              cv -> loinc.system = 'http://loinc.org' "sys";
+              cv -> loinc.code = 'LA6172-6' "cd";
+              cv -> loinc.display = 'Chemotherapy' "dsp";
+            } "chemotherapyLoinc";
+            cv where (code = 'anti-cancer-hormonal-therapy') -> pc.coding as loinc then {
+              cv -> loinc.system = 'http://loinc.org' "sys";
+              cv -> loinc.code = 'LA16052-5' "cd";
+              cv -> loinc.display = 'Hormonal therapy/' "dsp";
+            } "hormonalLoinc";
           } "therapyCode";
         } "therapyProvision";
       } "therapyRule";
@@ -126,32 +168,6 @@ group ExtractCancerTreatmentConsent(source qr : QR, target bundle : Bundle) {
       } "sideEffectsRule";
     } "treatmentGroup";
 
-    // ── The interpreter ───────────────────────────────────────────────────
-    // An Observation, as on the procedure consent: an interpreter is not a
-    // permission, so not a provision, but whether the explanation reached the
-    // patient in a language they understood is what makes the consent
-    // informed. It points at the Consent it belongs to.
-    qr.item as ig where (linkId = 'interpreter') then {
-      ig.item as it where (linkId = 'interpreter/name' and answer.value.exists()) -> bundle.entry as oentry, oentry.resource = create('Observation') as obs then {
-        qr -> obs, oentry then BuildObsBase(qr, obs, oentry) "base";
-        qr -> obs then SetSurveyCategory(qr, obs) "category";
-        it -> obs.code as cc then {
-          it -> cc.coding as cg then {
-            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
-            it -> cg.code = 'consent-interpreter-used' "cd";
-            it -> cg.display = 'Interpreter used for the consent discussion' "dsp";
-          } "coding";
-        } "code";
-        it -> obs.value = true "interpreterUsed";
-        it -> obs.focus = create('Reference') as fref, fref.reference = reference(consent) "focusConsent";
-        it.answer first as a then {
-          a.value as txt -> obs.note as n, n.text = append('Interpreter: ', txt) "interpreterName";
-        } "answer";
-        ig.item as sg where (linkId = 'interpreter/signed' and answer.value = true) then {
-          sg -> obs.note as n2, n2.text = 'The interpreter signed the consent form.' "interpreterSigned";
-        } "signedRule";
-      } "interpreterObservation";
-    } "interpreterGroup";
   } "createConsent";
 }
 
@@ -161,41 +177,6 @@ group ExtractCancerTreatmentConsent(source qr : QR, target bundle : Bundle) {
 // server, and a form that stops extracting because a shared map was not
 // uploaded is a worse failure than a duplicated group.
 // ─────────────────────────────────────────────────────────────────────────────
-
-group BuildObsBase(source qr : QR, target obs : Observation, target entry) {
-  qr -> obs then SetResponseProvenance(qr, obs) "responseProvenance";
-  qr -> obs.id = uuid() then SetObservationFullUrl(obs, entry) "idAndFullUrl";
-
-  qr -> entry.request as request then {
-    qr -> request.method = 'POST' "requestMethod";
-    qr -> request.url = 'Observation' "requestUrl";
-  } "entryRequest";
-
-  qr -> obs.status = 'final' "status";
-  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> obs.subject = s "subject";
-  qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> obs.encounter = e "encounter";
-
-  // A stored response's id already reads "QuestionnaireResponse/<id>", so it is
-  // a relative reference as it stands. The hasValue() guard is what stops an
-  // unsaved response -- one posted straight to $extract rather than saved first
-  // -- from writing "QuestionnaireResponse/null" into the record.
-  qr.id as qid where ($this.hasValue()) -> obs.derivedFrom = create('Reference') as ref, ref.reference = qid "linkQuestionnaireResponse";
-  qr -> obs then ConformObservation(qr, obs) "profileConformance";
-}
-
-group SetObservationFullUrl(source obs : Observation, target entry) {
-  obs.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/Observation/', id) "assignFullUrl";
-}
-
-group SetSurveyCategory(source qr : QR, target obs : Observation) {
-  qr -> obs.category as cat then {
-    qr -> cat.coding as coding then {
-      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
-      qr -> coding.code = 'survey' "categoryCode";
-      qr -> coding.display = 'Survey' "categoryDisplay";
-    } "categoryCoding";
-  } "category";
-}
 
 group BuildConsentBase(source qr : QR, target r : Consent, target entry) {
   qr -> r then SetResponseProvenance(qr, r) "responseProvenance";
@@ -255,19 +236,10 @@ group SetResponseProvenance(source qr : QR, target r) {
 // response's own; see mapmeta.py for what is and is not here.
 // ── Conformance to the IG profiles ───────────────────────────────────────────
 
-group ConformObservation(source qr : QR, target r) {
-  qr.authored as t where ($this.toString().length() >= 20) -> r.issued = cast(t, 'instant') "issued";
-  qr.authored as t where ($this.toString().length() >= 20) -> r.effective = cast(t, 'instant') "effective";
-  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = au "performerFromAuthor";
-  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))).exists().not()) then {
-    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = src "performerFromSource";
-  } "performerFallback";
-}
-
 group ConformConsent(source qr : QR, target r) {
   qr.authored as t -> evaluate(t, $this.toString().substring(0, 10)) as day, r.date = cast(day, 'date') "date";
-  qr.author as au where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization'))))) -> r.grantee = au "granteeFromAuthor";
-  qr where (author.where(((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization'))))).exists().not()) then {
-    qr.source as src where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization'))))) -> r.grantee = src "granteeFromSource";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.grantee = au "granteeFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.grantee = src "granteeFromSource";
   } "granteeFallback";
 }

@@ -570,7 +570,8 @@ Description: "What the forms record where no code system this IG can resolve say
 * #using-contraceptives-or-hrt "Using contraceptives or HRT" "Whether the patient is using hormonal contraception or hormone replacement therapy, which matters for a hormone-sensitive cancer. Recorded on the oncology initial assessment form."
 * #oncology-previous-radiotherapy "Previous radiotherapy" "Radiotherapy the patient has already had, as written. Recorded on the oncology initial assessment form."
 * #oncology-previous-chemotherapy "Previous chemotherapy" "Chemotherapy the patient has already had, as written. Recorded on the oncology initial assessment form."
-* #consent-interpreter-used "Interpreter used for the consent discussion" "An interpreter took part in explaining the treatment to the patient, with their name and whether they signed. Recorded on the cancer centre informed consent."
+* #consent-interpreter-used "Interpreter used for the consent discussion" "An interpreter took part in explaining the treatment to the patient. Types the interpreter's verification on the consent, which carries their name and whether they signed. Recorded on the cancer centre informed consent."
+* #consent-verified-by-doctor "Verified by the doctor who explained the treatment" "The doctor who explained the treatment attests that it was explained and understood. Types the doctor's verification on the consent, which carries their designation and whether they signed. Recorded on the cancer centre informed consent."
 * #hormonal-therapy-cycle-number "Hormonal therapy cycle number" "Which cycle of hormonal therapy a row of the treatment plan records. Recorded on the hormonal therapy treatment plan."
 * #hormonal-therapy-remarks "Remarks on a hormonal therapy cycle" "The free-text remarks written against one cycle. Recorded on the hormonal therapy treatment plan."
 * #hormonal-therapy-next-review "Next hormonal therapy review" "The date the patient is to come again (TCA) for the next cycle or review. Carried on ServiceRequest.code. Recorded on the hormonal therapy treatment plan."
@@ -1206,9 +1207,9 @@ Description: "The answers the pick lists offer, where the list is local to these
 * #hiv-status-unknown "Unknown" "The patient's HIV status is not known. Recorded on the oncology initial assessment form."
 * #not-applicable "N/A" "The question does not apply to this patient. Recorded on the oncology initial assessment form, against contraceptive or HRT use."
 // The three kinds of systemic anti-cancer therapy the consent names. Local so
-// the picker resolves on every server; the extraction map adds the SNOMED
-// procedure code beside each one -- 367336001, 169413002 and 1255831008 --
-// on the Consent it writes.
+// the picker resolves on every server; the extraction map adds the LOINC answer
+// code beside chemotherapy (LA6172-6) and hormonal therapy (LA16052-5) on the
+// Consent it writes. LOINC has none for targeted therapy, so it stays local.
 * #anti-cancer-chemotherapy "Chemotherapy" "Cytotoxic chemotherapy. Recorded on the cancer centre informed consent."
 * #anti-cancer-hormonal-therapy "Hormonal therapy" "Hormonal therapy, such as an LHRH agonist, an anti-androgen, an anti-oestrogen or an aromatase inhibitor. Recorded on the cancer centre informed consent."
 * #anti-cancer-targeted-therapy "Targeted therapy" "Targeted therapy against a molecular feature of the cancer, such as a HER2 antibody or a tyrosine kinase inhibitor. Recorded on the cancer centre informed consent."

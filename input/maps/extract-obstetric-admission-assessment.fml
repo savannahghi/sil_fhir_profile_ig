@@ -14,6 +14,7 @@ group ExtractInpatientObstetricAdmissionAssessment(source qr : QR, target bundle
   qr.item as itG where (linkId = 'gestation' and answer.value.exists()) then {
     itG.answer first as aG then {
       aG -> bundle.entry as entryG, entryG.resource = create('Observation') as obsG then {
+        qr -> obsG then CopyResponseTags(qr, obsG) "responseTags";
         qr -> obsG, entryG then BuildObsBase(qr, obsG, entryG) "gestationBase";
         qr -> obsG then SetExamCategory(qr, obsG) "gestationCategory";
         qr -> obsG.code as code then {
@@ -33,6 +34,7 @@ group ExtractInpatientObstetricAdmissionAssessment(source qr : QR, target bundle
   qr.item as itF where (linkId = 'fhr' and answer.value.exists()) then {
     itF.answer first as aF then {
       aF -> bundle.entry as entryF, entryF.resource = create('Observation') as obsF then {
+        qr -> obsF then CopyResponseTags(qr, obsF) "responseTags";
         qr -> obsF, entryF then BuildObsBase(qr, obsF, entryF) "fhrBase";
         qr -> obsF then SetExamCategory(qr, obsF) "fhrCategory";
         qr -> obsF.code as code then {
@@ -50,6 +52,7 @@ group ExtractInpatientObstetricAdmissionAssessment(source qr : QR, target bundle
   qr.item as itD where (linkId = 'dilatation' and answer.value.exists()) then {
     itD.answer first as aD then {
       aD -> bundle.entry as entryD, entryD.resource = create('Observation') as obsD then {
+        qr -> obsD then CopyResponseTags(qr, obsD) "responseTags";
         qr -> obsD, entryD then BuildObsBase(qr, obsD, entryD) "dilatationBase";
         qr -> obsD then SetExamCategory(qr, obsD) "dilatationCategory";
         qr -> obsD.code as code then {
@@ -67,6 +70,7 @@ group ExtractInpatientObstetricAdmissionAssessment(source qr : QR, target bundle
   qr.item as itH where (linkId = 'obsHistory' and answer.value.exists()) then {
     itH.answer first as aH then {
       aH -> bundle.entry as entryH, entryH.resource = create('Observation') as obsH then {
+        qr -> obsH then CopyResponseTags(qr, obsH) "responseTags";
         qr -> obsH, entryH then BuildObsBase(qr, obsH, entryH) "historyBase";
         qr -> obsH then SetSocialHistoryCategory(qr, obsH) "historyCategory";
         qr -> obsH.code as code then {
@@ -137,4 +141,17 @@ group SetObservationFullUrl(source obs : Observation, target entry) {
     'https://fhir.slade360.co.ke/fhir/Observation/',
     id
   ) "assignFullUrl";
+}
+
+// ── Tenancy ──────────────────────────────────────────────────────────────────
+//
+// Whose this is. The platform says which tenant a response belongs to with a
+// tag on the response, and every tag the response carries is copied onto
+// everything this map creates, as it is. Copied rather than named here, so the
+// map never has to know which tenant it is running for, nor which system the
+// tag is under: that system has moved more than once.
+group CopyResponseTags(source qr : QR, target r) {
+  qr.meta as qm then {
+    qm.tag as qt -> r.meta as m, m.tag = qt "copyTag";
+  } "tenantTags";
 }

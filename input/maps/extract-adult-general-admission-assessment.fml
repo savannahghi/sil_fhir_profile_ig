@@ -20,6 +20,7 @@ group ExtractInpatientAdultGeneralAdmissionAssessment(source qr : QR, target bun
   qr.item as itC where (linkId = 'complaint' and answer.value.exists()) then {
     itC.answer first as aC then {
       aC -> bundle.entry as entryC, entryC.resource = create('Observation') as obsC then {
+        qr -> obsC then CopyResponseTags(qr, obsC) "responseTags";
         qr -> obsC, entryC then BuildObsBase(qr, obsC, entryC) "complaintBase";
         qr -> obsC then SetSocialHistoryCategory(qr, obsC) "complaintCategory";
         qr -> obsC.code as code then {
@@ -44,6 +45,7 @@ group ExtractInpatientAdultGeneralAdmissionAssessment(source qr : QR, target bun
     gV.item as itS where (linkId = 'vitals.bpSys' and answer.value.exists()) then {
       itS.answer first as aS then {
         aS -> bundle.entry as entryS, entryS.resource = create('Observation') as obsS then {
+          qr -> obsS then CopyResponseTags(qr, obsS) "responseTags";
           qr -> obsS, entryS then BuildObsBase(qr, obsS, entryS) "bpSysBase";
           qr -> obsS then SetVitalSignsCategory(qr, obsS) "bpSysCategory";
           qr -> obsS.code as code then {
@@ -61,6 +63,7 @@ group ExtractInpatientAdultGeneralAdmissionAssessment(source qr : QR, target bun
     gV.item as itD where (linkId = 'vitals.bpDia' and answer.value.exists()) then {
       itD.answer first as aD then {
         aD -> bundle.entry as entryD, entryD.resource = create('Observation') as obsD then {
+          qr -> obsD then CopyResponseTags(qr, obsD) "responseTags";
           qr -> obsD, entryD then BuildObsBase(qr, obsD, entryD) "bpDiaBase";
           qr -> obsD then SetVitalSignsCategory(qr, obsD) "bpDiaCategory";
           qr -> obsD.code as code then {
@@ -78,6 +81,7 @@ group ExtractInpatientAdultGeneralAdmissionAssessment(source qr : QR, target bun
     gV.item as itP where (linkId = 'vitals.pulse' and answer.value.exists()) then {
       itP.answer first as aP then {
         aP -> bundle.entry as entryP, entryP.resource = create('Observation') as obsP then {
+          qr -> obsP then CopyResponseTags(qr, obsP) "responseTags";
           qr -> obsP, entryP then BuildObsBase(qr, obsP, entryP) "pulseBase";
           qr -> obsP then SetVitalSignsCategory(qr, obsP) "pulseCategory";
           qr -> obsP.code as code then {
@@ -95,6 +99,7 @@ group ExtractInpatientAdultGeneralAdmissionAssessment(source qr : QR, target bun
     gV.item as itT where (linkId = 'vitals.temp' and answer.value.exists()) then {
       itT.answer first as aT then {
         aT -> bundle.entry as entryT, entryT.resource = create('Observation') as obsT then {
+          qr -> obsT then CopyResponseTags(qr, obsT) "responseTags";
           qr -> obsT, entryT then BuildObsBase(qr, obsT, entryT) "tempBase";
           qr -> obsT then SetVitalSignsCategory(qr, obsT) "tempCategory";
           qr -> obsT.code as code then {
@@ -112,6 +117,7 @@ group ExtractInpatientAdultGeneralAdmissionAssessment(source qr : QR, target bun
     gV.item as itR where (linkId = 'vitals.resp' and answer.value.exists()) then {
       itR.answer first as aR then {
         aR -> bundle.entry as entryR, entryR.resource = create('Observation') as obsR then {
+          qr -> obsR then CopyResponseTags(qr, obsR) "responseTags";
           qr -> obsR, entryR then BuildObsBase(qr, obsR, entryR) "respBase";
           qr -> obsR then SetVitalSignsCategory(qr, obsR) "respCategory";
           qr -> obsR.code as code then {
@@ -129,6 +135,7 @@ group ExtractInpatientAdultGeneralAdmissionAssessment(source qr : QR, target bun
     gV.item as itO where (linkId = 'vitals.spo2' and answer.value.exists()) then {
       itO.answer first as aO then {
         aO -> bundle.entry as entryO, entryO.resource = create('Observation') as obsO then {
+          qr -> obsO then CopyResponseTags(qr, obsO) "responseTags";
           qr -> obsO, entryO then BuildObsBase(qr, obsO, entryO) "spo2Base";
           qr -> obsO then SetVitalSignsCategory(qr, obsO) "spo2Category";
           qr -> obsO.code as code then {
@@ -146,6 +153,7 @@ group ExtractInpatientAdultGeneralAdmissionAssessment(source qr : QR, target bun
 
   // ── The assessment as a filed document ─────────────────────────────────────
   qr -> bundle.entry as entry, entry.resource = create('Composition') as comp then {
+    qr -> comp then CopyResponseTags(qr, comp) "responseTags";
     qr -> comp, entry then BuildNoteBase(qr, comp, entry) "noteBase";
     qr -> comp.name = 'InpatientAdultGeneralAdmissionAssessment' "noteName";
     qr -> comp.title = 'Adult general admission assessment' "noteTitle";
@@ -313,4 +321,17 @@ group SetCompositionFullUrl(source comp : Composition, target entry) {
     'https://fhir.slade360.co.ke/fhir/Composition/',
     id
   ) "assignFullUrl";
+}
+
+// ── Tenancy ──────────────────────────────────────────────────────────────────
+//
+// Whose this is. The platform says which tenant a response belongs to with a
+// tag on the response, and every tag the response carries is copied onto
+// everything this map creates, as it is. Copied rather than named here, so the
+// map never has to know which tenant it is running for, nor which system the
+// tag is under: that system has moved more than once.
+group CopyResponseTags(source qr : QR, target r) {
+  qr.meta as qm then {
+    qm.tag as qt -> r.meta as m, m.tag = qt "copyTag";
+  } "tenantTags";
 }
