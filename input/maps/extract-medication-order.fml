@@ -167,10 +167,11 @@ group BuildDosage(source prescriptionGroup, target dosage : Dosage) {
     } "extractRoute";
   } "findRoute";
   
-  // Dose and Rate
+  // Dose and Rate. A dose can be a fraction (half a tablet, 2.5 ml), so a decimal
+  // answer is read as well as the integer ones already stored.
   prescriptionGroup.item as doseItem where (linkId = 'dose') then {
     doseItem.answer first as doseAns then {
-      doseAns.value as doseValue where ($this is integer) -> dosage.doseAndRate as doseRate, doseRate.dose = create('Quantity') as doseQty then {
+      doseAns.value as doseValue where ($this is integer or $this is decimal) -> dosage.doseAndRate as doseRate, doseRate.dose = create('Quantity') as doseQty then {
         doseValue -> doseQty.value = doseValue "setDoseValue";
         prescriptionGroup.item as doseUnitItem where (linkId = 'dosage-unit') then {
           doseUnitItem.answer first as doseUnitAns then {
