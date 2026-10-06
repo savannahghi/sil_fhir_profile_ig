@@ -16,6 +16,7 @@ group ExtractMorseFallScale(source qr : QR, target bundle : Bundle) {
   // level are all top-level items keyed by their own LOINC code -- so there is no
   // group to hang the Observation off and the response itself is the anchor.
   qr where (item.where(linkId in ('59454-9'|'59455-6'|'59456-4'|'59457-2'|'59458-0'|'59459-8')).answer.value.ofType(Coding).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+    qr -> obs then CopyResponseTags(qr, obs) "responseTags";
     qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
     qr -> obs then SetSurveyCategory(qr, obs) "category";
     qr -> obs.code as code then {
@@ -148,6 +149,7 @@ group ExtractMorseFallScale(source qr : QR, target bundle : Bundle) {
 
 group AddMorseRiskAssessment(source obs : Observation, source qr : QR, target bundle : Bundle) {
   obs where (value.ofType(integer) <= 24) -> bundle.entry as entry, entry.resource = create('RiskAssessment') as ra then {
+    qr -> ra then CopyResponseTags(qr, ra) "responseTags";
     qr -> ra, entry then BuildRiskBase(qr, obs, ra, entry) "riskBase";
     qr -> ra then SetMorseRiskCode(qr, ra) "riskCode";
     qr -> ra.prediction as pred then {
@@ -168,6 +170,7 @@ group AddMorseRiskAssessment(source obs : Observation, source qr : QR, target bu
   } "morseLow";
 
   obs where (value.ofType(integer) >= 25 and value.ofType(integer) <= 49) -> bundle.entry as entry, entry.resource = create('RiskAssessment') as ra then {
+    qr -> ra then CopyResponseTags(qr, ra) "responseTags";
     qr -> ra, entry then BuildRiskBase(qr, obs, ra, entry) "riskBase";
     qr -> ra then SetMorseRiskCode(qr, ra) "riskCode";
     qr -> ra.prediction as pred then {
@@ -188,6 +191,7 @@ group AddMorseRiskAssessment(source obs : Observation, source qr : QR, target bu
   } "morseModerate";
 
   obs where (value.ofType(integer) >= 50) -> bundle.entry as entry, entry.resource = create('RiskAssessment') as ra then {
+    qr -> ra then CopyResponseTags(qr, ra) "responseTags";
     qr -> ra, entry then BuildRiskBase(qr, obs, ra, entry) "riskBase";
     qr -> ra then SetMorseRiskCode(qr, ra) "riskCode";
     qr -> ra.prediction as pred then {
@@ -322,4 +326,17 @@ group SetRiskAssessmentFullUrl(source ra : RiskAssessment, target entry) {
     'https://fhir.slade360.co.ke/fhir/RiskAssessment/',
     id
   ) "assignFullUrl";
+}
+
+// ── Tenancy ──────────────────────────────────────────────────────────────────
+//
+// Whose this is. The platform says which tenant a response belongs to with a
+// tag on the response, and every tag the response carries is copied onto
+// everything this map creates, as it is. Copied rather than named here, so the
+// map never has to know which tenant it is running for, nor which system the
+// tag is under: that system has moved more than once.
+group CopyResponseTags(source qr : QR, target r) {
+  qr.meta as qm then {
+    qm.tag as qt -> r.meta as m, m.tag = qt "copyTag";
+  } "tenantTags";
 }

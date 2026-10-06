@@ -19,6 +19,7 @@ group ExtractInpatientMentalHealthRiskAssessment(source qr : QR, target bundle :
   qr.item as itM where (linkId = 'mood' and answer.value.exists()) then {
     itM.answer first as aM then {
       aM -> bundle.entry as entryM, entryM.resource = create('Observation') as obsM then {
+        qr -> obsM then CopyResponseTags(qr, obsM) "responseTags";
         qr -> obsM, entryM then BuildObsBase(qr, obsM, entryM) "moodBase";
         qr -> obsM then SetExamCategory(qr, obsM) "moodCategory";
         qr -> obsM.code as code then {
@@ -38,6 +39,7 @@ group ExtractInpatientMentalHealthRiskAssessment(source qr : QR, target bundle :
   qr.item as itC where (linkId = 'capacity' and answer.value.exists()) then {
     itC.answer first as aC then {
       aC -> bundle.entry as entryC, entryC.resource = create('Observation') as obsC then {
+        qr -> obsC then CopyResponseTags(qr, obsC) "responseTags";
         qr -> obsC, entryC then BuildObsBase(qr, obsC, entryC) "capacityBase";
         qr -> obsC then SetExamCategory(qr, obsC) "capacityCategory";
         qr -> obsC.code as code then {
@@ -59,6 +61,7 @@ group ExtractInpatientMentalHealthRiskAssessment(source qr : QR, target bundle :
   // observation, and the cost of over-flagging here is smaller than the cost of
   // under-flagging.
   qr.item as itS where (linkId = 'selfHarm' and answer.value.ofType(Coding).code = 'self-harm-none') -> bundle.entry as entry, entry.resource = create('RiskAssessment') as ra then {
+    qr -> ra then CopyResponseTags(qr, ra) "responseTags";
     qr -> ra, entry then BuildRiskBase(qr, ra, entry) "riskBase";
     qr -> ra.prediction as pred then {
       qr -> pred.outcome as outcome then {
@@ -76,6 +79,7 @@ group ExtractInpatientMentalHealthRiskAssessment(source qr : QR, target bundle :
   } "selfHarmNoneRule";
 
   qr.item as itS where (linkId = 'selfHarm' and answer.value.ofType(Coding).code = 'self-harm-passive') -> bundle.entry as entry, entry.resource = create('RiskAssessment') as ra then {
+    qr -> ra then CopyResponseTags(qr, ra) "responseTags";
     qr -> ra, entry then BuildRiskBase(qr, ra, entry) "riskBase";
     qr -> ra.prediction as pred then {
       qr -> pred.outcome as outcome then {
@@ -93,6 +97,7 @@ group ExtractInpatientMentalHealthRiskAssessment(source qr : QR, target bundle :
   } "selfHarmPassiveRule";
 
   qr.item as itS where (linkId = 'selfHarm' and answer.value.ofType(Coding).code = 'self-harm-active-plan') -> bundle.entry as entry, entry.resource = create('RiskAssessment') as ra then {
+    qr -> ra then CopyResponseTags(qr, ra) "responseTags";
     qr -> ra, entry then BuildRiskBase(qr, ra, entry) "riskBase";
     qr -> ra.prediction as pred then {
       qr -> pred.outcome as outcome then {
@@ -110,6 +115,7 @@ group ExtractInpatientMentalHealthRiskAssessment(source qr : QR, target bundle :
   } "selfHarmActivePlanRule";
 
   qr.item as itS where (linkId = 'selfHarm' and answer.value.ofType(Coding).code = 'self-harm-recent-act') -> bundle.entry as entry, entry.resource = create('RiskAssessment') as ra then {
+    qr -> ra then CopyResponseTags(qr, ra) "responseTags";
     qr -> ra, entry then BuildRiskBase(qr, ra, entry) "riskBase";
     qr -> ra.prediction as pred then {
       qr -> pred.outcome as outcome then {
@@ -133,6 +139,7 @@ group ExtractInpatientMentalHealthRiskAssessment(source qr : QR, target bundle :
   qr.item as itSg where (linkId = 'safeguarding' and answer.value.exists()) then {
     itSg.answer first as aSg then {
       aSg -> bundle.entry as entryF, entryF.resource = create('Flag') as flag then {
+        qr -> flag then CopyResponseTags(qr, flag) "responseTags";
         qr -> flag.id = uuid() then SetFlagFullUrl(flag, entryF) "idAndFullUrl";
 
         qr -> entryF.request as request then {
@@ -296,4 +303,17 @@ group SetFlagFullUrl(source flag : Flag, target entry) {
     'https://fhir.slade360.co.ke/fhir/Flag/',
     id
   ) "assignFullUrl";
+}
+
+// ── Tenancy ──────────────────────────────────────────────────────────────────
+//
+// Whose this is. The platform says which tenant a response belongs to with a
+// tag on the response, and every tag the response carries is copied onto
+// everything this map creates, as it is. Copied rather than named here, so the
+// map never has to know which tenant it is running for, nor which system the
+// tag is under: that system has moved more than once.
+group CopyResponseTags(source qr : QR, target r) {
+  qr.meta as qm then {
+    qm.tag as qt -> r.meta as m, m.tag = qt "copyTag";
+  } "tenantTags";
 }

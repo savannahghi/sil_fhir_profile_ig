@@ -10,6 +10,7 @@ group ExtractMedicationRequest(source qr : QR, target bundle : Bundle) {
   
   qr.item as prescriptionGroup where (linkId = 'prescription-form') then {
     prescriptionGroup -> bundle.entry as entry, entry.resource = create('MedicationRequest') as medReq then {
+      qr -> medReq then CopyResponseTags(qr, medReq) "responseTags";
       qr -> medReq, entry then BuildMedicationRequest(qr, prescriptionGroup, medReq, entry) "buildMedReq";
     } "createMedReq";
   } "findPrescriptionGroup";
@@ -246,4 +247,17 @@ group BuildDispenseRequest(source qr : QR, source prescriptionGroup, target disp
 
 group SetMedicationRequestFullUrl(source medReq : MedicationRequest, target entry) {
   medReq.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/MedicationRequest/', id) "assignFullUrl";
+}
+
+// ── Tenancy ──────────────────────────────────────────────────────────────────
+//
+// Whose this is. The platform says which tenant a response belongs to with a
+// tag on the response, and every tag the response carries is copied onto
+// everything this map creates, as it is. Copied rather than named here, so the
+// map never has to know which tenant it is running for, nor which system the
+// tag is under: that system has moved more than once.
+group CopyResponseTags(source qr : QR, target r) {
+  qr.meta as qm then {
+    qm.tag as qt -> r.meta as m, m.tag = qt "copyTag";
+  } "tenantTags";
 }

@@ -17,6 +17,7 @@ group ExtractInpatientSurgicalPreoperativeAssessment(source qr : QR, target bund
   qr.item as itP where (linkId = 'procedure' and answer.value.exists()) then {
     itP.answer first as aP then {
       aP -> bundle.entry as entryP, entryP.resource = create('ServiceRequest') as sr then {
+        qr -> sr then CopyResponseTags(qr, sr) "responseTags";
         qr -> sr.id = uuid() then SetServiceRequestFullUrl(sr, entryP) "idAndFullUrl";
 
         qr -> entryP.request as request then {
@@ -63,6 +64,7 @@ group ExtractInpatientSurgicalPreoperativeAssessment(source qr : QR, target bund
   qr.item as itA where (linkId = 'asa' and answer.value.exists()) then {
     itA.answer first as aA then {
       aA -> bundle.entry as entryA, entryA.resource = create('Observation') as obsA then {
+        qr -> obsA then CopyResponseTags(qr, obsA) "responseTags";
         qr -> obsA, entryA then BuildObsBase(qr, obsA, entryA) "asaBase";
         qr -> obsA then SetSurveyCategory(qr, obsA) "asaCategory";
         qr -> obsA.code as code then {
@@ -84,6 +86,7 @@ group ExtractInpatientSurgicalPreoperativeAssessment(source qr : QR, target bund
   qr.item as itN where (linkId = 'nbm' and answer.value.exists()) then {
     itN.answer first as aN then {
       aN -> bundle.entry as entryN, entryN.resource = create('Observation') as obsN then {
+        qr -> obsN then CopyResponseTags(qr, obsN) "responseTags";
         qr -> obsN, entryN then BuildObsBase(qr, obsN, entryN) "nbmBase";
         qr -> obsN then SetSocialHistoryCategory(qr, obsN) "nbmCategory";
         qr -> obsN.code as code then {
@@ -105,6 +108,7 @@ group ExtractInpatientSurgicalPreoperativeAssessment(source qr : QR, target bund
   qr.item as itC where (linkId = 'consentBy' and answer.value.exists()) then {
     itC.answer first as aC then {
       aC -> bundle.entry as entryC, entryC.resource = create('Consent') as consent then {
+        qr -> consent then CopyResponseTags(qr, consent) "responseTags";
         qr -> consent.id = uuid() then SetConsentFullUrl(consent, entryC) "idAndFullUrl";
 
         qr -> entryC.request as request then {
@@ -131,7 +135,7 @@ group ExtractInpatientSurgicalPreoperativeAssessment(source qr : QR, target bund
 
         aC.value as cv -> consent.verification as ver then {
           aC -> ver.verified = true "verified";
-          cv where (((reference.exists() and (reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization'))))) -> ver.verifiedBy = cv "verifiedBy";
+          cv where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> ver.verifiedBy = cv "verifiedBy";
           qr.authored as t -> ver.verificationDate = t "verificationDate";
         } "verification";
 
@@ -232,4 +236,17 @@ group SetConsentFullUrl(source consent : Consent, target entry) {
     'https://fhir.slade360.co.ke/fhir/Consent/',
     id
   ) "assignFullUrl";
+}
+
+// ── Tenancy ──────────────────────────────────────────────────────────────────
+//
+// Whose this is. The platform says which tenant a response belongs to with a
+// tag on the response, and every tag the response carries is copied onto
+// everything this map creates, as it is. Copied rather than named here, so the
+// map never has to know which tenant it is running for, nor which system the
+// tag is under: that system has moved more than once.
+group CopyResponseTags(source qr : QR, target r) {
+  qr.meta as qm then {
+    qm.tag as qt -> r.meta as m, m.tag = qt "copyTag";
+  } "tenantTags";
 }

@@ -13,6 +13,7 @@ group ExtractInpatientDischargeNote(source qr : QR, target bundle : Bundle) {
   qr -> bundle.type = 'transaction' "setBundleType";
 
   qr -> bundle.entry as entry, entry.resource = create('Composition') as comp then {
+    qr -> comp then CopyResponseTags(qr, comp) "responseTags";
     qr -> comp, entry then BuildNoteBase(qr, comp, entry) "noteBase";
     qr -> comp.name = 'InpatientDischargeNote' "noteName";
     qr -> comp.title = 'Discharge note' "noteTitle";
@@ -61,6 +62,7 @@ group ExtractInpatientDischargeNote(source qr : QR, target bundle : Bundle) {
   qr.item as itF where (linkId = 'followUp' and answer.value.exists()) then {
     itF.answer first as aF then {
       aF -> bundle.entry as entryS, entryS.resource = create('ServiceRequest') as sr then {
+        qr -> sr then CopyResponseTags(qr, sr) "responseTags";
         qr -> sr.id = uuid() then SetServiceRequestFullUrl(sr, entryS) "idAndFullUrl";
 
         qr -> entryS.request as request then {
@@ -187,4 +189,17 @@ group SetServiceRequestFullUrl(source sr : ServiceRequest, target entry) {
     'https://fhir.slade360.co.ke/fhir/ServiceRequest/',
     id
   ) "assignFullUrl";
+}
+
+// ── Tenancy ──────────────────────────────────────────────────────────────────
+//
+// Whose this is. The platform says which tenant a response belongs to with a
+// tag on the response, and every tag the response carries is copied onto
+// everything this map creates, as it is. Copied rather than named here, so the
+// map never has to know which tenant it is running for, nor which system the
+// tag is under: that system has moved more than once.
+group CopyResponseTags(source qr : QR, target r) {
+  qr.meta as qm then {
+    qm.tag as qt -> r.meta as m, m.tag = qt "copyTag";
+  } "tenantTags";
 }

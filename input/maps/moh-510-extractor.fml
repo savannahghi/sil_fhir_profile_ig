@@ -34,6 +34,7 @@ group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) 
     gReg.item as itH where linkId = 'IMM-RG-H-father-name' then {
       itH.answer first as aH then {
         aH -> bundle.entry as eFat, eFat.resource = create('RelatedPerson') as fat then {
+          qr -> fat then CopyResponseTags(qr, fat) "responseTags";
           qr -> fat, eFat then BuildRelatedPerson(qr, itH, fat, eFat) "fatherBase";
           qr -> fat.relationship as relF then {
             qr -> relF.coding as relFc then {
@@ -60,6 +61,7 @@ group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) 
     gReg.item as itI where linkId = 'IMM-RG-I-mother-name' then {
       itI.answer first as aI then {
         aI -> bundle.entry as eMot, eMot.resource = create('RelatedPerson') as mot then {
+          qr -> mot then CopyResponseTags(qr, mot) "responseTags";
           qr -> mot, eMot then BuildRelatedPerson(qr, itI, mot, eMot) "motherBase";
           qr -> mot.relationship as relM then {
             qr -> relM.coding as relMc then {
@@ -102,6 +104,7 @@ group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) 
     gGrow.item as itW where linkId = 'IMM-GM-Q1-weight' then {
       itW.answer first as aW then {
         aW -> bundle.entry as eW, eW.resource = create('Observation') as obW then {
+          qr -> obW then CopyResponseTags(qr, obW) "responseTags";
           qr -> obW, eW then BuildObsBase(qr, obW, eW) "weightBase";
           qr -> obW then VitalSignsCategory(qr, obW) "weightCategory";
           qr -> obW.code as cdW then {
@@ -124,6 +127,7 @@ group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) 
     gGrow.item as itH2 where linkId = 'IMM-GM-Q2-height' then {
       itH2.answer first as aH2 then {
         aH2 -> bundle.entry as eH2, eH2.resource = create('Observation') as obH2 then {
+          qr -> obH2 then CopyResponseTags(qr, obH2) "responseTags";
           qr -> obH2, eH2 then BuildObsBase(qr, obH2, eH2) "heightBase";
           qr -> obH2 then VitalSignsCategory(qr, obH2) "heightCategory";
           qr -> obH2.code as cdH2 then {
@@ -146,6 +150,7 @@ group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) 
     gGrow.item as itMu where linkId = 'IMM-GM-Q3-muac' then {
       itMu.answer first as aMu then {
         aMu -> bundle.entry as eMu, eMu.resource = create('Observation') as obMu then {
+          qr -> obMu then CopyResponseTags(qr, obMu) "responseTags";
           qr -> obMu, eMu then BuildObsBase(qr, obMu, eMu) "muacBase";
           qr -> obMu then VitalSignsCategory(qr, obMu) "muacCategory";
           qr -> obMu.code as cdMu then {
@@ -163,6 +168,7 @@ group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) 
     gGrow.item as itWfa where linkId = 'IMM-GM-Q4-weight-category' then {
       itWfa.answer first as aWfa then {
         aWfa -> bundle.entry as eWfa, eWfa.resource = create('Observation') as obWfa then {
+          qr -> obWfa then CopyResponseTags(qr, obWfa) "responseTags";
           qr -> obWfa, eWfa then BuildObsBase(qr, obWfa, eWfa) "wfaBase";
           qr -> obWfa then VitalSignsCategory(qr, obWfa) "wfaCategory";
           qr -> obWfa.code as cdWfa then {
@@ -180,6 +186,7 @@ group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) 
     gGrow.item as itHfa where linkId = 'IMM-GM-Q5-height-category' then {
       itHfa.answer first as aHfa then {
         aHfa -> bundle.entry as eHfa, eHfa.resource = create('Observation') as obHfa then {
+          qr -> obHfa then CopyResponseTags(qr, obHfa) "responseTags";
           qr -> obHfa, eHfa then BuildObsBase(qr, obHfa, eHfa) "hfaBase";
           qr -> obHfa then VitalSignsCategory(qr, obHfa) "hfaCategory";
           qr -> obHfa.code as cdHfa then {
@@ -201,6 +208,7 @@ group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) 
     gVax.item as itL where linkId = 'IMM-VAX-L-bcg' then {
       itL.answer first as aL then {
         aL -> bundle.entry as eL, eL.resource = create('Immunization') as imL then {
+          qr -> imL then CopyResponseTags(qr, imL) "responseTags";
           qr -> imL, eL then BuildImm(qr, itL, aL, imL, eL) "bcgBase";
           qr -> imL.vaccineCode as vcL then {
             qr -> vcL.coding as vccL then {
@@ -221,6 +229,7 @@ group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) 
     gVax.item as itM where linkId = 'IMM-VAX-M-polio-birth' then {
       itM.answer first as aM then {
         aM -> bundle.entry as eM, eM.resource = create('Immunization') as imM then {
+          qr -> imM then CopyResponseTags(qr, imM) "responseTags";
           qr -> imM, eM then BuildImm(qr, itM, aM, imM, eM) "opv0Base";
           qr -> imM.vaccineCode as vcM then {
             qr -> vcM.coding as vccM then {
@@ -241,6 +250,7 @@ group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) 
     gVax.item as itN where linkId = 'IMM-VAX-N-opv1' then {
       itN.answer first as aN then {
         aN -> bundle.entry as eN, eN.resource = create('Immunization') as imN then {
+          qr -> imN then CopyResponseTags(qr, imN) "responseTags";
           qr -> imN, eN then BuildImm(qr, itN, aN, imN, eN) "opv1Base";
           qr -> imN.vaccineCode as vcN then {
             qr -> vcN.coding as vccN then {
@@ -261,6 +271,7 @@ group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) 
     gVax.item as itO where linkId = 'IMM-VAX-O-opv2' then {
       itO.answer first as aO then {
         aO -> bundle.entry as eO, eO.resource = create('Immunization') as imO then {
+          qr -> imO then CopyResponseTags(qr, imO) "responseTags";
           qr -> imO, eO then BuildImm(qr, itO, aO, imO, eO) "opv2Base";
           qr -> imO.vaccineCode as vcO then {
             qr -> vcO.coding as vccO then {
@@ -281,6 +292,7 @@ group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) 
     gVax.item as itP where linkId = 'IMM-VAX-P-opv3' then {
       itP.answer first as aP then {
         aP -> bundle.entry as eP, eP.resource = create('Immunization') as imP then {
+          qr -> imP then CopyResponseTags(qr, imP) "responseTags";
           qr -> imP, eP then BuildImm(qr, itP, aP, imP, eP) "opv3Base";
           qr -> imP.vaccineCode as vcP then {
             qr -> vcP.coding as vccP then {
@@ -303,6 +315,7 @@ group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) 
     gVax.item as itQ where linkId = 'IMM-VAX-Q-ipv' then {
       itQ.answer first as aQ then {
         aQ -> bundle.entry as eQ, eQ.resource = create('Immunization') as imQ then {
+          qr -> imQ then CopyResponseTags(qr, imQ) "responseTags";
           qr -> imQ, eQ then BuildImm(qr, itQ, aQ, imQ, eQ) "ipvBase";
           qr -> imQ.vaccineCode as vcQ then {
             qr -> vcQ.coding as vccQ then {
@@ -323,6 +336,7 @@ group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) 
     gVax.item as itR where linkId = 'IMM-VAX-R-penta1' then {
       itR.answer first as aR then {
         aR -> bundle.entry as eR, eR.resource = create('Immunization') as imR then {
+          qr -> imR then CopyResponseTags(qr, imR) "responseTags";
           qr -> imR, eR then BuildImm(qr, itR, aR, imR, eR) "penta1Base";
           qr -> imR.vaccineCode as vcR then {
             qr -> vcR.coding as vccR then {
@@ -343,6 +357,7 @@ group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) 
     gVax.item as itS where linkId = 'IMM-VAX-S-penta2' then {
       itS.answer first as aS then {
         aS -> bundle.entry as eS, eS.resource = create('Immunization') as imS then {
+          qr -> imS then CopyResponseTags(qr, imS) "responseTags";
           qr -> imS, eS then BuildImm(qr, itS, aS, imS, eS) "penta2Base";
           qr -> imS.vaccineCode as vcS then {
             qr -> vcS.coding as vccS then {
@@ -363,6 +378,7 @@ group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) 
     gVax.item as itT where linkId = 'IMM-VAX-T-penta3' then {
       itT.answer first as aT then {
         aT -> bundle.entry as eT, eT.resource = create('Immunization') as imT then {
+          qr -> imT then CopyResponseTags(qr, imT) "responseTags";
           qr -> imT, eT then BuildImm(qr, itT, aT, imT, eT) "penta3Base";
           qr -> imT.vaccineCode as vcT then {
             qr -> vcT.coding as vccT then {
@@ -383,6 +399,7 @@ group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) 
     gVax.item as itU where linkId = 'IMM-VAX-U-pcv1' then {
       itU.answer first as aU then {
         aU -> bundle.entry as eU, eU.resource = create('Immunization') as imU then {
+          qr -> imU then CopyResponseTags(qr, imU) "responseTags";
           qr -> imU, eU then BuildImm(qr, itU, aU, imU, eU) "pcv1Base";
           qr -> imU.vaccineCode as vcU then {
             qr -> vcU.coding as vccU then {
@@ -403,6 +420,7 @@ group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) 
     gVax.item as itV where linkId = 'IMM-VAX-V-pcv2' then {
       itV.answer first as aV then {
         aV -> bundle.entry as eV, eV.resource = create('Immunization') as imV then {
+          qr -> imV then CopyResponseTags(qr, imV) "responseTags";
           qr -> imV, eV then BuildImm(qr, itV, aV, imV, eV) "pcv2Base";
           qr -> imV.vaccineCode as vcV then {
             qr -> vcV.coding as vccV then {
@@ -423,6 +441,7 @@ group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) 
     gVax.item as itW2 where linkId = 'IMM-VAX-W-pcv3' then {
       itW2.answer first as aW2 then {
         aW2 -> bundle.entry as eW2, eW2.resource = create('Immunization') as imW2 then {
+          qr -> imW2 then CopyResponseTags(qr, imW2) "responseTags";
           qr -> imW2, eW2 then BuildImm(qr, itW2, aW2, imW2, eW2) "pcv3Base";
           qr -> imW2.vaccineCode as vcW2 then {
             qr -> vcW2.coding as vccW2 then {
@@ -443,6 +462,7 @@ group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) 
     gVax.item as itX where linkId = 'IMM-VAX-X-rota1' then {
       itX.answer first as aX then {
         aX -> bundle.entry as eX, eX.resource = create('Immunization') as imX then {
+          qr -> imX then CopyResponseTags(qr, imX) "responseTags";
           qr -> imX, eX then BuildImm(qr, itX, aX, imX, eX) "rota1Base";
           qr -> imX.vaccineCode as vcX then {
             qr -> vcX.coding as vccX then {
@@ -463,6 +483,7 @@ group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) 
     gVax.item as itY where linkId = 'IMM-VAX-Y-rota2' then {
       itY.answer first as aY then {
         aY -> bundle.entry as eY, eY.resource = create('Immunization') as imY then {
+          qr -> imY then CopyResponseTags(qr, imY) "responseTags";
           qr -> imY, eY then BuildImm(qr, itY, aY, imY, eY) "rota2Base";
           qr -> imY.vaccineCode as vcY then {
             qr -> vcY.coding as vccY then {
@@ -487,6 +508,7 @@ group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) 
     gSup.item as itZ where linkId = '55876-9' then {
       itZ.answer first as aZ then {
         aZ -> bundle.entry as eZ, eZ.resource = create('MedicationAdministration') as maZ then {
+          qr -> maZ then CopyResponseTags(qr, maZ) "responseTags";
           qr -> maZ, eZ then BuildMedAdmin(qr, itZ, aZ, maZ, eZ) "vitA100Base";
           qr -> maZ.medication as mcrZ then {
             qr -> mcrZ.concept as mccZ then {
@@ -513,6 +535,7 @@ group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) 
     gSup.item as itZ2 where linkId = '0v8mpdt' then {
       itZ2.answer first as aZ2 then {
         aZ2 -> bundle.entry as eZ2, eZ2.resource = create('MedicationAdministration') as maZ2 then {
+          qr -> maZ2 then CopyResponseTags(qr, maZ2) "responseTags";
           qr -> maZ2, eZ2 then BuildMedAdmin(qr, itZ2, aZ2, maZ2, eZ2) "vitA200Base";
           qr -> maZ2.medication as mcrZ2 then {
             qr -> mcrZ2.concept as mccZ2 then {
@@ -543,6 +566,7 @@ group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) 
     gMrYf.item as itAa where linkId = 'IMM-VAX-AA-mr1' then {
       itAa.answer first as aAa then {
         aAa -> bundle.entry as eAa, eAa.resource = create('Immunization') as imAa then {
+          qr -> imAa then CopyResponseTags(qr, imAa) "responseTags";
           qr -> imAa, eAa then BuildImm(qr, itAa, aAa, imAa, eAa) "mr1Base";
           qr -> imAa.vaccineCode as vcAa then {
             qr -> vcAa.coding as vccAa then {
@@ -563,6 +587,7 @@ group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) 
     gMrYf.item as itAb where linkId = 'IMM-VAX-AB-yf' then {
       itAb.answer first as aAb then {
         aAb -> bundle.entry as eAb, eAb.resource = create('Immunization') as imAb then {
+          qr -> imAb then CopyResponseTags(qr, imAb) "responseTags";
           qr -> imAb, eAb then BuildImm(qr, itAb, aAb, imAb, eAb) "yfBase";
           qr -> imAb.vaccineCode as vcAb then {
             qr -> vcAb.coding as vccAb then {
@@ -586,6 +611,7 @@ group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) 
     gFic.item as itAc where linkId = 'IMM-FIC-AC-date' then {
       itAc.answer first as aAc then {
         aAc -> bundle.entry as eAc, eAc.resource = create('Observation') as obAc then {
+          qr -> obAc then CopyResponseTags(qr, obAc) "responseTags";
           qr -> obAc, eAc then BuildObsBase(qr, obAc, eAc) "ficBase";
           qr -> obAc then SurveyCategory(qr, obAc) "ficCategory";
           qr -> obAc.code as cdAc then {
@@ -607,6 +633,7 @@ group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) 
     gMr2.item as itAd where linkId = 'IMM-VAX-AD-mr2' then {
       itAd.answer first as aAd then {
         aAd -> bundle.entry as eAd, eAd.resource = create('Immunization') as imAd then {
+          qr -> imAd then CopyResponseTags(qr, imAd) "responseTags";
           qr -> imAd, eAd then BuildImm(qr, itAd, aAd, imAd, eAd) "mr2Base";
           qr -> imAd.vaccineCode as vcAd then {
             qr -> vcAd.coding as vccAd then {
@@ -631,6 +658,7 @@ group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) 
     gDs.item as itD1 where linkId = 'IMM-DS-Q1-fever' then {
       itD1.answer first as aD1 then {
         aD1 -> bundle.entry as eD1, eD1.resource = create('Observation') as obD1 then {
+          qr -> obD1 then CopyResponseTags(qr, obD1) "responseTags";
           qr -> obD1, eD1 then BuildObsBase(qr, obD1, eD1) "feverBase";
           qr -> obD1 then SurveyCategory(qr, obD1) "feverCategory";
           qr -> obD1.code as cdD1 then {
@@ -649,6 +677,7 @@ group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) 
     gDs.item as itD2 where linkId = 'IMM-DS-Q2-feeding' then {
       itD2.answer first as aD2 then {
         aD2 -> bundle.entry as eD2, eD2.resource = create('Observation') as obD2 then {
+          qr -> obD2 then CopyResponseTags(qr, obD2) "responseTags";
           qr -> obD2, eD2 then BuildObsBase(qr, obD2, eD2) "feedingBase";
           qr -> obD2 then SurveyCategory(qr, obD2) "feedingCategory";
           qr -> obD2.code as cdD2 then {
@@ -669,6 +698,7 @@ group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) 
     gDs.item as itD3 where linkId = 'IMM-DS-Q3-convulsions' then {
       itD3.answer first as aD3 then {
         aD3 -> bundle.entry as eD3, eD3.resource = create('Observation') as obD3 then {
+          qr -> obD3 then CopyResponseTags(qr, obD3) "responseTags";
           qr -> obD3, eD3 then BuildObsBase(qr, obD3, eD3) "convulsionsBase";
           qr -> obD3 then SurveyCategory(qr, obD3) "convulsionsCategory";
           qr -> obD3.code as cdD3 then {
@@ -686,6 +716,7 @@ group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) 
     gDs.item as itD4 where linkId = 'IMM-DS-Q4-cough' then {
       itD4.answer first as aD4 then {
         aD4 -> bundle.entry as eD4, eD4.resource = create('Observation') as obD4 then {
+          qr -> obD4 then CopyResponseTags(qr, obD4) "responseTags";
           qr -> obD4, eD4 then BuildObsBase(qr, obD4, eD4) "coughBase";
           qr -> obD4 then SurveyCategory(qr, obD4) "coughCategory";
           qr -> obD4.code as cdD4 then {
@@ -705,6 +736,7 @@ group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) 
     gDs.item as itD5 where linkId = 'IMM-DS-Q5-diarrhoea' then {
       itD5.answer first as aD5 then {
         aD5 -> bundle.entry as eD5, eD5.resource = create('Observation') as obD5 then {
+          qr -> obD5 then CopyResponseTags(qr, obD5) "responseTags";
           qr -> obD5, eD5 then BuildObsBase(qr, obD5, eD5) "diarrhoeaBase";
           qr -> obD5 then SurveyCategory(qr, obD5) "diarrhoeaCategory";
           qr -> obD5.code as cdD5 then {
@@ -722,6 +754,7 @@ group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) 
     gDs.item as itD6 where linkId = 'IMM-DS-Q6-vomiting' then {
       itD6.answer first as aD6 then {
         aD6 -> bundle.entry as eD6, eD6.resource = create('Observation') as obD6 then {
+          qr -> obD6 then CopyResponseTags(qr, obD6) "responseTags";
           qr -> obD6, eD6 then BuildObsBase(qr, obD6, eD6) "vomitingBase";
           qr -> obD6 then SurveyCategory(qr, obD6) "vomitingCategory";
           qr -> obD6.code as cdD6 then {
@@ -739,6 +772,7 @@ group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) 
     gDs.item as itD7 where linkId = 'IMM-DS-Q7-notes' then {
       itD7.answer first as aD7 then {
         aD7 -> bundle.entry as eD7, eD7.resource = create('Observation') as obD7 then {
+          qr -> obD7 then CopyResponseTags(qr, obD7) "responseTags";
           qr -> obD7, eD7 then BuildObsBase(qr, obD7, eD7) "dsNotesBase";
           qr -> obD7 then SurveyCategory(qr, obD7) "dsNotesCategory";
           qr -> obD7.code as cdD7 then {
@@ -761,6 +795,7 @@ group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) 
     gEd.item as itE1 where linkId = 'IMM-ED-Q1-education-given' then {
       itE1.answer first as aE1 then {
         aE1 -> bundle.entry as eE1, eE1.resource = create('Observation') as obE1 then {
+          qr -> obE1 then CopyResponseTags(qr, obE1) "responseTags";
           qr -> obE1, eE1 then BuildObsBase(qr, obE1, eE1) "eduGivenBase";
           qr -> obE1 then SurveyCategory(qr, obE1) "eduGivenCategory";
           qr -> obE1.code as cdE1 then {
@@ -778,6 +813,7 @@ group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) 
     gEd.item as itE2 where linkId = 'IMM-ED-Q2-topics' then {
       itE2.answer first as aE2 then {
         aE2 -> bundle.entry as eE2, eE2.resource = create('Observation') as obE2 then {
+          qr -> obE2 then CopyResponseTags(qr, obE2) "responseTags";
           qr -> obE2, eE2 then BuildObsBase(qr, obE2, eE2) "eduTopicsBase";
           qr -> obE2 then SurveyCategory(qr, obE2) "eduTopicsCategory";
           qr -> obE2.code as cdE2 then {
@@ -796,6 +832,7 @@ group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) 
     gEd.item as itE3 where linkId = 'IMM-ED-Q3-next-visit' then {
       itE3.answer first as aE3 then {
         aE3 -> bundle.entry as eE3, eE3.resource = create('Observation') as obE3 then {
+          qr -> obE3 then CopyResponseTags(qr, obE3) "responseTags";
           qr -> obE3, eE3 then BuildObsBase(qr, obE3, eE3) "nextVisitToldBase";
           qr -> obE3 then SurveyCategory(qr, obE3) "nextVisitToldCategory";
           qr -> obE3.code as cdE3 then {
@@ -816,6 +853,7 @@ group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) 
     gEd.item as itE4 where linkId = 'IMM-ED-Q4-next-visit-date' then {
       itE4.answer first as aE4 then {
         aE4 -> bundle.entry as eE4, eE4.resource = create('Appointment') as appt then {
+          qr -> appt then CopyResponseTags(qr, appt) "responseTags";
           // One proposed appointment per (child, requested date).
           aE4.value as dvAp -> appt.identifier as idAp then {
             qr -> idAp.system = 'https://fhir.slade360.co.ke/fhir/Identifier/moh510-register-cell' "apptCellSystem";
@@ -851,6 +889,7 @@ group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) 
     gRem.item as itAe where linkId = '48767-8' then {
       itAe.answer first as aAe then {
         aAe -> bundle.entry as eAe, eAe.resource = create('Observation') as obAe then {
+          qr -> obAe then CopyResponseTags(qr, obAe) "responseTags";
           qr -> obAe, eAe then BuildObsBase(qr, obAe, eAe) "remarksBase";
           qr -> obAe then SurveyCategory(qr, obAe) "remarksCategory";
           qr -> obAe.code as cdAe then {
@@ -992,4 +1031,17 @@ group SetCodedValue(source it : Element, target obs : Observation) {
   it.answer as a -> obs.value = create('CodeableConcept') as c then {
     a.value as coding -> c.coding = coding as nc "copyCoding";
   } "setCodedValue";
+}
+
+// ── Tenancy ──────────────────────────────────────────────────────────────────
+//
+// Whose this is. The platform says which tenant a response belongs to with a
+// tag on the response, and every tag the response carries is copied onto
+// everything this map creates, as it is. Copied rather than named here, so the
+// map never has to know which tenant it is running for, nor which system the
+// tag is under: that system has moved more than once.
+group CopyResponseTags(source qr : QR, target r) {
+  qr.meta as qm then {
+    qm.tag as qt -> r.meta as m, m.tag = qt "copyTag";
+  } "tenantTags";
 }

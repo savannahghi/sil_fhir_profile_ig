@@ -19,6 +19,7 @@ group ExtractInpatientNutritionScreening(source qr : QR, target bundle : Bundle)
   // indicator, but nothing for the three steps, so those carry local codes.
   qr.item as gM where (linkId = 'must' and item.answer.value.ofType(Coding).exists()) then {
     gM -> bundle.entry as entryM, entryM.resource = create('Observation') as obsM then {
+      qr -> obsM then CopyResponseTags(qr, obsM) "responseTags";
       qr -> obsM, entryM then BuildObsBase(qr, obsM, entryM) "mustBase";
       qr -> obsM then SetSurveyCategory(qr, obsM) "mustCategory";
       qr -> obsM.code as code then {
@@ -84,6 +85,7 @@ group ExtractInpatientNutritionScreening(source qr : QR, target bundle : Bundle)
   qr.item as itP where (linkId = 'plan' and answer.value.exists()) then {
     itP.answer first as aP then {
       aP -> bundle.entry as entryC, entryC.resource = create('CarePlan') as plan then {
+        qr -> plan then CopyResponseTags(qr, plan) "responseTags";
         qr -> plan.id = uuid() then SetCarePlanFullUrl(plan, entryC) "idAndFullUrl";
 
         qr -> entryC.request as request then {
@@ -125,6 +127,7 @@ group ExtractInpatientNutritionScreening(source qr : QR, target bundle : Bundle)
 
 group AddMustRiskAssessment(source obs : Observation, source qr : QR, target bundle : Bundle) {
   obs where (value.ofType(integer) = 0) -> bundle.entry as entry, entry.resource = create('RiskAssessment') as ra then {
+    qr -> ra then CopyResponseTags(qr, ra) "responseTags";
     qr -> ra, entry then BuildRiskBase(qr, obs, ra, entry) "riskBase";
     qr -> ra then SetMustRiskCode(qr, ra) "riskCode";
     qr -> ra.prediction as pred then {
@@ -140,6 +143,7 @@ group AddMustRiskAssessment(source obs : Observation, source qr : QR, target bun
   } "mustLow";
 
   obs where (value.ofType(integer) = 1) -> bundle.entry as entry, entry.resource = create('RiskAssessment') as ra then {
+    qr -> ra then CopyResponseTags(qr, ra) "responseTags";
     qr -> ra, entry then BuildRiskBase(qr, obs, ra, entry) "riskBase";
     qr -> ra then SetMustRiskCode(qr, ra) "riskCode";
     qr -> ra.prediction as pred then {
@@ -155,6 +159,7 @@ group AddMustRiskAssessment(source obs : Observation, source qr : QR, target bun
   } "mustMedium";
 
   obs where (value.ofType(integer) >= 2) -> bundle.entry as entry, entry.resource = create('RiskAssessment') as ra then {
+    qr -> ra then CopyResponseTags(qr, ra) "responseTags";
     qr -> ra, entry then BuildRiskBase(qr, obs, ra, entry) "riskBase";
     qr -> ra then SetMustRiskCode(qr, ra) "riskCode";
     qr -> ra.prediction as pred then {
@@ -182,6 +187,7 @@ group SetMustRiskCode(source qr : QR, target ra : RiskAssessment) {
 
 group AddDietitianReferral(source obs : Observation, source qr : QR, target bundle : Bundle) {
   obs where (value.ofType(integer) >= 2) -> bundle.entry as entry, entry.resource = create('ServiceRequest') as sr then {
+    qr -> sr then CopyResponseTags(qr, sr) "responseTags";
     qr -> sr.id = uuid() then SetServiceRequestFullUrl(sr, entry) "idAndFullUrl";
 
     qr -> entry.request as request then {
@@ -353,4 +359,17 @@ group SetServiceRequestFullUrl(source sr : ServiceRequest, target entry) {
     'https://fhir.slade360.co.ke/fhir/ServiceRequest/',
     id
   ) "assignFullUrl";
+}
+
+// ── Tenancy ──────────────────────────────────────────────────────────────────
+//
+// Whose this is. The platform says which tenant a response belongs to with a
+// tag on the response, and every tag the response carries is copied onto
+// everything this map creates, as it is. Copied rather than named here, so the
+// map never has to know which tenant it is running for, nor which system the
+// tag is under: that system has moved more than once.
+group CopyResponseTags(source qr : QR, target r) {
+  qr.meta as qm then {
+    qm.tag as qt -> r.meta as m, m.tag = qt "copyTag";
+  } "tenantTags";
 }

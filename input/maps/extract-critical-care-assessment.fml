@@ -19,6 +19,7 @@ group ExtractInpatientCriticalCareAssessment(source qr : QR, target bundle : Bun
   // three separate Observations from a different questionnaire; it is untouched.)
   qr.item as gG where (linkId = 'gcs' and item.answer.value.ofType(Coding).exists()) then {
     gG -> bundle.entry as entryG, entryG.resource = create('Observation') as obsG then {
+      qr -> obsG then CopyResponseTags(qr, obsG) "responseTags";
       qr -> obsG, entryG then BuildObsBase(qr, obsG, entryG) "gcsBase";
       qr -> obsG then SetSurveyCategory(qr, obsG) "gcsCategory";
       qr -> obsG.code as code then {
@@ -83,6 +84,7 @@ group ExtractInpatientCriticalCareAssessment(source qr : QR, target bundle : Bun
   qr.item as itO where (linkId = 'oxygen' and answer.value.exists()) then {
     itO.answer first as aO then {
       aO -> bundle.entry as entryO, entryO.resource = create('Observation') as obsO then {
+        qr -> obsO then CopyResponseTags(qr, obsO) "responseTags";
         qr -> obsO, entryO then BuildObsBase(qr, obsO, entryO) "oxygenBase";
         qr -> obsO then SetTherapyCategory(qr, obsO) "oxygenCategory";
         qr -> obsO.code as code then {
@@ -103,6 +105,7 @@ group ExtractInpatientCriticalCareAssessment(source qr : QR, target bundle : Bun
   qr.item as itS where (linkId = 'organSupport' and answer.value.exists()) then {
     itS.answer first as aS then {
       aS -> bundle.entry as entryS, entryS.resource = create('Observation') as obsS then {
+        qr -> obsS then CopyResponseTags(qr, obsS) "responseTags";
         qr -> obsS, entryS then BuildObsBase(qr, obsS, entryS) "organSupportBase";
         qr -> obsS then SetTherapyCategory(qr, obsS) "organSupportCategory";
         qr -> obsS.code as code then {
@@ -128,6 +131,7 @@ group ExtractInpatientCriticalCareAssessment(source qr : QR, target bundle : Bun
   qr.item as itV where (linkId = 'vasopressor' and answer.value.exists()) then {
     itV.answer first as aV then {
       aV -> bundle.entry as entryV, entryV.resource = create('MedicationAdministration') as ma then {
+        qr -> ma then CopyResponseTags(qr, ma) "responseTags";
         qr -> ma.id = uuid() then SetMedicationAdministrationFullUrl(ma, entryV) "idAndFullUrl";
 
         qr -> entryV.request as request then {
@@ -256,4 +260,17 @@ group SetMedicationAdministrationFullUrl(source ma : MedicationAdministration, t
     'https://fhir.slade360.co.ke/fhir/MedicationAdministration/',
     id
   ) "assignFullUrl";
+}
+
+// ── Tenancy ──────────────────────────────────────────────────────────────────
+//
+// Whose this is. The platform says which tenant a response belongs to with a
+// tag on the response, and every tag the response carries is copied onto
+// everything this map creates, as it is. Copied rather than named here, so the
+// map never has to know which tenant it is running for, nor which system the
+// tag is under: that system has moved more than once.
+group CopyResponseTags(source qr : QR, target r) {
+  qr.meta as qm then {
+    qm.tag as qt -> r.meta as m, m.tag = qt "copyTag";
+  } "tenantTags";
 }

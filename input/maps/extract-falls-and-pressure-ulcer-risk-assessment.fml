@@ -16,6 +16,7 @@ group ExtractInpatientFallsAndPressureUlcerRiskAssessment(source qr : QR, target
   // ── Braden pressure ulcer risk ─────────────────────────────────────────────
   qr.item as gB where (linkId = 'braden' and item.answer.value.ofType(Coding).exists()) then {
     gB -> bundle.entry as entryB, entryB.resource = create('Observation') as obsB then {
+      qr -> obsB then CopyResponseTags(qr, obsB) "responseTags";
       qr -> obsB, entryB then BuildObsBase(qr, obsB, entryB) "bradenBase";
       qr -> obsB then SetSurveyCategory(qr, obsB) "bradenCategory";
       qr -> obsB.code as code then {
@@ -108,6 +109,7 @@ group ExtractInpatientFallsAndPressureUlcerRiskAssessment(source qr : QR, target
   // ── Falls risk (Morse Fall Scale) ──────────────────────────────────────────
   qr.item as gF where (linkId = 'fallsRisk' and item.answer.value.ofType(Coding).exists()) then {
     gF -> bundle.entry as entryF, entryF.resource = create('Observation') as obsF then {
+      qr -> obsF then CopyResponseTags(qr, obsF) "responseTags";
       qr -> obsF, entryF then BuildObsBase(qr, obsF, entryF) "fallsBase";
       qr -> obsF then SetSurveyCategory(qr, obsF) "fallsCategory";
       qr -> obsF.code as code then {
@@ -196,6 +198,7 @@ group ExtractInpatientFallsAndPressureUlcerRiskAssessment(source qr : QR, target
   qr.item as itM where (linkId = 'measures' and answer.value.exists()) then {
     itM.answer first as aM then {
       aM -> bundle.entry as entryC, entryC.resource = create('CarePlan') as plan then {
+        qr -> plan then CopyResponseTags(qr, plan) "responseTags";
         qr -> plan.id = uuid() then SetCarePlanFullUrl(plan, entryC) "idAndFullUrl";
 
         qr -> entryC.request as request then {
@@ -247,6 +250,7 @@ group ExtractInpatientFallsAndPressureUlcerRiskAssessment(source qr : QR, target
 
 group AddBradenRiskAssessment(source obs : Observation, source qr : QR, target bundle : Bundle) {
   obs where (value.ofType(integer) <= 9) -> bundle.entry as entry, entry.resource = create('RiskAssessment') as ra then {
+    qr -> ra then CopyResponseTags(qr, ra) "responseTags";
     qr -> ra, entry then BuildRiskBase(qr, obs, ra, entry) "riskBase";
     qr -> ra then SetBradenRiskCode(qr, ra) "riskCode";
     qr -> ra.prediction as pred then {
@@ -262,6 +266,7 @@ group AddBradenRiskAssessment(source obs : Observation, source qr : QR, target b
   } "bradenVeryHigh";
 
   obs where (value.ofType(integer) >= 10 and value.ofType(integer) <= 12) -> bundle.entry as entry, entry.resource = create('RiskAssessment') as ra then {
+    qr -> ra then CopyResponseTags(qr, ra) "responseTags";
     qr -> ra, entry then BuildRiskBase(qr, obs, ra, entry) "riskBase";
     qr -> ra then SetBradenRiskCode(qr, ra) "riskCode";
     qr -> ra.prediction as pred then {
@@ -277,6 +282,7 @@ group AddBradenRiskAssessment(source obs : Observation, source qr : QR, target b
   } "bradenHigh";
 
   obs where (value.ofType(integer) >= 13 and value.ofType(integer) <= 14) -> bundle.entry as entry, entry.resource = create('RiskAssessment') as ra then {
+    qr -> ra then CopyResponseTags(qr, ra) "responseTags";
     qr -> ra, entry then BuildRiskBase(qr, obs, ra, entry) "riskBase";
     qr -> ra then SetBradenRiskCode(qr, ra) "riskCode";
     qr -> ra.prediction as pred then {
@@ -292,6 +298,7 @@ group AddBradenRiskAssessment(source obs : Observation, source qr : QR, target b
   } "bradenModerate";
 
   obs where (value.ofType(integer) >= 15 and value.ofType(integer) <= 18) -> bundle.entry as entry, entry.resource = create('RiskAssessment') as ra then {
+    qr -> ra then CopyResponseTags(qr, ra) "responseTags";
     qr -> ra, entry then BuildRiskBase(qr, obs, ra, entry) "riskBase";
     qr -> ra then SetBradenRiskCode(qr, ra) "riskCode";
     qr -> ra.prediction as pred then {
@@ -307,6 +314,7 @@ group AddBradenRiskAssessment(source obs : Observation, source qr : QR, target b
   } "bradenMild";
 
   obs where (value.ofType(integer) >= 19) -> bundle.entry as entry, entry.resource = create('RiskAssessment') as ra then {
+    qr -> ra then CopyResponseTags(qr, ra) "responseTags";
     qr -> ra, entry then BuildRiskBase(qr, obs, ra, entry) "riskBase";
     qr -> ra then SetBradenRiskCode(qr, ra) "riskCode";
     qr -> ra.prediction as pred then {
@@ -334,6 +342,7 @@ group SetBradenRiskCode(source qr : QR, target ra : RiskAssessment) {
 
 group AddFallsRiskAssessment(source obs : Observation, source qr : QR, target bundle : Bundle) {
   obs where (value.ofType(integer) <= 24) -> bundle.entry as entry, entry.resource = create('RiskAssessment') as ra then {
+    qr -> ra then CopyResponseTags(qr, ra) "responseTags";
     qr -> ra, entry then BuildRiskBase(qr, obs, ra, entry) "riskBase";
     qr -> ra then SetFallsRiskCode(qr, ra) "riskCode";
     qr -> ra.prediction as pred then {
@@ -349,6 +358,7 @@ group AddFallsRiskAssessment(source obs : Observation, source qr : QR, target bu
   } "fallsNoRisk";
 
   obs where (value.ofType(integer) >= 25 and value.ofType(integer) <= 50) -> bundle.entry as entry, entry.resource = create('RiskAssessment') as ra then {
+    qr -> ra then CopyResponseTags(qr, ra) "responseTags";
     qr -> ra, entry then BuildRiskBase(qr, obs, ra, entry) "riskBase";
     qr -> ra then SetFallsRiskCode(qr, ra) "riskCode";
     qr -> ra.prediction as pred then {
@@ -364,6 +374,7 @@ group AddFallsRiskAssessment(source obs : Observation, source qr : QR, target bu
   } "fallsLow";
 
   obs where (value.ofType(integer) >= 51) -> bundle.entry as entry, entry.resource = create('RiskAssessment') as ra then {
+    qr -> ra then CopyResponseTags(qr, ra) "responseTags";
     qr -> ra, entry then BuildRiskBase(qr, obs, ra, entry) "riskBase";
     qr -> ra then SetFallsRiskCode(qr, ra) "riskCode";
     qr -> ra.prediction as pred then {
@@ -500,4 +511,17 @@ group SetCarePlanFullUrl(source plan : CarePlan, target entry) {
     'https://fhir.slade360.co.ke/fhir/CarePlan/',
     id
   ) "assignFullUrl";
+}
+
+// ── Tenancy ──────────────────────────────────────────────────────────────────
+//
+// Whose this is. The platform says which tenant a response belongs to with a
+// tag on the response, and every tag the response carries is copied onto
+// everything this map creates, as it is. Copied rather than named here, so the
+// map never has to know which tenant it is running for, nor which system the
+// tag is under: that system has moved more than once.
+group CopyResponseTags(source qr : QR, target r) {
+  qr.meta as qm then {
+    qm.tag as qt -> r.meta as m, m.tag = qt "copyTag";
+  } "tenantTags";
 }
