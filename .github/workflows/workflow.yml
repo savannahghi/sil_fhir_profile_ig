@@ -63,11 +63,17 @@ jobs:
       # "cancelled publisher update" and still exits 0 - leaving _genonce.sh with no jar.
       # Fetching the jar directly also avoids `-y`, which overwrites the repo's own
       # _*.sh scripts with whatever HL7 published that day.
+      #
+      # The version is the Makefile's PUBLISHER_VERSION, so CI and `make ig` run the
+      # same publisher. Not "latest": 2.3.5 broke this build the day it shipped.
       - name: Download IG Publisher
         run: |
+          version=$(sed -n 's/^PUBLISHER_VERSION *= *//p' Makefile)
+          test -n "$version"
+          echo "IG Publisher $version"
           mkdir -p input-cache
           curl -fL --retry 3 \
-            https://github.com/HL7/fhir-ig-publisher/releases/latest/download/publisher.jar \
+            "https://github.com/HL7/fhir-ig-publisher/releases/download/$version/publisher.jar" \
             -o input-cache/publisher.jar
           test -s input-cache/publisher.jar
 

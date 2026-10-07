@@ -37,10 +37,29 @@ build:
 # overwrites that script with the upstream copy on every run.
 PUBLISHER_FLAGS = -authorise-non-conformant-tx-servers
 
+# The publisher is pinned, not "latest". Release 2.3.5 (2026-10-06) cannot
+# build this IG: it logs a snapshot error against hl7.fhir.r5.core's own
+# example-composition profile, then dies with a NullPointerException in its
+# FML parser on the first map it loads. 2.3.4 is the release this IG last
+# built cleanly with: CI built main with it on 2026-10-06, and main at #323
+# builds with it locally. CI reads PUBLISHER_VERSION from this line, so this
+# is the one place to change it. To upgrade, bump the version here, run
+# `make ig`, and read temp/qa before keeping it. _updatePublisher.sh is no
+# longer called: it hardcodes the latest release and would reintroduce the
+# breakage.
+PUBLISHER_VERSION = 2.3.4
+PUBLISHER_JAR = input-cache/publisher.jar
+PUBLISHER_URL = https://github.com/HL7/fhir-ig-publisher/releases/download/$(PUBLISHER_VERSION)/publisher.jar
+
 .PHONY: ig
 ig:
 	@echo "Generating FHIR Implementation Guide(s)..."
-	./_updatePublisher.sh
+	@mkdir -p input-cache
+	@if [ ! -f $(PUBLISHER_JAR) ] || [ "$$(cat input-cache/publisher.version 2>/dev/null)" != "$(PUBLISHER_VERSION)" ]; then \
+	  echo "Fetching IG publisher $(PUBLISHER_VERSION)"; \
+	  curl -fsSL -o $(PUBLISHER_JAR) $(PUBLISHER_URL); \
+	  echo "$(PUBLISHER_VERSION)" > input-cache/publisher.version; \
+	fi
 	./_genonce.sh $(PUBLISHER_FLAGS)
 	@echo "FHIR IG generation complete."
 
