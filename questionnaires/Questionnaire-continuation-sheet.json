@@ -1,0 +1,129 @@
+{
+  "resourceType": "Questionnaire",
+  "id": "continuation-sheet",
+  "url": "https://fhir.slade360.co.ke/fhir/Questionnaire/continuation-sheet",
+  "version": "1.0.0",
+  "name": "ContinuationSheet",
+  "title": "Continuation Sheet",
+  "status": "draft",
+  "subjectType": [
+    "Patient"
+  ],
+  "date": "2026-09-18",
+  "description": "Running clinical notes for an admitted client: one dated, signed entry per contact, added as often as needed.",
+  "extension": [
+    {
+      "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-targetStructureMap",
+      "valueCanonical": "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractContinuationSheet"
+    }
+  ],
+  "item": [
+    {
+      "linkId": "client",
+      "type": "group",
+      "text": "Client",
+      "item": [
+        {
+          "linkId": "client.name",
+          "type": "string",
+          "text": "Name",
+          "required": true
+        },
+        {
+          "linkId": "client.ipNumber",
+          "type": "string",
+          "text": "IP number",
+          "required": true
+        },
+        {
+          "linkId": "client.admissionDate",
+          "type": "date",
+          "text": "Date of admission"
+        }
+      ]
+    },
+    {
+      "linkId": "entries",
+      "type": "group",
+      "text": "Entry",
+      "repeats": true,
+      "item": [
+        {
+          "linkId": "entry.recordedAt",
+          "type": "dateTime",
+          "text": "Date and time",
+          "required": true
+        },
+        {
+          "linkId": "entry.note",
+          "type": "text",
+          "text": "Entry",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        },
+        {
+          "linkId": "entry.author",
+          "type": "string",
+          "text": "Written by"
+        }
+      ]
+    }
+  ],
+  "publisher": "Savannah Global Health Institute (SGHI)",
+  "contact": [
+    {
+      "telecom": [
+        {
+          "system": "url",
+          "value": "https://fhir.slade360.co.ke"
+        }
+      ]
+    }
+  ],
+  "jurisdiction": [
+    {
+      "coding": [
+        {
+          "system": "urn:iso:std:iso:3166",
+          "code": "KE",
+          "display": "Kenya"
+        }
+      ]
+    }
+  ],
+  "useContext": [
+    {
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+        "code": "workflow",
+        "display": "Workflow Setting"
+      },
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/clinical-form-category-codesystem",
+            "code": "progress-note",
+            "display": "Progress note"
+          }
+        ]
+      }
+    }
+  ],
+  "code": [
+    {
+      "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+      "code": "continuation-sheet",
+      "display": "Continuation sheet"
+    },
+    {
+      "system": "http://loinc.org",
+      "code": "11506-3",
+      "display": "Progress note"
+    }
+  ]
+}
