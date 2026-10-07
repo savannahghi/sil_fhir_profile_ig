@@ -1,0 +1,121 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractDischargeClearanceSummary"
+/// name = "ExtractDischargeClearanceSummary"
+/// title = "Discharge Clearance Summary Extraction"
+/// status = "active"
+/// description = "The discharge clearance summary as a DocumentReference indexing the signed form: the response itself is the record of centre property returned and signed off, kept verbatim, and the DocumentReference is how the rest of the system finds it against the client\'s record. It replaces the Contract this map used to produce -- Contract sits at FMM 1 and nothing downstream implements it, while a DocumentReference to the signed form says the same thing in a shape other systems read. The per-item returns, quantities and remarks, and the seven sign-offs stay on the form response rather than being copied out, because a clearance is read whole: a returned-blankets flag separated from its remarks stops being evidence of anything."
+//
+// GATE: item.where(linkId = 'items').item.item.answer.value.exists()
+//
+// The extraction gate: a FHIRPath over the QuestionnaireResponse that is
+// true exactly when this map will produce at least one resource. Tooling
+// evaluates it to predict extraction without running the transform; keep it
+// in step with the creation guards below.
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/DocumentReference" alias DocumentReference as target
+
+group ExtractDischargeClearanceSummary(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  // Built only once something on the property list has been filled in: a
+  // clearance that clears nothing is a blank form.
+  qr where (item.where(linkId = 'items').item.item.answer.value.exists()) -> bundle.entry as entry, entry.resource = create('DocumentReference') as doc then {
+    qr -> doc, entry then BuildDocRefBase(qr, doc, entry) "base";
+
+    qr -> doc.type as ty then {
+      qr -> ty.coding as coding then {
+        qr -> coding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem' "typeSystem";
+        qr -> coding.code = 'discharge-clearance-summary' "typeCode";
+        qr -> coding.display = 'Discharge clearance summary' "typeDisplay";
+      } "typeCoding";
+      qr -> ty.text = 'Centre property returned and signed off at discharge' "typeText";
+    } "type";
+
+    qr -> doc.description = 'Summary of centre property returned by the client at discharge. The per-item returns, quantities and remarks, and the sign-offs from the account office, counsellor, clinician, security, kitchen, guardian and client are on the referenced form response, which is the record itself.' "description";
+
+    // The admission period the clearance closes out.
+    qr.item as cg where (linkId = 'client') then {
+      cg.item as it where (linkId = 'client.admissionDate' and answer.value.exists()) then {
+        it.answer first as a then {
+          a.value as d -> doc.period as per, per.start = cast(d, 'dateTime') "periodStart";
+        } "answer";
+      } "admissionDateRule";
+      cg.item as it where (linkId = 'client.dischargeDate' and answer.value.exists()) then {
+        it.answer first as a then {
+          a.value as d -> doc.period as per, per.end = cast(d, 'dateTime') "periodEnd";
+        } "answer";
+      } "dischargeDateRule";
+    } "clientGroup";
+
+    // Final once the client has signed the clearance, preliminary until then.
+    // The typed signatures stay on the form; see the signatures issue in the
+    // assessment for where a real attestation would come from.
+    qr where (item.where(linkId = 'signatories').item.where(linkId = 'signatories.client').item.where(linkId = 'signatories.client.signed').answer.value = true) -> doc.docStatus = 'final' "docStatusFinal";
+    qr where ((item.where(linkId = 'signatories').item.where(linkId = 'signatories.client').item.where(linkId = 'signatories.client.signed').answer.value = true).not()) -> doc.docStatus = 'preliminary' "docStatusPreliminary";
+  } "documentEntry";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared scaffolding. Repeated in each map rather than imported: the transform
+// engine resolves `imports` against whatever StructureMaps happen to be on the
+// server, and a form that stops extracting because a shared map was not
+// uploaded is a worse failure than a duplicated group.
+// ─────────────────────────────────────────────────────────────────────────────
+
+group BuildDocRefBase(source qr : QR, target r : DocumentReference, target entry) {
+  qr -> r then SetResponseProvenance(qr, r) "responseProvenance";
+  qr -> r.id = uuid() then SetDocRefFullUrl(r, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'DocumentReference' "requestUrl";
+  } "entryRequest";
+
+  qr -> r.status = 'current' "status";
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> r.subject = s "subject";
+  qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> r.context = e "context";
+
+  qr.author as a where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole') or ('/' + type).endsWith('/Organization'))))) -> r.author = a "authorFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole') or ('/' + type).endsWith('/Organization'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole') or ('/' + type).endsWith('/Organization'))))) -> r.author = src "authorFromSource";
+  } "authorFallback";
+
+  // The content IS the stored response: the attachment points at it rather
+  // than copying it. A stored response's id already reads
+  // "QuestionnaireResponse/<id>", so it is a relative URL as it stands; the
+  // hasValue() guard stops an unsaved response from writing a null link.
+  qr.id as qid where ($this.hasValue()) -> r.content as content, content.attachment as att then {
+    qid -> att.url = qid "attachmentUrl";
+    qid -> att.contentType = 'application/fhir+json' "attachmentContentType";
+    qr.authored as t -> att.creation = t "attachmentCreation";
+  } "content";
+}
+
+group SetDocRefFullUrl(source r : DocumentReference, target entry) {
+  r.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/DocumentReference/', id) "assignFullUrl";
+}
+
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+//
+// Two tags on everything this map creates. The first says which questionnaire
+// produced it, so a record can always be traced to the form that made it. The
+// second copies the tenant tags off the response, because nothing else on the
+// path puts them there. The response's identifier is copied the same way.
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+
+group SetResponseProvenance(source qr : QR, target r) {
+  qr -> r.meta as m then {
+    qr -> m.tag as t then {
+      qr -> t.system = 'http://slade360edi.com/questionnaire-provenance' "provenanceSystem";
+      qr -> t.code = 'discharge-clearance-summary' "provenanceCode";
+      qr -> t.display = 'Discharge clearance summary form' "provenanceDisplay";
+    } "provenanceTag";
+  } "provenanceMeta";
+
+  qr.meta as qm then {
+    qm.tag as qt -> r.meta as m, m.tag = qt "copyTag";
+  } "tenantTags";
+
+  qr.identifier as qid where (assigner.empty() or assigner.where(((reference.exists() and (reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization'))))).exists()) -> r.identifier = qid "identifier";
+}

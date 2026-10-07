@@ -1,0 +1,243 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractGuardianTreatmentConsent"
+/// name = "ExtractGuardianTreatmentConsent"
+/// title = "Guardian Treatment Consent Extraction"
+/// status = "active"
+/// description = "The guardian\'s consent to evaluation and treatment as a RelatedPerson plus a Consent, built only once the guardian has signed. The guardian is genuinely new information the form captures, so they become a RelatedPerson against the client\'s record, and the Consent\'s grantor points at them -- a guardian consenting on the client\'s behalf is exactly what grantor is for. Each acknowledgement the guardian ticked becomes a provision carrying the clause\'s own code and wording, and the witness, a name on the form rather than a record anything can point at, is kept as a verification whose verifier is named by display alone."
+//
+// GATE: item.where(linkId = 'guardianSignature').item.where(linkId = 'guardianSignature.signed').answer.value = true and item.where(linkId = 'guardian').item.where(linkId = 'guardian.name').answer.value.exists()
+//
+// The extraction gate: a FHIRPath over the QuestionnaireResponse that is
+// true exactly when this map will produce at least one resource. Tooling
+// evaluates it to predict extraction without running the transform; keep it
+// in step with the creation guards below.
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/RelatedPerson" alias RelatedPerson as target
+uses "http://hl7.org/fhir/StructureDefinition/Consent" alias Consent as target
+
+group ExtractGuardianTreatmentConsent(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  // ── The guardian, then the Consent they granted ─────────────────────────
+  // Both guarded on the guardian having signed: a consent form without the
+  // guardian's signature asserts an agreement that was never given, and a
+  // RelatedPerson from an unsigned form would be a record of nobody's
+  // decision. The Consent is built inside the RelatedPerson's rule so the
+  // grantor can point at the same id the RelatedPerson's fullUrl carries.
+  qr where (item.where(linkId = 'guardianSignature').item.where(linkId = 'guardianSignature.signed').answer.value = true and item.where(linkId = 'guardian').item.where(linkId = 'guardian.name').answer.value.exists()) -> bundle.entry as entryRp, entryRp.resource = create('RelatedPerson') as guardian then {
+    qr -> guardian, entryRp then BuildGuardian(qr, guardian, entryRp) "guardian";
+
+    qr -> bundle.entry as entry, entry.resource = create('Consent') as consent then {
+      qr -> consent, entry then BuildConsentBase(qr, consent, entry) "base";
+      qr -> consent.status = 'active' "status";
+      qr -> consent.decision = 'permit' "decision";
+
+      qr -> consent.category as cat then {
+        qr -> cat.coding as cg then {
+          qr -> cg.system = 'http://loinc.org' "sys";
+          qr -> cg.code = '59284-0' "cd";
+          qr -> cg.display = 'Consent Document' "dsp";
+        } "coding";
+      } "documentCategory";
+
+      qr -> consent.category as cat then {
+        qr -> cat.coding as cg then {
+          qr -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem' "sys";
+          qr -> cg.code = 'evaluation-and-treatment' "cd";
+          qr -> cg.display = 'Consent for evaluation and treatment' "dsp";
+        } "coding";
+        qr -> cat.text = 'Consent for evaluation and treatment' "categoryText";
+      } "treatmentCategory";
+
+      // The guardian grants on the client's behalf: the grantor is the
+      // RelatedPerson created above, referenced by the same absolute URL its
+      // bundle entry carries so the transaction resolves it. Goes through a
+      // dependent group because a rule cannot read a target variable on its
+      // source side.
+      qr -> consent then SetGrantorFromGuardian(guardian, consent) "grantorGuardian";
+
+      // The signing date, from the form itself. ConformConsent falls back to
+      // the response's authored date only when the signature block carries
+      // none.
+      qr.item as sg where (linkId = 'guardianSignature') then {
+        sg.item as it where (linkId = 'guardianSignature.date' and answer.value.exists()) then {
+          it.answer first as a then {
+            a.value as d -> consent.date = d "signedDate";
+          } "answer";
+        } "signedDateRule";
+      } "signatureGroup";
+
+      // ── The witness ───────────────────────────────────────────────────────
+      // A name on the form, not a record anything can point at, so the
+      // verification names them by display alone. Verified only because they
+      // signed; no signature, no verification.
+      qr.item as wg where (linkId = 'witness') then {
+        wg.item as it where (linkId = 'witness.signed' and answer.value = true) then {
+          it.answer first as a then {
+            a.value as v -> consent.verification as ver then {
+              v -> ver.verified = true "verified";
+              v -> ver.verifiedBy as verifiedBy, verifiedBy.display = v "verifiedBy";
+              wg.item as dt where (linkId = 'witness.date' and answer.value.exists()) then {
+                dt.answer first as da then {
+                  da.value as d -> ver.verificationDate = d "verificationDate";
+                } "dateAnswer";
+              } "witnessDateRule";
+            } "witnessVerification";
+          } "answer";
+        } "witnessSignatureRule";
+      } "witnessGroup";
+
+      // ── The provisions ────────────────────────────────────────────────────
+      // One code per acknowledgement ticked true, carrying the clause's own
+      // linkId and wording. A clause left unticked produces nothing.
+      qr -> consent.provision as provision then {
+        qr.item as grp where (linkId = 'acknowledgements') then AcceptedClauses(grp, provision) "acknowledgementClauses";
+      } "provision";
+    } "createConsent";
+  } "guardianAndConsent";
+}
+
+// The guardian as new information the form captures: name, identification,
+// address and relationship to the client. The identification number is kept
+// with the form's own wording as its type, because the form accepts either an
+// identity card or a passport and guessing which is not a map's job.
+group BuildGuardian(source qr : QR, target rp : RelatedPerson, target entry) {
+  qr -> rp then SetResponseProvenance(qr, rp) "responseProvenance";
+  qr -> rp.id = uuid() then SetRelatedPersonFullUrl(rp, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'RelatedPerson' "requestUrl";
+  } "entryRequest";
+
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> rp.patient = s "patient";
+
+  qr -> rp.relationship as rel then {
+    qr -> rel.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/v3-RoleCode' "relationshipSystem";
+      qr -> coding.code = 'GUARD' "relationshipCode";
+      qr -> coding.display = 'guardian' "relationshipDisplay";
+    } "relationshipCoding";
+    qr.item as grp where (linkId = 'guardian') then {
+      grp.item as it where (linkId = 'guardian.relationship' and answer.value.exists()) then {
+        it.answer first as a then {
+          a.value as v -> rel.text = v "relationshipText";
+        } "answer";
+      } "relationshipRule";
+    } "guardianGroupForRelationship";
+  } "relationship";
+
+  qr.item as grp where (linkId = 'guardian') then {
+    grp.item as it where (linkId = 'guardian.name' and answer.value.exists()) then {
+      it.answer first as a then {
+        a.value as v -> rp.name as name, name.text = v "guardianName";
+      } "answer";
+    } "nameRule";
+
+    grp.item as it where (linkId = 'guardian.idNumber' and answer.value.exists()) then {
+      it.answer first as a then {
+        a.value as v -> rp.identifier as ident then {
+          v -> ident.value = v "identValue";
+          v -> ident.type as ty, ty.text = 'Identification card or passport number' "identType";
+        } "identifier";
+      } "answer";
+    } "idNumberRule";
+
+    grp.item as it where (linkId = 'guardian.address' and answer.value.exists()) then {
+      it.answer first as a then {
+        a.value as v -> rp.address as addr, addr.text = v "guardianAddress";
+      } "answer";
+    } "addressRule";
+  } "guardianGroup";
+}
+
+group SetRelatedPersonFullUrl(source rp : RelatedPerson, target entry) {
+  rp.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/RelatedPerson/', id) "assignFullUrl";
+}
+
+// One code per boolean item answered true, carrying the item's linkId and its text.
+// The created guardian as the Consent's grantor. A dependent group so the
+// RelatedPerson can be read on the source side.
+group SetGrantorFromGuardian(source guardian : RelatedPerson, target consent : Consent) {
+  guardian.id as rpid -> consent.grantor as grantor,
+      grantor.reference = append('https://fhir.slade360.co.ke/fhir/RelatedPerson/', rpid) "grantorRef";
+}
+
+group AcceptedClauses(source grp, target provision) {
+  grp.item as itm then {
+    itm.answer as ans where (value = true) then {
+      itm.linkId as lid -> provision.code as code then {
+        lid -> code.coding as coding then {
+          lid -> coding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem' "clauseSystem";
+          lid -> coding.code = lid "clauseCode";
+        } "clauseCoding";
+        itm.text as txt -> code.text = txt "clauseText";
+      } "clauseEntry";
+    } "accepted";
+  } "eachItem";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared scaffolding. Repeated in each map rather than imported: the transform
+// engine resolves `imports` against whatever StructureMaps happen to be on the
+// server, and a form that stops extracting because a shared map was not
+// uploaded is a worse failure than a duplicated group.
+// ─────────────────────────────────────────────────────────────────────────────
+
+group BuildConsentBase(source qr : QR, target r : Consent, target entry) {
+  qr -> r then SetResponseProvenance(qr, r) "responseProvenance";
+  qr.id as qid where ($this.hasValue()) -> r.sourceReference = create('Reference') as srcRef, srcRef.reference = qid "linkQuestionnaireResponse";
+  qr -> r.id = uuid() then SetConsentFullUrl(r, entry) "idAndFullUrl";
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Consent' "requestUrl";
+  } "entryRequest";
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> r.subject = s "subject";
+  qr -> r then ConformConsent(qr, r) "profileConformance";
+}
+
+group SetConsentFullUrl(source r : Consent, target entry) {
+  r.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/Consent/', id) "assignFullUrl";
+}
+
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+//
+// Two tags on everything this map creates. The first says which questionnaire
+// produced it, so a record can always be traced to the form that made it. The
+// second copies the tenant tags off the response, because nothing else on the
+// path puts them there. The response's identifier is copied the same way.
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+
+group SetResponseProvenance(source qr : QR, target r) {
+  qr -> r.meta as m then {
+    qr -> m.tag as t then {
+      qr -> t.system = 'http://slade360edi.com/questionnaire-provenance' "provenanceSystem";
+      qr -> t.code = 'guardian-treatment-consent' "provenanceCode";
+      qr -> t.display = 'Guardian consent for evaluation and treatment' "provenanceDisplay";
+    } "provenanceTag";
+  } "provenanceMeta";
+
+  qr.meta as qm then {
+    qm.tag as qt -> r.meta as m, m.tag = qt "copyTag";
+  } "tenantTags";
+
+  qr.identifier as qid where (assigner.empty() or assigner.where(((reference.exists() and (reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization'))))).exists()) -> r.identifier = qid "identifier";
+}
+
+// ── Conformance ──────────────────────────────────────────────────────────────
+//
+// What a Consent needs that the response itself can supply: a date when the
+// form's signature block carried none, and the recording staff member as the
+// grantee.
+// ── Conformance ──────────────────────────────────────────────────────────────
+
+group ConformConsent(source qr : QR, target r) {
+  qr where (item.where(linkId = 'guardianSignature').item.where(linkId = 'guardianSignature.date').answer.value.exists().not()) then {
+    qr.authored as t -> evaluate(t, $this.toString().substring(0, 10)) as day, r.date = cast(day, 'date') "dateFromAuthored";
+  } "dateFallback";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.grantee = au "granteeFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.grantee = src "granteeFromSource";
+  } "granteeFallback";
+}

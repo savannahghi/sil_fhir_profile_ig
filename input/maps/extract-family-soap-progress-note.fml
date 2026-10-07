@@ -1,0 +1,218 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractFamilySoapProgressNote"
+/// name = "ExtractFamilySoapProgressNote"
+/// title = "Family SOAP Progress Note Extraction"
+/// status = "active"
+/// description = "The family session SOAP note as one Composition with a titled section per answered heading, plus one RelatedPerson per family member in the room. What makes this a FAMILY note is who attended: each attendee becomes a RelatedPerson linked to the client, and the Composition attests them -- Composition.attester is for people who affirm the document, which is exactly what a family member present at the session does. The client is the response\'s subject; nothing is minted from the admission number on the form."
+//
+// GATE: item.where(linkId = 'soap').item.answer.value.exists()
+//
+// The extraction gate: a FHIRPath over the QuestionnaireResponse that is
+// true exactly when this map will produce at least one resource. Tooling
+// evaluates it to predict extraction without running the transform; keep it
+// in step with the creation guards below.
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/Composition" alias Composition as target
+uses "http://hl7.org/fhir/StructureDefinition/RelatedPerson" alias RelatedPerson as target
+
+group ExtractFamilySoapProgressNote(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  // Built only when something was written: a session note with no headings
+  // answered is a blank sheet, not a document.
+  qr where (item.where(linkId = 'soap').item.answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Composition') as comp then {
+    qr -> comp, entry then BuildNoteBase(qr, comp, entry) "noteBase";
+    qr -> comp.name = 'FamilySoapProgressNote' "noteName";
+    qr -> comp.title = 'Family session SOAP progress note' "noteTitle";
+
+    qr -> comp.type as ty then {
+      qr -> ty.coding as mw then {
+        qr -> mw.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem' "mwSystem";
+        qr -> mw.code = 'family-session' "mwCode";
+        qr -> mw.display = 'Family session note' "mwDisplay";
+      } "mwCoding";
+      qr -> ty.coding as loinc then {
+        qr -> loinc.system = 'http://loinc.org' "loincSystem";
+        qr -> loinc.code = '11506-3' "loincCode";
+        qr -> loinc.display = 'Progress note' "loincDisplay";
+      } "loincCoding";
+      qr -> ty.text = 'Family session SOAP progress note' "typeText";
+    } "noteType";
+
+    // The SOAP headings. The hint items carry no answers, so they fall through
+    // TextSection without producing anything.
+    qr.item as soap where (linkId = 'soap') then {
+      soap.item as it then TextSection(it, comp) "soapSections";
+    } "soapGroup";
+
+    // Who was in the room: a RelatedPerson each, attested on the note. The
+    // attendees group repeats, one repetition per person present.
+    qr.item as grp where (linkId = 'attendees') then Attendee(qr, grp, bundle, comp) "attendees";
+
+    // Composition.author is the response's author; when the response carries
+    // none, the counsellor's typed name stands in as a display, because a note
+    // with no author at all is worse and the form names exactly one.
+    qr where (author.exists().not() and source.exists().not()) then {
+      qr.item as cg where (linkId = 'counsellor') then {
+        cg.item as it where (linkId = 'counsellor.name' and answer.value.exists()) then {
+          it.answer first as a then {
+            a.value as v -> comp.author as author, author.display = v "authorFromCounsellorName";
+          } "counsellorAnswer";
+        } "counsellorNameRule";
+      } "counsellorGroup";
+    } "authorFallbackFromForm";
+  } "composition";
+}
+
+// One repetition of the attendees group -> one RelatedPerson, linked to the
+// client and attested on the note as someone who was present.
+group Attendee(source qr : QR, source grp, target bundle : Bundle, target comp : Composition) {
+  grp.item as nameItem where (linkId = 'attendee.name') then {
+    nameItem.answer as nameAns then {
+      nameAns.value as attendeeName -> bundle.entry as entry, entry.resource = create('RelatedPerson') as related then {
+        qr -> related then SetResponseProvenance(qr, related) "responseProvenance";
+        attendeeName -> related.id = uuid() then SetRelatedPersonFullUrl(related, entry) "idAndFullUrl";
+
+        attendeeName -> entry.request as request then {
+          attendeeName -> request.method = 'POST' "requestMethod";
+          attendeeName -> request.url = 'RelatedPerson' "requestUrl";
+        } "entryRequest";
+
+        qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> related.patient = s "relatedPatient";
+        attendeeName -> related.name as name, name.text = attendeeName "relatedName";
+
+        grp.item as it where (linkId = 'attendee.relationship') then {
+          it.answer as ans then {
+            ans.value as v -> related.relationship as relationship, relationship.text = v "relatedRelationship";
+          } "relationshipAnswer";
+        } "relationshipItem";
+
+        // Composition.attester is for those who affirm the document -- here,
+        // who was present. The party points at the RelatedPerson through the
+        // same absolute URL its bundle entry carries, so a transaction save
+        // rewrites both together. Goes through a dependent group because a
+        // rule cannot read a target variable on its source side.
+        nameAns -> comp then AttestComposition(related, comp) "attester";
+      } "relatedPersonEntry";
+    } "nameAnswer";
+  } "nameItem";
+}
+
+// An attendee's RelatedPerson attested on the note. A dependent group so the
+// created RelatedPerson can be read on the source side.
+group AttestComposition(source related : RelatedPerson, target comp : Composition) {
+  related.id as rid -> comp.attester as attester then {
+    rid -> attester.mode as mode then {
+      rid -> mode.coding as coding then {
+        rid -> coding.system = 'http://hl7.org/fhir/composition-attestation-mode' "attesterModeSystem";
+        rid -> coding.code = 'personal' "attesterModeCode";
+      } "attesterModeCoding";
+    } "attesterMode";
+    rid -> attester.party as party, party.reference = append('https://fhir.slade360.co.ke/fhir/RelatedPerson/', rid) "attesterParty";
+  } "attesterEntry";
+}
+
+// One answered heading -> a titled section whose code is the heading's own
+// linkId and whose narrative is the prose as written.
+group TextSection(source it, target comp : Composition) {
+  it.answer as ans then {
+    ans.value as v -> comp.section as sec then {
+      it.text as t -> sec.title = t "sectionTitle";
+      it.linkId as lid -> sec.code as code then {
+        lid -> code.coding as coding then {
+          lid -> coding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem' "headingSystem";
+          lid -> coding.code = lid "headingCode";
+        } "headingCoding";
+        it.text as ht -> code.text = ht "headingText";
+      } "sectionCode";
+      v -> sec then AddSectionText(it, sec) "sectionNarrative";
+    } "section";
+  } "answered";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared scaffolding. Repeated in each map rather than imported: the transform
+// engine resolves `imports` against whatever StructureMaps happen to be on the
+// server, and a form that stops extracting because a shared map was not
+// uploaded is a worse failure than a duplicated group.
+// ─────────────────────────────────────────────────────────────────────────────
+
+group BuildNoteBase(source qr : QR, target comp : Composition, target entry) {
+  qr -> comp then SetResponseProvenance(qr, comp) "responseProvenance";
+  qr -> comp.id = uuid() then SetCompositionFullUrl(comp, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Composition' "requestUrl";
+  } "entryRequest";
+
+  qr -> comp.status = 'final' "status";
+  qr.subject as s where (((reference.exists() and (reference.contains('://').not() and reference.startsWith('#').not() and reference.startsWith('urn:').not())) or reference.empty())) -> comp.subject = s "subject";
+  qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> comp.encounter = e "encounter";
+
+  // Composition.date is 1..1. `authored` is only 0..1 on the response, so when a
+  // client sends none the extraction time stands in.
+  qr.authored as t -> comp.date = t "date";
+  qr where (authored.exists().not()) then {
+    qr -> comp.date = evaluate(qr, now()) "dateFromExtractionTime";
+  } "dateFallback";
+
+  qr.author as a where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole') or ('/' + type).endsWith('/Organization'))))) -> comp.author = a "authorFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole') or ('/' + type).endsWith('/Organization'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole') or ('/' + type).endsWith('/Organization'))))) -> comp.author = src "authorFromSource";
+  } "authorFallback";
+
+  qr -> comp.relatesTo as rel then {
+    qr -> rel.type = 'derived-from' "relatesToType";
+    qr -> rel.resourceReference = create('Reference') as ref then {
+      qr.id as qid -> ref.reference = qid "relatesToRef";
+    } "relatesToTarget";
+  } "linkQuestionnaireResponse";
+}
+
+group AddSectionText(source it, target sec) {
+  it.answer first as a then {
+    a.value as v -> sec.text as narrative then {
+      v -> narrative.status = 'generated' "narrativeStatus";
+      v -> narrative.div = create('xhtml') as xhtml then {
+        v -> xhtml.value = evaluate(a, '<div xmlns="http://www.w3.org/1999/xhtml"><p>' + value.toString().escape('html') + '</p></div>') "narrativeDiv";
+      } "narrativeXhtml";
+    } "sectionText";
+  } "sectionAnswer";
+}
+
+group SetCompositionFullUrl(source comp : Composition, target entry) {
+  comp.id as id -> entry.fullUrl = append(
+    'https://fhir.slade360.co.ke/fhir/Composition/',
+    id
+  ) "assignFullUrl";
+}
+
+group SetRelatedPersonFullUrl(source rp : RelatedPerson, target entry) {
+  rp.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/RelatedPerson/', id) "assignFullUrl";
+}
+
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+//
+// Two tags on everything this map creates. The first says which questionnaire
+// produced it, so a record can always be traced to the form that made it. The
+// second copies the tenant tags off the response, because nothing else on the
+// path puts them there. The response's identifier is copied the same way.
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+
+group SetResponseProvenance(source qr : QR, target r) {
+  qr -> r.meta as m then {
+    qr -> m.tag as t then {
+      qr -> t.system = 'http://slade360edi.com/questionnaire-provenance' "provenanceSystem";
+      qr -> t.code = 'family-soap-progress-note' "provenanceCode";
+      qr -> t.display = 'Family session SOAP progress note' "provenanceDisplay";
+    } "provenanceTag";
+  } "provenanceMeta";
+
+  qr.meta as qm then {
+    qm.tag as qt -> r.meta as m, m.tag = qt "copyTag";
+  } "tenantTags";
+
+  qr.identifier as qid where (assigner.empty() or assigner.where(((reference.exists() and (reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization'))))).exists()) -> r.identifier = qid "identifier";
+}

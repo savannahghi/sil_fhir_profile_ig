@@ -1,0 +1,167 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractConfidentialityExceptions"
+/// name = "ExtractConfidentialityExceptions"
+/// title = "Confidentiality Exceptions Extraction"
+/// status = "active"
+/// description = "The exceptions-to-confidentiality notice as one privacy Consent, built only once the client has signed. Each exception explained to the client, and the acknowledgement itself, becomes a provision carrying the clause\'s own code and wording. The clinician who took the client through the notice is the response\'s author: they become the Consent\'s grantee and its verification, dated from the clinician\'s own date on the form, so the record keeps who explained it without minting a Practitioner from a typed name."
+//
+// GATE: item.where(linkId = 'client').item.where(linkId = 'client.signed').answer.value = true
+//
+// The extraction gate: a FHIRPath over the QuestionnaireResponse that is
+// true exactly when this map will produce at least one resource. Tooling
+// evaluates it to predict extraction without running the transform; keep it
+// in step with the creation guards below.
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/Consent" alias Consent as target
+
+group ExtractConfidentialityExceptions(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  // ── The Consent ─────────────────────────────────────────────────────────
+  // Guarded on the client having signed: an acknowledgement nobody signed
+  // asserts an agreement that was never given.
+  qr where (item.where(linkId = 'client').item.where(linkId = 'client.signed').answer.value = true) -> bundle.entry as entry, entry.resource = create('Consent') as consent then {
+    qr -> consent, entry then BuildConsentBase(qr, consent, entry) "base";
+    qr -> consent.status = 'active' "status";
+    qr -> consent.decision = 'permit' "decision";
+
+    qr -> consent.category as cat then {
+      qr -> cat.coding as cg then {
+        qr -> cg.system = 'http://loinc.org' "sys";
+        qr -> cg.code = '59284-0' "cd";
+        qr -> cg.display = 'Consent Document' "dsp";
+      } "coding";
+    } "documentCategory";
+
+    // What tells this apart from the centre's other Consents.
+    qr -> consent.category as cat then {
+      qr -> cat.coding as cg then {
+        qr -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem' "sys";
+        qr -> cg.code = 'confidentiality-exceptions' "cd";
+        qr -> cg.display = 'Exceptions to confidentiality' "dsp";
+      } "coding";
+      qr -> cat.text = 'Exceptions to confidentiality' "categoryText";
+    } "exceptionsCategory";
+
+    // The client acknowledges for themselves, so the subject is also the grantor.
+    qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> consent.grantor = s "grantorPatient";
+
+    // The signing date, from the form itself. ConformConsent falls back to the
+    // response's authored date only when the client block carries none.
+    qr.item as cg where (linkId = 'client') then {
+      cg.item as it where (linkId = 'client.date' and answer.value.exists()) then {
+        it.answer first as a then {
+          a.value as d -> consent.date = d "signedDate";
+        } "answer";
+      } "signedDateRule";
+    } "clientGroup";
+
+    // ── The verification ──────────────────────────────────────────────────
+    // The clinician who explained the notice is the response's author:
+    // recording the form is their attestation. No author of a person type, no
+    // verification -- the typed name on the form is not a record anything can
+    // point at. Dated from the clinician's date on the form when it carries
+    // one.
+    qr.author as au where (((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> consent.verification as ver then {
+      au -> ver.verified = true "verified";
+      au where (((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> ver.verifiedBy = au "verifiedBy";
+      qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> ver.verifiedWith = s "verifiedWith";
+      qr.item as clg where (linkId = 'clinician') then {
+        clg.item as it where (linkId = 'clinician.date' and answer.value.exists()) then {
+          it.answer first as a then {
+            a.value as d -> ver.verificationDate = d "verificationDate";
+          } "answer";
+        } "clinicianDateRule";
+      } "clinicianGroup";
+    } "clinicianVerification";
+
+    // ── The provisions ────────────────────────────────────────────────────
+    // One code per exception explained and the acknowledgement itself,
+    // carrying the clause's own linkId and wording. A clause left unticked
+    // produces nothing.
+    qr -> consent.provision as provision then {
+      qr.item as grp where (linkId = 'exceptions') then AcknowledgedItems(grp, provision) "exceptionProvisions";
+      qr.item as grp where (linkId = 'acknowledgement') then AcknowledgedItems(grp, provision) "acknowledgementProvision";
+    } "provision";
+  } "createConsent";
+}
+
+// One code per boolean item answered true, carrying the item's linkId and its text.
+group AcknowledgedItems(source grp, target provision) {
+  grp.item as itm then {
+    itm.answer as ans where (value = true) then {
+      itm.linkId as lid -> provision.code as code then {
+        lid -> code.coding as coding then {
+          lid -> coding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem' "clauseSystem";
+          lid -> coding.code = lid "clauseCode";
+        } "clauseCoding";
+        itm.text as txt -> code.text = txt "clauseText";
+      } "clauseEntry";
+    } "accepted";
+  } "eachItem";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared scaffolding. Repeated in each map rather than imported: the transform
+// engine resolves `imports` against whatever StructureMaps happen to be on the
+// server, and a form that stops extracting because a shared map was not
+// uploaded is a worse failure than a duplicated group.
+// ─────────────────────────────────────────────────────────────────────────────
+
+group BuildConsentBase(source qr : QR, target r : Consent, target entry) {
+  qr -> r then SetResponseProvenance(qr, r) "responseProvenance";
+  qr.id as qid where ($this.hasValue()) -> r.sourceReference = create('Reference') as srcRef, srcRef.reference = qid "linkQuestionnaireResponse";
+  qr -> r.id = uuid() then SetConsentFullUrl(r, entry) "idAndFullUrl";
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Consent' "requestUrl";
+  } "entryRequest";
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> r.subject = s "subject";
+  qr -> r then ConformConsent(qr, r) "profileConformance";
+}
+
+group SetConsentFullUrl(source r : Consent, target entry) {
+  r.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/Consent/', id) "assignFullUrl";
+}
+
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+//
+// Two tags on everything this map creates. The first says which questionnaire
+// produced it, so a record can always be traced to the form that made it. The
+// second copies the tenant tags off the response, because nothing else on the
+// path puts them there. The response's identifier is copied the same way.
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+
+group SetResponseProvenance(source qr : QR, target r) {
+  qr -> r.meta as m then {
+    qr -> m.tag as t then {
+      qr -> t.system = 'http://slade360edi.com/questionnaire-provenance' "provenanceSystem";
+      qr -> t.code = 'confidentiality-exceptions' "provenanceCode";
+      qr -> t.display = 'Exceptions to confidentiality notice' "provenanceDisplay";
+    } "provenanceTag";
+  } "provenanceMeta";
+
+  qr.meta as qm then {
+    qm.tag as qt -> r.meta as m, m.tag = qt "copyTag";
+  } "tenantTags";
+
+  qr.identifier as qid where (assigner.empty() or assigner.where(((reference.exists() and (reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization'))))).exists()) -> r.identifier = qid "identifier";
+}
+
+// ── Conformance ──────────────────────────────────────────────────────────────
+//
+// What a Consent needs that the response itself can supply: a date when the
+// form's client block carried none, and the recording staff member as the
+// grantee.
+// ── Conformance ──────────────────────────────────────────────────────────────
+
+group ConformConsent(source qr : QR, target r) {
+  qr where (item.where(linkId = 'client').item.where(linkId = 'client.date').answer.value.exists().not()) then {
+    qr.authored as t -> evaluate(t, $this.toString().substring(0, 10)) as day, r.date = cast(day, 'date') "dateFromAuthored";
+  } "dateFallback";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.grantee = au "granteeFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.grantee = src "granteeFromSource";
+  } "granteeFallback";
+}

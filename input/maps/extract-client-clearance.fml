@@ -1,0 +1,186 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractClientClearance"
+/// name = "ExtractClientClearance"
+/// title = "Client Clearance Extraction"
+/// status = "active"
+/// description = "Clearance is workflow, not clinical content, so it lands as Tasks: one parent for the clearance itself -- carrying the reason and the admission-to-discharge period -- and a child for each department that has actually signed off. A department with no tick produces nothing, so an outstanding clearance is visibly outstanding rather than silently complete. The child Tasks point at the parent through the parent\'s own fullUrl, which the transaction keeps resolvable when everything is saved together."
+//
+// GATE: item.where(linkId = 'clearance').item.item.answer.exists()
+//
+// The extraction gate: a FHIRPath over the QuestionnaireResponse that is
+// true exactly when this map will produce at least one resource. Tooling
+// evaluates it to predict extraction without running the transform; keep it
+// in step with the creation guards below.
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/Task" alias Task as target
+
+group ExtractClientClearance(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  // Built only once at least one department has touched the sheet: a blank
+  // clearance form is not a clearance in progress.
+  qr where (item.where(linkId = 'clearance').item.item.answer.exists()) -> bundle.entry as entry, entry.resource = create('Task') as parent then {
+    qr -> parent, entry then BuildParentTask(qr, parent, entry) "buildParent";
+
+    // The department Tasks are built inside the parent's rule so that `parent`
+    // is still in scope for its id, which is what the children point at.
+    qr.item as grp where (linkId = 'clearance') then {
+      grp.item as dept then Department(qr, dept, parent, bundle) "departmentTasks";
+    } "clearanceGroup";
+  } "parentTaskEntry";
+}
+
+group BuildParentTask(source qr : QR, target parent : Task, target entry) {
+  qr -> parent then SetResponseProvenance(qr, parent) "responseProvenance";
+  qr -> parent.id = uuid() then SetTaskFullUrl(parent, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Task' "requestUrl";
+  } "entryRequest";
+
+  qr -> parent.status = 'completed' "parentStatus";
+  qr -> parent.intent = 'order' "parentIntent";
+
+  qr -> parent.code as code then {
+    qr -> code.coding as coding then {
+      qr -> coding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem' "parentCodeSystem";
+      qr -> coding.code = 'discharge-clearance' "parentCodeCode";
+      qr -> coding.display = 'Discharge clearance' "parentCodeDisplay";
+    } "parentCodeCoding";
+    qr -> code.text = 'Discharge clearance' "parentCodeText";
+  } "parentCode";
+
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> parent.for = s "for";
+  qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> parent.encounter = e "encounter";
+  qr.authored as authored -> parent.authoredOn = authored "parentAuthoredOn";
+
+  qr.item as grp where (linkId = 'client') then {
+    grp.item as itm where (linkId = 'client.admissionDate') then {
+      itm.answer as ans then {
+        ans.value as v -> parent.executionPeriod as period, period.start = v "periodStart";
+      } "admissionAnswer";
+    } "admissionItem";
+
+    grp.item as itm where (linkId = 'client.dischargeDate') then {
+      itm.answer as ans then {
+        ans.value as v -> parent.executionPeriod as period, period.end = v "periodEnd";
+      } "dischargeAnswer";
+    } "dischargeItem";
+
+    // Referral, completion or withdrawal -- why the client is being cleared.
+    // The coding comes off the answer as the form offered it.
+    grp.item as itm where (linkId = 'client.reason') then {
+      itm.answer as ans then {
+        ans.value as v -> parent.reason as reason,
+            reason.concept = create('CodeableConcept') as concept, concept.coding = v "parentReason";
+      } "reasonAnswer";
+    } "reasonItem";
+  } "clientHeaderGroup";
+}
+
+// One department that has signed off -> one Task under the parent. No tick, no
+// Task: an outstanding clearance stays visibly outstanding.
+group Department(source qr : QR, source dept, source parent : Task, target bundle : Bundle) {
+  dept.item as clearedItem where (linkId.endsWith('.cleared')) then {
+    clearedItem.answer as clearedAns where (value = true) then {
+      clearedAns.value as cleared -> bundle.entry as entry, entry.resource = create('Task') as task then {
+        qr -> task then SetResponseProvenance(qr, task) "responseProvenance";
+        cleared -> task.id = uuid() then SetTaskFullUrl(task, entry) "idAndFullUrl";
+
+        cleared -> entry.request as request then {
+          cleared -> request.method = 'POST' "requestMethod";
+          cleared -> request.url = 'Task' "requestUrl";
+        } "entryRequest";
+
+        cleared -> task.status = 'completed' "taskStatus";
+        cleared -> task.intent = 'order' "taskIntent";
+
+        cleared -> task.code as code then {
+          // The department's own linkId suffix is its code, so adding a
+          // department to the template carries it through without naming it here.
+          cleared -> code.coding as coding then {
+            cleared -> coding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem' "deptCodeSystem";
+            cleared -> coding.code =
+                evaluate(dept, $this.linkId.substring($this.linkId.indexOf('.') + 1)) "deptCodeCode";
+          } "deptCodeCoding";
+          dept.text as t -> code.text = t "deptCodeText";
+        } "taskCode";
+
+        qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> task.for = s "for";
+        qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> task.encounter = e "encounter";
+        qr.authored as authored -> task.authoredOn = authored "taskAuthoredOn";
+
+        parent.id as pid -> task.partOf as partOf,
+            partOf.reference = append('https://fhir.slade360.co.ke/fhir/Task/', pid) "taskPartOf";
+
+        dept.item as itm where (linkId.endsWith('.date')) then {
+          itm.answer as ans then {
+            ans.value as v -> task.executionPeriod as period, period.end = v "taskDate";
+          } "dateAnswer";
+        } "dateItem";
+
+        dept.item as itm where (linkId.endsWith('.officer')) then {
+          itm.answer as ans then {
+            ans.value as v -> task.owner as owner, owner.display = v "taskOwner";
+          } "officerAnswer";
+        } "officerItem";
+
+        dept.item as itm where (linkId.endsWith('.remarks')) then {
+          itm.answer as ans then {
+            ans.value as v -> task.note as note, note.text = v "taskNote";
+          } "remarksAnswer";
+        } "remarksItem";
+
+        // Task has no money element of its own; an input carries it as typed data.
+        dept.item as itm where (linkId.endsWith('.amount')) then {
+          itm.answer as ans then {
+            ans.value as v -> task.input as input then {
+              v -> input.type = create('CodeableConcept') as type, type.text = 'Amount (KES)' "amountType";
+              v -> input.value = create('Money') as money then {
+                v -> money.value = v "amountValue";
+                v -> money.currency = 'KES' "amountCurrency";
+              } "amountMoney";
+            } "amountInput";
+          } "amountAnswer";
+        } "amountItem";
+      } "taskEntry";
+    } "signedOff";
+  } "clearedItem";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared scaffolding. Repeated in each map rather than imported: the transform
+// engine resolves `imports` against whatever StructureMaps happen to be on the
+// server, and a form that stops extracting because a shared map was not
+// uploaded is a worse failure than a duplicated group.
+// ─────────────────────────────────────────────────────────────────────────────
+
+group SetTaskFullUrl(source r : Task, target entry) {
+  r.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/Task/', id) "assignFullUrl";
+}
+
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+//
+// Two tags on everything this map creates. The first says which questionnaire
+// produced it, so a record can always be traced to the form that made it. The
+// second copies the tenant tags off the response, because nothing else on the
+// path puts them there. The response's identifier is copied the same way.
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+
+group SetResponseProvenance(source qr : QR, target r) {
+  qr -> r.meta as m then {
+    qr -> m.tag as t then {
+      qr -> t.system = 'http://slade360edi.com/questionnaire-provenance' "provenanceSystem";
+      qr -> t.code = 'client-clearance' "provenanceCode";
+      qr -> t.display = 'Client clearance form' "provenanceDisplay";
+    } "provenanceTag";
+  } "provenanceMeta";
+
+  qr.meta as qm then {
+    qm.tag as qt -> r.meta as m, m.tag = qt "copyTag";
+  } "tenantTags";
+
+  qr.identifier as qid where (assigner.empty() or assigner.where(((reference.exists() and (reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization'))))).exists()) -> r.identifier = qid "identifier";
+}

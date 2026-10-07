@@ -30,6 +30,8 @@ Description: "A single code system for the mental wellness and rehabilitation te
 * #clinical-history "Clinical history"
 * #mental-state-examination "Mental state examination"
 * #clinical-formulation "Clinical formulation"
+* #asi "Addiction Severity Index"
+  * ^definition = "The Addiction Severity Index instrument as a whole; its seven assessment domains are coded separately."
 * #bdi "Beck's Depression Inventory"
 * #chemical-use-history "Chemical use history"
 
