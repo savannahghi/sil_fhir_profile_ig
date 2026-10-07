@@ -1,0 +1,135 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractContinuationSheet"
+/// name = "ExtractContinuationSheet"
+/// title = "Continuation Sheet Extraction"
+/// status = "active"
+/// description = "The continuation sheet as one Composition with a section per entry written: the sheet is a running progress note, and a document with dated sections is what it reads as on paper. It replaces the ClinicalImpressions this map used to produce -- ClinicalImpression sits at FMM 1 and nothing downstream implements it, while a progress-note Composition says the same thing in a shape other systems read. Each entry\'s note becomes its section\'s narrative; the writer\'s typed name and signature stay on the form response the Composition points back at, because a typed name is not an attestation."
+//
+// GATE: item.where(linkId = 'entries').item.where(linkId = 'entry.note').answer.value.exists()
+//
+// The extraction gate: a FHIRPath over the QuestionnaireResponse that is
+// true exactly when this map will produce at least one resource. Tooling
+// evaluates it to predict extraction without running the transform; keep it
+// in step with the creation guards below.
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/Composition" alias Composition as target
+
+group ExtractContinuationSheet(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  // Built only once an entry has been written: a continuation sheet with no
+  // entries continues nothing.
+  qr where (item.where(linkId = 'entries').item.where(linkId = 'entry.note').answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Composition') as comp then {
+    qr -> comp, entry then BuildNoteBase(qr, comp, entry) "noteBase";
+    qr -> comp.name = 'ContinuationSheet' "noteName";
+    qr -> comp.title = 'Continuation sheet' "noteTitle";
+
+    qr -> comp.type as ty then {
+      qr -> ty.coding as sghi then {
+        qr -> sghi.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem' "sghiSystem";
+        qr -> sghi.code = 'continuation-sheet' "sghiCode";
+        qr -> sghi.display = 'Continuation sheet' "sghiDisplay";
+      } "sghiCoding";
+      qr -> ty.coding as loinc then {
+        qr -> loinc.system = 'http://loinc.org' "loincSystem";
+        qr -> loinc.code = '11506-3' "loincCode";
+        qr -> loinc.display = 'Progress note' "loincDisplay";
+      } "loincCoding";
+      qr -> ty.text = 'Continuation sheet' "typeText";
+    } "noteType";
+
+    // One section per entry written. The section's narrative is the note; the
+    // writer's typed name and signature stay on the form response.
+    qr.item as eg where (linkId = 'entries' and item.where(linkId = 'entry.note').answer.value.exists()) -> comp.section as sec then {
+      eg -> sec.title = 'Entry' "entryTitle";
+      eg.item as it where (linkId = 'entry.note') then {
+        it -> sec then AddSectionText(it, sec) "entryText";
+      } "entryNoteRule";
+    } "entryRule";
+  } "composition";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared scaffolding. Repeated in each map rather than imported: the transform
+// engine resolves `imports` against whatever StructureMaps happen to be on the
+// server, and a form that stops extracting because a shared map was not
+// uploaded is a worse failure than a duplicated group.
+// ─────────────────────────────────────────────────────────────────────────────
+
+group BuildNoteBase(source qr : QR, target comp : Composition, target entry) {
+  qr -> comp then SetResponseProvenance(qr, comp) "responseProvenance";
+  qr -> comp.id = uuid() then SetCompositionFullUrl(comp, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Composition' "requestUrl";
+  } "entryRequest";
+
+  qr -> comp.status = 'final' "status";
+  qr.subject as s where (((reference.exists() and (reference.contains('://').not() and reference.startsWith('#').not() and reference.startsWith('urn:').not())) or reference.empty())) -> comp.subject = s "subject";
+  qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> comp.encounter = e "encounter";
+
+  // Composition.date is 1..1. `authored` is only 0..1 on the response, so when a
+  // client sends none the extraction time stands in.
+  qr.authored as t -> comp.date = t "date";
+  qr where (authored.exists().not()) then {
+    qr -> comp.date = evaluate(qr, now()) "dateFromExtractionTime";
+  } "dateFallback";
+
+  // Composition.author is 1..1 minimum. The author is whoever recorded the
+  // response; `source` only stands in when the client did not send an author.
+  qr.author as a where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole') or ('/' + type).endsWith('/Organization'))))) -> comp.author = a "authorFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole') or ('/' + type).endsWith('/Organization'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole') or ('/' + type).endsWith('/Organization'))))) -> comp.author = src "authorFromSource";
+  } "authorFallback";
+
+  qr -> comp.relatesTo as rel then {
+    qr -> rel.type = 'derived-from' "relatesToType";
+    qr -> rel.resourceReference = create('Reference') as ref then {
+      qr.id as qid -> ref.reference = qid "relatesToRef";
+    } "relatesToTarget";
+  } "linkQuestionnaireResponse";
+}
+
+group AddSectionText(source it, target sec) {
+  it.answer first as a then {
+    a.value as v -> sec.text as narrative then {
+      v -> narrative.status = 'generated' "narrativeStatus";
+      v -> narrative.div = create('xhtml') as xhtml then {
+        v -> xhtml.value = evaluate(a, '<div xmlns="http://www.w3.org/1999/xhtml"><p>' + value.toString().escape('html') + '</p></div>') "narrativeDiv";
+      } "narrativeXhtml";
+    } "sectionText";
+  } "sectionAnswer";
+}
+
+group SetCompositionFullUrl(source comp : Composition, target entry) {
+  comp.id as id -> entry.fullUrl = append(
+    'https://fhir.slade360.co.ke/fhir/Composition/',
+    id
+  ) "assignFullUrl";
+}
+
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+//
+// Two tags on everything this map creates. The first says which questionnaire
+// produced it, so a record can always be traced to the form that made it. The
+// second copies the tenant tags off the response, because nothing else on the
+// path puts them there. The response's identifier is copied the same way.
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+
+group SetResponseProvenance(source qr : QR, target r) {
+  qr -> r.meta as m then {
+    qr -> m.tag as t then {
+      qr -> t.system = 'http://slade360edi.com/questionnaire-provenance' "provenanceSystem";
+      qr -> t.code = 'continuation-sheet' "provenanceCode";
+      qr -> t.display = 'Continuation sheet' "provenanceDisplay";
+    } "provenanceTag";
+  } "provenanceMeta";
+
+  qr.meta as qm then {
+    qm.tag as qt -> r.meta as m, m.tag = qt "copyTag";
+  } "tenantTags";
+
+  qr.identifier as qid where (assigner.empty() or assigner.where(((reference.exists() and (reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization'))))).exists()) -> r.identifier = qid "identifier";
+}

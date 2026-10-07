@@ -1,0 +1,125 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractAftercareFollowup"
+/// name = "ExtractAftercareFollowup"
+/// title = "Aftercare Follow-up Extraction"
+/// status = "active"
+/// description = "The aftercare log as one Communication per follow-up contact. The form\'s followUp group repeats, so the response carries one repetition per contact and this map creates one Communication for each that was actually filled in. Communication.medium takes the mode straight off the answer, which is why the template\'s answerOptions carry v3-ParticipationMode codes (FACE for a site visit, PHONE for a call) rather than local ones. R5 dropped Communication.payload.contentString, so the counsellor\'s comment goes on payload content as a CodeableConcept text -- the only plain-string home left on a payload. Communication has no element for the response it was derived from, so that link is the provenance tag alone."
+//
+// GATE: item.where(linkId = 'followUp').item.answer.exists()
+//
+// The extraction gate: a FHIRPath over the QuestionnaireResponse that is
+// true exactly when this map will produce at least one resource. Tooling
+// evaluates it to predict extraction without running the transform; keep it
+// in step with the creation guards below.
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/Communication" alias Communication as target
+
+group ExtractAftercareFollowup(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  // One rule, many matches: the repeating group gives one item per logged
+  // contact. A repetition nobody filled in produces nothing.
+  qr.item as grp where (linkId = 'followUp' and item.answer.exists()) then FollowUp(qr, grp, bundle) "followUpEntries";
+}
+
+group FollowUp(source qr : QR, source grp, target bundle : Bundle) {
+  grp -> bundle.entry as entry, entry.resource = create('Communication') as comm then {
+    qr -> comm then SetResponseProvenance(qr, comm) "responseProvenance";
+    grp -> comm.id = uuid() then SetCommunicationFullUrl(comm, entry) "idAndFullUrl";
+
+    grp -> entry.request as request then {
+      grp -> request.method = 'POST' "requestMethod";
+      grp -> request.url = 'Communication' "requestUrl";
+    } "entryRequest";
+
+    grp -> comm.status = 'completed' "communicationStatus";
+
+    qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> comm.subject = s "communicationSubject";
+
+    grp -> comm.category as category then {
+      grp -> category.coding as coding then {
+        grp -> coding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem' "categorySystem";
+        grp -> coding.code = 'aftercare-follow-up' "categoryCode";
+        grp -> coding.display = 'Aftercare follow-up' "categoryDisplay";
+      } "categoryCoding";
+    } "category";
+
+    // Communication.sent is a dateTime and the form records a date, so it is
+    // cast rather than copied.
+    grp.item as it where (linkId = 'followUp.date') then {
+      it.answer first as a then {
+        a.value as v -> comm.sent = cast(v, 'dateTime') "communicationSent";
+      } "dateAnswer";
+    } "dateItem";
+
+    // The answerOption already holds the v3-ParticipationMode coding, so it
+    // copies straight over.
+    grp.item as it where (linkId = 'followUp.mode') then {
+      it.answer as ans then {
+        ans.value as v -> comm.medium as medium, medium.coding = v "communicationMedium";
+      } "modeAnswer";
+    } "modeItem";
+
+    // Who was spoken to. "Significant other" is nobody the form names, so the
+    // recipient carries the answer as a display rather than pointing at a
+    // record that does not exist.
+    grp.item as it where (linkId = 'followUp.contactPerson') then {
+      it.answer as ans then {
+        ans.value as v -> comm.recipient as recipient, recipient.display = evaluate(v, $this.display) "communicationRecipient";
+      } "contactAnswer";
+    } "contactItem";
+
+    grp.item as it where (linkId = 'followUp.counsellor') then {
+      it.answer as ans then {
+        ans.value as v -> comm.sender as sender, sender.display = v "communicationSender";
+      } "counsellorAnswer";
+    } "counsellorItem";
+
+    grp.item as it where (linkId = 'followUp.comment') then {
+      it.answer as ans then {
+        ans.value as v -> comm.payload as payload then {
+          v -> payload.content = create('CodeableConcept') as content, content.text = v "payloadContent";
+        } "payload";
+      } "commentAnswer";
+    } "commentItem";
+  } "communicationEntry";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared scaffolding. Repeated in each map rather than imported: the transform
+// engine resolves `imports` against whatever StructureMaps happen to be on the
+// server, and a form that stops extracting because a shared map was not
+// uploaded is a worse failure than a duplicated group.
+// ─────────────────────────────────────────────────────────────────────────────
+
+group SetCommunicationFullUrl(source comm : Communication, target entry) {
+  comm.id as id -> entry.fullUrl = append(
+    'https://fhir.slade360.co.ke/fhir/Communication/',
+    id
+  ) "assignFullUrl";
+}
+
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+//
+// Two tags on everything this map creates. The first says which questionnaire
+// produced it, so a record can always be traced to the form that made it. The
+// second copies the tenant tags off the response, because nothing else on the
+// path puts them there. The response's identifier is copied the same way.
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+
+group SetResponseProvenance(source qr : QR, target r) {
+  qr -> r.meta as m then {
+    qr -> m.tag as t then {
+      qr -> t.system = 'http://slade360edi.com/questionnaire-provenance' "provenanceSystem";
+      qr -> t.code = 'aftercare-followup' "provenanceCode";
+      qr -> t.display = 'Aftercare follow-up report' "provenanceDisplay";
+    } "provenanceTag";
+  } "provenanceMeta";
+
+  qr.meta as qm then {
+    qm.tag as qt -> r.meta as m, m.tag = qt "copyTag";
+  } "tenantTags";
+
+  qr.identifier as qid where (assigner.empty() or assigner.where(((reference.exists() and (reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization'))))).exists()) -> r.identifier = qid "identifier";
+}

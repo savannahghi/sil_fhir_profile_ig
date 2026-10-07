@@ -1,0 +1,512 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractClinicalPsychologicalHistory"
+/// name = "ExtractClinicalPsychologicalHistory"
+/// title = "Clinical and Psychological History Extraction"
+/// status = "active"
+/// description = "The intake history as the resources it is actually made of: the next of kin as a RelatedPerson, allergies as an AllergyIntolerance, the vitals as LOINC-coded Observations, each row of the genealogy as a FamilyMemberHistory, the examination, narrative histories, mental state examination and formulation each as one Observation with a component per answered heading, and the treatment plan as a CarePlan. Demographics on the form duplicate what the Patient record already holds, so nothing here rewrites them. Suicidality is NOT flagged automatically: it is a narrative field, and \'denies any current thoughts\' and \'has a plan\' are both just strings -- flagging belongs with the clinician reading it."
+//
+// GATE: item.where(linkId = 'biodata').item.where(linkId = 'biodata.nextOfKin' or linkId = 'biodata.allergies').answer.exists() or item.where(linkId = 'vitals').item.answer.exists() or item.where(linkId = 'examination' or linkId = 'history' or linkId = 'mse' or linkId = 'formulation').item.answer.exists() or item.where(linkId = 'familyMembers').item.answer.exists()
+//
+// The extraction gate: a FHIRPath over the QuestionnaireResponse that is
+// true exactly when this map will produce at least one resource. Tooling
+// evaluates it to predict extraction without running the transform; keep it
+// in step with the creation guards below.
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/RelatedPerson" alias RelatedPerson as target
+uses "http://hl7.org/fhir/StructureDefinition/AllergyIntolerance" alias AllergyIntolerance as target
+uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Observation as target
+uses "http://hl7.org/fhir/StructureDefinition/FamilyMemberHistory" alias FamilyMemberHistory as target
+uses "http://hl7.org/fhir/StructureDefinition/CarePlan" alias CarePlan as target
+
+group ExtractClinicalPsychologicalHistory(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  qr.item as grp where (linkId = 'biodata') then {
+    grp.item as itm where (linkId = 'biodata.nextOfKin') then {
+      itm.answer as ans then {
+        ans.value as v -> bundle.entry as entry, entry.resource = create('RelatedPerson') as kin then
+            BuildNextOfKin(qr, grp, v, kin, entry) "kinEntry";
+      } "kinAnswer";
+    } "kinItem";
+
+    grp.item as itm where (linkId = 'biodata.allergies') then {
+      itm.answer as ans then {
+        ans.value as v -> bundle.entry as entry, entry.resource = create('AllergyIntolerance') as allergy then
+            BuildAllergy(qr, v, allergy, entry) "allergyEntry";
+      } "allergyAnswer";
+    } "allergyItem";
+  } "biodataGroup";
+
+  qr.item as grp where (linkId = 'vitals') then {
+    grp.item as itm where (linkId = 'vitals.temperature') then {
+      itm.answer as ans then {
+        ans.value as v -> bundle.entry as entry, entry.resource = create('Observation') as obs then
+            BuildTemperature(qr, v, obs, entry) "temperatureEntry";
+      } "temperatureAnswer";
+    } "temperatureItem";
+
+    grp.item as itm where (linkId = 'vitals.systolic') then {
+      itm.answer as ans then {
+        ans.value as v -> bundle.entry as entry, entry.resource = create('Observation') as obs then
+            BuildBloodPressure(qr, grp, v, obs, entry) "bloodPressureEntry";
+      } "systolicAnswer";
+    } "systolicItem";
+
+    grp.item as itm where (linkId = 'vitals.randomBloodSugar') then {
+      itm.answer as ans then {
+        ans.value as v -> bundle.entry as entry, entry.resource = create('Observation') as obs then
+            BuildBloodSugar(qr, v, obs, entry) "bloodSugarEntry";
+      } "sugarAnswer";
+    } "sugarItem";
+  } "vitalsGroup";
+
+  qr.item as grp where (linkId = 'examination' and item.answer.exists()) then {
+    grp -> bundle.entry as entry, entry.resource = create('Observation') as obs then
+        BuildExamination(qr, grp, obs, entry) "examinationEntry";
+  } "examinationGroup";
+
+  qr.item as grp where (linkId = 'history' and item.answer.exists()) then {
+    grp -> bundle.entry as entry, entry.resource = create('Observation') as obs then
+        BuildHistory(qr, grp, obs, entry) "historyEntry";
+  } "historyGroup";
+
+  qr.item as grp where (linkId = 'mse' and item.answer.exists()) then {
+    grp -> bundle.entry as entry, entry.resource = create('Observation') as obs then
+        BuildMentalState(qr, grp, obs, entry) "mseEntry";
+  } "mseGroup";
+
+  qr.item as grp where (linkId = 'familyMembers' and item.answer.exists()) then {
+    grp -> bundle.entry as entry, entry.resource = create('FamilyMemberHistory') as member then
+        BuildFamilyMember(qr, grp, member, entry) "familyMemberEntry";
+  } "familyGroup";
+
+  qr.item as grp where (linkId = 'formulation' and item.answer.exists()) then {
+    grp -> bundle.entry as entry, entry.resource = create('Observation') as obs then
+        BuildFormulation(qr, grp, obs, entry) "formulationEntry";
+
+    grp.item as itm where (linkId = 'formulation.treatmentPlan') then {
+      itm.answer as ans then {
+        ans.value as v -> bundle.entry as entry, entry.resource = create('CarePlan') as plan then
+            BuildPlan(qr, v, plan, entry) "planEntry";
+      } "planAnswer";
+    } "planItem";
+  } "formulationGroup";
+}
+
+group BuildNextOfKin(source qr : QR, source grp, source name, target kin : RelatedPerson, target entry) {
+  qr -> kin then SetResponseProvenance(qr, kin) "responseProvenance";
+  name -> kin.id = uuid() then SetRelatedPersonFullUrl(kin, entry) "idAndFullUrl";
+  name -> entry.request as request then {
+    name -> request.method = 'POST' "requestMethod";
+    name -> request.url = 'RelatedPerson' "requestUrl";
+  } "entryRequest";
+
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> kin.patient = s "patient";
+  name -> kin.name as kinName, kinName.text = name "kinName";
+  name -> kin.relationship as relationship, relationship.text = 'Next of kin' "kinRelationship";
+
+  grp.item as itm where (linkId = 'biodata.nextOfKinContact') then {
+    itm.answer as ans then {
+      ans.value as v -> kin.telecom as telecom then {
+        v -> telecom.system = 'phone' "kinTelecomSystem";
+        v -> telecom.value = v "kinTelecomValue";
+      } "kinTelecom";
+    } "contactAnswer";
+  } "contactItem";
+}
+
+group SetRelatedPersonFullUrl(source rp : RelatedPerson, target entry) {
+  rp.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/RelatedPerson/', id) "assignFullUrl";
+}
+
+group BuildAllergy(source qr : QR, source v, target allergy : AllergyIntolerance, target entry) {
+  qr -> allergy then SetResponseProvenance(qr, allergy) "responseProvenance";
+  v -> allergy.id = uuid() then SetAllergyFullUrl(allergy, entry) "idAndFullUrl";
+  v -> entry.request as request then {
+    v -> request.method = 'POST' "requestMethod";
+    v -> request.url = 'AllergyIntolerance' "requestUrl";
+  } "entryRequest";
+
+  v -> allergy.clinicalStatus as status then {
+    v -> status.coding as coding then {
+      v -> coding.system = 'http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical' "allergyStatusSystem";
+      v -> coding.code = 'active' "allergyStatusCode";
+    } "allergyStatusCoding";
+  } "allergyStatus";
+  v -> allergy.code as code, code.text = v "allergyCode";
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> allergy.patient = s "patient";
+}
+
+group SetAllergyFullUrl(source allergy : AllergyIntolerance, target entry) {
+  allergy.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/AllergyIntolerance/', id) "assignFullUrl";
+}
+
+group BuildTemperature(source qr : QR, source v, target obs : Observation, target entry) {
+  qr -> obs then SetResponseProvenance(qr, obs) "responseProvenance";
+  qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+  v -> obs then SetVitalSignsCategory(v, obs) "category";
+
+  v -> obs.code as obsCode then {
+    v -> obsCode.coding as coding then {
+      v -> coding.system = 'http://loinc.org' "sys";
+      v -> coding.code = '8310-5' "code";
+      v -> coding.display = 'Body temperature' "disp";
+    } "codeCoding";
+    v -> obsCode.text = 'Body temperature' "codeText";
+  } "code";
+
+  v -> obs.value = create('Quantity') as quantity then {
+    v -> quantity.value = v "tempValue";
+    v -> quantity.unit = 'Cel' "tempUnit";
+    v -> quantity.system = 'http://unitsofmeasure.org' "tempSystem";
+    v -> quantity.code = 'Cel' "tempCode";
+  } "temperatureQuantity";
+}
+
+group BuildBloodPressure(source qr : QR, source grp, source v, target obs : Observation, target entry) {
+  qr -> obs then SetResponseProvenance(qr, obs) "responseProvenance";
+  qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+  v -> obs then SetVitalSignsCategory(v, obs) "category";
+
+  v -> obs.code as obsCode then {
+    v -> obsCode.coding as coding then {
+      v -> coding.system = 'http://loinc.org' "sys";
+      v -> coding.code = '85354-9' "code";
+      v -> coding.display = 'Blood pressure panel' "disp";
+    } "codeCoding";
+    v -> obsCode.text = 'Blood pressure' "codeText";
+  } "code";
+
+  grp.item as itm where (linkId = 'vitals.systolic') then {
+    itm.answer as ans then {
+      ans.value as sys -> obs.component as component then {
+        sys -> component.code as code, code.coding as coding then {
+          sys -> coding.system = 'http://loinc.org' "sysSystem";
+          sys -> coding.code = '8480-6' "sysCode";
+          sys -> coding.display = 'Systolic blood pressure' "sysDisplay";
+        } "sysCoding";
+        sys -> component.value = create('Quantity') as quantity then {
+          sys -> quantity.value = sys "sysValue";
+          sys -> quantity.unit = 'mm[Hg]' "sysUnit";
+          sys -> quantity.system = 'http://unitsofmeasure.org' "sysUcum";
+          sys -> quantity.code = 'mm[Hg]' "sysUcumCode";
+        } "sysQuantity";
+      } "systolicComponent";
+    } "sysAnswer";
+  } "sysItem";
+
+  grp.item as itm where (linkId = 'vitals.diastolic') then {
+    itm.answer as ans then {
+      ans.value as dia -> obs.component as component then {
+        dia -> component.code as code, code.coding as coding then {
+          dia -> coding.system = 'http://loinc.org' "diaSystem";
+          dia -> coding.code = '8462-4' "diaCode";
+          dia -> coding.display = 'Diastolic blood pressure' "diaDisplay";
+        } "diaCoding";
+        dia -> component.value = create('Quantity') as quantity then {
+          dia -> quantity.value = dia "diaValue";
+          dia -> quantity.unit = 'mm[Hg]' "diaUnit";
+          dia -> quantity.system = 'http://unitsofmeasure.org' "diaUcum";
+          dia -> quantity.code = 'mm[Hg]' "diaUcumCode";
+        } "diaQuantity";
+      } "diastolicComponent";
+    } "diaAnswer";
+  } "diaItem";
+}
+
+group BuildBloodSugar(source qr : QR, source v, target obs : Observation, target entry) {
+  qr -> obs then SetResponseProvenance(qr, obs) "responseProvenance";
+  qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+
+  v -> obs.category as category then {
+    v -> category.coding as coding then {
+      v -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "catSystem";
+      v -> coding.code = 'laboratory' "catCode";
+    } "catCoding";
+  } "category";
+
+  v -> obs.code as obsCode then {
+    v -> obsCode.coding as coding then {
+      v -> coding.system = 'http://loinc.org' "sys";
+      v -> coding.code = '15074-8' "code";
+      v -> coding.display = 'Glucose [Moles/volume] in Blood' "disp";
+    } "codeCoding";
+    v -> obsCode.text = 'Random blood sugar' "codeText";
+  } "code";
+
+  v -> obs.value = create('Quantity') as quantity then {
+    v -> quantity.value = v "sugarValue";
+    v -> quantity.unit = 'mmol/L' "sugarUnit";
+    v -> quantity.system = 'http://unitsofmeasure.org' "sugarSystem";
+    v -> quantity.code = 'mmol/L' "sugarCode";
+  } "sugarQuantity";
+}
+
+group BuildExamination(source qr : QR, source grp, target obs : Observation, target entry) {
+  qr -> obs then SetResponseProvenance(qr, obs) "responseProvenance";
+  qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+
+  grp -> obs.category as category then {
+    grp -> category.coding as coding then {
+      grp -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "catSystem";
+      grp -> coding.code = 'exam' "catCode";
+    } "catCoding";
+  } "category";
+
+  grp -> obs.code as obsCode then {
+    grp -> obsCode.coding as coding then {
+      grp -> coding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem' "sys";
+      grp -> coding.code = 'general-physical-examination' "code";
+      grp -> coding.display = 'General physical examination' "disp";
+    } "codeCoding";
+    grp -> obsCode.text = 'General physical examination' "codeText";
+  } "code";
+
+  grp.item as itm then Component(itm, obs) "signs";
+}
+
+group BuildHistory(source qr : QR, source grp, target obs : Observation, target entry) {
+  qr -> obs then SetResponseProvenance(qr, obs) "responseProvenance";
+  qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+  grp -> obs then SetSurveyCategory(grp, obs) "category";
+
+  grp -> obs.code as obsCode then {
+    grp -> obsCode.coding as coding then {
+      grp -> coding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem' "sys";
+      grp -> coding.code = 'clinical-history' "code";
+      grp -> coding.display = 'Clinical history' "disp";
+    } "codeCoding";
+    grp -> obsCode.text = 'Clinical history' "codeText";
+  } "code";
+
+  grp.item as itm then Component(itm, obs) "histories";
+}
+
+group BuildMentalState(source qr : QR, source grp, target obs : Observation, target entry) {
+  qr -> obs then SetResponseProvenance(qr, obs) "responseProvenance";
+  qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+
+  grp -> obs.category as category then {
+    grp -> category.coding as coding then {
+      grp -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "catSystem";
+      grp -> coding.code = 'exam' "catCode";
+    } "catCoding";
+  } "category";
+
+  grp -> obs.code as obsCode then {
+    grp -> obsCode.coding as coding then {
+      grp -> coding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem' "sys";
+      grp -> coding.code = 'mental-state-examination' "code";
+      grp -> coding.display = 'Mental state examination' "disp";
+    } "codeCoding";
+    // The LOINC code beside the local one, so any system that knows LOINC can
+    // find the examination without our code system.
+    grp -> obsCode.coding as loinc then {
+      grp -> loinc.system = 'http://loinc.org' "loincSys";
+      grp -> loinc.code = '10190-7' "loincCode";
+      grp -> loinc.display = 'Mental status Narrative' "loincDisp";
+    } "loincCoding";
+    grp -> obsCode.text = 'Mental state examination' "codeText";
+  } "code";
+
+  grp.item as itm then Component(itm, obs) "mseFields";
+}
+
+// The formulation as its own survey Observation, where the ClinicalImpression
+// used to be: ClinicalImpression sits at FMM 1 and nothing downstream reads it,
+// while an Observation with a component per heading says the same thing in a
+// shape the rest of the record already uses.
+group BuildFormulation(source qr : QR, source grp, target obs : Observation, target entry) {
+  qr -> obs then SetResponseProvenance(qr, obs) "responseProvenance";
+  qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+  grp -> obs then SetSurveyCategory(grp, obs) "category";
+
+  grp -> obs.code as obsCode then {
+    grp -> obsCode.coding as coding then {
+      grp -> coding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem' "sys";
+      grp -> coding.code = 'clinical-formulation' "code";
+      grp -> coding.display = 'Clinical formulation' "disp";
+    } "codeCoding";
+    grp -> obsCode.text = 'Clinical formulation' "codeText";
+  } "code";
+
+  grp.item as itm then Component(itm, obs) "formulationFields";
+}
+
+// One row of the genealogy -> one FamilyMemberHistory. The table records order
+// of birth rather than the relationship itself, so relationship carries text
+// only and nothing is coded. FamilyMemberHistory has no element that can point
+// back at the response, so the provenance tag is all it carries.
+group BuildFamilyMember(source qr : QR, source grp, target member : FamilyMemberHistory, target entry) {
+  qr -> member then SetResponseProvenance(qr, member) "responseProvenance";
+  grp -> member.id = uuid() then SetFamilyMemberFullUrl(member, entry) "idAndFullUrl";
+  grp -> entry.request as request then {
+    grp -> request.method = 'POST' "requestMethod";
+    grp -> request.url = 'FamilyMemberHistory' "requestUrl";
+  } "entryRequest";
+
+  grp -> member.status = 'completed' "memberStatus";
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> member.patient = s "patient";
+  grp -> member.relationship as relationship,
+      relationship.text = 'Family member, by order of birth' "memberRelationship";
+
+  grp.item as itm where (linkId = 'familyMember.name') then {
+    itm.answer as ans then {
+      ans.value as v -> member.name = v "memberName";
+    } "nameAnswer";
+  } "nameItem";
+
+  grp.item as itm where (linkId = 'familyMember.sex') then {
+    itm.answer as ans then {
+      ans.value as v -> member.sex as sex, sex.coding = v "memberSex";
+    } "sexAnswer";
+  } "sexItem";
+
+  grp.item as itm where (linkId = 'familyMember.dob') then {
+    itm.answer as ans then {
+      ans.value as v -> member.born = v "memberBorn";
+    } "dobAnswer";
+  } "dobItem";
+
+  // "Dead or alive" maps onto deceased[x] as a boolean.
+  grp.item as itm where (linkId = 'familyMember.status') then {
+    itm.answer as ans then {
+      ans.value as v -> member.deceased = evaluate(v, $this.code = 'dead') "memberDeceased";
+    } "statusAnswer";
+  } "statusItem";
+
+  grp.item as itm where (linkId = 'familyMember.conditions') then {
+    itm.answer as ans then {
+      ans.value as v -> member.condition as condition,
+          condition.code = create('CodeableConcept') as code, code.text = v "memberCondition";
+    } "conditionAnswer";
+  } "conditionItem";
+}
+
+group SetFamilyMemberFullUrl(source member : FamilyMemberHistory, target entry) {
+  member.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/FamilyMemberHistory/', id) "assignFullUrl";
+}
+
+group BuildPlan(source qr : QR, source v, target plan : CarePlan, target entry) {
+  qr -> plan then SetResponseProvenance(qr, plan) "responseProvenance";
+  v -> plan.id = uuid() then SetCarePlanFullUrl(plan, entry) "idAndFullUrl";
+  v -> entry.request as request then {
+    v -> request.method = 'POST' "requestMethod";
+    v -> request.url = 'CarePlan' "requestUrl";
+  } "entryRequest";
+
+  v -> plan.status = 'active' "planStatus";
+  v -> plan.intent = 'plan' "planIntent";
+  v -> plan.title = 'Treatment plan' "planTitle";
+  v -> plan.description = v "planDescription";
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> plan.subject = s "subject";
+  qr.authored as authored -> plan.created = authored "planCreated";
+
+  qr.id as qid where ($this.hasValue()) -> plan.supportingInfo as support, support.reference = qid "linkQuestionnaireResponse";
+}
+
+group SetCarePlanFullUrl(source plan : CarePlan, target entry) {
+  plan.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/CarePlan/', id) "assignFullUrl";
+}
+
+// One answered item -> one component, labelled with its linkId and the heading
+// as it was asked.
+group Component(source itm, target obs : Observation) {
+  itm.answer as ans then {
+    ans.value as v -> obs.component as component then {
+      itm.linkId as lid -> component.code as code then {
+        lid -> code.coding as coding then {
+          lid -> coding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem' "componentSystem";
+          lid -> coding.code = lid "componentCode";
+        } "componentCoding";
+        itm.text as t -> code.text = t "componentText";
+      } "code";
+
+      ans.value as sv where ($this is string) -> component.value = sv "valueString";
+      ans.value as bv where ($this is boolean) -> component.value = bv "valueBoolean";
+    } "component";
+  } "answered";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared scaffolding. Repeated in each map rather than imported: the transform
+// engine resolves `imports` against whatever StructureMaps happen to be on the
+// server, and a form that stops extracting because a shared map was not
+// uploaded is a worse failure than a duplicated group.
+// ─────────────────────────────────────────────────────────────────────────────
+
+group BuildObsBase(source qr : QR, target obs : Observation, target entry) {
+  qr -> obs.id = uuid() then SetObservationFullUrl(obs, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Observation' "requestUrl";
+  } "entryRequest";
+
+  qr -> obs.status = 'final' "status";
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> obs.subject = s "subject";
+  qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> obs.encounter = e "encounter";
+  qr.authored as t -> obs.effective = t "effective";
+
+  qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> obs.performer = src "performerFromSource";
+  qr where (source.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))).exists().not()) then {
+    qr.author as a where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> obs.performer = a "performerFromAuthor";
+  } "performerFallback";
+
+  // A stored response's id already reads "QuestionnaireResponse/<id>", so it is a
+  // relative reference as it stands. The hasValue() guard is what stops an
+  // unsaved response -- one posted straight to $extract rather than saved first --
+  // from writing "QuestionnaireResponse/null" into the record.
+  qr.id as qid where ($this.hasValue()) -> obs.derivedFrom = create('Reference') as ref, ref.reference = qid "linkQuestionnaireResponse";
+}
+
+group SetVitalSignsCategory(source v, target obs : Observation) {
+  v -> obs.category as category then {
+    v -> category.coding as coding then {
+      v -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "catSystem";
+      v -> coding.code = 'vital-signs' "catCode";
+    } "catCoding";
+  } "category";
+}
+
+group SetSurveyCategory(source src, target obs : Observation) {
+  src -> obs.category as cat then {
+    src -> cat.coding as coding then {
+      src -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      src -> coding.code = 'survey' "categoryCode";
+      src -> coding.display = 'Survey' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+group SetObservationFullUrl(source obs : Observation, target entry) {
+  obs.id as id -> entry.fullUrl = append(
+    'https://fhir.slade360.co.ke/fhir/Observation/',
+    id
+  ) "assignFullUrl";
+}
+
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+//
+// Two tags on everything this map creates. The first says which questionnaire
+// produced it, so a record can always be traced to the form that made it. The
+// second copies the tenant tags off the response, because nothing else on the
+// path puts them there. The response's identifier is copied the same way.
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+
+group SetResponseProvenance(source qr : QR, target r) {
+  qr -> r.meta as m then {
+    qr -> m.tag as t then {
+      qr -> t.system = 'http://slade360edi.com/questionnaire-provenance' "provenanceSystem";
+      qr -> t.code = 'clinical-psychological-history' "provenanceCode";
+      qr -> t.display = 'Clinical and psychological history' "provenanceDisplay";
+    } "provenanceTag";
+  } "provenanceMeta";
+
+  qr.meta as qm then {
+    qm.tag as qt -> r.meta as m, m.tag = qt "copyTag";
+  } "tenantTags";
+
+  qr.identifier as qid where (assigner.empty() or assigner.where(((reference.exists() and (reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization'))))).exists()) -> r.identifier = qid "identifier";
+}

@@ -1,0 +1,154 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractClientEducationCurriculum"
+/// name = "ExtractClientEducationCurriculum"
+/// title = "Client Education Curriculum Extraction"
+/// status = "active"
+/// description = "A lesson covered is education delivered, which is a Procedure. The CarePlan ties them together as this client\'s progress through the curriculum and points at the curriculum itself through instantiatesCanonical, so the lesson titles are not restated per client. A lesson with no date produces nothing at all: the remaining lessons stay visibly outstanding rather than appearing as completed-with-no-date. The Procedures are built inside the CarePlan\'s rule so the plan\'s own id is in scope for the references between them."
+//
+// GATE: item.where(linkId = 'stageA').item.answer.exists() or item.where(linkId = 'stageB').item.answer.exists() or item.where(linkId = 'stageC').item.answer.exists()
+//
+// The extraction gate: a FHIRPath over the QuestionnaireResponse that is
+// true exactly when this map will produce at least one resource. Tooling
+// evaluates it to predict extraction without running the transform; keep it
+// in step with the creation guards below.
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/CarePlan" alias CarePlan as target
+uses "http://hl7.org/fhir/StructureDefinition/Procedure" alias Procedure as target
+
+group ExtractClientEducationCurriculum(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  // Built only once at least one lesson has been covered: an untouched
+  // curriculum sheet is reference data, not a care plan for this client.
+  qr where (item.where(linkId = 'stageA').item.answer.exists() or item.where(linkId = 'stageB').item.answer.exists() or item.where(linkId = 'stageC').item.answer.exists()) -> bundle.entry as entry, entry.resource = create('CarePlan') as plan then {
+    qr -> plan, entry then BuildCarePlan(qr, plan, entry) "buildCarePlan";
+
+    // Every stage group; a lesson is only ever a dated item inside one of them.
+    qr.item as stage where (linkId.startsWith('stage')) then {
+      stage.item as itm then Lesson(qr, itm, plan, bundle) "lessons";
+    } "stages";
+  } "carePlanEntry";
+}
+
+group BuildCarePlan(source qr : QR, target plan : CarePlan, target entry) {
+  qr -> plan then SetResponseProvenance(qr, plan) "responseProvenance";
+  qr -> plan.id = uuid() then SetCarePlanFullUrl(plan, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'CarePlan' "requestUrl";
+  } "entryRequest";
+
+  qr -> plan.status = 'active' "planStatus";
+  qr -> plan.intent = 'plan' "planIntent";
+  qr -> plan.title = 'Client education curriculum' "planTitle";
+  qr -> plan.instantiatesCanonical = 'https://fhir.slade360.co.ke/fhir/PlanDefinition/client-education-curriculum' "planInstantiates";
+
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> plan.subject = s "subject";
+  qr.authored as authored -> plan.created = authored "planCreated";
+
+  qr.id as qid where ($this.hasValue()) -> plan.supportingInfo as support, support.reference = qid "linkQuestionnaireResponse";
+}
+
+group SetCarePlanFullUrl(source plan : CarePlan, target entry) {
+  plan.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/CarePlan/', id) "assignFullUrl";
+}
+
+// One lesson with a date -> one Procedure, and an activity on the CarePlan
+// pointing at it.
+group Lesson(source qr : QR, source itm, target plan : CarePlan, target bundle : Bundle) {
+  itm.answer as ans then {
+    ans.value as v -> bundle.entry as entry, entry.resource = create('Procedure') as procedure then {
+      qr -> procedure then SetResponseProvenance(qr, procedure) "responseProvenance";
+      v -> procedure.id = uuid() then SetProcedureFullUrl(procedure, entry) "idAndFullUrl";
+
+      v -> entry.request as request then {
+        v -> request.method = 'POST' "requestMethod";
+        v -> request.url = 'Procedure' "requestUrl";
+      } "entryRequest";
+
+      v -> procedure.status = 'completed' "procedureStatus";
+
+      v -> procedure.category as category then {
+        v -> category.coding as coding then {
+          v -> coding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem' "categorySystem";
+          v -> coding.code = 'client-education' "categoryCode";
+          v -> coding.display = 'Client education' "categoryDisplay";
+        } "categoryCoding";
+      } "category";
+
+      v -> procedure.code as code then {
+        // The lesson's own linkId suffix is its code, so adding a lesson to the
+        // curriculum carries it through without naming it here.
+        itm.linkId as lid -> code.coding as coding then {
+          lid -> coding.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem' "lessonSystem";
+          lid -> coding.code =
+              evaluate(itm, $this.linkId.substring($this.linkId.indexOf('.') + 1)) "lessonCode";
+        } "lessonCoding";
+        itm.text as t -> code.text = t "lessonText";
+      } "procedureCode";
+
+      qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> procedure.subject = s "subject";
+      qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> procedure.encounter = e "encounter";
+
+      // occurrence[x] is a choice and type-checks on serialization, so the date
+      // must be cast.
+      v -> procedure.occurrence = cast(v, 'dateTime') "procedureOccurrence";
+
+      // Cross-links between the two created resources go through dependent
+      // groups: a rule cannot read a target variable on its source side, but a
+      // dependent call can hand one to a source parameter (the SetFullUrl
+      // groups rely on the same behaviour).
+      v -> procedure then LinkProcedureToPlan(plan, procedure) "procedureBasedOn";
+      v -> plan then AddPlanActivity(procedure, plan) "planActivity";
+    } "procedureEntry";
+  } "covered";
+}
+
+group LinkProcedureToPlan(source plan : CarePlan, target procedure : Procedure) {
+  plan.id as pid -> procedure.basedOn as basedOn,
+      basedOn.reference = append('https://fhir.slade360.co.ke/fhir/CarePlan/', pid) "basedOnRef";
+}
+
+group AddPlanActivity(source procedure : Procedure, target plan : CarePlan) {
+  procedure.id as prid -> plan.activity as activity,
+      activity.performedActivity as performed,
+      performed.reference as ref,
+      ref.reference = append('https://fhir.slade360.co.ke/fhir/Procedure/', prid) "activityRef";
+}
+
+group SetProcedureFullUrl(source procedure : Procedure, target entry) {
+  procedure.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/Procedure/', id) "assignFullUrl";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared scaffolding. Repeated in each map rather than imported: the transform
+// engine resolves `imports` against whatever StructureMaps happen to be on the
+// server, and a form that stops extracting because a shared map was not
+// uploaded is a worse failure than a duplicated group.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+//
+// Two tags on everything this map creates. The first says which questionnaire
+// produced it, so a record can always be traced to the form that made it. The
+// second copies the tenant tags off the response, because nothing else on the
+// path puts them there. The response's identifier is copied the same way.
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+
+group SetResponseProvenance(source qr : QR, target r) {
+  qr -> r.meta as m then {
+    qr -> m.tag as t then {
+      qr -> t.system = 'http://slade360edi.com/questionnaire-provenance' "provenanceSystem";
+      qr -> t.code = 'client-education-curriculum' "provenanceCode";
+      qr -> t.display = 'Client education curriculum record' "provenanceDisplay";
+    } "provenanceTag";
+  } "provenanceMeta";
+
+  qr.meta as qm then {
+    qm.tag as qt -> r.meta as m, m.tag = qt "copyTag";
+  } "tenantTags";
+
+  qr.identifier as qid where (assigner.empty() or assigner.where(((reference.exists() and (reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization'))))).exists()) -> r.identifier = qid "identifier";
+}
