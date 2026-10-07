@@ -1,0 +1,297 @@
+{
+  "resourceType": "Questionnaire",
+  "id": "case-conference",
+  "url": "https://fhir.slade360.co.ke/fhir/Questionnaire/case-conference",
+  "version": "1.0.0",
+  "name": "WeeklyCaseConferenceRecord",
+  "title": "Weekly Case Conference Record",
+  "status": "draft",
+  "subjectType": [
+    "Patient"
+  ],
+  "date": "2026-09-17",
+  "description": "Weekly multidisciplinary review of a service user: stage of change, presenting problems and medication, conjoint work, progress, and the stuck points being worked on with their interventions and objectives.",
+  "extension": [
+    {
+      "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-targetStructureMap",
+      "valueCanonical": "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractCaseConference"
+    }
+  ],
+  "item": [
+    {
+      "linkId": "serviceUser",
+      "type": "group",
+      "text": "Service user",
+      "item": [
+        {
+          "linkId": "serviceUser.name",
+          "type": "string",
+          "text": "Service user name",
+          "required": true
+        },
+        {
+          "linkId": "serviceUser.age",
+          "type": "integer",
+          "text": "Age"
+        },
+        {
+          "linkId": "serviceUser.adminNumber",
+          "type": "string",
+          "text": "Admin number",
+          "required": true
+        },
+        {
+          "linkId": "serviceUser.dateOfAdmission",
+          "type": "date",
+          "text": "Date of admission"
+        },
+        {
+          "linkId": "serviceUser.dateOfDischarge",
+          "type": "date",
+          "text": "Date of discharge"
+        },
+        {
+          "linkId": "serviceUser.durationCovered",
+          "type": "string",
+          "text": "Duration covered"
+        },
+        {
+          "linkId": "serviceUser.remainingDuration",
+          "type": "string",
+          "text": "Remaining duration"
+        }
+      ]
+    },
+    {
+      "linkId": "conference",
+      "type": "group",
+      "text": "Conference",
+      "item": [
+        {
+          "linkId": "conference.date",
+          "type": "date",
+          "text": "Date of this conference",
+          "required": true
+        },
+        {
+          "linkId": "conference.stage",
+          "type": "coding",
+          "text": "Treatment process — stage of change",
+          "required": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "pre-contemplative",
+                "display": "Pre-contemplative"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "contemplative",
+                "display": "Contemplative"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "decisional",
+                "display": "Decisional"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "action",
+                "display": "Action"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "maintenance",
+                "display": "Maintenance"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "clinical",
+      "type": "group",
+      "text": "Presenting problems and medication",
+      "item": [
+        {
+          "linkId": "clinical.primaryAddiction",
+          "type": "string",
+          "text": "Primary addiction"
+        },
+        {
+          "linkId": "clinical.secondaryAddiction",
+          "type": "string",
+          "text": "Secondary addiction"
+        },
+        {
+          "linkId": "clinical.medicalProblem",
+          "type": "string",
+          "text": "Active medical problem"
+        },
+        {
+          "linkId": "clinical.psychiatricCondition",
+          "type": "string",
+          "text": "Psychiatric condition"
+        },
+        {
+          "linkId": "clinical.currentMedication",
+          "type": "string",
+          "text": "Current medication"
+        }
+      ]
+    },
+    {
+      "linkId": "conjoint",
+      "type": "group",
+      "text": "Conjoint session",
+      "item": [
+        {
+          "linkId": "conjoint.date",
+          "type": "date",
+          "text": "Conjoint date"
+        },
+        {
+          "linkId": "conjoint.withWhom",
+          "type": "string",
+          "text": "With whom"
+        }
+      ]
+    },
+    {
+      "linkId": "progress",
+      "type": "text",
+      "text": "Progress",
+      "code": [
+        {
+          "system": "http://loinc.org",
+          "code": "34109-9",
+          "display": "Note"
+        }
+      ]
+    },
+    {
+      "linkId": "stuckPoints",
+      "type": "group",
+      "text": "Stuck point",
+      "repeats": true,
+      "item": [
+        {
+          "linkId": "stuckPoint.issue",
+          "type": "text",
+          "text": "Stuck point",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        },
+        {
+          "linkId": "stuckPoint.intervention",
+          "type": "text",
+          "text": "Intervention",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        },
+        {
+          "linkId": "stuckPoint.objective",
+          "type": "text",
+          "text": "Objective",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "signatures",
+      "type": "group",
+      "text": "Signed",
+      "item": [
+        {
+          "linkId": "signatures.caseManager",
+          "type": "string",
+          "text": "Case manager",
+          "required": true
+        },
+        {
+          "linkId": "signatures.nurse",
+          "type": "string",
+          "text": "Nurse on duty"
+        }
+      ]
+    }
+  ],
+  "publisher": "Savannah Global Health Institute (SGHI)",
+  "contact": [
+    {
+      "telecom": [
+        {
+          "system": "url",
+          "value": "https://fhir.slade360.co.ke"
+        }
+      ]
+    }
+  ],
+  "jurisdiction": [
+    {
+      "coding": [
+        {
+          "system": "urn:iso:std:iso:3166",
+          "code": "KE",
+          "display": "Kenya"
+        }
+      ]
+    }
+  ],
+  "useContext": [
+    {
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+        "code": "workflow",
+        "display": "Workflow Setting"
+      },
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/clinical-form-category-codesystem",
+            "code": "progress-note",
+            "display": "Progress note"
+          }
+        ]
+      }
+    }
+  ],
+  "code": [
+    {
+      "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+      "code": "case-conference",
+      "display": "Case conference note"
+    },
+    {
+      "system": "http://loinc.org",
+      "code": "11506-3",
+      "display": "Progress note"
+    }
+  ]
+}

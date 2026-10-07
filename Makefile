@@ -96,6 +96,21 @@ publish-local:
 	    fi; \
 	  fi; \
 	done
+	@echo "Publishing staged Questionnaires (questionnaires/ inbox) to Local HAPI FHIR at $(LOCAL_CANONICAL)"
+	@for file in questionnaires/*.json; do \
+	  if [ -f "$$file" ]; then \
+	    RESOURCE_ID=$$(jq -r '.id' "$$file"); \
+	    echo "Uploading $$file (Type: Questionnaire, ID: $$RESOURCE_ID)"; \
+	    STATUS_CODE=$$(curl -s -o /dev/null -w "%{http_code}" \
+	      -X PUT "$(LOCAL_CANONICAL)/Questionnaire/$$RESOURCE_ID" \
+	      -H "Content-Type: application/fhir+json" \
+	      --data-binary "@$$file"); \
+	    if [ "$$STATUS_CODE" -lt 200 ] || [ "$$STATUS_CODE" -ge 300 ]; then \
+	      echo "Error uploading $$file to $(LOCAL_CANONICAL) (HTTP $$STATUS_CODE)"; \
+	      exit 1; \
+	    fi; \
+	  fi; \
+	done
 	rm -f sushi-config.yaml.bak
 	@echo "Local publish complete."
 

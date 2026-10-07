@@ -1,0 +1,378 @@
+{
+  "resourceType": "Questionnaire",
+  "id": "client-education-curriculum",
+  "url": "https://fhir.slade360.co.ke/fhir/Questionnaire/client-education-curriculum",
+  "version": "1.0.0",
+  "name": "ClientEducationCurriculumRecord",
+  "title": "Client Education Curriculum Record",
+  "status": "draft",
+  "subjectType": [
+    "Patient"
+  ],
+  "date": "2026-09-18",
+  "description": "Record of a client's progress through the education curriculum: the date each lesson was covered. The curriculum itself is PlanDefinition/client-education-curriculum.",
+  "extension": [
+    {
+      "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-targetStructureMap",
+      "valueCanonical": "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractClientEducationCurriculum"
+    }
+  ],
+  "item": [
+    {
+      "linkId": "intro",
+      "type": "display",
+      "text": "Enter the date each lesson was covered with this client. Leave a lesson blank if it has not been covered yet."
+    },
+    {
+      "linkId": "client",
+      "type": "group",
+      "text": "Client",
+      "item": [
+        {
+          "linkId": "client.name",
+          "type": "string",
+          "text": "Client's name",
+          "required": true
+        },
+        {
+          "linkId": "client.admissionNumber",
+          "type": "string",
+          "text": "Admission number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "linkId": "stageA",
+      "type": "group",
+      "text": "Early recovery therapy (4 weeks)",
+      "item": [
+        {
+          "linkId": "stageA.orientation",
+          "prefix": "1",
+          "type": "date",
+          "text": "Orientation"
+        },
+        {
+          "linkId": "stageA.orientation.goal",
+          "type": "display",
+          "text": "3 days · Goal: Clients familiar with the programme"
+        },
+        {
+          "linkId": "stageA.selfAcceptance",
+          "prefix": "2",
+          "type": "date",
+          "text": "Self-acceptance and denial management"
+        },
+        {
+          "linkId": "stageA.selfAcceptance.goal",
+          "type": "display",
+          "text": "2 days · Goal: Realisation of the addiction problem"
+        },
+        {
+          "linkId": "stageA.rootCause",
+          "prefix": "3",
+          "type": "date",
+          "text": "Identifying the root cause of addiction"
+        },
+        {
+          "linkId": "stageA.rootCause.goal",
+          "type": "display",
+          "text": "2 days · Goal: Primary cause of addiction noted"
+        },
+        {
+          "linkId": "stageA.understandingAddiction",
+          "prefix": "4",
+          "type": "date",
+          "text": "Understanding addiction"
+        },
+        {
+          "linkId": "stageA.understandingAddiction.goal",
+          "type": "display",
+          "text": "1 week · Goal: Clients equipped with drug and substance abuse information"
+        },
+        {
+          "linkId": "stageA.effects",
+          "prefix": "5",
+          "type": "date",
+          "text": "Effects of drugs and alcohol, including the correlation with HIV/AIDS"
+        },
+        {
+          "linkId": "stageA.effects.goal",
+          "type": "display",
+          "text": "1 week · Goal: Clients informed on the advantages and disadvantages of drug and substance abuse"
+        },
+        {
+          "linkId": "stageA.selfEsteem",
+          "prefix": "6",
+          "type": "date",
+          "text": "Low self-esteem"
+        },
+        {
+          "linkId": "stageA.selfEsteem.goal",
+          "type": "display",
+          "text": "2 days · Goal: Appreciation of self"
+        },
+        {
+          "linkId": "stageA.timeAndLeisure",
+          "prefix": "7",
+          "type": "date",
+          "text": "Time and leisure management"
+        },
+        {
+          "linkId": "stageA.timeAndLeisure.goal",
+          "type": "display",
+          "text": "2 days · Goal: Constructive use of leisure in the centre"
+        },
+        {
+          "linkId": "stageA.higherPower",
+          "prefix": "8",
+          "type": "date",
+          "text": "The concept of a higher power or God"
+        },
+        {
+          "linkId": "stageA.higherPower.goal",
+          "type": "display",
+          "text": "1 day · Goal: Appreciation of the existence of a higher power"
+        },
+        {
+          "linkId": "stageA.prayer",
+          "prefix": "9",
+          "type": "date",
+          "text": "Prayer, meditation and devotion"
+        },
+        {
+          "linkId": "stageA.prayer.goal",
+          "type": "display",
+          "text": "1 day · Goal: Enhancing and understanding self"
+        },
+        {
+          "linkId": "stageA.summaryEarly",
+          "prefix": "10",
+          "type": "date",
+          "text": "Summary and preparation for late recovery"
+        },
+        {
+          "linkId": "stageA.summaryEarly.goal",
+          "type": "display",
+          "text": "1 day · Goal: Clients are ready for the next stage"
+        }
+      ]
+    },
+    {
+      "linkId": "stageB",
+      "type": "group",
+      "text": "Late recovery therapy (1 to 2 months)",
+      "item": [
+        {
+          "linkId": "stageB.anger",
+          "prefix": "1",
+          "type": "date",
+          "text": "Anger and emotion management"
+        },
+        {
+          "linkId": "stageB.anger.goal",
+          "type": "display",
+          "text": "1 week · Goal: Emotional stability and non-chemical means of coping with extreme emotions"
+        },
+        {
+          "linkId": "stageB.characterDefects",
+          "prefix": "2",
+          "type": "date",
+          "text": "Identifying and overcoming character and personality defects"
+        },
+        {
+          "linkId": "stageB.characterDefects.goal",
+          "type": "display",
+          "text": "1 week · Goal: Self-awareness"
+        },
+        {
+          "linkId": "stageB.personalityPrinciples",
+          "prefix": "3",
+          "type": "date",
+          "text": "Personality and principles"
+        },
+        {
+          "linkId": "stageB.personalityPrinciples.goal",
+          "type": "display",
+          "text": "1 week · Goal: Guidelines to an addiction-free life"
+        },
+        {
+          "linkId": "stageB.guiltShameStress",
+          "prefix": "4",
+          "type": "date",
+          "text": "Managing guilt, shame and stress"
+        },
+        {
+          "linkId": "stageB.guiltShameStress.goal",
+          "type": "display",
+          "text": "1 week · Goal: Self-worth"
+        },
+        {
+          "linkId": "stageB.virtuesValues",
+          "prefix": "5",
+          "type": "date",
+          "text": "Virtues, values and attitude"
+        },
+        {
+          "linkId": "stageB.virtuesValues.goal",
+          "type": "display",
+          "text": "1 week · Goal: New value systems practised"
+        },
+        {
+          "linkId": "stageB.summaryLate",
+          "prefix": "6",
+          "type": "date",
+          "text": "Summary and preparation for the maintenance stage"
+        },
+        {
+          "linkId": "stageB.summaryLate.goal",
+          "type": "display",
+          "text": "1 week · Goal: Clients feel ready for the next stage"
+        }
+      ]
+    },
+    {
+      "linkId": "stageC",
+      "type": "group",
+      "text": "Maintenance stage therapy (up to six months)",
+      "item": [
+        {
+          "linkId": "stageC.familyCommunity",
+          "prefix": "1",
+          "type": "date",
+          "text": "Family, friends and community"
+        },
+        {
+          "linkId": "stageC.familyCommunity.goal",
+          "type": "display",
+          "text": "1 week · Goal: Better relationships with significant others"
+        },
+        {
+          "linkId": "stageC.selfWorth",
+          "prefix": "2",
+          "type": "date",
+          "text": "Self-worth and respect"
+        },
+        {
+          "linkId": "stageC.selfWorth.goal",
+          "type": "display",
+          "text": "1 week · Goal: High self-esteem"
+        },
+        {
+          "linkId": "stageC.lifeSkills",
+          "prefix": "3",
+          "type": "date",
+          "text": "Life skills training"
+        },
+        {
+          "linkId": "stageC.lifeSkills.goal",
+          "type": "display",
+          "text": "2 weeks · Goal: Knowledge of living with self and others"
+        },
+        {
+          "linkId": "stageC.relapsePrevention",
+          "prefix": "4",
+          "type": "date",
+          "text": "Slip and relapse prevention and management"
+        },
+        {
+          "linkId": "stageC.relapsePrevention.goal",
+          "type": "display",
+          "text": "3 weeks · Goal: Managing peer influence and avoiding trigger factors"
+        },
+        {
+          "linkId": "stageC.vocation",
+          "prefix": "5",
+          "type": "date",
+          "text": "Vocation and preparation for re-integration"
+        },
+        {
+          "linkId": "stageC.vocation.goal",
+          "type": "display",
+          "text": "Throughout treatment · Goal: Job placements, occupation plan and referrals, client by client"
+        },
+        {
+          "linkId": "stageC.celebrating",
+          "prefix": "6",
+          "type": "date",
+          "text": "Celebrating recovery"
+        },
+        {
+          "linkId": "stageC.celebrating.goal",
+          "type": "display",
+          "text": "1 week to graduation · Goal: Co-counselling"
+        },
+        {
+          "linkId": "stageC.summaryGraduation",
+          "prefix": "7",
+          "type": "date",
+          "text": "Summary and preparation for graduation"
+        },
+        {
+          "linkId": "stageC.summaryGraduation.goal",
+          "type": "display",
+          "text": "2 days before graduation · Goal: Client prepared for termination"
+        },
+        {
+          "linkId": "stageC.graduation",
+          "prefix": "8",
+          "type": "date",
+          "text": "Graduation from the programme"
+        },
+        {
+          "linkId": "stageC.graduation.goal",
+          "type": "display",
+          "text": "After 3 months · Goal: Rejoining family and friends"
+        }
+      ]
+    }
+  ],
+  "publisher": "Savannah Global Health Institute (SGHI)",
+  "contact": [
+    {
+      "telecom": [
+        {
+          "system": "url",
+          "value": "https://fhir.slade360.co.ke"
+        }
+      ]
+    }
+  ],
+  "jurisdiction": [
+    {
+      "coding": [
+        {
+          "system": "urn:iso:std:iso:3166",
+          "code": "KE",
+          "display": "Kenya"
+        }
+      ]
+    }
+  ],
+  "useContext": [
+    {
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+        "code": "workflow",
+        "display": "Workflow Setting"
+      },
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/clinical-form-category-codesystem",
+            "code": "rehabilitation-record",
+            "display": "Rehabilitation record"
+          }
+        ]
+      }
+    }
+  ],
+  "code": [
+    {
+      "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+      "code": "client-education",
+      "display": "Client education"
+    }
+  ]
+}

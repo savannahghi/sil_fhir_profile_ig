@@ -1,0 +1,201 @@
+{
+  "resourceType": "Questionnaire",
+  "id": "followup-agreement",
+  "url": "https://fhir.slade360.co.ke/fhir/Questionnaire/followup-agreement",
+  "version": "1.0.0",
+  "name": "FollowUpAgreement",
+  "title": "Follow-up Form",
+  "status": "draft",
+  "subjectType": [
+    "Patient"
+  ],
+  "date": "2026-09-17",
+  "description": "Agreement by the client and guardians to support the one-year follow-up process after discharge, with the undertakings each party accepts and the people who sign it.",
+  "extension": [
+    {
+      "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-targetStructureMap",
+      "valueCanonical": "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractFollowupAgreement"
+    }
+  ],
+  "item": [
+    {
+      "linkId": "preamble",
+      "type": "display",
+      "text": "The programme is designed to help clients set their feet on the right path and enjoy life to the full while overcoming challenges in a healthy manner — shown through total abstinence from all mood-altering substances, improved physical health and psychological stability. Utmost honesty and cooperation from both the client and the guardian is paramount."
+    },
+    {
+      "linkId": "schedule",
+      "type": "display",
+      "text": "Progress is assessed over one year: the client returns for a first review two weeks after discharge, a second review two weeks after that, and then reports monthly for the remaining eleven months to review with their primary counsellor."
+    },
+    {
+      "linkId": "undertakings",
+      "type": "group",
+      "text": "Undertakings",
+      "item": [
+        {
+          "linkId": "undertakings.phoneCalls",
+          "type": "boolean",
+          "text": "That they will be receiving phone calls only from the centre's administration."
+        },
+        {
+          "linkId": "undertakings.honesty",
+          "type": "boolean",
+          "text": "That they will be sincere and honest about the progress of their loved ones."
+        },
+        {
+          "linkId": "undertakings.referralAgents",
+          "type": "boolean",
+          "text": "That they will ensure the client visits the recommended referral agents."
+        },
+        {
+          "linkId": "undertakings.medication",
+          "type": "boolean",
+          "text": "That they will ensure a client with prescribed medication continues to use it exactly as prescribed by a doctor."
+        },
+        {
+          "linkId": "undertakings.returnVisits",
+          "type": "boolean",
+          "text": "That the client will visit the centre when and if called upon to do so."
+        },
+        {
+          "linkId": "undertakings.dischargeSummary",
+          "type": "boolean",
+          "text": "That the client or guardian will keep the discharge summary form safe for future reference and for continuity of treatment."
+        },
+        {
+          "linkId": "undertakings.fellowships",
+          "type": "boolean",
+          "text": "That the client will take part in family fellowships and other fellowships, such as Alcoholics Anonymous meetings in their town, to help them grow spiritually."
+        },
+        {
+          "linkId": "undertakings.reportProblems",
+          "type": "boolean",
+          "text": "That in case of any problem in the recovery process, the client or guardian will inform the centre."
+        }
+      ]
+    },
+    {
+      "linkId": "client",
+      "type": "group",
+      "text": "Client",
+      "item": [
+        {
+          "linkId": "client.name",
+          "type": "string",
+          "text": "Name",
+          "required": true
+        },
+        {
+          "linkId": "client.admissionNumber",
+          "type": "string",
+          "text": "Admission number",
+          "required": true
+        },
+        {
+          "linkId": "client.mobile",
+          "type": "string",
+          "text": "Mobile number"
+        },
+        {
+          "linkId": "client.signed",
+          "type": "boolean",
+          "text": "The client has signed this form"
+        }
+      ]
+    },
+    {
+      "linkId": "guardians",
+      "type": "group",
+      "text": "Parent / guardian",
+      "repeats": true,
+      "item": [
+        {
+          "linkId": "guardian.name",
+          "type": "string",
+          "text": "Name"
+        },
+        {
+          "linkId": "guardian.relation",
+          "type": "string",
+          "text": "Relationship to the client"
+        },
+        {
+          "linkId": "guardian.mobile",
+          "type": "string",
+          "text": "Mobile number"
+        },
+        {
+          "linkId": "guardian.signed",
+          "type": "boolean",
+          "text": "The guardian has signed this form"
+        }
+      ]
+    },
+    {
+      "linkId": "counsellor",
+      "type": "group",
+      "text": "Primary counsellor",
+      "item": [
+        {
+          "linkId": "counsellor.name",
+          "type": "string",
+          "text": "Name",
+          "required": true
+        },
+        {
+          "linkId": "counsellor.mobile",
+          "type": "string",
+          "text": "Mobile number"
+        }
+      ]
+    }
+  ],
+  "publisher": "Savannah Global Health Institute (SGHI)",
+  "contact": [
+    {
+      "telecom": [
+        {
+          "system": "url",
+          "value": "https://fhir.slade360.co.ke"
+        }
+      ]
+    }
+  ],
+  "jurisdiction": [
+    {
+      "coding": [
+        {
+          "system": "urn:iso:std:iso:3166",
+          "code": "KE",
+          "display": "Kenya"
+        }
+      ]
+    }
+  ],
+  "useContext": [
+    {
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+        "code": "workflow",
+        "display": "Workflow Setting"
+      },
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/clinical-form-category-codesystem",
+            "code": "consent",
+            "display": "Consent"
+          }
+        ]
+      }
+    }
+  ],
+  "code": [
+    {
+      "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+      "code": "follow-up-agreement",
+      "display": "Follow-up agreement"
+    }
+  ]
+}

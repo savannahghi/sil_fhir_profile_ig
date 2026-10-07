@@ -307,9 +307,14 @@ jobs:
           echo "All conformance resources uploaded successfully."
 
   # Split out of build-and-publish so StructureMaps land only after every profile they
-  # reference has been published. Mirrors that job's matrix so each leg targets the
-  # environment its maps were built for, and declares `environment:` so the
-  # per-environment secrets resolve.
+  # reference has been published. Questionnaires upload here too, after the maps,
+  # because each one names its extraction map in an sdc-questionnaire-targetStructureMap
+  # extension and should never be live before the map it points at. The questionnaires/
+  # folder is a fire-and-forget staging inbox (see questionnaires/README.md): whatever
+  # is in it ships, the clear-shipped-questionnaires job below empties it once every
+  # environment has it, and the SHR - not this repo - is their source of truth.
+  # Mirrors build-and-publish's matrix so each leg targets the environment its maps
+  # were built for, and declares `environment:` so the per-environment secrets resolve.
   publish-structure-maps-to-hapi:
     if: ${{ github.ref == 'refs/heads/main' }}
     needs: build-and-publish
@@ -324,7 +329,12 @@ jobs:
       name: ${{ matrix.environment }}
 
     steps:
-      # No checkout: this job needs the built maps and jq, nothing from the repo.
+      # Checkout is for the Questionnaires, which are static JSON shipped straight
+      # from the questionnaires/ staging inbox. The maps still arrive via the
+      # artifact because only the IG Publisher in build-and-publish can compile them.
+      - name: Check Repository
+        uses: actions/checkout@v4
+
       - name: Install Dependencies
         run: sudo apt-get update && sudo apt-get install -y jq
 
@@ -334,9 +344,9 @@ jobs:
           name: structure-maps-${{ matrix.environment }}
           path: output
 
-      - name: Publish StructureMaps to HAPI FHIR
+      - name: Publish StructureMaps and Questionnaires to HAPI FHIR
         run: |
-          echo "Publishing StructureMaps to server: ${{ env.HAPI_FHIR_BASE_URL }}"
+          echo "Publishing StructureMaps and Questionnaires to server: ${{ env.HAPI_FHIR_BASE_URL }}"
 
           AUTH_HEADER=""
           TOKEN_EXPIRES_AT=0
@@ -403,18 +413,44 @@ jobs:
             fi
           }
 
-          upload_structure_map() {
+          # Mode "skip-unchanged" GETs the server copy first and skips the PUT when
+          # it is identical - right for the StructureMaps, which ship on every merge
+          # whether or not they changed. Mode "always" PUTs unconditionally - right
+          # for the questionnaires inbox, where a file's presence already means "ship
+          # me" and is deleted after a successful deploy, so no comparison is needed.
+          upload_resource() {
             local file="$1"
-            local resource_id="$2"
-
-            echo "Uploading $file with id=$resource_id"
+            local resource_type="$2"
+            local resource_id="$3"
+            local mode="$4"
 
             ensure_auth
+
+            # A PUT re-runs full validation server-side even when HAPI then
+            # suppresses the no-op version bump, and every merge to main would pay
+            # that for ~110 maps on four environments. meta is server-owned, text is
+            # publisher-generated narrative, and date is stamped by the IG Publisher
+            # at build time, so none of the three count as a difference. Any GET
+            # failure (404, auth, network) falls through to the upload, so a deleted
+            # or drifted resource is always restored.
+            if [ "$mode" = "skip-unchanged" ]; then
+              local remote
+              if remote=$(curl -sf "${HAPI_FHIR_BASE_URL}/${resource_type}/${resource_id}" \
+                -H "Accept: application/fhir+json" -H "${AUTH_HEADER}"); then
+                if diff <(jq -S 'del(.meta, .text, .date)' "$file") \
+                        <(printf '%s' "$remote" | jq -S 'del(.meta, .text, .date)') >/dev/null 2>&1; then
+                  echo "Skipping $file: server copy is identical."
+                  return 0
+                fi
+              fi
+            fi
+
+            echo "Uploading $file with resourceType=$resource_type, id=$resource_id"
 
             # Judge success on the HTTP status, not the response body. A 4xx/5xx whose
             # body carries no .issue array would read as success, and a 200 whose body
             # is an informational OperationOutcome would read as failure.
-            RESPONSE=$(curl -s -w '\n%{http_code}' -X PUT "${HAPI_FHIR_BASE_URL}/StructureMap/${resource_id}" \
+            RESPONSE=$(curl -s -w '\n%{http_code}' -X PUT "${HAPI_FHIR_BASE_URL}/${resource_type}/${resource_id}" \
               -H "Content-Type: application/fhir+json" \
               -H "${AUTH_HEADER}" \
               --data-binary "@$file")
@@ -436,7 +472,7 @@ jobs:
               RESOURCE_TYPE=$(jq -r '.resourceType' "$file")
               RESOURCE_ID=$(jq -r '.id // empty' "$file")
               if [ "$RESOURCE_TYPE" = "StructureMap" ] && [ -n "$RESOURCE_ID" ]; then
-                upload_structure_map "$file" "$RESOURCE_ID"
+                upload_resource "$file" "StructureMap" "$RESOURCE_ID" "skip-unchanged"
                 STRUCTURE_MAP_COUNT=$((STRUCTURE_MAP_COUNT + 1))
               fi
             fi
@@ -448,4 +484,90 @@ jobs:
             echo "No StructureMaps found in output/ - was the artifact empty?"
             exit 1
           fi
-          echo "Uploaded ${STRUCTURE_MAP_COUNT} StructureMaps successfully."
+          echo "Processed ${STRUCTURE_MAP_COUNT} StructureMaps (unchanged ones skipped)."
+
+
+          # Questionnaires go up only after every map above, because each one points
+          # at its extraction map via sdc-questionnaire-targetStructureMap. The
+          # questionnaires/ folder is a fire-and-forget inbox: a file's presence
+          # means it has not shipped yet, so each one is PUT unconditionally. PUT
+          # by id, not POST, so a rerun after a partial failure overwrites instead
+          # of duplicating. An empty inbox is the normal steady state, not an error.
+          echo "Uploading Questionnaires from the staging inbox"
+          QUESTIONNAIRE_COUNT=0
+          for file in questionnaires/*.json; do
+            if [ -f "$file" ]; then
+              RESOURCE_TYPE=$(jq -r '.resourceType' "$file")
+              RESOURCE_ID=$(jq -r '.id // empty' "$file")
+              if [ "$RESOURCE_TYPE" = "Questionnaire" ] && [ -n "$RESOURCE_ID" ]; then
+                upload_resource "$file" "Questionnaire" "$RESOURCE_ID" "always"
+                QUESTIONNAIRE_COUNT=$((QUESTIONNAIRE_COUNT + 1))
+              else
+                echo "Refusing $file: not a Questionnaire with an id."
+                exit 1
+              fi
+            fi
+          done
+
+          if [ "$QUESTIONNAIRE_COUNT" -eq 0 ]; then
+            echo "Questionnaire inbox is empty - nothing to publish."
+          else
+            echo "Shipped ${QUESTIONNAIRE_COUNT} Questionnaires."
+          fi
+
+  # Empties the questionnaires/ staging inbox once the shipped files are live on
+  # EVERY environment: `needs` only lets this job run when all four matrix legs of
+  # publish-structure-maps-to-hapi succeeded, so a prod failure leaves the inbox
+  # intact and the next merge ships it again (PUT by id makes that rerun safe on
+  # the environments that already got it). Runs once, outside the matrix, so four
+  # legs never race to push the same deletion. Deletes only the files that existed
+  # at the SHA this run shipped (github.sha), never anything merged since, and the
+  # [skip ci] in the commit message stops the cleanup push from re-triggering this
+  # workflow. Needs `contents: write` and, if main is branch-protected, an
+  # exception that lets github-actions[bot] push.
+  clear-shipped-questionnaires:
+    if: ${{ github.ref == 'refs/heads/main' }}
+    needs: publish-structure-maps-to-hapi
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check Repository
+        uses: actions/checkout@v4
+
+      - name: Clear shipped Questionnaires from the inbox
+        run: |
+          shopt -s nullglob
+          shipped=(questionnaires/*.json)
+          if [ ${#shipped[@]} -eq 0 ]; then
+            echo "Questionnaire inbox is empty - nothing to clear."
+            exit 0
+          fi
+
+          # Move to the tip of main before deleting: the checkout above is pinned
+          # to the shipped SHA, and pushing from it would revert anything merged
+          # while the deploy ran. Only the recorded filenames are removed, so a
+          # questionnaire merged mid-run (and therefore not yet shipped) survives.
+          git fetch origin main
+          git checkout -B main origin/main
+
+          to_remove=()
+          for f in "${shipped[@]}"; do
+            [ -f "$f" ] && to_remove+=("$f")
+          done
+          if [ ${#to_remove[@]} -eq 0 ]; then
+            echo "Shipped questionnaires are already cleared on main."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm -q -- "${to_remove[@]}"
+          git commit -m "chore: clear ${#to_remove[@]} shipped questionnaires from the staging inbox [skip ci]"
+
+          # One rebase-and-retry in case main advanced between fetch and push;
+          # the deletion commit touches only inbox files, so it rebases cleanly.
+          git push origin main || { git pull --rebase origin main && git push origin main; }
+          echo "Cleared ${#to_remove[@]} shipped questionnaires from main."

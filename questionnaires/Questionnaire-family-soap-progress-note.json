@@ -1,0 +1,199 @@
+{
+  "resourceType": "Questionnaire",
+  "id": "family-soap-progress-note",
+  "url": "https://fhir.slade360.co.ke/fhir/Questionnaire/family-soap-progress-note",
+  "version": "1.0.0",
+  "name": "FamilySoapProgressNote",
+  "title": "Family SOAP Progress Note",
+  "status": "draft",
+  "subjectType": [
+    "Patient"
+  ],
+  "date": "2026-09-23",
+  "description": "Progress note for a family session: who attended, the client's own statements, the counsellor's observations, the assessment of the session, and the plan including homework.",
+  "extension": [
+    {
+      "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-targetStructureMap",
+      "valueCanonical": "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractFamilySoapProgressNote"
+    }
+  ],
+  "item": [
+    {
+      "linkId": "session",
+      "type": "group",
+      "text": "Session",
+      "item": [
+        {
+          "linkId": "session.admissionNumber",
+          "type": "string",
+          "text": "Client admission number",
+          "required": true
+        },
+        {
+          "linkId": "session.date",
+          "type": "date",
+          "text": "Date",
+          "required": true
+        }
+      ]
+    },
+    {
+      "linkId": "attendees",
+      "type": "group",
+      "text": "Present at the session",
+      "repeats": true,
+      "item": [
+        {
+          "linkId": "attendee.name",
+          "type": "string",
+          "text": "Name"
+        },
+        {
+          "linkId": "attendee.relationship",
+          "type": "string",
+          "text": "Relationship to the client"
+        }
+      ]
+    },
+    {
+      "linkId": "soap",
+      "type": "group",
+      "text": "SOAP note",
+      "item": [
+        {
+          "linkId": "soap.subjective",
+          "type": "text",
+          "text": "Subjective",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        },
+        {
+          "linkId": "soap.subjective.hint",
+          "type": "display",
+          "text": "Summary of statements by the client, with direct quotes."
+        },
+        {
+          "linkId": "soap.objective",
+          "type": "text",
+          "text": "Objective",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        },
+        {
+          "linkId": "soap.objective.hint",
+          "type": "display",
+          "text": "The counsellor's observations during the session that match the subjective statements."
+        },
+        {
+          "linkId": "soap.assessment",
+          "type": "text",
+          "text": "Assessment",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        },
+        {
+          "linkId": "soap.assessment.hint",
+          "type": "display",
+          "text": "Assessment of the situation, the session and the client."
+        },
+        {
+          "linkId": "soap.plan",
+          "type": "text",
+          "text": "Plan",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        },
+        {
+          "linkId": "soap.plan.hint",
+          "type": "display",
+          "text": "Interventions and action steps, including homework assignments."
+        }
+      ]
+    },
+    {
+      "linkId": "counsellor",
+      "type": "group",
+      "text": "Counsellor",
+      "item": [
+        {
+          "linkId": "counsellor.name",
+          "type": "string",
+          "text": "Counsellor's name",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "publisher": "Savannah Global Health Institute (SGHI)",
+  "contact": [
+    {
+      "telecom": [
+        {
+          "system": "url",
+          "value": "https://fhir.slade360.co.ke"
+        }
+      ]
+    }
+  ],
+  "jurisdiction": [
+    {
+      "coding": [
+        {
+          "system": "urn:iso:std:iso:3166",
+          "code": "KE",
+          "display": "Kenya"
+        }
+      ]
+    }
+  ],
+  "useContext": [
+    {
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+        "code": "workflow",
+        "display": "Workflow Setting"
+      },
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/clinical-form-category-codesystem",
+            "code": "progress-note",
+            "display": "Progress note"
+          }
+        ]
+      }
+    }
+  ],
+  "code": [
+    {
+      "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+      "code": "family-session",
+      "display": "Family session note"
+    },
+    {
+      "system": "http://loinc.org",
+      "code": "11506-3",
+      "display": "Progress note"
+    }
+  ]
+}

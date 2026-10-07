@@ -1,0 +1,258 @@
+{
+  "resourceType": "Questionnaire",
+  "id": "admission-soap-notes",
+  "url": "https://fhir.slade360.co.ke/fhir/Questionnaire/admission-soap-notes",
+  "version": "1.0.0",
+  "name": "AdmissionSoapNotes",
+  "title": "Admission SOAP Notes",
+  "status": "draft",
+  "subjectType": [
+    "Patient"
+  ],
+  "date": "2026-09-17",
+  "description": "Admission SOAP note: the presenting problem area needing urgent attention and its subjective, objective, assessment and plan, or an admission summary and recommendation where nothing is urgent.",
+  "extension": [
+    {
+      "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-targetStructureMap",
+      "valueCanonical": "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractAdmissionSoapNotes"
+    }
+  ],
+  "item": [
+    {
+      "linkId": "admission",
+      "type": "group",
+      "text": "Admission",
+      "item": [
+        {
+          "linkId": "admission.date",
+          "type": "date",
+          "text": "Date",
+          "required": true
+        },
+        {
+          "linkId": "admission.number",
+          "type": "string",
+          "text": "Client's admission number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "linkId": "part1",
+      "type": "group",
+      "text": "Part 1: areas needing urgent attention",
+      "item": [
+        {
+          "linkId": "part1.instruction",
+          "type": "display",
+          "text": "Tick only one presenting problem area needing very urgent attention, then fill in the SOAP note for it."
+        },
+        {
+          "linkId": "part1.urgentArea",
+          "type": "coding",
+          "text": "Presenting problem area",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "medical",
+                "display": "Medical status"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "employment",
+                "display": "Employment and support status"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "alcohol-drug",
+                "display": "Alcohol and drug use"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "legal",
+                "display": "Legal status"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "family-social",
+                "display": "Family and social relationships"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "psychiatric",
+                "display": "Psychiatric status"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "part1.soap",
+          "type": "group",
+          "text": "SOAP note",
+          "item": [
+            {
+              "linkId": "part1.soap.subjective",
+              "type": "text",
+              "text": "Subjective",
+              "code": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "34109-9",
+                  "display": "Note"
+                }
+              ]
+            },
+            {
+              "linkId": "part1.soap.objective",
+              "type": "text",
+              "text": "Objective",
+              "code": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "34109-9",
+                  "display": "Note"
+                }
+              ]
+            },
+            {
+              "linkId": "part1.soap.assessment",
+              "type": "text",
+              "text": "Assessment",
+              "code": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "34109-9",
+                  "display": "Note"
+                }
+              ]
+            },
+            {
+              "linkId": "part1.soap.plan",
+              "type": "text",
+              "text": "Plan",
+              "code": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "34109-9",
+                  "display": "Note"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "part2",
+      "type": "group",
+      "text": "Part 2: admission summary and recommendation",
+      "item": [
+        {
+          "linkId": "part2.instruction",
+          "type": "display",
+          "text": "Where there is no area needing urgent attention, the admission counsellor gives the summary and recommendation of the admission process below."
+        },
+        {
+          "linkId": "part2.summary",
+          "type": "text",
+          "text": "Admission summary",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        },
+        {
+          "linkId": "part2.recommendation",
+          "type": "text",
+          "text": "Recommendation",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "counsellor",
+      "type": "group",
+      "text": "Admission counsellor",
+      "item": [
+        {
+          "linkId": "counsellor.name",
+          "type": "string",
+          "text": "Admission counsellor's name",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "publisher": "Savannah Global Health Institute (SGHI)",
+  "contact": [
+    {
+      "telecom": [
+        {
+          "system": "url",
+          "value": "https://fhir.slade360.co.ke"
+        }
+      ]
+    }
+  ],
+  "jurisdiction": [
+    {
+      "coding": [
+        {
+          "system": "urn:iso:std:iso:3166",
+          "code": "KE",
+          "display": "Kenya"
+        }
+      ]
+    }
+  ],
+  "useContext": [
+    {
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+        "code": "workflow",
+        "display": "Workflow Setting"
+      },
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/clinical-form-category-codesystem",
+            "code": "progress-note",
+            "display": "Progress note"
+          }
+        ]
+      }
+    }
+  ],
+  "code": [
+    {
+      "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+      "code": "admission-soap-note",
+      "display": "Admission SOAP note"
+    },
+    {
+      "system": "http://loinc.org",
+      "code": "11506-3",
+      "display": "Progress note"
+    }
+  ]
+}

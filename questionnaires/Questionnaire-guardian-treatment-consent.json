@@ -1,0 +1,205 @@
+{
+  "resourceType": "Questionnaire",
+  "id": "guardian-treatment-consent",
+  "url": "https://fhir.slade360.co.ke/fhir/Questionnaire/guardian-treatment-consent",
+  "version": "1.0.0",
+  "name": "ConsentForEvaluationAndTreatment",
+  "title": "Consent for Evaluation and / or Treatment",
+  "status": "draft",
+  "subjectType": [
+    "Patient"
+  ],
+  "date": "2026-09-18",
+  "description": "Consent given by a legal guardian, on behalf of a client, to a mental health evaluation and treatment — including the duration, charges, absconding, discharge against advice, relapse and compensation terms acknowledged — and witnessed.",
+  "extension": [
+    {
+      "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-targetStructureMap",
+      "valueCanonical": "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractGuardianTreatmentConsent"
+    }
+  ],
+  "item": [
+    {
+      "linkId": "client",
+      "type": "group",
+      "text": "Client",
+      "item": [
+        {
+          "linkId": "client.name",
+          "type": "string",
+          "text": "Client's name",
+          "required": true
+        },
+        {
+          "linkId": "client.dob",
+          "type": "date",
+          "text": "Date of birth"
+        }
+      ]
+    },
+    {
+      "linkId": "guardian",
+      "type": "group",
+      "text": "Legal guardian",
+      "item": [
+        {
+          "linkId": "guardian.name",
+          "type": "string",
+          "text": "Name",
+          "required": true
+        },
+        {
+          "linkId": "guardian.idNumber",
+          "type": "string",
+          "text": "Identification card or passport number",
+          "required": true
+        },
+        {
+          "linkId": "guardian.address",
+          "type": "string",
+          "text": "Postal address"
+        },
+        {
+          "linkId": "guardian.relationship",
+          "type": "string",
+          "text": "Relationship to the client"
+        }
+      ]
+    },
+    {
+      "linkId": "acknowledgements",
+      "type": "group",
+      "text": "Consent and acknowledgements",
+      "item": [
+        {
+          "linkId": "acknowledgements.consent",
+          "type": "boolean",
+          "text": "I voluntarily consent that the client will take part in a mental health evaluation and/or treatment — psychological or psychiatric — to help them overcome substance use disorder and other mental health problems.",
+          "required": true
+        },
+        {
+          "linkId": "acknowledgements.conductedBy",
+          "type": "boolean",
+          "text": "I understand the evaluation or treatment will be conducted by a psychologist, addiction professional, psychiatrist or psychiatric nurse practitioner, or by someone supervised by one of them, and within the boundaries of the relevant Kenyan law.",
+          "required": true
+        },
+        {
+          "linkId": "acknowledgements.duration",
+          "type": "boolean",
+          "text": "Duration and charges: the minimum duration of treatment is ninety (90) days, and I have been informed of the charges for those ninety days."
+        },
+        {
+          "linkId": "acknowledgements.absconding",
+          "type": "boolean",
+          "text": "Absconding: I have been informed of the possibility and consequences of the client absconding from the centre or any other location during treatment. The centre shall not be held responsible for the consequences, and I shall not claim compensation or damages in any form."
+        },
+        {
+          "linkId": "acknowledgements.dischargeAgainstAdvice",
+          "type": "boolean",
+          "text": "Discharge against the centre's advice: I have been informed of the possibility and consequences, and understand such a discharge may adversely affect the client's progress and recovery."
+        },
+        {
+          "linkId": "acknowledgements.relapse",
+          "type": "boolean",
+          "text": "Relapse: I acknowledge that relapse is possible after treatment if the necessary aftercare support is not adequately provided by family and significant others, and that the centre shall not be held responsible for it."
+        },
+        {
+          "linkId": "acknowledgements.compensation",
+          "type": "boolean",
+          "text": "Compensation: I agree that I shall not be compensated for any accidental or incidental occurrence affecting the client during the treatment period, whether inside or outside the centre."
+        }
+      ]
+    },
+    {
+      "linkId": "guardianSignature",
+      "type": "group",
+      "text": "Signed by the legal guardian",
+      "item": [
+        {
+          "linkId": "guardianSignature.signed",
+          "type": "boolean",
+          "text": "The guardian has signed this form"
+        },
+        {
+          "linkId": "guardianSignature.date",
+          "type": "date",
+          "text": "Date",
+          "required": true
+        }
+      ]
+    },
+    {
+      "linkId": "witness",
+      "type": "group",
+      "text": "Witness",
+      "item": [
+        {
+          "linkId": "witness.name",
+          "type": "string",
+          "text": "Name"
+        },
+        {
+          "linkId": "witness.signed",
+          "type": "boolean",
+          "text": "The witness has signed this form"
+        },
+        {
+          "linkId": "witness.date",
+          "type": "date",
+          "text": "Date"
+        }
+      ]
+    }
+  ],
+  "publisher": "Savannah Global Health Institute (SGHI)",
+  "contact": [
+    {
+      "telecom": [
+        {
+          "system": "url",
+          "value": "https://fhir.slade360.co.ke"
+        }
+      ]
+    }
+  ],
+  "jurisdiction": [
+    {
+      "coding": [
+        {
+          "system": "urn:iso:std:iso:3166",
+          "code": "KE",
+          "display": "Kenya"
+        }
+      ]
+    }
+  ],
+  "useContext": [
+    {
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+        "code": "workflow",
+        "display": "Workflow Setting"
+      },
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/clinical-form-category-codesystem",
+            "code": "consent",
+            "display": "Consent"
+          }
+        ]
+      }
+    }
+  ],
+  "code": [
+    {
+      "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+      "code": "evaluation-and-treatment",
+      "display": "Consent for evaluation and treatment"
+    },
+    {
+      "system": "http://loinc.org",
+      "code": "59284-0",
+      "display": "Consent Document"
+    }
+  ]
+}
