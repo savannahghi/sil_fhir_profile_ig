@@ -13,7 +13,10 @@ group ExtractSurgicalIrrigationRecord(source qr : QR, target bundle : Bundle) {
 
   // ── The balance, as the 24-hour urine output ────────────────────────────
   qr.item as g where (linkId = 'totals') then {
-    g.item as it where (linkId = 'totals/balance' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+    // Only a balance of zero or more is urine. One below zero means less came
+    // back than went in, which is not a urine output; it is kept under its own
+    // code, flagged, in the rule after this one.
+    g.item as it where (linkId = 'totals/balance' and (answer.value.ofType(decimal).where($this >= 0).exists() or answer.value.ofType(integer).where($this >= 0).exists())) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
       qr -> obs then SetVitalSignsCategory(qr, obs) "category";
       it -> obs.code as cc then {
@@ -33,6 +36,34 @@ group ExtractSurgicalIrrigationRecord(source qr : QR, target bundle : Bundle) {
       } "answer";
       it -> obs.note as n, n.text = 'Irrigation out less irrigation in. On a continuous bladder irrigation this is the urine the patient actually made.' "note";
     } "measureq_9192_6";
+
+    g.item as it where (linkId = 'totals/balance' and (answer.value.ofType(decimal).where($this < 0).exists() or answer.value.ofType(integer).where($this < 0).exists())) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'fluid-balance-irrigation-balance' "cd";
+          it -> cg.display = 'Irrigation balance' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as v -> obs.value = create('Quantity') as q then {
+          v -> q.value = v "qValue";
+          v -> q.unit = 'mL' "qUnit";
+          v -> q.system = 'http://unitsofmeasure.org' "qSystem";
+          v -> q.code = 'mL' "qCode";
+        } "quantity";
+      } "answer";
+      it -> obs.interpretation as interp then {
+        it -> interp.coding as icg then {
+          it -> icg.system = 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation' "sys";
+          it -> icg.code = 'A' "cd";
+          it -> icg.display = 'Abnormal' "dsp";
+        } "coding";
+      } "negativeInterp";
+      it -> obs.note as n, n.text = 'Irrigation out less irrigation in came to below zero: less fluid came back than was instilled.' "note";
+    } "measureq_negative_balance";
 
     g.item as it where (linkId = 'totals/in' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
@@ -92,6 +123,21 @@ group ExtractSurgicalIrrigationRecord(source qr : QR, target bundle : Bundle) {
         a.value as txt -> obs.note as n, n.text = txt "text";
       } "answer";
     } "narr_11450_4";
+
+    g.item as it where (linkId = 'context/surgical-date' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '67782-3' "cd";
+          it -> cg.display = 'Surgical operation date' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as v -> obs.value = cast(v, 'dateTime') "dateValue";
+      } "answer";
+    } "date_67782_3";
 
   } "contextGroup";
 
@@ -159,14 +205,30 @@ group ExtractSurgicalIrrigationRecord(source qr : QR, target bundle : Bundle) {
         } "clotsInterp";
       } "answer";
     } "clotsRule";
+    // The row's clock time. A `time` has no date, so the row is dated from the
+    // chart's own "Today's date" and written to effective[x], replacing the
+    // authored moment the base group put there. Without a chart date the row
+    // keeps the authored moment and the time survives in the note. Kenya keeps
+    // one offset all year, hence the fixed +03:00.
     row.item as it where (linkId = 'hour/time' and answer.value.exists()) then {
       it.answer first as a then {
-        a.value as t -> obs.note as n, n.text = 'Recorded against the clock time on the irrigation record' "timeNote";
+        a.value as t -> append('Recorded against the clock time ', t, ' on the irrigation record') as txt, obs.note as n, n.text = txt "timeNote";
+        a.value as t then {
+          qr.item as c where (linkId = 'context') then {
+            c.item as d where (linkId = 'context/chart-date' and answer.value.exists()) then {
+              d.answer first as da then {
+                da.value as day -> append(day, 'T', t, '+03:00') as stamp, obs.effective = cast(stamp, 'dateTime') "effectiveFromChart";
+              } "chartAnswer";
+            } "chartDate";
+          } "contextGroup";
+        } "rowTime";
       } "answer";
     } "timeRule";
+    // The recorder joins the response's author as a performer, unless they are
+    // the same person: the base group has already written the author.
     row.item as it where (linkId = 'hour/recorded-by' and answer.value.exists()) then {
-      it.answer first as a then {
-        a.value as ref where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> obs.performer = ref "performer";
+      it.answer first as a where (value.reference.empty() or (%obs.performer.reference contains value.reference).not()) then {
+        a.value as ref where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole')))) and %qr.author.reference.intersect(reference).empty()) -> obs.performer = ref "performer";
       } "answer";
     } "byRule";
   } "irrigationRow";
@@ -299,9 +361,9 @@ group SetResponseProvenance(source qr : QR, target r) {
 
 group ConformObservation(source qr : QR, target r) {
   qr.authored as t where ($this.toString().length() >= 20) -> r.issued = cast(t, 'instant') "issued";
-  qr.authored as t where ($this.toString().length() >= 20) -> r.effective = cast(t, 'instant') "effective";
-  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = au "performerFromAuthor";
-  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))).exists().not()) then {
-    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = src "performerFromSource";
+  qr.authored as t -> r.effective = t "effective";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = au "performerFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = src "performerFromSource";
   } "performerFallback";
 }

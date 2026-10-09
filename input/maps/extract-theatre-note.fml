@@ -16,6 +16,18 @@ group ExtractTheatreNote(source qr : QR, target bundle : Bundle) {
     g.item as it where (linkId = 'operation/procedure' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Procedure') as proc then {
       qr -> proc, entry then BuildProcedureBase(qr, proc, entry) "base";
       it -> proc.status = 'completed' "status";
+      // The profile wants a category, bound extensibly to SGHIProcedureCategory.
+      // Every theatre note records an operation, so this is the form's own
+      // context, not a reading of the answer: 387713003 Surgical procedure
+      // (checked on tx.fhir.org), in the local system the set's SNOMED-numbered
+      // categories live in.
+      it -> proc.category as cat then {
+        it -> cat.coding as cg then {
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/identifier-codesystem' "sys";
+          it -> cg.code = '387713003' "cd";
+          it -> cg.display = 'Surgical procedure (procedure)' "dsp";
+        } "coding";
+      } "category";
       qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> proc.encounter = e "encounter";
       it.answer first as a then {
         a.value as txt -> proc.code as cc, cc.text = txt "codeText";
@@ -25,10 +37,18 @@ group ExtractTheatreNote(source qr : QR, target bundle : Bundle) {
           a.value as v -> proc.occurrence = v "occurrence";
         } "answer";
       } "atRule";
+      // The diagnosis the operation was done for. A locked copy of the
+      // encounter's reason, written as the procedure's indication rather than as
+      // a second diagnosis record.
+      g.item as dx where (linkId = 'operation/diagnosis' and answer.value.exists()) then {
+        dx.answer first as a then {
+          a.value as txt -> proc.reason as rs, rs.concept as c, c.text = txt "reasonText";
+        } "answer";
+      } "diagnosisRule";
       g.item as inc where (linkId = 'operation/incision' and answer.value.exists()) then {
         inc.answer first as a then {
           a.value as txt -> proc.note as n then {
-            txt -> n.text = txt "incisionNoteText";
+            txt -> n.text = append('Incision: ', txt) "incisionNoteText";
             qr.authored as noteTime -> n.time = noteTime "incisionNoteTime";
           } "incisionNote";
         } "answer";
@@ -85,9 +105,19 @@ group ExtractTheatreNote(source qr : QR, target bundle : Bundle) {
           it -> cg.display = 'Anaesthesia used, as recorded on the theatre note' "dsp";
         } "coding";
       } "code";
+      // A short answer, so it is the Observation's value (R5 value[x] has a
+      // string choice), not a note.
       it.answer first as a then {
-        a.value as txt -> obs.note as n, n.text = txt "text";
+        a.value as txt -> obs.value = txt "value";
       } "answer";
+      // When the operation was done, over the authored-time floor the base
+      // group writes: the anaesthesia belongs to the operation, not to the
+      // moment the note was keyed in.
+      g.item as at where (linkId = 'operation/at' and answer.value.exists()) then {
+        at.answer first as a then {
+          a.value as v where ($this is dateTime) -> obs.effective = v "effective";
+        } "answer";
+      } "atRule";
     } "narr_anaesthesia_used_as_recorded_on_the_theatre_note";
 
   } "anaesthesiaGroup";
@@ -106,6 +136,14 @@ group ExtractTheatreNote(source qr : QR, target bundle : Bundle) {
     it.answer first as a then {
       a.value as txt -> obs.note as n, n.text = txt "text";
     } "answer";
+    // The operation's own time, as on the anaesthesia Observation.
+    qr.item as g where (linkId = 'operation') then {
+      g.item as at where (linkId = 'operation/at' and answer.value.exists()) then {
+        at.answer first as a then {
+          a.value as v where ($this is dateTime) -> obs.effective = v "effective";
+        } "answer";
+      } "atRule";
+    } "operationGroup";
   } "narr_11504_8";
 
 }
@@ -248,10 +286,10 @@ group SetResponseProvenance(source qr : QR, target r) {
 
 group ConformObservation(source qr : QR, target r) {
   qr.authored as t where ($this.toString().length() >= 20) -> r.issued = cast(t, 'instant') "issued";
-  qr.authored as t where ($this.toString().length() >= 20) -> r.effective = cast(t, 'instant') "effective";
-  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = au "performerFromAuthor";
-  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))).exists().not()) then {
-    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = src "performerFromSource";
+  qr.authored as t -> r.effective = t "effective";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = au "performerFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = src "performerFromSource";
   } "performerFallback";
 }
 

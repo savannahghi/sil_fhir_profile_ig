@@ -29,7 +29,7 @@ Description: "A dose of a medication actually given to, or deliberately not give
 // the MOH 510 extractor records vitamin A supplementation as an administration
 // coded from SGHIKEPISupplement, which is not part of SGHIMedicationCodes.
 * medication 1..1
-* medication only SGHICodeableReference
+// Free text allowed: forms write the drug as given.
 * medication only CodeableReference(SGHIMedication)
 * medication from SGHIMedicationCodes (extensible)
 
@@ -70,7 +70,8 @@ Description: "A dose of a medication actually given to, or deliberately not give
 * dosage 0..1
   * site only SGHICodeableConcept
   * site from SGHIBodySiteValueSet (extensible)
-  * route 1..1
+  // Optional: written when the form or its context fixes the route.
+  * route 0..1
   * route only SGHICodeableConcept
   * route from SGHIRouteOfAdministration (required)
   * method only SGHICodeableConcept

@@ -27,20 +27,25 @@ group ExtractChemotherapyProtocolCycles(source qr : QR, target bundle : Bundle) 
       } "answer";
     } "narr_chemotherapy_regimen";
 
+    // The protocol's own weight, the one the BSA for dosing is worked out
+    // from, under a code of its own. Under 29463-7 it was indistinguishable
+    // from the weight charted at each cycle, and as the protocol carries no date
+    // of its own it took the authored time, so the recall's "weight, last
+    // recorded" showed the protocol weight instead of the latest cycle's.
     g.item as it where (linkId = 'protocol/weight' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
       qr -> obs then SetVitalSignsCategory(qr, obs) "category";
       it -> obs.code as cc then {
         it -> cc.coding as cg then {
-          it -> cg.system = 'http://loinc.org' "sys";
-          it -> cg.code = '29463-7' "cd";
-          it -> cg.display = 'Body weight' "dsp";
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'chemotherapy-protocol-weight' "cd";
+          it -> cg.display = 'Protocol weight' "dsp";
         } "coding";
       } "code";
       it.answer first as a then {
         a.value as v -> obs.value = v "set";
       } "answer";
-    } "measure_29463_7";
+    } "measure_protocol_weight";
 
     g.item as it where (linkId = 'protocol/height' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
@@ -205,9 +210,13 @@ group ExtractChemotherapyProtocolCycles(source qr : QR, target bundle : Bundle) 
       c -> obs then SetCycleContext(c, obs) "cycleContext";
     } "cycleWeight";
 
-    // Blood pressure travels as typed -- "128/76" on one line. Split into a
-    // systolic and a diastolic component it would have to be parsed, and a
-    // mis-parsed blood pressure is worse than a legible string.
+    // Blood pressure travels as typed -- "128/76" on one line -- and is kept as
+    // typed in the note, which is what the form's recall reads back. When, and
+    // only when, the string is exactly two numbers of two or three digits either
+    // side of one slash, it is also split into the systolic and diastolic
+    // components the vital-signs blood pressure profile requires. Anything else
+    // ("128/", "140 over 90", "high") gets the same two components with no
+    // numbers in them: a mis-parsed blood pressure is worse than a legible string.
     c.item as it where (linkId = 'cycle/blood-pressure' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
       qr -> obs then SetVitalSignsCategory(qr, obs) "category";
@@ -220,6 +229,76 @@ group ExtractChemotherapyProtocolCycles(source qr : QR, target bundle : Bundle) 
       } "code";
       it.answer first as a then {
         a.value as txt -> obs.note as n, n.text = txt "bpText";
+        a.value as txt where ($this.replace(' ', '').matches('^[0-9]{2,3}/[0-9]{2,3}$')) then {
+          txt -> obs.component as comp then {
+            txt -> comp.code as cc then {
+              txt -> cc.coding as cg then {
+                txt -> cg.system = 'http://loinc.org' "sys";
+                txt -> cg.code = '8480-6' "cd";
+                txt -> cg.display = 'Systolic blood pressure' "dsp";
+              } "coding";
+            } "code";
+            txt -> evaluate(txt, $this.replace(' ', '').split('/').first().toDecimal()) as mm, comp.value = create('Quantity') as q then {
+              txt -> q.value = mm "qValue";
+              txt -> q.unit = 'mmHg' "qUnit";
+              txt -> q.system = 'http://unitsofmeasure.org' "qSystem";
+              txt -> q.code = 'mm[Hg]' "qCode";
+            } "quantity";
+          } "systolic";
+          txt -> obs.component as comp then {
+            txt -> comp.code as cc then {
+              txt -> cc.coding as cg then {
+                txt -> cg.system = 'http://loinc.org' "sys";
+                txt -> cg.code = '8462-4' "cd";
+                txt -> cg.display = 'Diastolic blood pressure' "dsp";
+              } "coding";
+            } "code";
+            txt -> evaluate(txt, $this.replace(' ', '').split('/').last().toDecimal()) as mm, comp.value = create('Quantity') as q then {
+              txt -> q.value = mm "qValue";
+              txt -> q.unit = 'mmHg' "qUnit";
+              txt -> q.system = 'http://unitsofmeasure.org' "qSystem";
+              txt -> q.code = 'mm[Hg]' "qCode";
+            } "quantity";
+          } "diastolic";
+        } "bpComponents";
+        // Anything else still carries both components, each with the reason its
+        // value is missing -- as-text, the reading is in the note -- because the
+        // vital-signs blood pressure profile requires them, and a number read
+        // out of "140 over 90" would be a guess.
+        a.value as txt where ($this.replace(' ', '').matches('^[0-9]{2,3}/[0-9]{2,3}$').not()) then {
+          txt -> obs.component as comp then {
+            txt -> comp.code as cc then {
+              txt -> cc.coding as cg then {
+                txt -> cg.system = 'http://loinc.org' "sys";
+                txt -> cg.code = '8480-6' "cd";
+                txt -> cg.display = 'Systolic blood pressure' "dsp";
+              } "coding";
+            } "code";
+            txt -> comp.dataAbsentReason as dar then {
+              txt -> dar.coding as dc then {
+                txt -> dc.system = 'http://terminology.hl7.org/CodeSystem/data-absent-reason' "sys";
+                txt -> dc.code = 'as-text' "cd";
+                txt -> dc.display = 'As Text' "dsp";
+              } "coding";
+            } "absent";
+          } "systolic";
+          txt -> obs.component as comp then {
+            txt -> comp.code as cc then {
+              txt -> cc.coding as cg then {
+                txt -> cg.system = 'http://loinc.org' "sys";
+                txt -> cg.code = '8462-4' "cd";
+                txt -> cg.display = 'Diastolic blood pressure' "dsp";
+              } "coding";
+            } "code";
+            txt -> comp.dataAbsentReason as dar then {
+              txt -> dar.coding as dc then {
+                txt -> dc.system = 'http://terminology.hl7.org/CodeSystem/data-absent-reason' "sys";
+                txt -> dc.code = 'as-text' "cd";
+                txt -> dc.display = 'As Text' "dsp";
+              } "coding";
+            } "absent";
+          } "diastolic";
+        } "bpAsText";
       } "answer";
       c -> obs then SetCycleContext(c, obs) "cycleContext";
     } "cycleBloodPressure";
@@ -236,6 +315,7 @@ group ExtractChemotherapyProtocolCycles(source qr : QR, target bundle : Bundle) 
       it.answer first as a then {
         a.value as txt -> obs.note as n, n.text = txt "text";
       } "answer";
+      c -> obs then SetCycleContext(c, obs) "cycleContext";
     } "narr_chemo_remarks_on_a_chemotherapy_cycle";
 
   } "cycleRows";
@@ -248,17 +328,17 @@ group ExtractChemotherapyProtocolCycles(source qr : QR, target bundle : Bundle) 
 group SetCycleContext(source c, target obs : Observation) {
   c.item as it where (linkId = 'cycle/date' and answer.value.exists()) then {
     it.answer first as a then {
-      a.value as v where ($this.toString().length() = 10) -> evaluate(v, $this.toString() + 'T00:00:00+03:00') as midnight, obs.effective = cast(midnight, 'instant') "effectiveFromCycle";
+      a.value as v where ($this.toString().length() = 10) -> evaluate(v, $this.toString() + 'T00:00:00+03:00') as midnight, obs.effective = cast(midnight, 'dateTime') "effectiveFromCycle";
     } "answer";
   } "cycleDateRule";
   c.item as it where (linkId = 'cycle/number' and answer.value.exists()) then {
     it.answer first as a then {
-      a.value as n -> obs.note as note, note.text = 'Recorded against a numbered cycle on the chemotherapy protocol sheet' "cycleNote";
+      a.value as n -> evaluate(n, 'Chemotherapy protocol cycle number: ' + $this.toString()) as label, obs.note as note, note.text = label "cycleNote";
     } "answer";
   } "cycleNumberRule";
   c.item as it where (linkId = 'cycle/signed-by' and answer.value.exists()) then {
-    it.answer first as a then {
-      a.value as ref where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> obs.performer = ref "performer";
+    it.answer first as a where (value.reference.empty() or (%obs.performer.reference contains value.reference).not()) then {
+      a.value as ref where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> obs.performer = ref "performer";
     } "answer";
   } "signedByRule";
 }
@@ -400,9 +480,9 @@ group SetResponseProvenance(source qr : QR, target r) {
 
 group ConformObservation(source qr : QR, target r) {
   qr.authored as t where ($this.toString().length() >= 20) -> r.issued = cast(t, 'instant') "issued";
-  qr.authored as t where ($this.toString().length() >= 20) -> r.effective = cast(t, 'instant') "effective";
-  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = au "performerFromAuthor";
-  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))).exists().not()) then {
-    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = src "performerFromSource";
+  qr.authored as t -> r.effective = t "effective";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = au "performerFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = src "performerFromSource";
   } "performerFallback";
 }

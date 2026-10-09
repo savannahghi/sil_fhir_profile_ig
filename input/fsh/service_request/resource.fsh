@@ -21,7 +21,9 @@ Description: "ServiceRequest represents an order or proposal or plan, as disting
 * priority 1..1
 
 * code only SGHICodeableReference
-* code from AllLoincCodes (required)
+// Extensible: LOINC where it has the request; it has no concept for some a form
+// raises, such as the hormonal therapy plan's return review ("to come again").
+* code from AllLoincCodes (extensible)
 
 * subject 1..1
 * subject only SGHIReference
@@ -35,14 +37,15 @@ Description: "ServiceRequest represents an order or proposal or plan, as disting
 
 * requester 1..1
 * requester only SGHIReference
-* requester only Reference(SGHIOrganization or SGHIPatient)
+* requester only Reference(SGHIOrganization or SGHIPatient or SGHIPractitioner or SGHIPractitionerRole)
 
-* reason 1..*
+// Optional: an investigation ticked on a form names no reason or performing lab.
+* reason 0..*
 * reason only SGHICodeableReference
 * reason only CodeableReference(SGHICondition or SGHIObservation or SGHIDiagnosticReport)
 * reason from AllLoincCodes (required)
 
-* performer 1..*
+* performer 0..*
 * performer only SGHIReference
 * performer only Reference(SGHIOrganization)
 

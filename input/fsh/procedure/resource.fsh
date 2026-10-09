@@ -7,11 +7,12 @@ Description:    "This resource is used to record the details of current and hist
 * identifier 1..*
   * type from SGHIDefaultIdentifierTypes (required)
   * insert CommonIdentifierRules
-* basedOn 1..1 
+// Optional: a procedure recorded from a paper form has none of these to give.
+* basedOn 0..1
 * basedOn only SGHIReference
 * basedOn only Reference(SGHIServiceRequest)
 
-* partOf 1..1
+* partOf 0..1
 * partOf only SGHIReference
 * partOf only Reference(SGHIProcedure or SGHIObservation)
 
@@ -26,9 +27,11 @@ Description:    "This resource is used to record the details of current and hist
 * category from SGHIProcedureCategory (extensible)
 
 * code 1..1 MS
-* code only SGHICodeableConcept
-* code from ICHICodes (required)
-* code.coding from ICHICodes (required)
+// Free text allowed: a theatre note names the operation as the surgeon wrote it.
+// Extensible: ICHI where it has the intervention; the Kinangop forms' procedures
+// (anaesthesia, haemodialysis, delivery, dressing) are coded where ICHI cannot be used.
+* code from ICHICodes (extensible)
+* code.coding from ICHICodes (extensible)
 
 * subject MS
 * subject only SGHIReference
@@ -41,8 +44,9 @@ Description:    "This resource is used to record the details of current and hist
 * encounter only SGHIReference
 * encounter only Reference(SGHIEncounter)
 
-* occurrenceDateTime 1..1
-* occurrenceDateTime only dateTime
+// A Period as well: a haemodialysis session runs from Time due on to Time due off.
+* occurrence[x] 1..1
+* occurrence[x] only dateTime or Period
 
 * recorded 1..1 MS
 * recorded only dateTime
@@ -51,34 +55,35 @@ Description:    "This resource is used to record the details of current and hist
 * recorder only SGHIReference
 * recorder only Reference(SGHIPractitioner or SGHIPractitionerRole)
 
-* performer 1..1 MS
+// 0..*: a form may name several (both dialysis nurses) or none.
+* performer 0..* MS
   * actor only SGHIReference
   * actor only Reference(SGHIPractitioner or SGHIPractitionerRole)
   * onBehalfOf only SGHIReference
   * onBehalfOf only Reference(SGHIOrganization)
 
-* location 1..1 MS
+* location 0..1 MS
 * location only SGHIReference
 * location only Reference(SGHILocation)
 
-* bodySite 1..1 MS
+* bodySite 0..1 MS
 * bodySite only SGHICodeableConcept
 * bodySite from ICHICodes (required)
 
-* outcome 1..1 MS
-* outcome only SGHICodeableConcept
-* outcome from SGHIProcedureOutcome
+// Free text allowed: the anaesthetic record's result and remarks are written, not coded.
+* outcome 0..1 MS
+* outcome from SGHIProcedureOutcome (extensible)
 
-* report 1..*
+* report 0..*
 * report only SGHIReference
 * report only Reference(SGHIDiagnosticReport or DocumentReference)
 
 * complication only SGHICodeableReference
 * complication only CodeableReference(SGHICondition)
 
-* followUp 1..1 MS
-* followUp only SGHICodeableConcept
-* followUp from SGHIProcedureFollowUpCodes
+// 0..* and free text: reversal notes and post-operative instructions are both follow-up.
+* followUp 0..* MS
+* followUp from SGHIProcedureFollowUpCodes (extensible)
 
 * note only SGHIAnnotation
 * category only SGHICodeableConcept

@@ -39,18 +39,20 @@ group ExtractPaediatricNebulizationChart(source qr : QR, target bundle : Bundle)
       } "answer";
     } "atRule";
     row.item as it where (linkId = 'nebulisation/given-by' and answer.value.exists()) then {
-      it.answer first as a then {
+      it.answer first as a where (value.reference.empty() or (%ma.performer.actor.reference.reference contains value.reference).not()) then {
         a.value as ref where (((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/') or reference.startsWith('Patient/') or reference.startsWith('RelatedPerson/') or reference.startsWith('Device/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/RelatedPerson') or ('/' + type).endsWith('/Device'))))) -> ma.performer as p, p.actor = create('CodeableReference') as cr, cr.reference = ref "performer";
       } "answer";
     } "givenByRule";
 
     // The route. Every row on this chart is a nebulisation, so it is stated
-    // rather than asked -- the sheet's title is the route.
+    // rather than asked -- the sheet's title is the route. From the IG's route
+    // code system, which SGHIMedicationAdministration binds dosage.route to
+    // (required); SNOMED 447694001, used before, is outside that value set.
     row -> ma.dosage as dos, dos.route as rt then {
       row -> rt.coding as cg then {
-        row -> cg.system = 'http://snomed.info/sct' "sys";
-        row -> cg.code = '447694001' "cd";
-        row -> cg.display = 'Respiratory tract route' "dsp";
+        row -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/route-of-administration' "sys";
+        row -> cg.code = 'inh' "cd";
+        row -> cg.display = 'Inhalation' "dsp";
       } "coding";
     } "route";
   } "nebulisationRow";
@@ -184,10 +186,10 @@ group SetResponseProvenance(source qr : QR, target r) {
 
 group ConformObservation(source qr : QR, target r) {
   qr.authored as t where ($this.toString().length() >= 20) -> r.issued = cast(t, 'instant') "issued";
-  qr.authored as t where ($this.toString().length() >= 20) -> r.effective = cast(t, 'instant') "effective";
-  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = au "performerFromAuthor";
-  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))).exists().not()) then {
-    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = src "performerFromSource";
+  qr.authored as t -> r.effective = t "effective";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = au "performerFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = src "performerFromSource";
   } "performerFallback";
 }
 

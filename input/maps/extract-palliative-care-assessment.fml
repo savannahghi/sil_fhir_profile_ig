@@ -2,7 +2,7 @@
 /// name = "ExtractPalliativeCareAssessment"
 /// title = "Palliative Care Assessment Extraction"
 /// status = "active"
-/// description = "The palliative care assessment out as: one symptom-assessment Observation carrying all twenty-two symptoms as components, because the panel is the assessment and a patient with no symptoms ticked has said something a set of absent Observations could not; a Condition for the diagnosis, reconciled against the problem list where the assessor picked an existing one; one Observation for the prior oncological treatment; separate Observations for the patient\'s own goals and the carer\'s, because the two often differ and the form asks both; and a CarePlan whose activities are the problem-and-action rows."
+/// description = "The palliative care assessment out as: one symptom-assessment Observation carrying all twenty-two symptoms as components, because the panel is the assessment and a patient with no symptoms ticked has said something a set of absent Observations could not; one Observation for the prior oncological treatment; separate Observations for the patient\'s own goals and the carer\'s, because the two often differ and the form asks both; and a CarePlan whose activities are the problem-and-action rows. The diagnosis Condition and referral-source Observations are built only when a response carries those groups, which the reviewed form no longer asks."
 
 uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
 uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
@@ -252,6 +252,9 @@ group ExtractPalliativeCareAssessment(source qr : QR, target bundle : Bundle) {
   } "symptomPanel";
 
   // ── Diagnosis ───────────────────────────────────────────────────────────
+  // Kept on purpose, though the reviewed form has no 'diagnosis' group (the
+  // review dropped it as already known): a response from an older copy of the
+  // form that still carries it extracts its Condition here.
   // The form asks for both an existing Condition and the diagnosis as written.
   // Where an existing one was picked, the map records the reference as evidence
   // rather than creating a second Condition -- a palliative referral should not
@@ -289,7 +292,8 @@ group ExtractPalliativeCareAssessment(source qr : QR, target bundle : Bundle) {
   // ── Prior oncological treatment ─────────────────────────────────────────
   // One Observation with a note per modality. The form takes free text -- "RT
   // 2024, 25 fractions" -- and a Procedure built from that would claim a date
-  // and a body site it does not have.
+  // and a body site it does not have. Each note leads with its modality, since
+  // a note's position shifts whenever an earlier answer is blank.
   qr.item as g where (linkId = 'prior-treatment' and item.answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
     qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
     qr -> obs then SetSurveyCategory(qr, obs) "category";
@@ -302,27 +306,27 @@ group ExtractPalliativeCareAssessment(source qr : QR, target bundle : Bundle) {
     } "code";
     g.item as it where (linkId = 'prior-treatment/radiotherapy') then {
       it.answer first as a then {
-        a.value as txt -> obs.note as n, n.text = txt "text";
+        a.value as txt -> obs.note as n, n.text = append('Radiotherapy: ', txt) "text";
       } "answer";
     } "note";
     g.item as it where (linkId = 'prior-treatment/chemotherapy') then {
       it.answer first as a then {
-        a.value as txt -> obs.note as n, n.text = txt "text";
+        a.value as txt -> obs.note as n, n.text = append('Chemotherapy: ', txt) "text";
       } "answer";
     } "note2";
     g.item as it where (linkId = 'prior-treatment/surgery') then {
       it.answer first as a then {
-        a.value as txt -> obs.note as n, n.text = txt "text";
+        a.value as txt -> obs.note as n, n.text = append('Surgery: ', txt) "text";
       } "answer";
     } "note3";
     g.item as it where (linkId = 'prior-treatment/other') then {
       it.answer first as a then {
-        a.value as txt -> obs.note as n, n.text = txt "text";
+        a.value as txt -> obs.note as n, n.text = append('Other treatment: ', txt) "text";
       } "answer";
     } "note4";
     g.item as it where (linkId = 'prior-treatment/p24-markers') then {
       it.answer first as a then {
-        a.value as txt -> obs.note as n, n.text = txt "text";
+        a.value as txt -> obs.note as n, n.text = append('P24 markers: ', txt) "text";
       } "answer";
     } "note5";
     g.item as it where (linkId = 'prior-treatment/not-discussed' and answer.value.exists()) -> obs.component as comp then {
@@ -364,15 +368,15 @@ group ExtractPalliativeCareAssessment(source qr : QR, target bundle : Bundle) {
       it -> obs.code as cc then {
         it -> cc.coding as cg then {
           it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
-          it -> cg.code = 'patient-goals' "cd";
-          it -> cg.display = 'Patient goals and expectations' "dsp";
+          it -> cg.code = 'patient-stresses' "cd";
+          it -> cg.display = 'Patient stresses and help wanted' "dsp";
         } "coding";
         it -> cc.text = 'Stresses the patient carries, and the help they feel is appropriate' "codeText";
       } "code";
       it.answer first as a then {
         a.value as txt -> obs.note as n, n.text = txt "text";
       } "answer";
-    } "narr_patient_goals2";
+    } "narr_patient_stresses";
 
     g.item as it where (linkId = 'psychosocial/carer-goals' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
@@ -395,15 +399,15 @@ group ExtractPalliativeCareAssessment(source qr : QR, target bundle : Bundle) {
       it -> obs.code as cc then {
         it -> cc.coding as cg then {
           it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
-          it -> cg.code = 'carer-goals' "cd";
-          it -> cg.display = 'Carer goals and expectations' "dsp";
+          it -> cg.code = 'carer-stresses' "cd";
+          it -> cg.display = 'Carer stresses and help wanted' "dsp";
         } "coding";
         it -> cc.text = 'Stresses the carer carries, and the help they feel is appropriate' "codeText";
       } "code";
       it.answer first as a then {
         a.value as txt -> obs.note as n, n.text = txt "text";
       } "answer";
-    } "narr_carer_goals2";
+    } "narr_carer_stresses";
 
     g.item as it where (linkId = 'psychosocial/spiritual-assessment' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
@@ -468,6 +472,8 @@ group ExtractPalliativeCareAssessment(source qr : QR, target bundle : Bundle) {
     } "answer";
   } "narr_10164_2";
 
+  // Referral source: kept on purpose for the same reason as the diagnosis
+  // block -- the reviewed form has no 'referral' group, older copies did.
   qr.item as g where (linkId = 'referral') then {
     g.item as it where (linkId = 'referral/source' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
@@ -485,7 +491,7 @@ group ExtractPalliativeCareAssessment(source qr : QR, target bundle : Bundle) {
           cv.display as d -> cc.text = d "valueText";
         } "codedValue";
       } "answer";
-    } "coded_palliative_symptom";
+    } "coded_palliative_referral_source";
 
     g.item as it where (linkId = 'referral/source-detail' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
@@ -507,9 +513,9 @@ group ExtractPalliativeCareAssessment(source qr : QR, target bundle : Bundle) {
 
   // ── The problem and action plan ─────────────────────────────────────────
   // One CarePlan, with a row per problem. Each row becomes an activity whose
-  // display is the problem and whose progress note is the action -- the plan is
-  // the deliverable of a palliative assessment, and the ward picks it up from
-  // there rather than from the assessment narrative.
+  // display is the problem and whose progress note is the action, timed by the
+  // row's date -- the plan is the deliverable of a palliative assessment, and
+  // the ward picks it up from there rather than from the assessment narrative.
   //
   // Guarded on at least one problem row: a CarePlan with no activities is a
   // plan nobody made.
@@ -533,12 +539,34 @@ group ExtractPalliativeCareAssessment(source qr : QR, target bundle : Bundle) {
         it.answer first as a then {
           a.value as txt -> act.plannedActivityReference = create('Reference') as ref, ref.display = txt "problemDisplay";
         } "answer";
+        // The row's action plan is the activity's progress note, dated by the
+        // row's own date, so each action stays with the problem it answers.
+        // Nested here because `act` belongs to this rule.
+        g.item as ap where (linkId = 'problem/action-plan' and answer.value.exists()) -> act.progress as n then {
+          ap.answer first as aa then {
+            aa.value as txt -> n.text = txt "actionText";
+          } "answer";
+          g.item as dt where (linkId = 'problem/date' and answer.value.exists()) then {
+            dt.answer first as da then {
+              da.value as d -> n.time = cast(d, 'dateTime') "actionTime";
+            } "answer";
+          } "rowDate";
+        } "actionRow";
       } "problemRow";
-      g.item as it where (linkId = 'problem/action-plan' and answer.value.exists()) then {
-        it.answer first as a then {
-          a.value as txt -> plan.note as n, n.text = txt "actionNote";
-        } "answer";
-      } "actionRow";
+      // An action written against no problem has no activity to sit on; it
+      // stays a plan note, as every action did before.
+      g where (item.where(linkId = 'problem/description').answer.value.exists().not()) then {
+        g.item as it where (linkId = 'problem/action-plan' and answer.value.exists()) -> plan.note as n then {
+          it.answer first as a then {
+            a.value as txt -> n.text = txt "actionNote";
+          } "answer";
+          g.item as dt where (linkId = 'problem/date' and answer.value.exists()) then {
+            dt.answer first as da then {
+              da.value as d -> n.time = cast(d, 'dateTime') "actionTime";
+            } "answer";
+          } "rowDate";
+        } "orphanAction";
+      } "orphanActionRow";
     } "problemRows";
   } "palliativeCarePlan";
 }
@@ -723,19 +751,19 @@ group AuthorParticipant(source who, target p) {
 
 group ConformObservation(source qr : QR, target r) {
   qr.authored as t where ($this.toString().length() >= 20) -> r.issued = cast(t, 'instant') "issued";
-  qr.authored as t where ($this.toString().length() >= 20) -> r.effective = cast(t, 'instant') "effective";
-  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = au "performerFromAuthor";
-  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))).exists().not()) then {
-    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = src "performerFromSource";
+  qr.authored as t -> r.effective = t "effective";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = au "performerFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = src "performerFromSource";
   } "performerFallback";
 }
 
 group ConformCondition(source qr : QR, target r) {
   qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> r.encounter = e "encounter";
   qr.authored as t -> r.recordedDate = t "recordedDate";
-  qr.author as au where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization'))))) -> r.participant as p then AuthorParticipant(au, p) "participantFromAuthor";
-  qr where (author.where(((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization'))))).exists().not()) then {
-    qr.source as src where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization'))))) -> r.participant as p then AuthorParticipant(src, p) "participantFromSource";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.participant as p then AuthorParticipant(au, p) "participantFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.participant as p then AuthorParticipant(src, p) "participantFromSource";
   } "participantFallback";
 }
 
@@ -745,8 +773,8 @@ group ConformCarePlan(source qr : QR, target r) {
   qr.questionnaire as qc -> r.instantiatesCanonical = qc "instantiatesCanonical";
   qr -> r.title = 'Care plan from the palliative care assessment' "title";
   qr -> r.description = 'Recorded on the palliative care assessment.' "description";
-  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization'))))) -> r.custodian = au "custodianFromAuthor";
-  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization'))))).exists().not()) then {
-    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization'))))) -> r.custodian = src "custodianFromSource";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.custodian = au "custodianFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.custodian = src "custodianFromSource";
   } "custodianFallback";
 }

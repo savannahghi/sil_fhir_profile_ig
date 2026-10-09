@@ -25,10 +25,15 @@ Description: "Measurements and simple assertions made about a patient, device or
 
 * performer 1..*
 * performer only SGHIReference
-* performer only Reference(SGHIOrganization or SGHIPatient)
+// Practitioners too: the charts record who took each reading ("taken by",
+// "completed by", "recorded by"), and the response's author is a practitioner.
+* performer only Reference(SGHIOrganization or SGHIPatient or SGHIPractitioner or SGHIPractitionerRole)
 
-* effective[x] only instant
-* effectiveInstant 1..1
+// dateTime as well as instant: R5's vital-signs profiles, which apply to every
+// Observation with a vital-sign LOINC code, allow effective[x] only as dateTime
+// or Period, so an instant-only rule made every vital sign fail one or the other.
+* effective[x] 1..1
+* effective[x] only dateTime or instant
 
 * issued 1..1
 
@@ -49,7 +54,9 @@ Description: "Measurements and simple assertions made about a patient, device or
 * basedOn only SGHIReference
 * basedOn only Reference(SGHIServiceRequest or SGHIMedicationRequest)
 
-* bodySite from ICD11Codes (required)
+// Extensible: ICD-11 has no laterality-only eye structures, which the pupil
+// observations need.
+* bodySite from ICD11Codes (extensible)
 * bodySite only SGHICodeableConcept
 
 * triggeredBy.observation only SGHIReference

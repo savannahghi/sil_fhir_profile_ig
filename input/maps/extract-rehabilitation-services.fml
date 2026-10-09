@@ -26,6 +26,16 @@ group ExtractRehabilitationServices(source qr : QR, target bundle : Bundle) {
           row -> cg.display = 'Physical therapy procedure' "dsp";
         } "coding";
       } "code";
+      // The profile wants one category. SGHIProcedureCategory (extensible) has no
+      // rehabilitation entry. LOINC has no procedure categories; the IG keeps them as
+      // SNOMED-numbered codes in its identifier code system (SGHIProcedureCategory).
+      row -> proc.category as pc then {
+        row -> pc.coding as pcg then {
+          row -> pcg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/identifier-codesystem' "sys";
+          row -> pcg.code = '52052004' "cd";
+          row -> pcg.display = 'Rehabilitation therapy' "dsp";
+        } "coding";
+      } "category";
       row.item as it where (linkId = 'contact/date' and answer.value.exists()) then {
         it.answer first as a then {
           a.value as v -> proc.occurrence = cast(v, 'dateTime') "occurrence";
@@ -113,12 +123,12 @@ group ExtractRehabilitationServices(source qr : QR, target bundle : Bundle) {
 group SetRehabRowTime(source row, target obs : Observation) {
   row.item as it where (linkId = 'contact/date' and answer.value.exists()) then {
     it.answer first as a then {
-      a.value as v where ($this.toString().length() = 10) -> evaluate(v, $this.toString() + 'T00:00:00+03:00') as midnight, obs.effective = cast(midnight, 'instant') "effective";
+      a.value as v where ($this.toString().length() = 10) -> evaluate(v, $this.toString() + 'T00:00:00+03:00') as midnight, obs.effective = cast(midnight, 'dateTime') "effective";
     } "answer";
   } "rowTimeRule";
   row.item as it where (linkId = 'contact/therapist' and answer.value.exists()) then {
-    it.answer first as a then {
-      a.value as ref where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> obs.performer = ref "by";
+    it.answer first as a where (value.reference.empty() or (%obs.performer.reference contains value.reference).not()) then {
+      a.value as ref where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> obs.performer = ref "by";
     } "answer";
   } "rowByRule";
 }
@@ -225,6 +235,16 @@ group BuildClinicalImpressionBase(source qr : QR, target r : ClinicalImpression,
     qr -> request.url = 'ClinicalImpression' "requestUrl";
   } "entryRequest";
   qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Group/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Group'))))) -> r.subject = s "subject";
+  // The response's own time as a floor (a rule reading the form's own date
+  // overwrites effective), its encounter, and who wrote the note, by the
+  // identity rule: the author, else the source. The note had none of them.
+  qr.authored as t -> r.date = t "date";
+  qr.authored as t -> r.effective = t "effectiveFallback";
+  qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> r.encounter = e "encounter";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = au "performerFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = src "performerFromSource";
+  } "performerFallback";
 }
 
 group SetClinicalImpressionFullUrl(source r : ClinicalImpression, target entry) {
@@ -275,10 +295,10 @@ group SetResponseProvenance(source qr : QR, target r) {
 
 group ConformObservation(source qr : QR, target r) {
   qr.authored as t where ($this.toString().length() >= 20) -> r.issued = cast(t, 'instant') "issued";
-  qr.authored as t where ($this.toString().length() >= 20) -> r.effective = cast(t, 'instant') "effective";
-  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = au "performerFromAuthor";
-  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))).exists().not()) then {
-    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = src "performerFromSource";
+  qr.authored as t -> r.effective = t "effective";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = au "performerFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = src "performerFromSource";
   } "performerFallback";
 }
 

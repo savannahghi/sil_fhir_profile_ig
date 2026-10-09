@@ -8,13 +8,14 @@ Description: "A clinical condition, problem, diagnosis, or other event, situatio
   * type from SGHIDefaultIdentifierTypes (required)
   * insert CommonIdentifierRules
 
-* verificationStatus 1..1
+// Optional: a problem written on a care plan or assessment form is not verified there.
+* verificationStatus 0..1
 * verificationStatus only SGHICodeableConcept
 
 * category 1..*
 * category only SGHICodeableConcept
 
-* severity 1..1
+* severity 0..1
 * severity only SGHICodeableConcept
 * severity from http://terminology.hl7.org/ValueSet/adverse-event-severity (required)
 * severity ^binding.description = "Custom severity values intentionally override the HL7 preferred ConditionSeverity ValueSet."
@@ -27,8 +28,8 @@ Description: "A clinical condition, problem, diagnosis, or other event, situatio
 * encounter only Reference(SGHIEncounter)
 
 * code 1..1
-* code only SGHICodeableConcept
-* code from ICD11Codes (required)
+// Free text allowed and ICD-11 extensible: the forms record the diagnosis as written.
+* code from ICD11Codes (extensible)
 
 * bodySite only SGHICodeableConcept
 * bodySite from ICD11Codes (required)
@@ -42,7 +43,7 @@ Description: "A clinical condition, problem, diagnosis, or other event, situatio
 
 * participant 1..*
   * actor only SGHIReference
-  * actor only Reference(SGHIPatient or SGHIOrganization)
+  * actor only Reference(SGHIPatient or SGHIOrganization or SGHIPractitioner or SGHIPractitionerRole)
 
 * bodySite only SGHICodeableConcept
 * clinicalStatus only SGHICodeableConcept

@@ -65,7 +65,7 @@ group ExtractPaediatricTriageRecord(source qr : QR, target bundle : Bundle) {
         } "coding";
       } "code";
       it.answer first as a then {
-        a.value as t where ($this.toString().length() >= 20) -> obs.effective = cast(t, 'instant') "arrivalEffective";
+        a.value as t where ($this.toString().length() >= 20) -> obs.effective = t "arrivalEffective";
       } "arrivalTime";
       it -> obs.value = 'Triage record' "arrivalValueText";
     } "arrivalObservation";
@@ -130,6 +130,12 @@ group ExtractPaediatricTriageRecord(source qr : QR, target bundle : Bundle) {
           it -> cg.code = '59408-5' "cd";
           it -> cg.display = 'Oxygen saturation in Arterial blood by Pulse oximetry' "dsp";
         } "coding";
+        // The R5 vital-signs oxygensat profile wants 2708-6 beside the pulse-oximetry code.
+        it -> cc.coding as cg2 then {
+          it -> cg2.system = 'http://loinc.org' "sys";
+          it -> cg2.code = '2708-6' "cd";
+          it -> cg2.display = 'Oxygen saturation in Arterial blood' "dsp";
+        } "coding2";
       } "code";
       it.answer first as a then {
         a.value as v -> obs.value = v "set";
@@ -239,18 +245,18 @@ group ExtractPaediatricTriageRecord(source qr : QR, target bundle : Bundle) {
   } "vitalSignsGroup";
 
   // ── Pain, in the three bands the triage sheet grades it in ──────────────
-  // Coded to LOINC 72514-3, the pain severity score, with a coded band rather
-  // than a 0-to-10 number as its value. The band is what was assessed and the
-  // number is not available; writing a number the nurse never gave would be an
-  // invention.
+  // A local code with the coded band as its value. The band is what was
+  // assessed and no number is available; writing one the nurse never gave
+  // would be an invention. LOINC 72514-3, used before, is the 0-to-10 numeric
+  // rating, and LOINC has no banded pain severity term.
   qr.item as it where (linkId = 'pain-score' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
     qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
     qr -> obs then SetSurveyCategory(qr, obs) "category";
     it -> obs.code as cc then {
       it -> cc.coding as cg then {
-        it -> cg.system = 'http://loinc.org' "sys";
-        it -> cg.code = '72514-3' "cd";
-        it -> cg.display = 'Pain severity - 0-10 verbal numeric rating [Score] - Reported' "dsp";
+        it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+        it -> cg.code = 'triage-pain-severity-band' "cd";
+        it -> cg.display = 'Pain severity band' "dsp";
       } "coding";
       it -> cc.text = 'Pain score, as banded on the triage sheet' "codeText";
     } "code";
@@ -277,7 +283,7 @@ group ExtractPaediatricTriageRecord(source qr : QR, target bundle : Bundle) {
       g -> cc.coding as cg then {
         g -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
         g -> cg.code = 'emergency-sign' "cd";
-        g -> cg.display = 'Emergency sign present' "dsp";
+        g -> cg.display = 'Emergency signs screen' "dsp";
       } "coding";
       g -> cc.text = 'Emergency signs — time to doctor immediate' "codeText";
     } "code";
@@ -400,7 +406,7 @@ group ExtractPaediatricTriageRecord(source qr : QR, target bundle : Bundle) {
       g -> cc.coding as cg then {
         g -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
         g -> cg.code = 'priority-sign' "cd";
-        g -> cg.display = 'Priority sign present' "dsp";
+        g -> cg.display = 'Priority signs screen' "dsp";
       } "coding";
       g -> cc.text = 'Priority signs — time to doctor 15 minutes' "codeText";
     } "code";
@@ -545,22 +551,22 @@ group ExtractPaediatricTriageRecord(source qr : QR, target bundle : Bundle) {
     } "code";
     g.item as it where (linkId = 'sample-history/signs-and-symptoms') then {
       it.answer first as a then {
-        a.value as txt -> obs.note as n, n.text = txt "text";
+        a.value as txt -> append('Signs and symptoms: ', txt) as lbl, obs.note as n, n.text = lbl "text";
       } "answer";
     } "note";
     g.item as it where (linkId = 'sample-history/past-medical-history') then {
       it.answer first as a then {
-        a.value as txt -> obs.note as n, n.text = txt "text";
+        a.value as txt -> append('Past medical history: ', txt) as lbl, obs.note as n, n.text = lbl "text";
       } "answer";
     } "note2";
     g.item as it where (linkId = 'sample-history/last-meal') then {
       it.answer first as a then {
-        a.value as txt -> obs.note as n, n.text = txt "text";
+        a.value as txt -> append('Last meal: ', txt) as lbl, obs.note as n, n.text = lbl "text";
       } "answer";
     } "note3";
     g.item as it where (linkId = 'sample-history/events-leading-to-illness') then {
       it.answer first as a then {
-        a.value as txt -> obs.note as n, n.text = txt "text";
+        a.value as txt -> append('Events leading to the illness: ', txt) as lbl, obs.note as n, n.text = lbl "text";
       } "answer";
     } "note4";
   } "sampleHistoryObservation";
@@ -784,10 +790,10 @@ group AuthorParticipant(source who, target p) {
 
 group ConformObservation(source qr : QR, target r) {
   qr.authored as t where ($this.toString().length() >= 20) -> r.issued = cast(t, 'instant') "issued";
-  qr.authored as t where ($this.toString().length() >= 20) -> r.effective = cast(t, 'instant') "effective";
-  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = au "performerFromAuthor";
-  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))).exists().not()) then {
-    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = src "performerFromSource";
+  qr.authored as t -> r.effective = t "effective";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = au "performerFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = src "performerFromSource";
   } "performerFallback";
 }
 

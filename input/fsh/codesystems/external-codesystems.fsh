@@ -139,6 +139,7 @@ Description: "What the forms record where no code system this IG can resolve say
 * #bishop-head-station "Head station" "An item of the Bishop score for cervical ripeness, or the total. LOINC has no term for the score or for cervical dilation at all. Recorded on the maternity record."
 * #bishop-position "Cervical position (Bishop)" "The cervical position item of the Bishop score — posterior, midline or anterior — scored 0 to 2."
 * #bishop-station "Head station (Bishop)" "The station of the presenting part relative to the ischial spines, scored 0 to 3 as the Bishop item."
+* #bishop-total "Bishop score total" "The sum of the five Bishop items, 0 to 13; 6 or more is a favourable cervix for induction. LOINC has no term for the Bishop score, so the total is local like its items."
 
 // ── Body part removed at surgery ────────────────────────────────────────
 * #body-part-removal-body-part-removed "Body part removed" "The procedure a body part was removed at, which part, and the theatre and mortuary staff who handed it over. Recorded on the body part disposal consent form."
@@ -210,7 +211,7 @@ Description: "What the forms record where no code system this IG can resolve say
 * #donor-q-vaccination-in-the-last-3-months "Vaccination in the last 3 months" "One of the thirteen deferral questions on the KTTA donor form. Eligibility is judged over the whole set, which is why they travel together as one panel. Recorded on the KTTA blood donor questionnaire."
 
 // ── Emergency sign ──────────────────────────────────────────────────────
-* #emergency-sign "Emergency sign present" "One of the emergency signs the paediatric triage sheet looks for, which sends the child to a clinician immediately. The answer says which sign."
+* #emergency-sign "Emergency signs screen" "The emergency signs the paediatric triage sheet looks for, any of which sends the child to a clinician immediately. Each sign is a component saying whether it was present; the screen exists whether or not any was."
 * #emergency-sign-avpu-is-p-or-u "AVPU is P or U" "One of the emergency signs the paediatric triage sheet looks for, which sends the child to a clinician immediately. Recorded on the paediatric triage record."
 * #emergency-sign-capillary-refill-over-3-seconds "Capillary refill over 3 seconds" "One of the emergency signs the paediatric triage sheet looks for, which sends the child to a clinician immediately. Recorded on the paediatric triage record."
 * #emergency-sign-central-cyanosis "Central cyanosis" "One of the emergency signs the paediatric triage sheet looks for, which sends the child to a clinician immediately. Recorded on the paediatric triage record."
@@ -390,7 +391,7 @@ Description: "What the forms record where no code system this IG can resolve say
 * #newborn-care-cord-care-with-chlorhexidine "Cord care with chlorhexidine" "One element of essential newborn care, recorded as given or not given. The chart records no dose and no time, which is why these are observations and not medication administrations. Recorded on the newborn observation chart."
 * #newborn-care-delayed-cord-clamp "Delayed cord clamp" "One element of essential newborn care, recorded as given or not given. The chart records no dose and no time, which is why these are observations and not medication administrations. Recorded on the newborn observation chart."
 * #newborn-care-eye-care "Eye care" "One element of essential newborn care, recorded as given or not given. The chart records no dose and no time, which is why these are observations and not medication administrations. Recorded on the newborn observation chart."
-* #newborn-care-infant-arv-prophylaxis-given "Infant ARV prophylaxis given" "One element of essential newborn care, recorded as given or not given. The chart records no dose and no time, which is why these are observations and not medication administrations. Recorded on the newborn unit handover form."
+* #newborn-care-infant-arv-prophylaxis-given "Infant ARV prophylaxis given" "One element of essential newborn care: which infant ARV prophylaxis was given. The handover form also records the clock time it was given (newborn-care-infant-arv-prophylaxis-time) but no dose, which is why this is an observation and not a medication administration. Recorded on the newborn unit handover form."
 * #newborn-care-obvious-malformation "Obvious malformation" "One element of essential newborn care, recorded as given or not given. The chart records no dose and no time, which is why these are observations and not medication administrations. Recorded on the newborn observation chart."
 * #newborn-care-sero-exposed "Sero-exposed" "One element of essential newborn care, recorded as given or not given. The chart records no dose and no time, which is why these are observations and not medication administrations. Recorded on the newborn observation chart."
 * #newborn-care-tetracycline-eye-ointment-given "Tetracycline eye ointment given" "One element of essential newborn care, recorded as given or not given. The chart records no dose and no time, which is why these are observations and not medication administrations. Recorded on the newborn unit handover form."
@@ -476,13 +477,19 @@ Description: "What the forms record where no code system this IG can resolve say
 * #nutrition-social-economic-and-education-status "Social, economic and education status" "Something the paediatric nutrition assessment records: family or psychosocial history, feeding history, or an anthropometric derivation the form computes rather than measures. Recorded on the paediatric nutrition assessment."
 * #nutrition-usual-and-current-dietary-intake "Usual and current dietary intake" "Something the paediatric nutrition assessment records: family or psychosocial history, feeding history, or an anthropometric derivation the form computes rather than measures. Recorded on the paediatric nutrition assessment."
 * #nutrition-weight-for-height-ratio "Weight-for-height ratio" "Something the paediatric nutrition assessment records: family or psychosocial history, feeding history, or an anthropometric derivation the form computes rather than measures. Recorded on the paediatric nutrition assessment."
+* #nutrition-weight-for-age-z-score "Weight-for-age Z score" "The child's weight-for-age Z score, in standard deviations, as worked out on the paediatric nutrition assessment. LOINC 77606-2, used here before, is weight for length, a different measure; LOINC has no weight-for-age Z score term."
+* #weight-for-height-z-score "Weight-for-height Z score" "The child's weight-for-height Z score, in standard deviations, as recorded on the paediatric admission record. LOINC 77606-2, used here before, is the weight-for-length percentile; LOINC has no weight-for-height Z score term."
+* #birth-history-narrative "Birth history" "The child's birth history in the clinician's words, as recorded on the paediatric admission record. Not a gestational age: LOINC 11884-4, used here before, is the estimated gestational age itself."
+* #triage-pain-severity-band "Pain severity band" "The child's pain as the paediatric triage sheet grades it, in bands rather than as a 0 to 10 score. LOINC 72514-3, used here before, is the 0 to 10 numeric rating, and LOINC has no banded pain severity term."
+* #chemotherapy-protocol-weight "Protocol weight" "The patient's weight recorded with the chemotherapy protocol, from which the body surface area for dosing is worked out. Kept apart from the weight charted at each cycle (LOINC 29463-7)."
 
 // ── Recorded on a form ─────────────────────────────────────────
 * #arterial-pressure-circuit "Arterial pressure (extracorporeal circuit)" "The pressure on the arterial limb of the dialysis circuit. A machine reading on the circuit, not the patient's arterial blood pressure, so it is deliberately not coded to 8480-6."
 * #blood-donation "Blood donation" "One donation episode: the collection itself, from needle in to needle out, with the volume taken and the bag used."
 * #blood-pump-rate "Blood pump rate" "The rate the dialysis machine pumps blood through the circuit, in millilitres per minute."
 * #can-drink-or-breastfeed "Able to drink or breastfeed" "Whether the child can still take fluid by mouth. The single most important feeding question on the IMCI assessment."
-* #carer-goals "Carer goals and expectations" "What the person caring for the patient says they want, and what stresses they carry. Kept apart from the patient's own goals because the two often differ and the form asks both."
+* #carer-goals "Carer goals and expectations" "What the person caring for the patient says they want. Kept apart from the patient's own goals because the two often differ and the form asks both."
+* #carer-stresses "Carer stresses and help wanted" "What stresses the person caring for the patient says they carry, and what help they feel is appropriate, in their own words. Kept apart from the carer's goals and from the patient's own stresses."
 * #chemotherapy-cycle-number "Cycle number" "Which cycle of the regimen this prescription is for."
 * #chemotherapy-regimen "Chemotherapy regimen" "The named regimen being prescribed, as free text: the hospital's formulary is not coded, so the name travels as written."
 * #donation-adverse-event "Post-donation adverse event" "One of the nine adverse events the KTTA form asks about after a donation. The answer says whether it happened."
@@ -638,7 +645,7 @@ Description: "What the forms record where no code system this IG can resolve say
 * #prior-treatment-not-discussed-with-the-patient "Prior treatment not discussed with the patient" "Radiotherapy, chemotherapy or surgery the patient has already had, as recorded on the palliative care assessment. Recorded on the palliative care assessment."
 
 // ── Priority sign ───────────────────────────────────────────────────────
-* #priority-sign "Priority sign present" "One of the priority signs the paediatric triage sheet looks for, which brings the child to a clinician within fifteen minutes."
+* #priority-sign "Priority signs screen" "The priority signs the paediatric triage sheet looks for, any of which brings the child to a clinician within fifteen minutes. Each sign is a component saying whether it was present; the screen exists whether or not any was."
 
 // ── Pupil assessment ────────────────────────────────────────────────────
 * #pupil-assessment "Pupil assessment" "Something one of the forms records that no LOINC or SNOMED concept says. The display is the wording printed on the paper. Recorded on the ICU neurological observation chart."
@@ -813,6 +820,28 @@ Description: "What the forms record where no code system this IG can resolve say
 // ── Wound care ──────────────────────────────────────────────────────────
 * #wound-care-surgical-dressing-grade "Surgical dressing grade" "The grading a nurse ticked on the surgical dressing sheet. The sheet prints three bare letters and never expands them, so the answer records the letter rather than an invented meaning. Recorded on the surgical dressing chart."
 
+
+// Added 2026-10-08 with the sandbox extraction fixes: answers the maps had no rule for, and
+// values that were filed under a wrong code. Each was looked for in LOINC first.
+* #skin-to-skin-duration "Skin-to-skin contact duration" "How long a newborn's skin-to-skin contact with the mother lasted after birth, in hours, and why it was interrupted if it was. Recorded on the newborn observation chart."
+* #feeding-iv-start-time "IV fluid start time" "How a patient is being fed, or a nutrition assessment. The clock time the 24-hour intravenous fluid plan starts from. Recorded on the newborn comprehensive chart."
+* #feeding-prescribed-total-volume-over-24-hours "Prescribed total volume over 24 hours" "How a patient is being fed, or a nutrition assessment. The total feed and fluid volume prescribed for the next 24 hours, as distinct from the volume actually taken in. Recorded on the newborn comprehensive chart."
+* #cancer-stage "Cancer stage" "The stage of the cancer as the clinician wrote it on the form, free text (e.g. 'III' or a TNM group), with no statement of whether it is the clinical or the pathological stage. LOINC's stage-group codes (21908-9 clinical, 21902-2 pathological, 21914-7 other) each assume one, so none fits."
+* #head-injury-chart-frequency-in-hours "Head injury chart frequency in hours" "How often the head injury and craniotomy chart is to be done, as an interval in hours (every one or two hours, up to four). It is the order the rounds are measured against. Recorded on the head injury and craniotomy chart."
+* #patient-stresses "Patient stresses and help wanted" "What stresses the patient says they carry, and what help they feel is appropriate, recorded as narrative in the patient's own words. Kept apart from the patient's goals so a search by code for one does not return the other."
+* #preop-theatre-check-in-time "Patient theatre check-in time" "The date and time theatre received the patient from the ward, before the WHO sign-in. LOINC has a transfer departure time (80410-4) but no arrival or check-in time. Recorded on the surgical safety checklist."
+* #operation-consent-signed-date "Informed consent for the operation signed on" "The date the patient's informed consent for the operation was signed, as confirmed on the ward checklist before theatre. LOINC has 'Informed consent obtained' (19826-7, ordinal) but no consent date. Recorded on the surgical safety checklist."
+* #menstrual-cycle-length "Menstrual cycle length" "The usual length of the patient's menstrual cycle, from the first day of one period to the first day of the next. LOINC has no term for it. Recorded on the maternity record."
+* #menstrual-period-duration "Duration of menstrual period" "How many days the patient's menstrual period usually lasts. Distinct from LOINC 3144-3, which is the duration of the last period only. Recorded on the maternity record."
+* #obs-induction-of-labour "Induction of labour" "Whether this labour was induced rather than spontaneous in onset. LOINC has it only as an answer (LA20022-2) in a birth-certificate checklist, not as a question. Recorded on the maternity record."
+* #obs-number-of-vaginal-examinations "Number of vaginal examinations" "How many vaginal examinations were done during the first stage of labour. Recorded on the maternity record."
+* #umbilical-cord-at-delivery "Umbilical cord at delivery" "The umbilical cord as examined at delivery: normal or abnormal, and its vessels. Distinct from cord-condition, which is the newborn's cord stump on handover. LOINC has only ultrasound cord terms. Recorded on the maternity record."
+* #baby-measurements-at-delivery "Baby measurements at delivery" "The panel of the baby's weight, length and head circumference taken at delivery and recorded on the mother's maternity record. Its components carry the LOINC-coded measurements."
+* #newborn-care-infant-arv-prophylaxis-time "Time infant ARV prophylaxis given" "The clock time the infant's first ARV prophylaxis dose was given, as recorded (without a date) on the newborn unit handover form."
+* #maternal-random-blood-glucose "Maternal random blood glucose" "The mother's random blood glucose from her ANC profile, recorded on the baby's newborn unit handover. LOINC has no maternal glucose term, and the subject-scoped glucose codes (e.g. 15074-8) would describe the baby's own glucose."
+* #birth-history-on-newborn-handover "Birth history on newborn handover" "Panel of the birth history recorded on the newborn unit handover form: whether the baby was resuscitated, how oxygen was given and for how long, meconium-stained liquor, whether urine or stool has been passed, and the presenting complaints. It does not by itself mean the baby was resuscitated."
+* #obs-clock-time-recorded "Clock time recorded" "The clock time the form records for an observation, without a date. Carried as a valueTime component so the recorded time is not lost or guessed into a full date. Recorded on the newborn unit handover form (continuation vital signs)."
+* #fluid-balance-irrigation-balance "Irrigation balance" "Irrigation volume returned less irrigation volume instilled on a continuous bladder irrigation, recorded when that figure is below zero (less came back than went in), so it cannot be recorded as a urine output. Recorded on the surgical continuous irrigation record."
 
 CodeSystem: SGHIAnswerCodeSystem
 Id: answer-codesystem

@@ -1,6 +1,6 @@
 /// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractPsychologicalReview"
 /// name = "ExtractPsychologicalReview"
-/// title = " Review Extraction"
+/// title = "Psychological Review Extraction"
 /// status = "active"
 /// description = "A SOAP note extracts as a ClinicalImpression whose summary is the assessment -- that is what ClinicalImpression.summary is for -- with the subjective and objective sections as Observations under LOINC 61150-9 and 61149-1 that the impression names in supportingInfo, and the plan as a CarePlan. Four resources rather than one narrative, because the point of SOAP is that a reader can find the assessment without reading the subjective account first, and because a plan a counsellor set at session four is a thing the next session has to review. LOINC has Subjective and Objective Narrative but no plain Assessment or Plan term, so those two carry local concept codes."
 
@@ -13,14 +13,19 @@ uses "http://hl7.org/fhir/StructureDefinition/CarePlan" alias CarePlan as target
 group ExtractPsychologicalReview(source qr : QR, target bundle : Bundle) {
   qr -> bundle.type = 'transaction' "setBundleType";
 
-  qr.item as g where (linkId = 'session') then {
-    qr -> bundle.entry as entry, entry.resource = create('ClinicalImpression') as ci then {
-      qr -> ci, entry then BuildClinicalImpressionBase(qr, ci, entry) "base";
-      qr -> ci.status = 'completed' "status";
-      qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> ci.encounter = e "encounter";
-      qr.authored as t -> ci.date = t "date";
-      qr -> ci.description = 'Psychological review, counselling session' "description";
+  // The impression is anchored on the note itself, not on the session header.
+  // The reviewed form has no 'session' group; a map that waited for it built
+  // nothing but the plan. A response that still carries the header (an older
+  // form version) gets the impression as before.
+  qr where (item.where(linkId = 'session').exists() or item.where((linkId = 'subjective' or linkId = 'objective' or linkId = 'assessment') and answer.value.exists()).exists()) -> bundle.entry as entry, entry.resource = create('ClinicalImpression') as ci then {
+    qr -> ci, entry then BuildClinicalImpressionBase(qr, ci, entry) "base";
+    qr -> ci.status = 'completed' "status";
+    qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> ci.encounter = e "encounter";
+    qr.authored as t -> ci.date = t "date";
+    qr -> ci.description = 'Psychological review, counselling session' "description";
 
+    // The session header, where the response has one.
+    qr.item as g where (linkId = 'session') then {
       // The counsellor is the performer, from the form's own signature line
       // rather than from qr.source: the person who keys a session note in is
       // not necessarily the person who held the session.
@@ -47,56 +52,73 @@ group ExtractPsychologicalReview(source qr : QR, target bundle : Bundle) {
           a.value as txt -> ci.note as n, n.text = txt "wardNote";
         } "answer";
       } "wardRule";
+    } "sessionDetails";
 
-      // The assessment as the impression's summary. This is the one section
-      // with a native home on the resource, and putting it anywhere else would
-      // leave ClinicalImpression.summary empty on an impression.
-      qr.item as it where (linkId = 'assessment' and answer.value.exists()) then {
-        it.answer first as a then {
-          a.value as txt -> ci.summary = txt "summary";
-        } "answer";
-      } "assessmentRule";
+    // Without a counsellor on the form, the performer is the response's
+    // author, else its source, where that is a type the element accepts.
+    qr where (item.where(linkId = 'session').item.where(linkId = 'session/counsellor' and answer.value.exists()).exists().not()) then {
+      qr.author as au where (((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> ci.performer = au "performerFromAuthor";
+      qr where (author.where(((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+        qr.source as src where (((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> ci.performer = src "performerFromSource";
+      } "performerSourceFallback";
+    } "performerFallback";
 
-      // The subjective and objective sections, created here so the impression
-      // can name them. A reference to a resource created in a sibling rule is
-      // not reachable -- the target variable does not exist there -- so they
-      // have to be built inside this rule.
-      qr.item as it where (linkId = 'subjective' and answer.value.exists()) -> bundle.entry as sentry, sentry.resource = create('Observation') as sobs then {
-        qr -> sobs, sentry then BuildObsBase(qr, sobs, sentry) "base";
-        qr -> sobs then SetSurveyCategory(qr, sobs) "category";
-        it -> sobs.code as scc then {
-          it -> scc.coding as scg then {
-            it -> scg.system = 'http://loinc.org' "sys";
-            it -> scg.code = '61150-9' "cd";
-            it -> scg.display = 'Subjective Narrative' "dsp";
-          } "coding";
-          it -> scc.text = 'What the client reported at this session' "codeText";
-        } "code";
-        it.answer first as a then {
-          a.value as txt -> sobs.note as n, n.text = txt "text";
-        } "answer";
-        it -> ci.supportingInfo = create('Reference') as sref, sref.reference = reference(sobs) "linkSupporting";
-      } "soap_subjective";
+    // Without a session date, the session is taken as the one the response
+    // was written at.
+    qr where (item.where(linkId = 'session').item.where(linkId = 'session/date' and answer.value.exists()).exists().not()) then {
+      qr.authored as t -> ci.effective = t "effectiveFromAuthored";
+    } "effectiveFallback";
 
-      qr.item as it where (linkId = 'objective' and answer.value.exists()) -> bundle.entry as sentry, sentry.resource = create('Observation') as sobs then {
-        qr -> sobs, sentry then BuildObsBase(qr, sobs, sentry) "base";
-        qr -> sobs then SetSurveyCategory(qr, sobs) "category";
-        it -> sobs.code as scc then {
-          it -> scc.coding as scg then {
-            it -> scg.system = 'http://loinc.org' "sys";
-            it -> scg.code = '61149-1' "cd";
-            it -> scg.display = 'Objective Narrative' "dsp";
-          } "coding";
-          it -> scc.text = 'What the counsellor observed at this session' "codeText";
-        } "code";
-        it.answer first as a then {
-          a.value as txt -> sobs.note as n, n.text = txt "text";
-        } "answer";
-        it -> ci.supportingInfo = create('Reference') as sref, sref.reference = reference(sobs) "linkSupporting";
-      } "soap_objective";
+    // The assessment as the impression's summary. This is the one section
+    // with a native home on the resource, and putting it anywhere else would
+    // leave ClinicalImpression.summary empty on an impression.
+    qr.item as it where (linkId = 'assessment' and answer.value.exists()) then {
+      it.answer first as a then {
+        a.value as txt -> ci.summary = txt "summary";
+      } "answer";
+    } "assessmentRule";
 
-    } "psychologicalImpression";
-  } "sessionGroup";
+    // The subjective and objective sections, created here so the impression
+    // can name them. A reference to a resource created in a sibling rule is
+    // not reachable -- the target variable does not exist there -- so they
+    // have to be built inside this rule.
+    qr.item as it where (linkId = 'subjective' and answer.value.exists()) -> bundle.entry as sentry, sentry.resource = create('Observation') as sobs then {
+      qr -> sobs, sentry then BuildObsBase(qr, sobs, sentry) "base";
+      qr -> sobs then SetSurveyCategory(qr, sobs) "category";
+      it -> sobs.code as scc then {
+        it -> scc.coding as scg then {
+          it -> scg.system = 'http://loinc.org' "sys";
+          it -> scg.code = '61150-9' "cd";
+          it -> scg.display = 'Subjective Narrative' "dsp";
+        } "coding";
+        it -> scc.text = 'What the client reported at this session' "codeText";
+      } "code";
+      // The narrative is the Observation's value, so a reader of value[x] finds it.
+      it.answer first as a then {
+        a.value as txt where ($this is string) -> sobs.value = txt "text";
+      } "answer";
+      it -> ci.supportingInfo = create('Reference') as sref, sref.reference = reference(sobs) "linkSupporting";
+    } "soap_subjective";
+
+    qr.item as it where (linkId = 'objective' and answer.value.exists()) -> bundle.entry as sentry, sentry.resource = create('Observation') as sobs then {
+      qr -> sobs, sentry then BuildObsBase(qr, sobs, sentry) "base";
+      qr -> sobs then SetSurveyCategory(qr, sobs) "category";
+      it -> sobs.code as scc then {
+        it -> scc.coding as scg then {
+          it -> scg.system = 'http://loinc.org' "sys";
+          it -> scg.code = '61149-1' "cd";
+          it -> scg.display = 'Objective Narrative' "dsp";
+        } "coding";
+        it -> scc.text = 'What the counsellor observed at this session' "codeText";
+      } "code";
+      // The narrative is the Observation's value, so a reader of value[x] finds it.
+      it.answer first as a then {
+        a.value as txt where ($this is string) -> sobs.value = txt "text";
+      } "answer";
+      it -> ci.supportingInfo = create('Reference') as sref, sref.reference = reference(sobs) "linkSupporting";
+    } "soap_objective";
+
+  } "psychologicalImpression";
 
   // ── The session number ──────────────────────────────────────────────────
   // Its own Observation. A counselling episode is a series and "which session
@@ -148,6 +170,14 @@ group ExtractPsychologicalReview(source qr : QR, target bundle : Bundle) {
         } "answer";
       } "counsellorRule";
     } "sessionGroupForPlan";
+    // No counsellor on the form: the contributor is the response's author,
+    // else its source.
+    qr where (item.where(linkId = 'session').item.where(linkId = 'session/counsellor' and answer.value.exists()).exists().not()) then {
+      qr.author as au where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/') or reference.startsWith('Device/') or reference.startsWith('RelatedPerson/') or reference.startsWith('Organization/') or reference.startsWith('CareTeam/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole') or ('/' + type).endsWith('/Device') or ('/' + type).endsWith('/RelatedPerson') or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/CareTeam'))))) -> plan.contributor = au "contributorFromAuthor";
+      qr where (author.where(((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/') or reference.startsWith('Device/') or reference.startsWith('RelatedPerson/') or reference.startsWith('Organization/') or reference.startsWith('CareTeam/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole') or ('/' + type).endsWith('/Device') or ('/' + type).endsWith('/RelatedPerson') or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/CareTeam'))))).exists().not()) then {
+        qr.source as src where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/') or reference.startsWith('Device/') or reference.startsWith('RelatedPerson/') or reference.startsWith('Organization/') or reference.startsWith('CareTeam/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole') or ('/' + type).endsWith('/Device') or ('/' + type).endsWith('/RelatedPerson') or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/CareTeam'))))) -> plan.contributor = src "contributorFromSource";
+      } "contributorSourceFallback";
+    } "contributorFallback";
   } "psychologicalPlan";
 }
 
@@ -232,6 +262,16 @@ group BuildClinicalImpressionBase(source qr : QR, target r : ClinicalImpression,
     qr -> request.url = 'ClinicalImpression' "requestUrl";
   } "entryRequest";
   qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Group/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Group'))))) -> r.subject = s "subject";
+  // The response's own time as a floor (a rule reading the form's own date
+  // overwrites effective), its encounter, and who wrote the note, by the
+  // identity rule: the author, else the source. The note had none of them.
+  qr.authored as t -> r.date = t "date";
+  qr.authored as t -> r.effective = t "effectiveFallback";
+  qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> r.encounter = e "encounter";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = au "performerFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = src "performerFromSource";
+  } "performerFallback";
 }
 
 group SetClinicalImpressionFullUrl(source r : ClinicalImpression, target entry) {
@@ -297,10 +337,10 @@ group SetResponseProvenance(source qr : QR, target r) {
 
 group ConformObservation(source qr : QR, target r) {
   qr.authored as t where ($this.toString().length() >= 20) -> r.issued = cast(t, 'instant') "issued";
-  qr.authored as t where ($this.toString().length() >= 20) -> r.effective = cast(t, 'instant') "effective";
-  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = au "performerFromAuthor";
-  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))).exists().not()) then {
-    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = src "performerFromSource";
+  qr.authored as t -> r.effective = t "effective";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = au "performerFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = src "performerFromSource";
   } "performerFallback";
 }
 
@@ -310,8 +350,8 @@ group ConformCarePlan(source qr : QR, target r) {
   qr.questionnaire as qc -> r.instantiatesCanonical = qc "instantiatesCanonical";
   qr -> r.title = 'Care plan from the psychological review notes' "title";
   qr -> r.description = 'Recorded on the psychological review notes.' "description";
-  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization'))))) -> r.custodian = au "custodianFromAuthor";
-  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization'))))).exists().not()) then {
-    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization'))))) -> r.custodian = src "custodianFromSource";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.custodian = au "custodianFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.custodian = src "custodianFromSource";
   } "custodianFallback";
 }

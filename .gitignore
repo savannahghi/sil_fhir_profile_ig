@@ -25,3 +25,4 @@ sil-templates/*
 # full publisher run, and it is a throwaway either way.
 /input/compiled-maps
 *.pdf
+.metals

@@ -2,7 +2,7 @@
 /// name = "ExtractHaemodialysisSession"
 /// title = "Haemodialysis Session Extraction"
 /// status = "active"
-/// description = "One dialysis session out as: a Procedure for the session itself, coded to SNOMED 302497006, with the treatment time as its period and the access as a note; the pre-, target and post-dialysis weights each as their own Observation, because the nephrologist reads them against each other over weeks; the fluid actually removed as its own Observation; the prescription and the machine\'s function check as two panels, because neither of their parts means anything alone; and one Observation per timed reading through the run, each keeping the reading\'s own time, since the flow chart is a time series and the circuit pressures are what a run is judged on."
+/// description = "One dialysis session out as: a Procedure for the session itself, coded to SNOMED 302497006, its period running from Time due on to Time due off, the commencing and terminating nurses as labelled performers; the pre-, target and post-dialysis weights each as their own Observation, because the nephrologist reads them against each other over weeks; the fluid actually removed as its own Observation, worked out from the weights when the form sends no figure; the prescription and the machine\'s function check as two panels, because neither of their parts means anything alone; the virology screen as a panel dated by its screening date; and one Observation per timed reading through the run, each keeping the reading\'s own time, since the flow chart is a time series and the circuit pressures are what a run is judged on."
 
 uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
 uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
@@ -13,11 +13,11 @@ group ExtractHaemodialysisSession(source qr : QR, target bundle : Bundle) {
   qr -> bundle.type = 'transaction' "setBundleType";
 
   // ── The session, as a Procedure ─────────────────────────────────────────
-  // SNOMED 302497006, haemodialysis, checked against tx.fhir.org. The access
-  // is a note rather than Procedure.usedCode: usedCode wants a device, and
-  // "arteriovenous fistula" is an anatomical route, not a device the unit
-  // issued.
-  qr.item as g where (linkId = 'session') -> bundle.entry as entry, entry.resource = create('Procedure') as proc then {
+  // SNOMED 302497006, haemodialysis, checked against tx.fhir.org. Hung on the
+  // 'timing' group: the review took the 'session' group (treatment number,
+  // date, physician, access) off the form, and a Procedure anchored on it was
+  // never created. Time due on is required, so this rule fires on every run.
+  qr.item as g where (linkId = 'timing' and item.answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Procedure') as proc then {
     qr -> proc, entry then BuildProcedureBase(qr, proc, entry) "base";
     g -> proc.status = 'completed' "status";
     g -> proc.code as cc then {
@@ -27,47 +27,47 @@ group ExtractHaemodialysisSession(source qr : QR, target bundle : Bundle) {
         g -> cg.display = 'Haemodialysis' "dsp";
       } "coding";
     } "code";
+    // A treatment, which none of SGHIProcedureCategory's codes is (the binding
+    // is extensible). 277132007 Therapeutic procedure, checked on tx.fhir.org,
+    // in the local system the value set draws its SNOMED-numbered codes from.
+    g -> proc.category as pc then {
+      g -> pc.coding as cg then {
+        g -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/identifier-codesystem' "sys";
+        g -> cg.code = '277132007' "cd";
+        g -> cg.display = 'Therapeutic procedure' "dsp";
+      } "coding";
+    } "category";
     qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> proc.encounter = e "encounter";
-    g.item as d where (linkId = 'session/date' and answer.value.exists()) then {
-      d.answer first as a then {
-        a.value as t -> proc.occurrence = t "occurrence";
-      } "answer";
-    } "dateRule";
-    g.item as ph where (linkId = 'session/physician' and answer.value.exists()) then {
-      ph.answer first as a then {
-        a.value as ref where (((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> proc.performer as p, p.actor = ref "physician";
-      } "answer";
-    } "physicianRule";
-    g.item as ac where (linkId = 'session/access' and answer.value.exists()) then {
-      ac.answer first as a then {
-        a.value as cv then {
-          cv.display as d -> proc.note as n, n.text = d "accessNote";
-        } "display";
-      } "answer";
-    } "accessRule";
-    g.item as tn where (linkId = 'session/treatment-number' and answer.value.exists()) then {
-      tn.answer first as a then {
-        a.value as txt -> proc.note as n then {
-          txt -> n.text = append('Treatment number: ', txt) "text";
-          qr.authored as t -> n.time = t "time";
-        } "treatmentNumberNote";
-      } "answer";
-    } "treatmentNumberRule";
 
-    // The nurses who started and finished the run. Both, because a run handed
-    // over mid-session is exactly the case where knowing who did what matters.
-    qr.item as tg where (linkId = 'timing') then {
-      tg.item as nc where (linkId = 'timing/nurse-commencing' and answer.value.exists()) then {
-        nc.answer first as a then {
-          a.value as ref where (((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> proc.performer as p, p.actor = ref "nurseCommencing";
+    // When the run started and ended, over the authored-time floor
+    // BuildProcedureBase writes: a Period from Time due on to Time due off,
+    // with whichever of the two the form gives.
+    g where (item.where(linkId = 'timing/due-on' or linkId = 'timing/due-off').answer.value.ofType(dateTime).exists()) -> proc.occurrence = create('Period') as per then {
+      g.item as don where (linkId = 'timing/due-on') then {
+        don.answer first as a then {
+          a.value as t where ($this is dateTime) -> per.start = t "start";
         } "answer";
-      } "nurseCommencingRule";
-      tg.item as nt where (linkId = 'timing/nurse-terminating' and answer.value.exists()) then {
-        nt.answer first as a then {
-          a.value as ref where (((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> proc.performer as p, p.actor = ref "nurseTerminating";
+      } "dueOnRule";
+      g.item as doff where (linkId = 'timing/due-off') then {
+        doff.answer first as a then {
+          a.value as t where ($this is dateTime) -> per.end = t "end";
         } "answer";
-      } "nurseTerminatingRule";
-    } "timingGroup";
+      } "dueOffRule";
+    } "occurrencePeriod";
+
+    // The nurses who started and finished the run. Both, each labelled, because
+    // a run handed over mid-session is exactly the case where knowing who did
+    // what matters.
+    g.item as nc where (linkId = 'timing/nurse-commencing' and answer.value.exists()) then {
+      nc.answer first as a then {
+        a.value as ref where (((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> proc.performer as p, p.actor = ref, p.function as f, f.text = 'Nurse commencing dialysis' "nurseCommencing";
+      } "answer";
+    } "nurseCommencingRule";
+    g.item as nt where (linkId = 'timing/nurse-terminating' and answer.value.exists()) then {
+      nt.answer first as a then {
+        a.value as ref where (((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> proc.performer as p, p.actor = ref, p.function as f, f.text = 'Nurse terminating dialysis' "nurseTerminating";
+      } "answer";
+    } "nurseTerminatingRule";
   } "dialysisProcedure";
 
   // ── The weights ─────────────────────────────────────────────────────────
@@ -77,6 +77,7 @@ group ExtractHaemodialysisSession(source qr : QR, target bundle : Bundle) {
   qr.item as g where (linkId = 'weights') then {
     g.item as it where (linkId = 'weights/pre-dialysis' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetRunStart(qr, obs) "runTime";
       qr -> obs then SetVitalSignsCategory(qr, obs) "category";
       it -> obs.code as cc then {
         it -> cc.coding as cg then {
@@ -93,6 +94,7 @@ group ExtractHaemodialysisSession(source qr : QR, target bundle : Bundle) {
 
     g.item as it where (linkId = 'weights/post-dialysis' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetRunEnd(qr, obs) "runTime";
       qr -> obs then SetVitalSignsCategory(qr, obs) "category";
       it -> obs.code as cc then {
         it -> cc.coding as cg then {
@@ -109,6 +111,7 @@ group ExtractHaemodialysisSession(source qr : QR, target bundle : Bundle) {
 
     g.item as it where (linkId = 'weights/target' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetRunStart(qr, obs) "runTime";
       qr -> obs then SetProcedureCategory(qr, obs) "category";
       it -> obs.code as cc then {
         it -> cc.coding as cg then {
@@ -125,6 +128,7 @@ group ExtractHaemodialysisSession(source qr : QR, target bundle : Bundle) {
 
     g.item as it where (linkId = 'weights/fluid-lost' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetRunEnd(qr, obs) "runTime";
       qr -> obs then SetProcedureCategory(qr, obs) "category";
       it -> obs.code as cc then {
         it -> cc.coding as cg then {
@@ -132,6 +136,13 @@ group ExtractHaemodialysisSession(source qr : QR, target bundle : Bundle) {
           it -> cg.code = 'fluid-removed' "cd";
           it -> cg.display = 'Fluid removed' "dsp";
         } "coding";
+        // LOINC's own term for it, checked on tx.fhir.org, beside the local code
+        // that existing queries use.
+        it -> cc.coding as lc then {
+          it -> lc.system = 'http://loinc.org' "sys";
+          it -> lc.code = '74006-8' "cd";
+          it -> lc.display = 'Weight difference [Mass difference] --pre dialysis - post dialysis' "dsp";
+        } "loinc";
       } "code";
       it.answer first as a then {
         a.value as v -> obs.value = create('Quantity') as q then {
@@ -144,6 +155,33 @@ group ExtractHaemodialysisSession(source qr : QR, target bundle : Bundle) {
       it -> obs.note as n, n.text = 'The difference between the pre- and post-dialysis weights, which is the fluid actually taken off. The unit is attached by the extraction map.' "note";
     } "measureq_fluid_removed";
 
+    // The same figure when the form's calculated field came back empty: pre
+    // minus post, both in kg, which is exactly what the form computes.
+    g where (item.where(linkId = 'weights/fluid-lost' and answer.value.exists()).empty() and item.where(linkId = 'weights/pre-dialysis').answer.value.ofType(Quantity).where(code = 'kg' and value.exists()).exists() and item.where(linkId = 'weights/post-dialysis').answer.value.ofType(Quantity).where(code = 'kg' and value.exists()).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetRunEnd(qr, obs) "runTime";
+      qr -> obs then SetProcedureCategory(qr, obs) "category";
+      g -> obs.code as cc then {
+        g -> cc.coding as cg then {
+          g -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          g -> cg.code = 'fluid-removed' "cd";
+          g -> cg.display = 'Fluid removed' "dsp";
+        } "coding";
+        g -> cc.coding as lc then {
+          g -> lc.system = 'http://loinc.org' "sys";
+          g -> lc.code = '74006-8' "cd";
+          g -> lc.display = 'Weight difference [Mass difference] --pre dialysis - post dialysis' "dsp";
+        } "loinc";
+      } "code";
+      g -> obs.value = create('Quantity') as q then {
+        g -> q.value = evaluate(g, item.where(linkId = 'weights/pre-dialysis').answer.value.ofType(Quantity).value.first() - item.where(linkId = 'weights/post-dialysis').answer.value.ofType(Quantity).value.first()) "qValue";
+        g -> q.unit = 'kg' "qUnit";
+        g -> q.system = 'http://unitsofmeasure.org' "qSystem";
+        g -> q.code = 'kg' "qCode";
+      } "quantity";
+      g -> obs.note as n, n.text = 'The difference between the pre- and post-dialysis weights, which is the fluid actually taken off. Worked out by the extraction map, because the form sent no figure of its own.' "note";
+    } "computedFluidRemoved";
+
   } "weightsGroup";
 
   // ── The prescription, as one panel ──────────────────────────────────────
@@ -152,6 +190,7 @@ group ExtractHaemodialysisSession(source qr : QR, target bundle : Bundle) {
   // would let one be changed without the others being reviewed.
   qr.item as g where (linkId = 'prescription' and item.answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
     qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+    qr -> obs then SetRunStart(qr, obs) "runTime";
     qr -> obs then SetProcedureCategory(qr, obs) "category";
     g -> obs.code as cc then {
       g -> cc.coding as cg then {
@@ -229,6 +268,7 @@ group ExtractHaemodialysisSession(source qr : QR, target bundle : Bundle) {
   // review after an adverse event asks for.
   qr.item as g where (linkId = 'machine-check' and item.answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
     qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+    qr -> obs then SetRunStart(qr, obs) "runTime";
     qr -> obs then SetProcedureCategory(qr, obs) "category";
     g -> obs.code as cc then {
       g -> cc.coding as cg then {
@@ -294,6 +334,13 @@ group ExtractHaemodialysisSession(source qr : QR, target bundle : Bundle) {
       } "coding";
       g -> cc.text = 'Virology screen for dialysis' "codeText";
     } "code";
+    // The screen's own date, over the authored time ConformObservation writes:
+    // a screen done weeks ago must not read as taken on the day of the run.
+    g.item as sd where (linkId = 'virology-screen/screening-date' and answer.value.exists()) then {
+      sd.answer first as a then {
+        a.value as v where ($this is date) -> obs.effective = cast(v, 'dateTime') "screeningDate";
+      } "answer";
+    } "screeningDateRule";
     g.item as it where (linkId = 'virology-screen/hiv' and answer.value.exists()) -> obs.component as comp then {
       it -> comp.code as cc then {
         it -> cc.coding as cg then {
@@ -343,6 +390,33 @@ group ExtractHaemodialysisSession(source qr : QR, target bundle : Bundle) {
       } "coding";
       g -> cc.text = 'Reading taken during the dialysis run' "codeText";
     } "code";
+    // The reading's own time of day, joined to a date, over the authored time
+    // ConformObservation writes: the first occurrence of that clock time at or
+    // after the run started (Time due on), with an hour of slack; failing a
+    // start, the latest occurrence at or before the authored moment. The offset
+    // is the unit's, East Africa Time, as the form's times are wall-clock times,
+    // and the day is worked out on instants, so a start or an authored time in
+    // UTC gives the same day.
+    qr.authored as au where ($this.toString().length() >= 16) then {
+      g.item as rt where (linkId = 'reading/time' and answer.value.exists()) then {
+        rt.answer first as a then {
+          a.value as tm where ($this is time) -> evaluate(tm, %au.toString().substring(0, 10) + 'T' + $this.toString() + '+03:00') as cand, cast(cand, 'dateTime') as candDt, evaluate(candDt, iif($this + 1 day <= %au + 1 hour, 1, iif($this <= %au + 1 hour, 0, -1))) as shift, evaluate(tm, %au.toString().substring(0, 10)) as dayStr, cast(dayStr, 'date') as day0, evaluate(day0, iif(%shift = 1, $this + 1 day, iif(%shift = -1, $this - 1 day, $this)).toString() + 'T' + %tm.toString() + '+03:00') as stamp, obs.effective = cast(stamp, 'dateTime') "readingTimeOnAuthoredDay";
+        } "answer";
+      } "readingTimeRule";
+    } "readingAuthored";
+    qr.item as tg where (linkId = 'timing') then {
+      tg.item as don where (linkId = 'timing/due-on' and answer.value.exists()) then {
+        don.answer first as da then {
+          da.value as start where ($this is dateTime and $this.toString().length() >= 16) then {
+            g.item as rt where (linkId = 'reading/time' and answer.value.exists()) then {
+              rt.answer first as a then {
+                a.value as tm where ($this is time) -> evaluate(tm, %start.toString().substring(0, 10) + 'T' + $this.toString() + '+03:00') as cand, cast(cand, 'dateTime') as candDt, evaluate(candDt, iif($this < %start - 1 hour, 1, iif($this - 1 day >= %start - 1 hour, -1, 0))) as shift, evaluate(tm, %start.toString().substring(0, 10)) as dayStr, cast(dayStr, 'date') as day0, evaluate(day0, iif(%shift = 1, $this + 1 day, iif(%shift = -1, $this - 1 day, $this)).toString() + 'T' + %tm.toString() + '+03:00') as stamp, obs.effective = cast(stamp, 'dateTime') "readingTimeOnRunDay";
+              } "answer";
+            } "readingTimeRule";
+          } "start";
+        } "answer";
+      } "dueOnRule";
+    } "runStart";
     g.item as it where (linkId = 'reading/systolic' and answer.value.exists()) -> obs.component as comp then {
       it -> comp.code as cc then {
         it -> cc.coding as cg then {
@@ -585,6 +659,30 @@ group SetProcedureFullUrl(source r : Procedure, target entry) {
   r.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/Procedure/', id) "assignFullUrl";
 }
 
+// The run's own times, over the authored time the base group wrote, which can
+// be a day after the session: what is set or measured before the run takes
+// Time due on, what is measured after it takes Time due off. Without the time
+// the authored floor stays.
+group SetRunStart(source qr : QR, target obs : Observation) {
+  qr.item as tg where (linkId = 'timing') then {
+    tg.item as don where (linkId = 'timing/due-on' and answer.value.exists()) then {
+      don.answer first as a then {
+        a.value as t where ($this is dateTime) -> obs.effective = t "effectiveFromRunStart";
+      } "answer";
+    } "dueOn";
+  } "timing";
+}
+
+group SetRunEnd(source qr : QR, target obs : Observation) {
+  qr.item as tg where (linkId = 'timing') then {
+    tg.item as doff where (linkId = 'timing/due-off' and answer.value.exists()) then {
+      doff.answer first as a then {
+        a.value as t where ($this is dateTime) -> obs.effective = t "effectiveFromRunEnd";
+      } "answer";
+    } "dueOff";
+  } "timing";
+}
+
 // ── Provenance and tenancy ───────────────────────────────────────────────────
 //
 // Two tags on everything this map creates. The first says which questionnaire
@@ -629,10 +727,10 @@ group SetResponseProvenance(source qr : QR, target r) {
 
 group ConformObservation(source qr : QR, target r) {
   qr.authored as t where ($this.toString().length() >= 20) -> r.issued = cast(t, 'instant') "issued";
-  qr.authored as t where ($this.toString().length() >= 20) -> r.effective = cast(t, 'instant') "effective";
-  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = au "performerFromAuthor";
-  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))).exists().not()) then {
-    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = src "performerFromSource";
+  qr.authored as t -> r.effective = t "effective";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = au "performerFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = src "performerFromSource";
   } "performerFallback";
 }
 

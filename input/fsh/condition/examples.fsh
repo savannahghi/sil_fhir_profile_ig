@@ -9,9 +9,9 @@ Description: "An example of a Condition resource conforming to the SGHI Conditio
   * system = $identifier-type-cs
   * assigner = Reference(ExampleSGHIOrganization)
 * clinicalStatus = #active "Active"
-* verificationStatus = #confirmed "Confirmed"
+* verificationStatus = http://terminology.hl7.org/CodeSystem/condition-ver-status#confirmed "Confirmed"
 * category[0] = #problem-list-item "Problem List Item"
-* severity = #255604002 "Mild"
+* severity = http://terminology.hl7.org/CodeSystem/adverse-event-severity#mild "Mild"
 * encounter = Reference(ExampleSGHIEncounter) 
 * code = #123456 "Hypertension"
 * recordedDate = "2025-01-22"

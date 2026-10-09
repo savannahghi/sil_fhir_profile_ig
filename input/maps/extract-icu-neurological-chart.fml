@@ -2,7 +2,7 @@
 /// name = "ExtractIcuNeurologicalChart"
 /// title = "ICU Neurological Observation Chart Extraction"
 /// status = "active"
-/// description = "Each round of the ICU neurological chart out as: one Observation for the Glasgow Coma Scale under LOINC 9269-2, carrying the total as its value and the three components under their own LOINC codes, with the total computed by the map when the client submits none; one for limb power; one per eye for pupil size and reaction, because a unilaterally dilating pupil is the finding that matters and it has to be findable per side; and the four vitals each as their own Observation. Every one takes the round\'s own time, not the form\'s, because the chart is a time series and a deteriorating conscious level is only visible as one."
+/// description = "Each round of the ICU neurological chart out as: one Observation for the Glasgow Coma Scale under LOINC 9269-2, carrying the total as its value and the three components under their own LOINC codes, with the total and its interpretation always computed by the map from the three component codes, and written only when all three are answered; one for limb power; one per eye for pupil size and reaction, because a unilaterally dilating pupil is the finding that matters and it has to be findable per side; and the four vitals each as their own Observation. Every one takes the response\'s authored time: the deployed form has no time item for a round, so one response should carry one round."
 
 uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
 uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
@@ -27,7 +27,7 @@ group ExtractIcuNeurologicalChart(source qr : QR, target bundle : Bundle) {
       it.answer first as a then {
         a.value as v -> obs.value = v "set";
       } "answer";
-    } "measure_labour_stage_duration";
+    } "obs_day_in_unit";
 
     g.item as it where (linkId = 'unit/diagnosis' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
@@ -57,11 +57,18 @@ group ExtractIcuNeurologicalChart(source qr : QR, target bundle : Bundle) {
     // minted again, so a GCS charted here and a GCS charted on the pain
     // templates' Glasgow form are the same coded answers.
     //
-    // The total prefers what the form submitted and otherwise sums the weights
-    // off the tails of the answer codes. Guarded on all three components being
-    // answered: a GCS of 8 over two components is not a lower GCS, it is a
-    // different number, and nothing in the resource would say which.
-    g.item as gcs where (linkId = 'round/gcs' and item.answer.value.ofType(Coding).count() = 3) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+    // The total is always the sum of the three weights read off the tails of
+    // the answer codes, never the submitted round/gcs/total. That item is a
+    // calculation over the whole response, so with two rounds every round's
+    // "total" is both rounds added together; and a client other than the
+    // tester can submit a total its own components contradict.
+    //
+    // The Observation is made when any component is answered, so an intubated
+    // patient's eye and motor scores are not thrown away with a blank verbal.
+    // The total and its interpretation are written only when all three carry a
+    // weighted code: a GCS of 10 over two components is not a lower GCS, it is
+    // a different number, and nothing in the resource would say which.
+    g.item as gcs where (linkId = 'round/gcs' and item.answer.value.ofType(Coding).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
       qr -> obs then SetExamCategory(qr, obs) "category";
       gcs -> obs.code as cc then {
@@ -71,21 +78,23 @@ group ExtractIcuNeurologicalChart(source qr : QR, target bundle : Bundle) {
           gcs -> cg.display = 'Glasgow coma score total' "dsp";
         } "coding";
       } "code";
-      gcs -> obs.value = evaluate(gcs, iif(item.where(linkId = 'round/gcs/total').answer.value.exists(), item.where(linkId = 'round/gcs/total').answer.value.truncate(), item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-6'), 6, iif($this.endsWith('-5'), 5, iif($this.endsWith('-4'), 4, iif($this.endsWith('-3'), 3, iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))))))).aggregate($this + $total, 0))) "totalValue";
+      gcs where (item.where(linkId = 'round/gcs/eyes-open').answer.value.ofType(Coding).where(code.matches('^gcs-eye-[1-4]$')).exists() and item.where(linkId = 'round/gcs/verbal-response').answer.value.ofType(Coding).where(code.matches('^gcs-verbal-[1-5]$')).exists() and item.where(linkId = 'round/gcs/motor-response').answer.value.ofType(Coding).where(code.matches('^gcs-motor-[1-6]$')).exists()) then {
+        gcs -> obs.value = evaluate(gcs, item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-6'), 6, iif($this.endsWith('-5'), 5, iif($this.endsWith('-4'), 4, iif($this.endsWith('-3'), 3, iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))))))).aggregate($this + $total, 0)) "totalValue";
 
-      // 8 or less is coma. Stated as the interpretation rather than left to a
-      // reader, because that threshold is what triggers intubation.
-      gcs -> obs.interpretation as interp then {
-        gcs -> interp.coding as icg then {
-          gcs -> icg.system = 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation' "sys";
-          gcs -> icg.code = evaluate(gcs, iif(iif(item.where(linkId = 'round/gcs/total').answer.value.exists(), item.where(linkId = 'round/gcs/total').answer.value.truncate(), item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-6'), 6, iif($this.endsWith('-5'), 5, iif($this.endsWith('-4'), 4, iif($this.endsWith('-3'), 3, iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))))))).aggregate($this + $total, 0)) <= 8, 'LL', iif(iif(item.where(linkId = 'round/gcs/total').answer.value.exists(), item.where(linkId = 'round/gcs/total').answer.value.truncate(), item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-6'), 6, iif($this.endsWith('-5'), 5, iif($this.endsWith('-4'), 4, iif($this.endsWith('-3'), 3, iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))))))).aggregate($this + $total, 0)) < 15, 'A', 'N'))) "cd";
-          gcs -> icg.display = evaluate(gcs, iif(iif(item.where(linkId = 'round/gcs/total').answer.value.exists(), item.where(linkId = 'round/gcs/total').answer.value.truncate(), item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-6'), 6, iif($this.endsWith('-5'), 5, iif($this.endsWith('-4'), 4, iif($this.endsWith('-3'), 3, iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))))))).aggregate($this + $total, 0)) <= 8, 'Critical low', iif(iif(item.where(linkId = 'round/gcs/total').answer.value.exists(), item.where(linkId = 'round/gcs/total').answer.value.truncate(), item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-6'), 6, iif($this.endsWith('-5'), 5, iif($this.endsWith('-4'), 4, iif($this.endsWith('-3'), 3, iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))))))).aggregate($this + $total, 0)) < 15, 'Abnormal', 'Normal'))) "dsp";
-        } "coding";
-      } "interpretation";
+        // 8 or less is coma. Stated as the interpretation rather than left to a
+        // reader, because that threshold is what triggers intubation.
+        gcs -> obs.interpretation as interp then {
+          gcs -> interp.coding as icg then {
+            gcs -> icg.system = 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation' "sys";
+            gcs -> icg.code = evaluate(gcs, iif(item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-6'), 6, iif($this.endsWith('-5'), 5, iif($this.endsWith('-4'), 4, iif($this.endsWith('-3'), 3, iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))))))).aggregate($this + $total, 0) <= 8, 'LL', iif(item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-6'), 6, iif($this.endsWith('-5'), 5, iif($this.endsWith('-4'), 4, iif($this.endsWith('-3'), 3, iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))))))).aggregate($this + $total, 0) < 15, 'A', 'N'))) "cd";
+            gcs -> icg.display = evaluate(gcs, iif(item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-6'), 6, iif($this.endsWith('-5'), 5, iif($this.endsWith('-4'), 4, iif($this.endsWith('-3'), 3, iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))))))).aggregate($this + $total, 0) <= 8, 'Critical low', iif(item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-6'), 6, iif($this.endsWith('-5'), 5, iif($this.endsWith('-4'), 4, iif($this.endsWith('-3'), 3, iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))))))).aggregate($this + $total, 0) < 15, 'Abnormal', 'Normal'))) "dsp";
+          } "coding";
+        } "interpretation";
+      } "totalWhenComplete";
 
       g.item as tm where (linkId = 'round/time' and answer.value.exists()) then {
         tm.answer first as a then {
-          a.value as t -> obs.note as n, n.text = 'Round taken at the time recorded on the chart' "timeNote";
+          a.value as t -> obs.note as n, n.text = evaluate(t, 'Round time: ' + $this.toString()) "timeNote";
         } "answer";
       } "roundTimeRule";
       gcs.item as it where (linkId = 'round/gcs/eyes-open' and answer.value.exists()) -> obs.component as comp then {
@@ -160,7 +169,7 @@ group ExtractIcuNeurologicalChart(source qr : QR, target bundle : Bundle) {
     // pupil is the sign of an expanding mass on that side, and "which side" is
     // the whole question -- so each eye carries its own bodySite and a query
     // can ask about the right pupil alone.
-    g.item as pg where (linkId = 'round/pupils' and item.where(linkId = 'round/pupils/right-reaction').answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+    g.item as pg where (linkId = 'round/pupils' and item.where(linkId = 'round/pupils/right-size' or linkId = 'round/pupils/right-reaction').answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
       qr -> obs then SetExamCategory(qr, obs) "category";
       pg -> obs.code as cc then {
@@ -200,7 +209,7 @@ group ExtractIcuNeurologicalChart(source qr : QR, target bundle : Bundle) {
       } "comp_neuro_pupil_reaction";
     } "pupil_right";
 
-    g.item as pg where (linkId = 'round/pupils' and item.where(linkId = 'round/pupils/left-reaction').answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+    g.item as pg where (linkId = 'round/pupils' and item.where(linkId = 'round/pupils/left-size' or linkId = 'round/pupils/left-reaction').answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
       qr -> obs then SetExamCategory(qr, obs) "category";
       pg -> obs.code as cc then {
@@ -456,9 +465,9 @@ group SetResponseProvenance(source qr : QR, target r) {
 
 group ConformObservation(source qr : QR, target r) {
   qr.authored as t where ($this.toString().length() >= 20) -> r.issued = cast(t, 'instant') "issued";
-  qr.authored as t where ($this.toString().length() >= 20) -> r.effective = cast(t, 'instant') "effective";
-  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = au "performerFromAuthor";
-  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))).exists().not()) then {
-    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = src "performerFromSource";
+  qr.authored as t -> r.effective = t "effective";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = au "performerFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = src "performerFromSource";
   } "performerFallback";
 }

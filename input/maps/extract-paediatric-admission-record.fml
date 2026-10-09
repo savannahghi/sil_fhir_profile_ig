@@ -17,9 +17,10 @@ group ExtractPaediatricAdmissionRecord(source qr : QR, target bundle : Bundle) {
 
   // ── Growth measurements ─────────────────────────────────────────────────
   // One Observation each, all in the vital-signs category, because these are
-  // exactly what a growth chart plots. Weight-for-height carries LOINC 77606-2
-  // rather than a local code: the sheet calls it "W/H score" and means the
-  // weight-for-length Z score for age and sex, which is what that term is.
+  // exactly what a growth chart plots. Weight-for-height carries a local code:
+  // the sheet calls it "W/H score" and records a Z score, and LOINC 77606-2
+  // (weight-for-length per age and sex) is the percentile term, so a reader of
+  // 77606-2 would take -0.4 as a percentile. LOINC has no Z score term for it.
   qr.item as g where (linkId = 'anthropometry') then {
     g.item as it where (linkId = 'anthropometry/weight' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
@@ -86,9 +87,9 @@ group ExtractPaediatricAdmissionRecord(source qr : QR, target bundle : Bundle) {
       qr -> obs then SetVitalSignsCategory(qr, obs) "category";
       it -> obs.code as cc then {
         it -> cc.coding as cg then {
-          it -> cg.system = 'http://loinc.org' "sys";
-          it -> cg.code = '77606-2' "cd";
-          it -> cg.display = 'Weight-for-length Per age and sex' "dsp";
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'weight-for-height-z-score' "cd";
+          it -> cg.display = 'Weight-for-height Z score' "dsp";
         } "coding";
       } "code";
       it.answer first as a then {
@@ -159,6 +160,13 @@ group ExtractPaediatricAdmissionRecord(source qr : QR, target bundle : Bundle) {
           it -> cg.code = '59408-5' "cd";
           it -> cg.display = 'Oxygen saturation in Arterial blood by Pulse oximetry' "dsp";
         } "coding";
+        // The R5 oxygensat profile also wants its own LOINC code beside the
+        // pulse-oximetry one.
+        it -> cc.coding as cg2 then {
+          it -> cg2.system = 'http://loinc.org' "sys";
+          it -> cg2.code = '2708-6' "cd";
+          it -> cg2.display = 'Oxygen saturation in Arterial blood' "dsp";
+        } "codingOxygenSat";
       } "code";
       it.answer first as a then {
         a.value as v -> obs.value = v "set";
@@ -422,8 +430,9 @@ group ExtractPaediatricAdmissionRecord(source qr : QR, target bundle : Bundle) {
   } "historyPanel";
 
   // ── The ABCD examination, as one panel ──────────────────────────────────
-  // Coded to LOINC 8716-3, vital signs note, which is the nearest LOINC term
-  // for "what the clinician found on looking at the child". The graded findings
+  // Coded to LOINC 29545-1, physical findings note: what the clinician found
+  // on examining the child, which is not a vital signs record (8716-3, used
+  // before, made vital-signs queries return exam findings). The graded findings
   // — jaundice, oedema, pallor, AVPU — are coded components; the timed ones —
   // capillary refill, skin pinch — are quantities under their LOINC and local
   // codes.
@@ -433,8 +442,8 @@ group ExtractPaediatricAdmissionRecord(source qr : QR, target bundle : Bundle) {
     qr -> obs.code as cc then {
       qr -> cc.coding as cg then {
         qr -> cg.system = 'http://loinc.org' "sys";
-        qr -> cg.code = '8716-3' "cd";
-        qr -> cg.display = 'Vital signs note' "dsp";
+        qr -> cg.code = '29545-1' "cd";
+        qr -> cg.display = 'Physical findings note' "dsp";
       } "coding";
       qr -> cc.text = 'Examination on admission' "codeText";
     } "code";
@@ -902,9 +911,9 @@ group ExtractPaediatricAdmissionRecord(source qr : QR, target bundle : Bundle) {
       qr -> obs then SetSurveyCategory(qr, obs) "category";
       it -> obs.code as cc then {
         it -> cc.coding as cg then {
-          it -> cg.system = 'http://loinc.org' "sys";
-          it -> cg.code = '11884-4' "cd";
-          it -> cg.display = 'Gestational age Estimated' "dsp";
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'birth-history-narrative' "cd";
+          it -> cg.display = 'Birth history' "dsp";
         } "coding";
         it -> cc.text = 'Birth history' "codeText";
       } "code";
@@ -1472,13 +1481,17 @@ group ExtractPaediatricAdmissionRecord(source qr : QR, target bundle : Bundle) {
       it -> consent.status = 'active' "status";
       it -> consent.category as cat then {
         it -> cat.coding as cg then {
-          it -> cg.system = 'http://terminology.hl7.org/CodeSystem/consentcategorycodes' "sys";
-          it -> cg.code = 'acd' "cd";
-          it -> cg.display = 'Advance Directive' "dsp";
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '59284-0' "cd";
+          it -> cg.display = 'Consent Document' "dsp";
         } "coding";
         it -> cat.text = 'Consent for admission and relevant management' "categoryText";
       } "category";
       it -> consent.decision = 'permit' "decision";
+      // The carer signs on the child's behalf, but the sheet does not name the
+      // carer and the profile's grantor takes only Patient or Organization, so
+      // the grantor is the child the consent is for (the response's subject).
+      qr.subject as s where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> consent.grantor = s "grantorPatient";
       qr.authored as t -> consent.period as per, per.start = t "consentPeriodStart";
       it -> consent.provision as prov, prov.code as pc, pc.text = 'Taken on the paediatric admission record. The parent or guardian signed the sheet; this records that the signature was obtained, not the signature itself.' "provenanceNote";
     } "createConsent";
@@ -1696,19 +1709,19 @@ group AuthorParticipant(source who, target p) {
 
 group ConformObservation(source qr : QR, target r) {
   qr.authored as t where ($this.toString().length() >= 20) -> r.issued = cast(t, 'instant') "issued";
-  qr.authored as t where ($this.toString().length() >= 20) -> r.effective = cast(t, 'instant') "effective";
-  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = au "performerFromAuthor";
-  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))).exists().not()) then {
-    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = src "performerFromSource";
+  qr.authored as t -> r.effective = t "effective";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = au "performerFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = src "performerFromSource";
   } "performerFallback";
 }
 
 group ConformCondition(source qr : QR, target r) {
   qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> r.encounter = e "encounter";
   qr.authored as t -> r.recordedDate = t "recordedDate";
-  qr.author as au where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization'))))) -> r.participant as p then AuthorParticipant(au, p) "participantFromAuthor";
-  qr where (author.where(((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization'))))).exists().not()) then {
-    qr.source as src where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization'))))) -> r.participant as p then AuthorParticipant(src, p) "participantFromSource";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.participant as p then AuthorParticipant(au, p) "participantFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.participant as p then AuthorParticipant(src, p) "participantFromSource";
   } "participantFallback";
 }
 
@@ -1716,9 +1729,9 @@ group ConformServiceRequest(source qr : QR, target r) {
   qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> r.encounter = e "encounter";
   qr.authored as t -> r.authoredOn = t "authoredOn";
   qr -> r.priority = 'routine' "priority";
-  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.requester = au "requesterFromAuthor";
-  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))).exists().not()) then {
-    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.requester = src "requesterFromSource";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.requester = au "requesterFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.requester = src "requesterFromSource";
   } "requesterFallback";
 }
 
@@ -1728,9 +1741,9 @@ group ConformCarePlan(source qr : QR, target r) {
   qr.questionnaire as qc -> r.instantiatesCanonical = qc "instantiatesCanonical";
   qr -> r.title = 'Care plan from the paediatric admission record' "title";
   qr -> r.description = 'Recorded on the paediatric admission record.' "description";
-  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization'))))) -> r.custodian = au "custodianFromAuthor";
-  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization'))))).exists().not()) then {
-    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization'))))) -> r.custodian = src "custodianFromSource";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.custodian = au "custodianFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.custodian = src "custodianFromSource";
   } "custodianFallback";
 }
 

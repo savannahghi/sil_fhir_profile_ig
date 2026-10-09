@@ -15,11 +15,13 @@ Description: "A profile on the R5 CarePlan resource to represent a patient's tre
 * instantiatesCanonical 1..* MS
 * subject only Reference(SGHIPatient)
 * custodian 1..1 MS
-* custodian only Reference(SGHIOrganization)
+* custodian only Reference(SGHIOrganization or SGHIPractitioner or SGHIPractitionerRole)
 * created 1..1
 
-* activity 1..* MS
-* activity.performedActivity 1..* MS
+// Optional: a plan made from a form states what is planned (plannedActivityReference,
+// a description); a Task behind each activity exists only once someone creates one.
+* activity 0..* MS
+* activity.performedActivity 0..* MS
 * activity.performedActivity only SGHICodeableReference
 * activity.performedActivity only CodeableReference(SGHITask)
 * note.authorReference only Reference(SGHIOrganization or SGHIPractitioner)

@@ -164,7 +164,7 @@ group ExtractIntakeOutputRecord(source qr : QR, target bundle : Bundle) {
         } "code";
         it -> comp then SetComponentValue(it, comp) "value";
       } "comp_fluid_balance_nasogastric_feed_volume";
-      row -> obs then SetIoRowTime(row, obs) "rowTime";
+      row -> obs then SetIoRowTime(qr, row, obs) "rowTime";
     } "hourlyIntake";
 
     row.item as o where (linkId = 'hour/output' and item.answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
@@ -227,18 +227,31 @@ group ExtractIntakeOutputRecord(source qr : QR, target bundle : Bundle) {
         } "code";
         it -> comp then SetComponentValue(it, comp) "value";
       } "comp_fluid_balance_drainage_volume";
-      row -> obs then SetIoRowTime(row, obs) "rowTime";
+      row -> obs then SetIoRowTime(qr, row, obs) "rowTime";
     } "hourlyOutput";
   } "hourlyRows";
 }
 
-// A clock time, not a dateTime -- the sheet is one day per block with the date
-// in its header -- so it rides as a note rather than being forced into
-// Observation.effective as a bare time, which that element does not accept.
-group SetIoRowTime(source row, target obs : Observation) {
+// The row's clock time, joined to a date, over the authored time that
+// ConformObservation writes. The form has no date of its own: the sheet is the
+// 24 hours before it is signed off, so the row belongs to the latest occurrence
+// of that wall-clock time at or before the response's authored time (an hour
+// of slack, so a row charted a few minutes early is not pushed back a day).
+// A 22:00 row on a sheet authored at 08:00 is therefore yesterday's. The
+// offset is the unit's, East Africa Time, as the form's times are wall-clock
+// times; comparing dateTimes rather than strings keeps a UTC authored right.
+// The candidate is made a dateTime by cast(), not toDateTime(): the sandbox's
+// FHIRPath engine (HAPI 8.10) answers "toDateTime is not implemented". Only
+// the day offset comes out of the comparison: comparing two dateTimes rewrites
+// them into UTC in place (FHIRPathEngine.compareDateTimeElements), so the
+// stamp is rebuilt from the date and the wall-clock time instead.
+group SetIoRowTime(source qr : QR, source row, target obs : Observation) {
   row.item as it where (linkId = 'hour/time' and answer.value.exists()) then {
     it.answer first as a then {
       a.value as t -> obs.note as n, n.text = 'Recorded against the clock hour on the intake and output record' "timeNote";
+      qr.authored as au where ($this.toString().length() >= 16) then {
+        a.value as tm where ($this is time) -> evaluate(tm, %au.toString().substring(0, 10) + 'T' + $this.toString() + '+03:00') as s, cast(s, 'dateTime') as d0, evaluate(d0, iif($this + 1 day <= %au + 1 hour, 1, iif($this <= %au + 1 hour, 0, -1))) as k, evaluate(tm, %au.toString().substring(0, 10)) as ds, cast(ds, 'date') as day0, evaluate(day0, iif(%k = 1, $this + 1 day, iif(%k = -1, $this - 1 day, $this)).toString() + 'T' + %tm.toString() + '+03:00') as stamp, obs.effective = cast(stamp, 'dateTime') "rowTimeOnSheetDay";
+      } "authored";
     } "answer";
   } "rowTimeRule";
 }
@@ -370,9 +383,9 @@ group SetResponseProvenance(source qr : QR, target r) {
 
 group ConformObservation(source qr : QR, target r) {
   qr.authored as t where ($this.toString().length() >= 20) -> r.issued = cast(t, 'instant') "issued";
-  qr.authored as t where ($this.toString().length() >= 20) -> r.effective = cast(t, 'instant') "effective";
-  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = au "performerFromAuthor";
-  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))).exists().not()) then {
-    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = src "performerFromSource";
+  qr.authored as t -> r.effective = t "effective";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = au "performerFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = src "performerFromSource";
   } "performerFallback";
 }
