@@ -25,7 +25,7 @@ group ExtractNicuMonitoringChart(source qr : QR, target bundle : Bundle) {
       it.answer first as a then {
         a.value as v -> obs.value = v "set";
       } "answer";
-    } "measure_labour_stage_duration";
+    } "dayOfLife";
 
     g.item as it where (linkId = 'context/birth-weight' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
@@ -181,6 +181,12 @@ group ExtractNicuMonitoringChart(source qr : QR, target bundle : Bundle) {
           it -> cg.code = '59408-5' "cd";
           it -> cg.display = 'Oxygen saturation in Arterial blood by Pulse oximetry' "dsp";
         } "coding";
+        // The vital-signs oxygen saturation profile also wants its own code.
+        it -> cc.coding as cg2 then {
+          it -> cg2.system = 'http://loinc.org' "sys";
+          it -> cg2.code = '2708-6' "cd";
+          it -> cg2.display = 'Oxygen saturation in Arterial blood' "dsp";
+        } "codingSpO2";
       } "code";
       it.answer first as a then {
         a.value as v -> obs.value = v "value";
@@ -369,6 +375,12 @@ group ExtractNicuMonitoringChart(source qr : QR, target bundle : Bundle) {
             it -> cg.code = 'ventilator-setting-inspiratory-time' "cd";
             it -> cg.display = 'Inspiratory time' "dsp";
           } "coding";
+          // LOINC names this setting; the local code stays for the chart's recall.
+          it -> cc.coding as cg2 then {
+            it -> cg2.system = 'http://loinc.org' "sys";
+            it -> cg2.code = '76334-2' "cd";
+            it -> cg2.display = 'Inspiratory time setting Ventilator' "dsp";
+          } "codingLoinc";
         } "code";
         it -> comp then SetComponentValue(it, comp) "value";
       } "comp_ventilator_setting_inspiratory_time";
@@ -465,12 +477,12 @@ group ExtractNicuMonitoringChart(source qr : QR, target bundle : Bundle) {
 group SetNicuRowTime(source row, target obs : Observation) {
   row.item as it where (linkId = 'round/at' and answer.value.exists()) then {
     it.answer first as a then {
-      a.value as v where ($this.toString().length() >= 20) -> obs.effective = cast(v, 'instant') "effective";
+      a.value as v where ($this.toString().length() >= 20) -> obs.effective = v "effective";
     } "answer";
   } "rowTimeRule";
   row.item as it where (linkId = 'round/completed-by' and answer.value.exists()) then {
-    it.answer first as a then {
-      a.value as ref where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> obs.performer = ref "by";
+    it.answer first as a where (value.reference.empty() or (%obs.performer.reference contains value.reference).not()) then {
+      a.value as ref where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> obs.performer = ref "by";
     } "answer";
   } "rowByRule";
 }
@@ -528,6 +540,10 @@ group SetComponentCodedValue(source it, target comp) {
     a.value as cv -> comp.value = create('CodeableConcept') as cc then {
       cv -> cc.coding = cv "valueCoding";
       cv.display as d -> cc.text = d "valueText";
+      // A yes/no answer whose coding came without its display still reads as
+      // Yes or No: the chart's recall reads the text.
+      cv where (display.empty() and system = 'http://terminology.hl7.org/CodeSystem/v2-0532' and code = 'Y') -> cc.text = 'Yes' "yesText";
+      cv where (display.empty() and system = 'http://terminology.hl7.org/CodeSystem/v2-0532' and code = 'N') -> cc.text = 'No' "noText";
     } "codedValue";
   } "componentAnswer";
 }
@@ -632,9 +648,9 @@ group SetResponseProvenance(source qr : QR, target r) {
 
 group ConformObservation(source qr : QR, target r) {
   qr.authored as t where ($this.toString().length() >= 20) -> r.issued = cast(t, 'instant') "issued";
-  qr.authored as t where ($this.toString().length() >= 20) -> r.effective = cast(t, 'instant') "effective";
-  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = au "performerFromAuthor";
-  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))).exists().not()) then {
-    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = src "performerFromSource";
+  qr.authored as t -> r.effective = t "effective";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = au "performerFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = src "performerFromSource";
   } "performerFallback";
 }

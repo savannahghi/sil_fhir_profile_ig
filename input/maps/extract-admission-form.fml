@@ -555,7 +555,7 @@ group SetAdmissionOrderer(source qr : QR, target sr : ServiceRequest) {
   qr.item as g where (linkId = 'sign-off') then {
     g.item as it where (linkId = 'sign-off/physician' and answer.value.exists()) then {
       it.answer first as a then {
-        a.value as ref where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> sr.requester = ref "requester";
+        a.value as ref where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> sr.requester = ref "requester";
       } "answer";
     } "physicianRule";
   } "signOffGroup";
@@ -741,19 +741,19 @@ group AuthorParticipant(source who, target p) {
 
 group ConformObservation(source qr : QR, target r) {
   qr.authored as t where ($this.toString().length() >= 20) -> r.issued = cast(t, 'instant') "issued";
-  qr.authored as t where ($this.toString().length() >= 20) -> r.effective = cast(t, 'instant') "effective";
-  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = au "performerFromAuthor";
-  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))).exists().not()) then {
-    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = src "performerFromSource";
+  qr.authored as t -> r.effective = t "effective";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = au "performerFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = src "performerFromSource";
   } "performerFallback";
 }
 
 group ConformCondition(source qr : QR, target r) {
   qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> r.encounter = e "encounter";
   qr.authored as t -> r.recordedDate = t "recordedDate";
-  qr.author as au where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization'))))) -> r.participant as p then AuthorParticipant(au, p) "participantFromAuthor";
-  qr where (author.where(((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization'))))).exists().not()) then {
-    qr.source as src where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization'))))) -> r.participant as p then AuthorParticipant(src, p) "participantFromSource";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.participant as p then AuthorParticipant(au, p) "participantFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.participant as p then AuthorParticipant(src, p) "participantFromSource";
   } "participantFallback";
 }
 
@@ -761,8 +761,8 @@ group ConformServiceRequest(source qr : QR, target r) {
   qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> r.encounter = e "encounter";
   qr.authored as t -> r.authoredOn = t "authoredOn";
   qr -> r.priority = 'routine' "priority";
-  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.requester = au "requesterFromAuthor";
-  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))).exists().not()) then {
-    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.requester = src "requesterFromSource";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.requester = au "requesterFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.requester = src "requesterFromSource";
   } "requesterFallback";
 }

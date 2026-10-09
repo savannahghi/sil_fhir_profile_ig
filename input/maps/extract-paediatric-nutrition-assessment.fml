@@ -39,6 +39,7 @@ group ExtractPaediatricNutritionAssessment(source qr : QR, target bundle : Bundl
           it -> cg.code = '29463-7' "cd";
           it -> cg.display = 'Body weight' "dsp";
         } "coding";
+        it -> cc.text = 'Admission weight' "codeText";
       } "code";
       it.answer first as a then {
         a.value as v -> obs.value = v "set";
@@ -71,8 +72,17 @@ group ExtractPaediatricNutritionAssessment(source qr : QR, target bundle : Bundl
           it -> cg.display = 'Head Occipital-frontal circumference' "dsp";
         } "coding";
       } "code";
+      // The sheet records head circumference in millimetres, but the
+      // body-length binding on 9843-4 takes cm or [in_i] only, so an mm
+      // answer is converted to cm (same measurement, value / 10).
       it.answer first as a then {
-        a.value as v -> obs.value = v "set";
+        a.value as v where (code = 'mm') -> obs.value = create('Quantity') as q then {
+          v.value as num -> q.value = (num / 10) "qValue";
+          v -> q.unit = 'cm' "qUnit";
+          v -> q.system = 'http://unitsofmeasure.org' "qSystem";
+          v -> q.code = 'cm' "qCode";
+        } "setMm";
+        a.value as v where (code.empty() or code != 'mm') -> obs.value = v "set";
       } "answer";
     } "measure_9843_4";
 
@@ -100,6 +110,7 @@ group ExtractPaediatricNutritionAssessment(source qr : QR, target bundle : Bundl
           it -> cg.code = '29463-7' "cd";
           it -> cg.display = 'Body weight' "dsp";
         } "coding";
+        it -> cc.text = 'Discharge weight' "codeText";
       } "code";
       it.answer first as a then {
         a.value as v -> obs.value = v "set";
@@ -118,9 +129,9 @@ group ExtractPaediatricNutritionAssessment(source qr : QR, target bundle : Bundl
       qr -> obs then SetVitalSignsCategory(qr, obs) "category";
       it -> obs.code as cc then {
         it -> cc.coding as cg then {
-          it -> cg.system = 'http://loinc.org' "sys";
-          it -> cg.code = '77606-2' "cd";
-          it -> cg.display = 'Weight-for-length Per age and sex' "dsp";
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'nutrition-weight-for-age-z-score' "cd";
+          it -> cg.display = 'Weight-for-age Z score' "dsp";
         } "coding";
       } "code";
       it.answer first as a then {
@@ -132,7 +143,7 @@ group ExtractPaediatricNutritionAssessment(source qr : QR, target bundle : Bundl
         } "quantity";
       } "answer";
       it -> obs.note as n, n.text = 'Weight-for-age Z score as computed on the assessment form' "note";
-    } "measureq_77606_2";
+    } "measureq_weight_for_age_z";
 
     g.item as it where (linkId = 'anthropometry/weight-for-height-ratio' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
@@ -416,7 +427,7 @@ group ExtractPaediatricNutritionAssessment(source qr : QR, target bundle : Bundl
       // transform time with "invalid property 'asserter' on type Condition".
       g.item as ab where (linkId = 'assessment/assessed-by' and answer.value.exists()) then {
         ab.answer first as a then {
-          a.value as ref where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization'))))) -> cond.participant as part then {
+          a.value as ref where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> cond.participant as part then {
             ref -> part.actor = ref "actor";
             ref -> part.function as fn then {
               ref -> fn.coding as fcg then {
@@ -637,19 +648,19 @@ group AuthorParticipant(source who, target p) {
 
 group ConformObservation(source qr : QR, target r) {
   qr.authored as t where ($this.toString().length() >= 20) -> r.issued = cast(t, 'instant') "issued";
-  qr.authored as t where ($this.toString().length() >= 20) -> r.effective = cast(t, 'instant') "effective";
-  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = au "performerFromAuthor";
-  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))).exists().not()) then {
-    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = src "performerFromSource";
+  qr.authored as t -> r.effective = t "effective";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = au "performerFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = src "performerFromSource";
   } "performerFallback";
 }
 
 group ConformCondition(source qr : QR, target r) {
   qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> r.encounter = e "encounter";
   qr.authored as t -> r.recordedDate = t "recordedDate";
-  qr.author as au where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization'))))) -> r.participant as p then AuthorParticipant(au, p) "participantFromAuthor";
-  qr where (author.where(((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization'))))).exists().not()) then {
-    qr.source as src where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization'))))) -> r.participant as p then AuthorParticipant(src, p) "participantFromSource";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.participant as p then AuthorParticipant(au, p) "participantFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.participant as p then AuthorParticipant(src, p) "participantFromSource";
   } "participantFallback";
 }
 
@@ -659,8 +670,8 @@ group ConformCarePlan(source qr : QR, target r) {
   qr.questionnaire as qc -> r.instantiatesCanonical = qc "instantiatesCanonical";
   qr -> r.title = 'Care plan from the paediatric nutrition assessment form' "title";
   qr -> r.description = 'Recorded on the paediatric nutrition assessment form.' "description";
-  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization'))))) -> r.custodian = au "custodianFromAuthor";
-  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization'))))).exists().not()) then {
-    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization'))))) -> r.custodian = src "custodianFromSource";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.custodian = au "custodianFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.custodian = src "custodianFromSource";
   } "custodianFallback";
 }

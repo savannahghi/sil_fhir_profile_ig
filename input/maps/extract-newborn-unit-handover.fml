@@ -25,14 +25,14 @@ group ExtractNewbornUnitHandover(source qr : QR, target bundle : Bundle) {
       it.answer first as a then {
         a.value as v -> obs.value = v "set";
       } "answer";
-    } "measure_labour_stage_duration";
+    } "measure_age_in_days";
 
   } "handoverGroup";
 
   qr.item as g where (linkId = 'intranatal') then {
     g.item as it where (linkId = 'intranatal/gestation-by-dates' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
-      qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
       it -> obs.code as cc then {
         it -> cc.coding as cg then {
           it -> cg.system = 'http://loinc.org' "sys";
@@ -47,19 +47,19 @@ group ExtractNewbornUnitHandover(source qr : QR, target bundle : Bundle) {
 
     g.item as it where (linkId = 'intranatal/gestation-by-ultrasound' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
-      qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+      qr -> obs then SetImagingCategory(qr, obs) "category";
       it -> obs.code as cc then {
         it -> cc.coding as cg then {
           it -> cg.system = 'http://loinc.org' "sys";
-          it -> cg.code = '11884-4' "cd";
-          it -> cg.display = 'Gestational age Estimated' "dsp";
+          it -> cg.code = '11888-5' "cd";
+          it -> cg.display = 'Gestational age US composite estimate' "dsp";
         } "coding";
       } "code";
       it.answer first as a then {
         a.value as v -> obs.value = v "set";
       } "answer";
-      it -> obs.note as n, n.text = 'Estimated by ultrasound. LOINC has no gestational-age-by-ultrasound term that is not tied to a named biometry formula, so the generic estimate code carries it and this note says where the number came from.' "note";
-    } "measure_11884_4";
+      it -> obs.note as n, n.text = 'Gestation by ultrasound, as recorded on the newborn handover' "note";
+    } "measure_11888_5";
 
     g.item as it where (linkId = 'intranatal/birth-weight' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
@@ -106,7 +106,7 @@ group ExtractNewbornUnitHandover(source qr : QR, target bundle : Bundle) {
         a.value as v -> obs.value = v "set";
       } "answer";
       it -> obs.note as n, n.text = 'The handover form prints one unlabelled A.P.G.A.R box. Every Apgar code in LOINC is tied to a time point -- one, two, five or ten minutes -- and picking one would invent a time the paper does not record.' "note";
-    } "measure_newborn_resuscitation";
+    } "measure_apgar_as_recorded";
 
     g.item as it where (linkId = 'intranatal/mode-of-delivery' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
@@ -127,10 +127,12 @@ group ExtractNewbornUnitHandover(source qr : QR, target bundle : Bundle) {
     } "coded_cord_condition";
 
     // Essential newborn care. A panel, because a chart that records vitamin K
-    // and tetracycline eye ointment as given with no dose, no route and no
-    // time cannot honestly become MedicationAdministrations -- those would
-    // claim a dose nobody gave.
-    g where (item.where(linkId = 'intranatal/vitamin-k').answer.value.exists() or item.where(linkId = 'intranatal/teo').answer.value.exists() or item.where(linkId = 'intranatal/art-prophylaxis').answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+    // and tetracycline eye ointment as given with no dose and no route cannot
+    // honestly become MedicationAdministrations -- those would claim a dose
+    // nobody gave. The ARV prophylaxis does carry the clock time it was given;
+    // the form records no date for it, so that time stays a valueTime
+    // component rather than being dated by guesswork.
+    g where (item.where(linkId = 'intranatal/vitamin-k' or linkId = 'intranatal/teo' or linkId = 'intranatal/art-prophylaxis' or linkId = 'intranatal/art-time-given').answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
       qr -> obs then SetProcedureCategory(qr, obs) "category";
       g -> obs.code as cc then {
@@ -170,6 +172,16 @@ group ExtractNewbornUnitHandover(source qr : QR, target bundle : Bundle) {
         } "code";
         it -> comp then SetComponentCodedValue(it, comp) "value";
       } "comp_newborn_care_infant_arv_prophylaxis_given";
+      g.item as it where (linkId = 'intranatal/art-time-given' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'newborn-care-infant-arv-prophylaxis-time' "cd";
+            it -> cg.display = 'Time infant ARV prophylaxis given' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetComponentValue(it, comp) "value";
+      } "comp_newborn_care_infant_arv_prophylaxis_time";
     } "essentialNewbornCare";
   } "intranatalGroup";
 
@@ -179,43 +191,24 @@ group ExtractNewbornUnitHandover(source qr : QR, target bundle : Bundle) {
   // result that only exists on her file is a result the paediatric team cannot
   // find.
   qr.item as g where (linkId = 'anc') then {
-    g.item as it where (linkId = 'anc/blood-group' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+    // The mother's blood group. LOINC's only maternal term is the combined
+    // ABO and Rh type, 90905-1, so the two questions become one Observation:
+    // its LOINC answer when both halves are known, and always a text that
+    // says what the form recorded. 883-9 and 10331-7 would describe the baby's
+    // own blood.
+    g where (item.where(linkId = 'anc/blood-group' or linkId = 'anc/rhesus').answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
       qr -> obs then SetLaboratoryCategory(qr, obs) "category";
-      it -> obs.code as cc then {
-        it -> cc.coding as cg then {
-          it -> cg.system = 'http://loinc.org' "sys";
-          it -> cg.code = '883-9' "cd";
-          it -> cg.display = 'ABO group [Type] in Blood' "dsp";
+      g -> obs.code as cc then {
+        g -> cc.coding as cg then {
+          g -> cg.system = 'http://loinc.org' "sys";
+          g -> cg.code = '90905-1' "cd";
+          g -> cg.display = 'Mother\'s ABO and Rh group Type' "dsp";
         } "coding";
       } "code";
-      it.answer first as a then {
-        a.value as cv -> obs.value = create('CodeableConcept') as cc then {
-          cv -> cc.coding = cv "valueCoding";
-          cv.display as d -> cc.text = d "valueText";
-        } "codedValue";
-      } "answer";
-      it -> obs.note as n, n.text = 'The mother\'s blood group, recorded on the newborn handover' "note";
-    } "coded_883_9";
-
-    g.item as it where (linkId = 'anc/rhesus' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
-      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
-      qr -> obs then SetLaboratoryCategory(qr, obs) "category";
-      it -> obs.code as cc then {
-        it -> cc.coding as cg then {
-          it -> cg.system = 'http://loinc.org' "sys";
-          it -> cg.code = '10331-7' "cd";
-          it -> cg.display = 'Rh [Type] in Blood' "dsp";
-        } "coding";
-      } "code";
-      it.answer first as a then {
-        a.value as cv -> obs.value = create('CodeableConcept') as cc then {
-          cv -> cc.coding = cv "valueCoding";
-          cv.display as d -> cc.text = d "valueText";
-        } "codedValue";
-      } "answer";
-      it -> obs.note as n, n.text = 'The mother\'s rhesus factor, recorded on the newborn handover' "note";
-    } "coded_10331_7";
+      g -> obs.value = create('CodeableConcept') as vc then SetMaternalAboRh(g, vc) "value";
+      g -> obs.note as n, n.text = 'The mother\'s blood group and rhesus factor, recorded on the newborn handover' "note";
+    } "coded_90905_1";
 
     g.item as it where (linkId = 'anc/hiv-status' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
@@ -223,8 +216,8 @@ group ExtractNewbornUnitHandover(source qr : QR, target bundle : Bundle) {
       it -> obs.code as cc then {
         it -> cc.coding as cg then {
           it -> cg.system = 'http://loinc.org' "sys";
-          it -> cg.code = '55277-8' "cd";
-          it -> cg.display = 'HIV status' "dsp";
+          it -> cg.code = '75179-2' "cd";
+          it -> cg.display = 'Mother\'s HIV status during pregnancy [CDC.CS]' "dsp";
         } "coding";
       } "code";
       it.answer first as a then {
@@ -234,26 +227,27 @@ group ExtractNewbornUnitHandover(source qr : QR, target bundle : Bundle) {
         } "codedValue";
       } "answer";
       it -> obs.note as n, n.text = 'The mother\'s HIV status, recorded on the newborn handover' "note";
-    } "coded_55277_8";
+    } "coded_75179_2";
 
     g.item as it where (linkId = 'anc/vdrl' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
-      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      qr -> obs then SetLaboratoryCategory(qr, obs) "category";
       it -> obs.code as cc then {
         it -> cc.coding as cg then {
-          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
-          it -> cg.code = 'maternal-vdrl-result' "cd";
-          it -> cg.display = 'Maternal VDRL result' "dsp";
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '75168-5' "cd";
+          it -> cg.display = 'Mother\'s Most recent non-treponemal test result [CDC.CS]' "dsp";
         } "coding";
       } "code";
       it.answer first as a then {
-        a.value as txt -> obs.note as n, n.text = txt "text";
+        a.value as v -> obs.value = v "set";
       } "answer";
-    } "narr_maternal_vdrl_result";
+      it -> obs.note as n, n.text = 'The mother\'s VDRL result, recorded on the newborn handover' "note";
+    } "text_75168_5";
 
     g.item as it where (linkId = 'anc/hepatitis-b' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
-      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      qr -> obs then SetLaboratoryCategory(qr, obs) "category";
       it -> obs.code as cc then {
         it -> cc.coding as cg then {
           it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
@@ -262,25 +256,28 @@ group ExtractNewbornUnitHandover(source qr : QR, target bundle : Bundle) {
         } "coding";
       } "code";
       it.answer first as a then {
-        a.value as txt -> obs.note as n, n.text = txt "text";
+        a.value as v -> obs.value = v "set";
       } "answer";
-    } "narr_maternal_hepatitis_b_result";
+      it -> obs.note as n, n.text = 'The mother\'s hepatitis B result, recorded on the newborn handover' "note";
+    } "text_maternal_hepatitis_b_result";
 
+    // No LOINC glucose term is the mother's, so a local code carries it;
+    // 15074-8 would put her sugar on the baby's glucose trend.
     g.item as it where (linkId = 'anc/rbs' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
       qr -> obs then SetLaboratoryCategory(qr, obs) "category";
       it -> obs.code as cc then {
         it -> cc.coding as cg then {
-          it -> cg.system = 'http://loinc.org' "sys";
-          it -> cg.code = '15074-8' "cd";
-          it -> cg.display = 'Glucose [Moles/volume] in Blood' "dsp";
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'maternal-random-blood-glucose' "cd";
+          it -> cg.display = 'Maternal random blood glucose' "dsp";
         } "coding";
       } "code";
       it.answer first as a then {
         a.value as v -> obs.value = v "set";
       } "answer";
       it -> obs.note as n, n.text = 'The mother\'s random blood sugar' "note";
-    } "measure_15074_8";
+    } "measure_maternal_random_blood_glucose";
 
     g.item as it where (linkId = 'anc/duration-of-labour' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
@@ -297,7 +294,7 @@ group ExtractNewbornUnitHandover(source qr : QR, target bundle : Bundle) {
       } "answer";
     } "measure_labour_stage_duration2";
 
-    g where (item.where(linkId = 'anc/parity').answer.value.exists() or item.where(linkId = 'anc/maternal-fevers').answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+    g where (item.where(linkId = 'anc/parity' or linkId = 'anc/urinalysis-third-trimester' or linkId = 'anc/urinalysis-result' or linkId = 'anc/treatment-given' or linkId = 'anc/maternal-fevers' or linkId = 'anc/other-commodities' or linkId = 'anc/history-of-dol').answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
       qr -> obs then SetSurveyCategory(qr, obs) "category";
       g -> obs.code as cc then {
@@ -376,6 +373,10 @@ group ExtractNewbornUnitHandover(source qr : QR, target bundle : Bundle) {
   } "ancGroup";
 
   // ── Birth history ───────────────────────────────────────────────────────
+  // One panel for the whole birth history, under a neutral code: it exists
+  // whenever any birth item is answered, so coding it "resuscitation" would
+  // file babies who were never resuscitated under that code. Whether the baby
+  // was resuscitated is the newborn-resuscitated-at-birth component.
   qr.item as g where (linkId = 'birth') then {
     g where (item.answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
@@ -383,8 +384,8 @@ group ExtractNewbornUnitHandover(source qr : QR, target bundle : Bundle) {
       g -> obs.code as cc then {
         g -> cc.coding as cg then {
           g -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
-          g -> cg.code = 'newborn-resuscitation' "cd";
-          g -> cg.display = 'Resuscitation of a newborn' "dsp";
+          g -> cg.code = 'birth-history-on-newborn-handover' "cd";
+          g -> cg.display = 'Birth history on newborn handover' "dsp";
         } "coding";
       } "code";
       g.item as it where (linkId = 'birth/resuscitated' and answer.value.exists()) -> obs.component as comp then {
@@ -449,6 +450,7 @@ group ExtractNewbornUnitHandover(source qr : QR, target bundle : Bundle) {
   qr.item as g where (linkId = 'continuation') then {
     g.item as it where (linkId = 'continuation/temperature' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      g -> obs then SetContinuationClockTime(g, obs) "clockTime";
       qr -> obs then SetVitalSignsCategory(qr, obs) "category";
       it -> obs.code as cc then {
         it -> cc.coding as cg then {
@@ -464,6 +466,7 @@ group ExtractNewbornUnitHandover(source qr : QR, target bundle : Bundle) {
 
     g.item as it where (linkId = 'continuation/respiratory-rate' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      g -> obs then SetContinuationClockTime(g, obs) "clockTime";
       qr -> obs then SetVitalSignsCategory(qr, obs) "category";
       it -> obs.code as cc then {
         it -> cc.coding as cg then {
@@ -479,6 +482,7 @@ group ExtractNewbornUnitHandover(source qr : QR, target bundle : Bundle) {
 
     g.item as it where (linkId = 'continuation/oxygen-saturation' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      g -> obs then SetContinuationClockTime(g, obs) "clockTime";
       qr -> obs then SetVitalSignsCategory(qr, obs) "category";
       it -> obs.code as cc then {
         it -> cc.coding as cg then {
@@ -486,6 +490,11 @@ group ExtractNewbornUnitHandover(source qr : QR, target bundle : Bundle) {
           it -> cg.code = '59408-5' "cd";
           it -> cg.display = 'Oxygen saturation in Arterial blood by Pulse oximetry' "dsp";
         } "coding";
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '2708-6' "cd";
+          it -> cg.display = 'Oxygen saturation in Arterial blood' "dsp";
+        } "coding2708";
       } "code";
       it.answer first as a then {
         a.value as v -> obs.value = v "set";
@@ -494,6 +503,7 @@ group ExtractNewbornUnitHandover(source qr : QR, target bundle : Bundle) {
 
     g.item as it where (linkId = 'continuation/cord-state' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      g -> obs then SetContinuationClockTime(g, obs) "clockTime";
       qr -> obs then SetExamCategory(qr, obs) "category";
       it -> obs.code as cc then {
         it -> cc.coding as cg then {
@@ -576,6 +586,55 @@ group SetComponentValue(source it, target comp) {
   } "componentAnswer";
 }
 
+// The continuation section heads its vitals and cord check with one clock
+// time. The form gives no date for it, and dating it from the response's
+// authored day would be a guess that reads as a fact (the vitals may have been
+// taken before midnight and handed over after it), so effective stays the
+// authored time and the recorded clock time rides on each Observation as a
+// valueTime component.
+group SetContinuationClockTime(source g, target obs) {
+  g.item as tm where (linkId = 'continuation/time' and answer.value.exists()) -> obs.component as comp then {
+    tm -> comp.code as cc then {
+      tm -> cc.coding as cg then {
+        tm -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+        tm -> cg.code = 'obs-clock-time-recorded' "cd";
+        tm -> cg.display = 'Clock time recorded' "dsp";
+      } "coding";
+    } "code";
+    tm -> comp then SetComponentValue(tm, comp) "value";
+  } "clockTimeComponent";
+}
+
+// The LOINC answer (LL2972-9) for the mother's combined ABO and Rh type, when
+// the form has both halves, and a text naming what it recorded either way.
+group SetMaternalAboRh(source g, target vc) {
+  g where (item.where(linkId = 'anc/blood-group').answer.value.ofType(Coding).code = 'abo-o' and item.where(linkId = 'anc/rhesus').answer.value.ofType(Coding).code = 'rh-positive') -> vc.coding as c, c.system = 'http://loinc.org', c.code = 'LA21321-7', c.display = 'O Pos' "la_o_positive";
+  g where (item.where(linkId = 'anc/blood-group').answer.value.ofType(Coding).code = 'abo-o' and item.where(linkId = 'anc/rhesus').answer.value.ofType(Coding).code = 'rh-negative') -> vc.coding as c, c.system = 'http://loinc.org', c.code = 'LA21322-5', c.display = 'O Neg' "la_o_negative";
+  g where (item.where(linkId = 'anc/blood-group').answer.value.ofType(Coding).code = 'abo-b' and item.where(linkId = 'anc/rhesus').answer.value.ofType(Coding).code = 'rh-positive') -> vc.coding as c, c.system = 'http://loinc.org', c.code = 'LA21327-4', c.display = 'B Pos' "la_b_positive";
+  g where (item.where(linkId = 'anc/blood-group').answer.value.ofType(Coding).code = 'abo-b' and item.where(linkId = 'anc/rhesus').answer.value.ofType(Coding).code = 'rh-negative') -> vc.coding as c, c.system = 'http://loinc.org', c.code = 'LA21328-2', c.display = 'B Neg' "la_b_negative";
+  g where (item.where(linkId = 'anc/blood-group').answer.value.ofType(Coding).code = 'abo-ab' and item.where(linkId = 'anc/rhesus').answer.value.ofType(Coding).code = 'rh-positive') -> vc.coding as c, c.system = 'http://loinc.org', c.code = 'LA21323-3', c.display = 'AB Pos' "la_ab_positive";
+  g where (item.where(linkId = 'anc/blood-group').answer.value.ofType(Coding).code = 'abo-ab' and item.where(linkId = 'anc/rhesus').answer.value.ofType(Coding).code = 'rh-negative') -> vc.coding as c, c.system = 'http://loinc.org', c.code = 'LA21324-1', c.display = 'AB Neg' "la_ab_negative";
+  g where (item.where(linkId = 'anc/blood-group').answer.value.ofType(Coding).code = 'abo-a' and item.where(linkId = 'anc/rhesus').answer.value.ofType(Coding).code = 'rh-positive') -> vc.coding as c, c.system = 'http://loinc.org', c.code = 'LA21325-8', c.display = 'A Pos' "la_a_positive";
+  g where (item.where(linkId = 'anc/blood-group').answer.value.ofType(Coding).code = 'abo-a' and item.where(linkId = 'anc/rhesus').answer.value.ofType(Coding).code = 'rh-negative') -> vc.coding as c, c.system = 'http://loinc.org', c.code = 'LA21326-6', c.display = 'A Neg' "la_a_negative";
+  // Only one half answered: no LOINC answer fits, so the coding is the form's
+  // own for the half it has, and the text says the other was not recorded.
+  g where (item.where(linkId = 'anc/rhesus').answer.value.exists().not()) then {
+    g.item as it where (linkId = 'anc/blood-group') then {
+      it.answer first as a then {
+        a.value as cv where ($this is Coding) -> vc.coding = cv "aboCoding";
+      } "aboAnswer";
+    } "aboItem";
+  } "aboOnly";
+  g where (item.where(linkId = 'anc/blood-group').answer.value.exists().not()) then {
+    g.item as it where (linkId = 'anc/rhesus') then {
+      it.answer first as a then {
+        a.value as cv where ($this is Coding) -> vc.coding = cv "rhCoding";
+      } "rhAnswer";
+    } "rhItem";
+  } "rhOnly";
+  g -> vc.text = evaluate(g, 'ABO ' + iif(item.where(linkId = 'anc/blood-group').answer.value.ofType(Coding).exists(), item.where(linkId = 'anc/blood-group').answer.value.ofType(Coding).select(display | code).first(), 'not recorded') + ', rhesus ' + iif(item.where(linkId = 'anc/rhesus').answer.value.ofType(Coding).exists(), item.where(linkId = 'anc/rhesus').answer.value.ofType(Coding).select(display | code).first(), 'not recorded')) "text";
+}
+
 group SetSurveyCategory(source qr : QR, target obs : Observation) {
   qr -> obs.category as cat then {
     qr -> cat.coding as coding then {
@@ -612,6 +671,16 @@ group SetLaboratoryCategory(source qr : QR, target obs : Observation) {
       qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
       qr -> coding.code = 'laboratory' "categoryCode";
       qr -> coding.display = 'Laboratory' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+group SetImagingCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'imaging' "categoryCode";
+      qr -> coding.display = 'Imaging' "categoryDisplay";
     } "categoryCoding";
   } "category";
 }
@@ -670,9 +739,9 @@ group SetResponseProvenance(source qr : QR, target r) {
 
 group ConformObservation(source qr : QR, target r) {
   qr.authored as t where ($this.toString().length() >= 20) -> r.issued = cast(t, 'instant') "issued";
-  qr.authored as t where ($this.toString().length() >= 20) -> r.effective = cast(t, 'instant') "effective";
-  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = au "performerFromAuthor";
-  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))).exists().not()) then {
-    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = src "performerFromSource";
+  qr.authored as t -> r.effective = t "effective";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = au "performerFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = src "performerFromSource";
   } "performerFallback";
 }

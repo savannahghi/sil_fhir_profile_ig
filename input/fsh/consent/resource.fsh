@@ -26,20 +26,22 @@ Description: "A record of a healthcare consumer’s choices or choices made on t
 * grantor only SGHIReference
 * grantor only Reference(SGHIOrganization or SGHIPatient)
 
-* controller 1..1
+// Optional: a consent signed on a ward form names no controller or manager.
+* controller 0..1
 * controller only SGHIReference
 * controller only Reference(SGHIOrganization or SGHIPatient)
 
-* manager 1..*
+* manager 0..*
 * manager only SGHIReference
 * manager only Reference(SGHIOrganization or SGHIPatient)
 
-* verification 1..*
+* verification 0..*
   * verificationType only SGHICodeableConcept
   * verifiedWith 1..1
   * verifiedWith only SGHIReference
   * verifiedWith only Reference(SGHIPatient)
-  * verifiedBy 1..1
+  // 0..1: an interpreter's attestation is recorded without a verifier.
+  * verifiedBy 0..1
   * verifiedBy only SGHIReference
   * verifiedBy only Reference(SGHIOrganization or SGHIPractitioner or SGHIPractitionerRole)
   * verificationDate 1..1
@@ -51,8 +53,8 @@ Description: "A record of a healthcare consumer’s choices or choices made on t
     * reference only Reference(SGHIPatient or SGHIOrganization)
     * role only SGHICodeableConcept
   * action only SGHICodeableConcept
-  * code only SGHICodeableConcept
-  * code from http://hl7.org/fhir/ValueSet/consent-content-code (required)
+  // Free text allowed, LOINC extensible: some provisions (regimen, risks) have no code.
+  * code from http://hl7.org/fhir/ValueSet/consent-content-code (extensible)
   * data 0..
     * reference only SGHIReference
 

@@ -73,7 +73,7 @@ group ExtractNewbornComprehensiveChart(source qr : QR, target bundle : Bundle) {
       it.answer first as a then {
         a.value as v -> obs.value = v "set";
       } "answer";
-    } "measure_labour_stage_duration";
+    } "measure_day_of_life";
 
     g.item as it where (linkId = 'baby/diagnosis' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
@@ -152,19 +152,22 @@ group ExtractNewbornComprehensiveChart(source qr : QR, target bundle : Bundle) {
 
     g.item as it where (linkId = 'prescription/total-24hr-volume' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
-      qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+      // A prescribed total, not a measured intake: LOINC 9108-2 "Fluid intake
+      // total 24 hour" is what the baby actually took in (the per-round fluid
+      // given on this chart), so the prescription carries its own local code.
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
       it -> obs.code as cc then {
         it -> cc.coding as cg then {
-          it -> cg.system = 'http://loinc.org' "sys";
-          it -> cg.code = '9108-2' "cd";
-          it -> cg.display = 'Fluid intake total 24 hour' "dsp";
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'feeding-prescribed-total-volume-over-24-hours' "cd";
+          it -> cg.display = 'Prescribed total volume over 24 hours' "dsp";
         } "coding";
       } "code";
       it.answer first as a then {
         a.value as v -> obs.value = v "set";
       } "answer";
       it -> obs.note as n, n.text = 'Prescribed total, from the newborn comprehensive chart' "note";
-    } "measure_9108_2";
+    } "measure_feeding_prescribed_total";
 
     g.item as it where (linkId = 'prescription/volume-per-kg' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
@@ -181,7 +184,7 @@ group ExtractNewbornComprehensiveChart(source qr : QR, target bundle : Bundle) {
           v -> q.value = v "qValue";
           v -> q.unit = 'mL/kg/day' "qUnit";
           v -> q.system = 'http://unitsofmeasure.org' "qSystem";
-          v -> q.code = 'mL/kg' "qCode";
+          v -> q.code = 'mL/kg/d' "qCode";
         } "quantity";
       } "answer";
     } "measureq_feeding";
@@ -244,6 +247,16 @@ group ExtractNewbornComprehensiveChart(source qr : QR, target bundle : Bundle) {
       } "code";
       it -> comp then SetComponentValue(it, comp) "value";
     } "comp_feeding_iv_volume_planned_over_24_hours";
+    g.item as it where (linkId = 'iv-plan/start-time' and answer.value.exists()) -> obs.component as comp then {
+      it -> comp.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'feeding-iv-start-time' "cd";
+          it -> cg.display = 'IV fluid start time' "dsp";
+        } "coding";
+      } "code";
+      it -> comp then SetComponentValue(it, comp) "value";
+    } "comp_feeding_iv_start_time";
   } "ivFluidPlan";
 
   // ── Interventions in place ──────────────────────────────────────────────
@@ -354,7 +367,7 @@ group ExtractNewbornComprehensiveChart(source qr : QR, target bundle : Bundle) {
       it.answer first as a then {
         a.value as v -> obs.value = v "value";
       } "answer";
-      g -> obs then SetNewbornRoundTime(g, obs) "roundTime";
+      g -> obs then SetNewbornRoundTime(qr, g, obs) "roundTime";
     } "nbvital_8310_5";
 
     g.item as it where (linkId = 'round/pulse' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
@@ -370,7 +383,7 @@ group ExtractNewbornComprehensiveChart(source qr : QR, target bundle : Bundle) {
       it.answer first as a then {
         a.value as v -> obs.value = v "value";
       } "answer";
-      g -> obs then SetNewbornRoundTime(g, obs) "roundTime";
+      g -> obs then SetNewbornRoundTime(qr, g, obs) "roundTime";
     } "nbvital_8867_4";
 
     g.item as it where (linkId = 'round/respiratory-rate' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
@@ -386,7 +399,7 @@ group ExtractNewbornComprehensiveChart(source qr : QR, target bundle : Bundle) {
       it.answer first as a then {
         a.value as v -> obs.value = v "value";
       } "answer";
-      g -> obs then SetNewbornRoundTime(g, obs) "roundTime";
+      g -> obs then SetNewbornRoundTime(qr, g, obs) "roundTime";
     } "nbvital_9279_1";
 
     g.item as it where (linkId = 'round/oxygen-saturation' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
@@ -398,11 +411,16 @@ group ExtractNewbornComprehensiveChart(source qr : QR, target bundle : Bundle) {
           it -> cg.code = '59408-5' "cd";
           it -> cg.display = 'Oxygen saturation in Arterial blood by Pulse oximetry' "dsp";
         } "coding";
+        it -> cc.coding as cg2 then {
+          it -> cg2.system = 'http://loinc.org' "sys2";
+          it -> cg2.code = '2708-6' "cd2";
+          it -> cg2.display = 'Oxygen saturation in Arterial blood' "dsp2";
+        } "coding2708";
       } "code";
       it.answer first as a then {
         a.value as v -> obs.value = v "value";
       } "answer";
-      g -> obs then SetNewbornRoundTime(g, obs) "roundTime";
+      g -> obs then SetNewbornRoundTime(qr, g, obs) "roundTime";
     } "nbvital_59408_5";
 
     g.item as it where (linkId = 'round/blood-sugar' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
@@ -418,7 +436,7 @@ group ExtractNewbornComprehensiveChart(source qr : QR, target bundle : Bundle) {
       it.answer first as a then {
         a.value as v -> obs.value = v "value";
       } "answer";
-      g -> obs then SetNewbornRoundTime(g, obs) "roundTime";
+      g -> obs then SetNewbornRoundTime(qr, g, obs) "roundTime";
     } "roundBloodSugar";
 
     // Respiratory support as a panel. The distress grade only means something
@@ -460,6 +478,11 @@ group ExtractNewbornComprehensiveChart(source qr : QR, target bundle : Bundle) {
             it -> cg.code = 'newborn-intervention-inspired-oxygen-fraction' "cd";
             it -> cg.display = 'Inspired oxygen fraction' "dsp";
           } "coding";
+          it -> cc.coding as cg2 then {
+            it -> cg2.system = 'http://loinc.org' "sys2";
+            it -> cg2.code = '3150-0' "cd2";
+            it -> cg2.display = 'Inhaled oxygen concentration' "dsp2";
+          } "codingLoinc";
         } "code";
         it -> comp then SetComponentValue(it, comp) "value";
       } "comp_newborn_intervention_inspired_oxygen_fraction";
@@ -470,6 +493,11 @@ group ExtractNewbornComprehensiveChart(source qr : QR, target bundle : Bundle) {
             it -> cg.code = 'newborn-intervention-oxygen-flow' "cd";
             it -> cg.display = 'Oxygen flow' "dsp";
           } "coding";
+          it -> cc.coding as cg2 then {
+            it -> cg2.system = 'http://loinc.org' "sys2";
+            it -> cg2.code = '3151-8' "cd2";
+            it -> cg2.display = 'Inhaled oxygen flow rate' "dsp2";
+          } "codingLoinc";
         } "code";
         it -> comp then SetComponentValue(it, comp) "value";
       } "comp_newborn_intervention_oxygen_flow";
@@ -483,7 +511,7 @@ group ExtractNewbornComprehensiveChart(source qr : QR, target bundle : Bundle) {
         } "code";
         it -> comp then SetComponentCodedValue(it, comp) "value";
       } "comp_newborn_intervention_incubator_oxygen_port_in_use";
-      g -> obs then SetNewbornRoundTime(g, obs) "roundTime";
+      g -> obs then SetNewbornRoundTime(qr, g, obs) "roundTime";
     } "respiratorySupport";
 
     g.item as f where (linkId = 'round/fluid' and item.answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
@@ -536,7 +564,7 @@ group ExtractNewbornComprehensiveChart(source qr : QR, target bundle : Bundle) {
         } "code";
         it -> comp then SetComponentCodedValue(it, comp) "value";
       } "comp_feeding_iv_line_working";
-      g -> obs then SetNewbornRoundTime(g, obs) "roundTime";
+      g -> obs then SetNewbornRoundTime(qr, g, obs) "roundTime";
     } "fluidGiven";
 
     g.item as o where (linkId = 'round/output' and item.answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
@@ -579,7 +607,7 @@ group ExtractNewbornComprehensiveChart(source qr : QR, target bundle : Bundle) {
         } "code";
         it -> comp then SetComponentCodedValue(it, comp) "value";
       } "comp_fluid_balance_passed_stool";
-      g -> obs then SetNewbornRoundTime(g, obs) "roundTime";
+      g -> obs then SetNewbornRoundTime(qr, g, obs) "roundTime";
     } "roundOutput";
   } "roundRows";
 
@@ -621,22 +649,34 @@ group ExtractNewbornComprehensiveChart(source qr : QR, target bundle : Bundle) {
       } "answer";
     } "note";
     s.item as it where (linkId = 'shift/nurse' and answer.value.exists()) then {
-      it.answer first as a then {
-        a.value as ref where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> obs.performer = ref "performer";
+      it.answer first as a where (value.reference.empty() or (%obs.performer.reference contains value.reference).not()) then {
+        a.value as ref where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> obs.performer = ref "performer";
       } "answer";
     } "nurseRule";
   } "shiftNote";
 }
 
-group SetNewbornRoundTime(source g, target obs : Observation) {
+// The round's clock time becomes the Observation's effective time, replacing
+// the response's authored time that ConformObservation wrote first. A time of
+// day has no date: a round is the latest occurrence of its clock time, in East
+// Africa Time, at or before the authored moment, with an hour of slack, so a
+// night round charted after midnight takes the day before. The day is worked
+// out on instants, so an authored time in UTC gives the same answer. A
+// date-only authored leaves the authored effective in place; the note keeps
+// the time either way. No toDateTime(): the sandbox's FHIRPath engine (HAPI
+// 8.10) answers "not implemented"; cast() builds the dateTimes instead.
+group SetNewbornRoundTime(source qr : QR, source g, target obs : Observation) {
   g.item as it where (linkId = 'round/time' and answer.value.exists()) then {
     it.answer first as a then {
-      a.value as t -> obs.note as n, n.text = 'Taken at the clock time recorded for this round on the chart' "timeNote";
+      a.value as t -> obs.note as n, n.text = append('Taken at ', t, ', the clock time recorded for this round on the chart') "timeNote";
+      qr.authored as at where ($this.toString().length() >= 20) then {
+        a.value as t where ($this is time) -> evaluate(t, %at.toString().substring(0, 10) + 'T' + $this.toString() + '+03:00') as cand, cast(cand, 'dateTime') as candDt, evaluate(candDt, iif($this + 1 day <= %at + 1 hour, 1, iif($this <= %at + 1 hour, 0, -1))) as shift, evaluate(t, %at.toString().substring(0, 10)) as dayStr, cast(dayStr, 'date') as day0, evaluate(day0, iif(%shift = 1, $this + 1 day, iif(%shift = -1, $this - 1 day, $this)).toString() + 'T' + %t.toString() + '+03:00') as stamp, obs.effective = cast(stamp, 'dateTime') "effective";
+      } "effectiveFromRoundTime";
     } "answer";
   } "roundTimeRule";
   g.item as it where (linkId = 'round/completed-by' and answer.value.exists()) then {
-    it.answer first as a then {
-      a.value as ref where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> obs.performer = ref "performer";
+    it.answer first as a where (value.reference.empty() or (%obs.performer.reference contains value.reference).not()) then {
+      a.value as ref where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> obs.performer = ref "performer";
     } "answer";
   } "completedByRule";
 }
@@ -813,10 +853,10 @@ group SetResponseProvenance(source qr : QR, target r) {
 
 group ConformObservation(source qr : QR, target r) {
   qr.authored as t where ($this.toString().length() >= 20) -> r.issued = cast(t, 'instant') "issued";
-  qr.authored as t where ($this.toString().length() >= 20) -> r.effective = cast(t, 'instant') "effective";
-  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = au "performerFromAuthor";
-  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))).exists().not()) then {
-    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = src "performerFromSource";
+  qr.authored as t -> r.effective = t "effective";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = au "performerFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = src "performerFromSource";
   } "performerFallback";
 }
 
@@ -826,8 +866,8 @@ group ConformCarePlan(source qr : QR, target r) {
   qr.questionnaire as qc -> r.instantiatesCanonical = qc "instantiatesCanonical";
   qr -> r.title = 'Care plan from the newborn comprehensive chart' "title";
   qr -> r.description = 'Recorded on the newborn comprehensive chart.' "description";
-  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization'))))) -> r.custodian = au "custodianFromAuthor";
-  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization'))))).exists().not()) then {
-    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization'))))) -> r.custodian = src "custodianFromSource";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.custodian = au "custodianFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.custodian = src "custodianFromSource";
   } "custodianFallback";
 }

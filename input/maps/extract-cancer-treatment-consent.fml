@@ -44,6 +44,11 @@ group ExtractCancerTreatmentConsent(source qr : QR, target bundle : Bundle) {
       pg.item as it where (linkId = 'patient/signed-at' and answer.value.exists()) then {
         it.answer first as a then {
           a.value as t -> consent.period as per, per.start = t "signedPeriodStart";
+          // Consent.date is the day it was signed, not the day the response was
+          // saved (ConformConsent's floor), in East Africa Time: a signing time
+          // sent in UTC, as the questionnaire tester sends it, is moved to EAT
+          // before its date is taken.
+          a.value as t where ($this.toString().length() >= 10) -> evaluate(t, iif($this.toString().endsWith('Z'), ($this + 3 hours).toString(), $this.toString()).substring(0, 10)) as day, consent.date = cast(day, 'date') "signedDate";
         } "answer";
       } "signedAtRule";
     } "patientGroup";

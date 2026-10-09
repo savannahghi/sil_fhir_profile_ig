@@ -202,6 +202,10 @@ Description:    "A value set for categorizing procedures, using LOINC codes wher
 * include #103693007 "Diagnostic procedure" from system SGHIIdentifierCodeSystem
 * include #46947000 "Chiropractic manipulation" from system SGHIIdentifierCodeSystem 
 * include #410606002 "Social service procedure (procedure)" from system SGHIIdentifierCodeSystem 
+* include #277132007 "Therapeutic procedure" from system SGHIIdentifierCodeSystem
+* include #442460002 "Procedure on wound" from system SGHIIdentifierCodeSystem
+* include #386637004 "Obstetric procedure" from system SGHIIdentifierCodeSystem
+* include #52052004 "Rehabilitation therapy" from system SGHIIdentifierCodeSystem
 
 ValueSet:       SGHIProcedureOutcome
 Id:             procedure-outcome
@@ -454,6 +458,7 @@ Description: "A ValueSet defining the possible routes of drug administration."
 * include SGHIRouteOfAdministrationCodeSystem#vg "Vaginal"
 * include SGHIRouteOfAdministrationCodeSystem#rc "Rectal"
 * include SGHIRouteOfAdministrationCodeSystem#tp "Topical"
+* include SGHIRouteOfAdministrationCodeSystem#inh "Inhalation"
 
 ValueSet: ICD11Codes
 Id: ICD11Codes
@@ -1410,6 +1415,9 @@ Description: "Interpretation codes used to flag an observation's value against i
 * include $v3-ObservationInterpretation#H "High"
 * include $v3-ObservationInterpretation#HH "Critical high"
 * include $v3-ObservationInterpretation#A "Abnormal"
+// A positive or negative screening result, such as a favourable Bishop score.
+* include $v3-ObservationInterpretation#POS "Positive"
+* include $v3-ObservationInterpretation#NEG "Negative"
 
 // referencerange-meaning has no concept for the critical-low and
 // critical-high bands, so this set combines the HL7 codes that do exist with

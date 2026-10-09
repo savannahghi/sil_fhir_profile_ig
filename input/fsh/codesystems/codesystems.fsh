@@ -123,6 +123,7 @@ Description: "A code system enumerating the different route options used to spec
 * #vg "Vaginal" "Administration of medication into the vagina, typically in the form of suppositories, creams, or gels."
 * #rc "Rectal" "Administration of medication into the rectum, typically in the form of suppositories or enemas."
 * #tp "Topical" "Administration of medication to the skin, typically in the form of creams, ointments, or patches."
+* #inh "Inhalation" "Administration of medication into the airways by breathing it in, as a nebulised or inhaled aerosol."
 
 CodeSystem: SGHIEventTimingCodeSystem
 Id: timing-of-event
@@ -341,6 +342,10 @@ Description: "A single code system enumerating the many local identifier types u
 * #103693007 "Diagnostic procedure" "A procedure performed to establish a diagnosis."
 * #46947000 "Chiropractic manipulation" "A chiropractic manipulation procedure."
 * #410606002 "Social service procedure (procedure)" "A social service procedure."
+* #277132007 "Therapeutic procedure" "A procedure carried out to treat a condition rather than to diagnose it, such as a haemodialysis session or a newborn resuscitation."
+* #442460002 "Procedure on wound" "A procedure on a wound, such as a dressing or wound care."
+* #386637004 "Obstetric procedure" "A procedure in pregnancy, labour or delivery, such as the delivery of the baby."
+* #52052004 "Rehabilitation therapy" "A therapy given to restore or improve function: physiotherapy, occupational therapy, speech and language therapy."
 
 // Follow-up procedures. Consumed by SGHIProcedureFollowUpCodes.
 * #18949003 "Change of dressing" "Replacement of a wound dressing."
@@ -575,6 +580,7 @@ Description: "A custom CodeSystem defining different elements of service request
 * #education "Education"
 * #surgical-procedure "Surgical procedure"
 * #referral "Referral"
+* #follow-up "Follow-up review" "A request for the patient to return for a follow-up or review visit on a given date. It names no clinic, clinician or slot, so it is not a booked appointment."
 
 CodeSystem: SGHILOINCCodeSystem
 Id: loinc-codesystem

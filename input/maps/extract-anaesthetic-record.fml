@@ -21,106 +21,137 @@ group ExtractAnaestheticRecord(source qr : QR, target bundle : Bundle) {
   //
   // The performer is the anaesthetist named on the chart, not the response's
   // source: an anaesthetic record is sometimes written up by someone else, and
-  // attributing the anaesthetic to the transcriber would be wrong.
-  qr.item as g where (linkId = 'case') -> bundle.entry as entry, entry.resource = create('Procedure') as proc then {
+  // attributing the anaesthetic to the transcriber would be wrong. The review
+  // took the case group (and with it the anaesthetist) off the form, so the
+  // Procedure now has no performer unless that group comes back.
+  //
+  // Anchored on the response, not on the case group: the review removed `case`
+  // from every environment's form, and anchoring here on it left the technique
+  // and outcome sections -- still on the form -- with nothing to write into.
+  // The Procedure is made when any of the three sections has an answer.
+  qr where (item.where(linkId = 'case' or linkId = 'technique' or linkId = 'outcome').item.answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Procedure') as proc then {
     qr -> proc, entry then BuildProcedureBase(qr, proc, entry) "base";
-    g -> proc.status = 'completed' "status";
-    g -> proc.code as cc then {
-      g -> cc.coding as cg then {
-        g -> cg.system = 'http://snomed.info/sct' "sys";
-        g -> cg.code = '399097000' "cd";
-        g -> cg.display = 'Administration of anaesthesia' "dsp";
+    qr -> proc.status = 'completed' "status";
+    qr -> proc.code as cc then {
+      qr -> cc.coding as cg then {
+        qr -> cg.system = 'http://snomed.info/sct' "sys";
+        qr -> cg.code = '399097000' "cd";
+        qr -> cg.display = 'Administration of anaesthesia' "dsp";
       } "coding";
     } "code";
     qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> proc.encounter = e "encounter";
 
-    // Start and completion as a Period. Both, when both are given: the duration
-    // is what an audit reads, and it can only be derived if both ends are there.
-    g.item as st where (linkId = 'case/started' and answer.value.exists()) then {
-      st.answer first as a then {
-        a.value as t -> proc.occurrence = create('Period') as per, per.start = t "periodStart";
-      } "answer";
-    } "startRule";
+    // The case group's rules, kept for a form that still carries it (or gets it
+    // back): the review removed it as already known elsewhere.
+    qr.item as g where (linkId = 'case') then {
+      // Start and completion as a Period. Both, when both are given: the duration
+      // is what an audit reads, and it can only be derived if both ends are there.
+      g.item as st where (linkId = 'case/started' and answer.value.exists()) then {
+        st.answer first as a then {
+          a.value as t -> proc.occurrence = create('Period') as per, per.start = t "periodStart";
+        } "answer";
+      } "startRule";
 
-    g.item as an where (linkId = 'case/anaesthetist' and answer.value.exists()) then {
-      an.answer first as a then {
-        a.value as ref where (((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> proc.performer as p then {
-          ref -> p.actor = ref "actor";
-          ref -> p.function as fn then {
-            ref -> fn.coding as fcg then {
-              ref -> fcg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/practitioner-specialty-codesystem' "sys";
-              ref -> fcg.code = 'anaesthesia' "cd";
-            } "coding";
-          } "function";
-        } "performer";
-      } "answer";
-    } "anaesthetistRule";
+      g.item as an where (linkId = 'case/anaesthetist' and answer.value.exists()) then {
+        an.answer first as a then {
+          a.value as ref where (((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> proc.performer as p then {
+            ref -> p.actor = ref "actor";
+            ref -> p.function as fn then {
+              ref -> fn.coding as fcg then {
+                ref -> fcg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/practitioner-specialty-codesystem' "sys";
+                ref -> fcg.code = 'anaesthesia' "cd";
+              } "coding";
+            } "function";
+          } "performer";
+        } "answer";
+      } "anaesthetistRule";
 
-    g.item as sg where (linkId = 'case/surgeon' and answer.value.exists()) then {
-      sg.answer first as a then {
-        a.value as ref where (((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> proc.performer as p then {
-          ref -> p.actor = ref "actor";
-          ref -> p.function as fn then {
-            ref -> fn.coding as fcg then {
-              ref -> fcg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/practitioner-specialty-codesystem' "sys";
-              ref -> fcg.code = 'general-surgery' "cd";
-            } "coding";
-          } "function";
-        } "performer";
-      } "answer";
-    } "surgeonRule";
+      g.item as sg where (linkId = 'case/surgeon' and answer.value.exists()) then {
+        sg.answer first as a then {
+          a.value as ref where (((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> proc.performer as p then {
+            ref -> p.actor = ref "actor";
+            ref -> p.function as fn then {
+              ref -> fn.coding as fcg then {
+                ref -> fcg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/practitioner-specialty-codesystem' "sys";
+                ref -> fcg.code = 'general-surgery' "cd";
+              } "coding";
+            } "function";
+          } "performer";
+        } "answer";
+      } "surgeonRule";
 
-    g.item as sn where (linkId = 'case/scrub-nurse' and answer.value.exists()) then {
-      sn.answer first as a then {
-        a.value as ref where (((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> proc.performer as p, p.actor = ref "scrubNurse";
-      } "answer";
-    } "scrubNurseRule";
+      g.item as sn where (linkId = 'case/scrub-nurse' and answer.value.exists()) then {
+        sn.answer first as a then {
+          a.value as ref where (((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> proc.performer as p, p.actor = ref "scrubNurse";
+        } "answer";
+      } "scrubNurseRule";
 
-    // Type of surgery goes to Procedure.reason: this anaesthetic was given in
-    // order to allow that operation. Free text, because the theatre list is not
-    // a coded catalogue here.
-    g.item as ts where (linkId = 'case/type-of-surgery' and answer.value.exists()) then {
-      ts.answer first as a then {
-        a.value as txt -> proc.reason as rsn, rsn.concept as rc, rc.text = txt "reasonText";
-      } "answer";
-    } "typeOfSurgeryRule";
+      // Type of surgery goes to Procedure.reason: this anaesthetic was given in
+      // order to allow that operation. Free text, because the theatre list is not
+      // a coded catalogue here.
+      g.item as ts where (linkId = 'case/type-of-surgery' and answer.value.ofType(string).exists()) then {
+        ts.answer first as a then {
+          a.value as txt -> proc.reason as rsn, rsn.concept as rc, rc.text = txt "reasonText";
+        } "answer";
+      } "typeOfSurgeryRule";
 
-    g.item as dx where (linkId = 'case/diagnosis' and answer.value.exists()) then {
-      dx.answer first as a then {
-        a.value as txt -> proc.note as n, n.text = txt "diagnosisNote";
-      } "answer";
-    } "diagnosisRule";
+      g.item as dx where (linkId = 'case/diagnosis' and answer.value.ofType(string).exists()) then {
+        dx.answer first as a then {
+          a.value as txt -> proc.note as n then {
+            txt -> n.text = evaluate(txt, 'Diagnosis: ' + $this.toString()) "diagnosisNoteText";
+            qr.authored as nt -> n.time = nt "diagnosisNoteTime";
+          } "diagnosisNote";
+        } "answer";
+      } "diagnosisRule";
+    } "caseGroup";
 
     // Technique as Procedure.category, and the agents as notes. The agents are
     // free text on the chart -- "propofol / sevo / fentanyl" on one line -- and
-    // splitting that into MedicationAdministrations would invent doses.
+    // splitting that into MedicationAdministrations would invent doses. Each
+    // note is labelled with the question it answers and stamped with the
+    // response's time (SGHIAnnotation needs one), so four notes in a row still
+    // say which is the premedication and which the maintenance. Every rule is
+    // guarded on the answer's type: a wrong-typed answer is dropped rather than
+    // failing the whole extraction.
     qr.item as tg where (linkId = 'technique') then {
-      tg.item as it where (linkId = 'technique/type' and answer.value.exists()) then {
+      tg.item as it where (linkId = 'technique/type' and answer.value.ofType(Coding).exists()) then {
         it.answer first as a then {
-          a.value as cv -> proc.category as cat then {
+          a.value as cv where ($this is Coding) -> proc.category as cat then {
             cv -> cat.coding = cv "categoryCoding";
             cv.display as d -> cat.text = d "categoryText";
           } "category";
         } "answer";
       } "techniqueTypeRule";
-      tg.item as it where (linkId = 'technique/premedication') then {
+      tg.item as it where (linkId = 'technique/premedication' and answer.value.ofType(string).exists()) then {
         it.answer first as a then {
-          a.value as txt -> proc.note as n, n.text = txt "note";
+          a.value as txt -> proc.note as n then {
+            txt -> n.text = evaluate(txt, 'Premedication: ' + $this.toString()) "noteText";
+            qr.authored as nt -> n.time = nt "noteTime";
+          } "note";
         } "answer";
       } "technique_premedication";
-      tg.item as it where (linkId = 'technique/induction') then {
+      tg.item as it where (linkId = 'technique/induction' and answer.value.ofType(string).exists()) then {
         it.answer first as a then {
-          a.value as txt -> proc.note as n, n.text = txt "note";
+          a.value as txt -> proc.note as n then {
+            txt -> n.text = evaluate(txt, 'Induction: ' + $this.toString()) "noteText";
+            qr.authored as nt -> n.time = nt "noteTime";
+          } "note";
         } "answer";
       } "technique_induction";
-      tg.item as it where (linkId = 'technique/maintenance') then {
+      tg.item as it where (linkId = 'technique/maintenance' and answer.value.ofType(string).exists()) then {
         it.answer first as a then {
-          a.value as txt -> proc.note as n, n.text = txt "note";
+          a.value as txt -> proc.note as n then {
+            txt -> n.text = evaluate(txt, 'Maintenance: ' + $this.toString()) "noteText";
+            qr.authored as nt -> n.time = nt "noteTime";
+          } "note";
         } "answer";
       } "technique_maintenance";
-      tg.item as it where (linkId = 'technique/position') then {
+      tg.item as it where (linkId = 'technique/position' and answer.value.ofType(string).exists()) then {
         it.answer first as a then {
-          a.value as txt -> proc.note as n, n.text = txt "note";
+          a.value as txt -> proc.note as n then {
+            txt -> n.text = evaluate(txt, 'Position: ' + $this.toString()) "noteText";
+            qr.authored as nt -> n.time = nt "noteTime";
+          } "note";
         } "answer";
       } "technique_position";
     } "techniqueGroup";
@@ -128,21 +159,21 @@ group ExtractAnaestheticRecord(source qr : QR, target bundle : Bundle) {
     // The outcome sections. `outcome` takes the result of the operation;
     // reversal and post-operative instructions are what recovery has to act
     // on, so they are followUp rather than notes -- a note is read, a followUp
-    // is a stated instruction.
+    // is a stated instruction. Each followUp's text says which one it is.
     qr.item as og where (linkId = 'outcome') then {
-      og.item as it where (linkId = 'outcome/result-and-remarks' and answer.value.exists()) then {
+      og.item as it where (linkId = 'outcome/result-and-remarks' and answer.value.ofType(string).exists()) then {
         it.answer first as a then {
           a.value as txt -> proc.outcome as oc, oc.text = txt "outcomeText";
         } "answer";
       } "outcomeRule";
-      og.item as it where (linkId = 'outcome/reversal-notes' and answer.value.exists()) then {
+      og.item as it where (linkId = 'outcome/reversal-notes' and answer.value.ofType(string).exists()) then {
         it.answer first as a then {
-          a.value as txt -> proc.followUp as fu, fu.text = txt "reversalText";
+          a.value as txt -> proc.followUp as fu, fu.text = evaluate(txt, 'Reversal: ' + $this.toString()) "reversalText";
         } "answer";
       } "reversalRule";
-      og.item as it where (linkId = 'outcome/post-operative-instructions' and answer.value.exists()) then {
+      og.item as it where (linkId = 'outcome/post-operative-instructions' and answer.value.ofType(string).exists()) then {
         it.answer first as a then {
-          a.value as txt -> proc.followUp as fu, fu.text = txt "instructionsText";
+          a.value as txt -> proc.followUp as fu, fu.text = evaluate(txt, 'Post-operative instructions: ' + $this.toString()) "instructionsText";
         } "answer";
       } "instructionsRule";
     } "outcomeGroup";
@@ -154,10 +185,17 @@ group ExtractAnaestheticRecord(source qr : QR, target bundle : Bundle) {
   // it into one Observation with thirty components would lose the axis the
   // graph exists for.
   //
-  // The time on the chart is a clock time with no date. It is written to
-  // Observation.effective as given; the case's own date is on the Procedure
-  // this Observation sits beside, and inventing a date here would be a guess
-  // that reads as a fact.
+  // The time on the chart is a clock time with no date, and R5 effective[x]
+  // has no time type. So the reading's time is joined to the date the record
+  // was written (the response's authored date, the only date the form has),
+  // over the authored time ConformObservation writes, as the haemodialysis map
+  // does. A record is written up after the readings it holds, so a reading is
+  // the latest occurrence of its clock time at or before the authored moment,
+  // with an hour of slack (a case that ran past midnight takes the day before).
+  // The offset is the unit's, East Africa Time: the chart's times are
+  // wall-clock times. The day is worked out on instants, so an authored time
+  // in UTC gives the same day. The note keeps the time exactly as charted and
+  // says where the date came from.
   qr.item as g where (linkId = 'observation' and item.answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
     qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
     qr -> obs then SetVitalSignsCategory(qr, obs) "category";
@@ -169,11 +207,17 @@ group ExtractAnaestheticRecord(source qr : QR, target bundle : Bundle) {
       } "coding";
       g -> cc.text = 'Observation during anaesthesia' "codeText";
     } "code";
-    g.item as tm where (linkId = 'observation/time' and answer.value.exists()) then {
-      tm.answer first as a then {
-        a.value as t -> obs.note as n, n.text = 'Reading taken at the time recorded on the anaesthetic chart' "timeNote";
-      } "answer";
-    } "readingTimeRule";
+    qr.authored as au where ($this.toString().length() >= 16) then {
+      g.item as tm where (linkId = 'observation/time' and answer.value.ofType(time).exists()) then {
+        tm.answer first as a then {
+          a.value as t where ($this is time) -> evaluate(t, %au.toString().substring(0, 10) + 'T' + $this.toString() + '+03:00') as cand, cast(cand, 'dateTime') as candDt, evaluate(candDt, iif($this + 1 day <= %au + 1 hour, 1, iif($this <= %au + 1 hour, 0, -1))) as shift, evaluate(t, %au.toString().substring(0, 10)) as dayStr, cast(dayStr, 'date') as day0, evaluate(day0, iif(%shift = 1, $this + 1 day, iif(%shift = -1, $this - 1 day, $this)).toString() + 'T' + %t.toString() + '+03:00') as stamp, obs.effective = cast(stamp, 'dateTime') "readingTimeOnAuthoredDay";
+          a.value as t where ($this is time) -> obs.note as n then {
+            t -> n.text = evaluate(t, 'Reading taken at ' + $this.toString() + ', the clock time recorded on the anaesthetic chart; the date is the latest such time before the record was written') "timeNoteText";
+            qr.authored as nt -> n.time = nt "timeNoteTime";
+          } "timeNote";
+        } "answer";
+      } "readingTimeRule";
+    } "readingAuthored";
     g.item as it where (linkId = 'observation/systolic' and answer.value.exists()) -> obs.component as comp then {
       it -> comp.code as cc then {
         it -> cc.coding as cg then {
@@ -285,6 +329,20 @@ group ExtractAnaestheticRecord(source qr : QR, target bundle : Bundle) {
       g -> n.text = 'Intravenous fluid given during anaesthesia' "fluidNoteText";
       qr.authored as noteTime -> n.time = noteTime "fluidNoteTime";
     } "fluidNote";
+    // The time it was given, over the authored floor above: the chart's clock
+    // time joined to the record's date, the same way as a reading's time (see
+    // the observations above). The note keeps the time as charted.
+    qr.authored as au where ($this.toString().length() >= 16) then {
+      g.item as it where (linkId = 'iv-fluid/time' and answer.value.ofType(time).exists()) then {
+        it.answer first as a then {
+          a.value as t where ($this is time) -> evaluate(t, %au.toString().substring(0, 10) + 'T' + $this.toString() + '+03:00') as cand, cast(cand, 'dateTime') as candDt, evaluate(candDt, iif($this + 1 day <= %au + 1 hour, 1, iif($this <= %au + 1 hour, 0, -1))) as shift, evaluate(t, %au.toString().substring(0, 10)) as dayStr, cast(dayStr, 'date') as day0, evaluate(day0, iif(%shift = 1, $this + 1 day, iif(%shift = -1, $this - 1 day, $this)).toString() + 'T' + %t.toString() + '+03:00') as stamp, ma.occurence = cast(stamp, 'dateTime') "fluidTimeOnAuthoredDay";
+          a.value as t where ($this is time) -> ma.note as n then {
+            t -> n.text = evaluate(t, 'Given at ' + $this.toString() + ', the clock time recorded on the anaesthetic chart; the date is the latest such time before the record was written') "fluidTimeNoteText";
+            qr.authored as nt -> n.time = nt "fluidTimeNoteTime";
+          } "fluidTimeNote";
+        } "answer";
+      } "fluidTimeRule";
+    } "fluidAuthored";
   } "fluidAdministration";
 
   // ── Estimated blood loss ────────────────────────────────────────────────
@@ -511,10 +569,10 @@ group SetResponseProvenance(source qr : QR, target r) {
 
 group ConformObservation(source qr : QR, target r) {
   qr.authored as t where ($this.toString().length() >= 20) -> r.issued = cast(t, 'instant') "issued";
-  qr.authored as t where ($this.toString().length() >= 20) -> r.effective = cast(t, 'instant') "effective";
-  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = au "performerFromAuthor";
-  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))).exists().not()) then {
-    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = src "performerFromSource";
+  qr.authored as t -> r.effective = t "effective";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = au "performerFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = src "performerFromSource";
   } "performerFallback";
 }
 

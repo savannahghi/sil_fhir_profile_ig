@@ -61,10 +61,13 @@ group ExtractChemotherapyPrescription(source qr : QR, target bundle : Bundle) {
           it -> cg.code = '29463-7' "cd";
           it -> cg.display = 'Body weight' "dsp";
         } "coding";
+        it -> cc.text = 'Initial weight, at the start of treatment' "codeText";
       } "code";
       it.answer first as a then {
         a.value as v -> obs.value = v "set";
       } "answer";
+      // The sheet gives no date for it, so this is not a second current weight.
+      it -> obs.note as n, n.text = 'Weight at the start of treatment, as written on the prescription. The sheet gives no date for it; the time shown is when the prescription was written.' "initialWeightNote";
       it -> obs.note as n, n.text = 'The weight at the start of treatment, for comparison.' "note";
     } "measure_29463_72";
 
@@ -132,8 +135,8 @@ group ExtractChemotherapyPrescription(source qr : QR, target bundle : Bundle) {
       it -> obs.code as cc then {
         it -> cc.coding as cg then {
           it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
-          it -> cg.code = 'chemotherapy-regimen' "cd";
-          it -> cg.display = 'Chemotherapy regimen' "dsp";
+          it -> cg.code = 'cancer-stage' "cd";
+          it -> cg.display = 'Cancer stage' "dsp";
         } "coding";
         it -> cc.text = 'Cancer stage, as staged' "codeText";
       } "code";
@@ -204,22 +207,70 @@ group ExtractChemotherapyPrescription(source qr : QR, target bundle : Bundle) {
         a.value as txt -> mr.medication as med, med.concept as mc, mc.text = txt "medicationText";
       } "answer";
     } "drugNameRule";
-    g.item as it where (linkId = 'chemotherapy-drug/dose' and answer.value.ofType(Quantity).exists()) then {
-      it.answer first as a then {
-        a.value as v -> mr.dosageInstruction as di, di.doseAndRate as dr, dr.dose = v "doseQuantity";
-      } "answer";
-    } "doseRule";
-    g.item as it where (linkId = 'chemotherapy-drug/route' and answer.value.exists()) then {
-      it.answer first as a then {
-        a.value as txt -> mr.dosageInstruction as di, di.route as rt, rt.text = txt "routeText";
-      } "answer";
-    } "routeRule";
+    // The dose and the route are one instruction, so they share one Dosage.
+    g where (item.where(linkId = 'chemotherapy-drug/dose').answer.value.ofType(Quantity).exists() or item.where(linkId = 'chemotherapy-drug/route').answer.value.exists()) -> mr.dosageInstruction as di then {
+      g.item as it where (linkId = 'chemotherapy-drug/dose' and answer.value.ofType(Quantity).exists()) then {
+        it.answer first as a then {
+          a.value as v -> di.doseAndRate as dr, dr.dose = v "doseQuantity";
+        } "answer";
+      } "doseRule";
+      // The route is written free text. The profile binds Dosage.route to the
+      // SGHI route codes (required), so it is coded only when the wording opens
+      // with a route's own name or standard abbreviation ("IV push", "PO",
+      // "intrathecal"), keeping the wording as the route's text. Anything else
+      // goes into the dosage text as written rather than into an uncoded route.
+      g.item as it where (linkId = 'chemotherapy-drug/route' and answer.value.exists()) then {
+        it.answer first as a then {
+          a.value as txt where ($this.lower().matches('^(iv|i[.]v[.]?|intravenous|intravenously)([^a-z].*)?$')) -> di.route as rt then {
+            txt -> rt.coding as cg then {
+              txt -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/route-of-administration' "sys";
+              txt -> cg.code = 'iv' "cd";
+              txt -> cg.display = 'Intravenous' "dsp";
+            } "coding";
+            txt -> rt.text = txt "text";
+          } "routeIv";
+          a.value as txt where ($this.lower().matches('^(po|p[.]o[.]?|oral|orally|by mouth)([^a-z].*)?$')) -> di.route as rt then {
+            txt -> rt.coding as cg then {
+              txt -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/route-of-administration' "sys";
+              txt -> cg.code = 'o' "cd";
+              txt -> cg.display = 'Oral' "dsp";
+            } "coding";
+            txt -> rt.text = txt "text";
+          } "routeOral";
+          a.value as txt where ($this.lower().matches('^(it|i[.]t[.]?|intrathecal|intrathecally)([^a-z].*)?$')) -> di.route as rt then {
+            txt -> rt.coding as cg then {
+              txt -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/route-of-administration' "sys";
+              txt -> cg.code = 'it' "cd";
+              txt -> cg.display = 'Intrathecal' "dsp";
+            } "coding";
+            txt -> rt.text = txt "text";
+          } "routeIntrathecal";
+          a.value as txt where ($this.lower().matches('^(sc|s[.]c[.]?|subcut|subcutaneous|subcutaneously)([^a-z].*)?$')) -> di.route as rt then {
+            txt -> rt.coding as cg then {
+              txt -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/route-of-administration' "sys";
+              txt -> cg.code = 'sc' "cd";
+              txt -> cg.display = 'Subcutaneous' "dsp";
+            } "coding";
+            txt -> rt.text = txt "text";
+          } "routeSubcutaneous";
+          a.value as txt where ($this.lower().matches('^(im|i[.]m[.]?|intramuscular|intramuscularly)([^a-z].*)?$')) -> di.route as rt then {
+            txt -> rt.coding as cg then {
+              txt -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/route-of-administration' "sys";
+              txt -> cg.code = 'im' "cd";
+              txt -> cg.display = 'Intramuscular' "dsp";
+            } "coding";
+            txt -> rt.text = txt "text";
+          } "routeIntramuscular";
+          a.value as txt where ($this.lower().matches('^(iv|i[.]v[.]?|intravenous|intravenously|po|p[.]o[.]?|oral|orally|by mouth|it|i[.]t[.]?|intrathecal|intrathecally|sc|s[.]c[.]?|subcut|subcutaneous|subcutaneously|im|i[.]m[.]?|intramuscular|intramuscularly)([^a-z].*)?$').not()) -> di.text = evaluate(txt, 'Route: ' + $this) "routeAsWritten";
+        } "answer";
+      } "routeRule";
+    } "dosage";
     // The prescribed dose per square metre, kept as written. It is the
     // provenance of the absolute dose above, and a pharmacist checking the
     // calculation needs both figures, not just the product.
     g.item as it where (linkId = 'chemotherapy-drug/dose-per-bsa' and answer.value.exists()) then {
       it.answer first as a then {
-        a.value as txt -> mr.note as n, n.text = txt "dosePerBsaNote";
+        a.value as txt -> mr.note as n, n.text = evaluate(txt, 'Prescribed dose per m²: ' + $this) "dosePerBsaNote";
       } "answer";
     } "dosePerBsaRule";
     g -> mr.note as n, n.text = 'Prescribed on the chemotherapy prescription sheet. Left as a draft for second-clinician check and pharmacy reconstitution.' "provenanceNote";
@@ -401,7 +452,14 @@ group ExtractChemotherapyPrescription(source qr : QR, target bundle : Bundle) {
           it -> sghi.display = 'Laboratory procedure' "sghiDsp";
         } "sghiCoding";
       } "category";
-      it -> sr.code as cr, cr.concept as cc, cc.text = 'Full haemogram' "codeText";
+      it -> sr.code as cr, cr.concept as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '57021-8' "cd";
+          it -> cg.display = 'CBC W Auto Differential panel - Blood' "dsp";
+        } "coding";
+        it -> cc.text = 'Full haemogram' "codeText";
+      } "code";
       qr.authored as t -> sr.authoredOn = t "authoredOn";
       qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> sr.encounter = e "encounter";
       it -> sr.note as n, n.text = 'Mandatory before this cycle of chemotherapy.' "mandatoryNote";
@@ -422,7 +480,14 @@ group ExtractChemotherapyPrescription(source qr : QR, target bundle : Bundle) {
           it -> sghi.display = 'Laboratory procedure' "sghiDsp";
         } "sghiCoding";
       } "category";
-      it -> sr.code as cr, cr.concept as cc, cc.text = 'Urea, electrolytes and creatinine' "codeText";
+      it -> sr.code as cr, cr.concept as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '24362-6' "cd";
+          it -> cg.display = 'Renal function 2000 panel - Serum or Plasma' "dsp";
+        } "coding";
+        it -> cc.text = 'Urea, electrolytes and creatinine' "codeText";
+      } "code";
       qr.authored as t -> sr.authoredOn = t "authoredOn";
       qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> sr.encounter = e "encounter";
       it -> sr.note as n, n.text = 'Mandatory before this cycle of chemotherapy.' "mandatoryNote";
@@ -443,7 +508,14 @@ group ExtractChemotherapyPrescription(source qr : QR, target bundle : Bundle) {
           it -> sghi.display = 'Laboratory procedure' "sghiDsp";
         } "sghiCoding";
       } "category";
-      it -> sr.code as cr, cr.concept as cc, cc.text = 'Liver function tests' "codeText";
+      it -> sr.code as cr, cr.concept as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '24325-3' "cd";
+          it -> cg.display = 'Hepatic function 2000 panel - Serum or Plasma' "dsp";
+        } "coding";
+        it -> cc.text = 'Liver function tests' "codeText";
+      } "code";
       qr.authored as t -> sr.authoredOn = t "authoredOn";
       qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> sr.encounter = e "encounter";
       it -> sr.note as n, n.text = 'Mandatory before this cycle of chemotherapy.' "mandatoryNote";
@@ -464,7 +536,14 @@ group ExtractChemotherapyPrescription(source qr : QR, target bundle : Bundle) {
           it -> sghi.display = 'Laboratory procedure' "sghiDsp";
         } "sghiCoding";
       } "category";
-      it -> sr.code as cr, cr.concept as cc, cc.text = 'PSA' "codeText";
+      it -> sr.code as cr, cr.concept as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '2857-1' "cd";
+          it -> cg.display = 'Prostate specific Ag [Mass/volume] in Serum or Plasma' "dsp";
+        } "coding";
+        it -> cc.text = 'PSA' "codeText";
+      } "code";
       qr.authored as t -> sr.authoredOn = t "authoredOn";
       qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> sr.encounter = e "encounter";
       it -> sr.note as n, n.text = 'Mandatory before this cycle of chemotherapy.' "mandatoryNote";
@@ -485,7 +564,14 @@ group ExtractChemotherapyPrescription(source qr : QR, target bundle : Bundle) {
           it -> sghi.display = 'Laboratory procedure' "sghiDsp";
         } "sghiCoding";
       } "category";
-      it -> sr.code as cr, cr.concept as cc, cc.text = 'CA tumour marker' "codeText";
+      it -> sr.code as cr, cr.concept as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '101661-7' "cd";
+          it -> cg.display = 'Tumor marker level Serum' "dsp";
+        } "coding";
+        it -> cc.text = 'CA tumour marker' "codeText";
+      } "code";
       qr.authored as t -> sr.authoredOn = t "authoredOn";
       qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> sr.encounter = e "encounter";
       it -> sr.note as n, n.text = 'Mandatory before this cycle of chemotherapy.' "mandatoryNote";
@@ -507,9 +593,18 @@ group ExtractChemotherapyPrescription(source qr : QR, target bundle : Bundle) {
           it -> sghi.display = 'Imaging' "sghiDsp";
         } "sghiCoding";
       } "category";
-      it.answer first as a then {
-        a.value as txt -> sr.code as cr, cr.concept as cc, cc.text = txt "codeText";
-      } "answer";
+      // The imaging is written free text, so the order carries LOINC's generic
+      // diagnostic imaging study code and the wording as the code's text.
+      it -> sr.code as cr, cr.concept as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '18748-4' "cd";
+          it -> cg.display = 'Diagnostic imaging study' "dsp";
+        } "coding";
+        it.answer first as a then {
+          a.value as txt -> cc.text = txt "codeText";
+        } "answer";
+      } "code";
       qr.authored as t -> sr.authoredOn = t "authoredOn";
       qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> sr.encounter = e "encounter";
     } "imagingOrder";
@@ -531,7 +626,15 @@ group ExtractChemotherapyPrescription(source qr : QR, target bundle : Bundle) {
             a -> sghi.display = 'Laboratory procedure' "sghiDsp";
           } "sghiCoding";
         } "category";
-        a.value as txt -> sr.code as cr, cr.concept as cc, cc.text = txt "codeText";
+        // Free text: LOINC's generic laboratory studies code, the wording as text.
+        a -> sr.code as cr, cr.concept as cc then {
+          a -> cc.coding as cg then {
+            a -> cg.system = 'http://loinc.org' "sys";
+            a -> cg.code = '26436-6' "cd";
+            a -> cg.display = 'Laboratory studies (set)' "dsp";
+          } "coding";
+          a.value as txt -> cc.text = txt "codeText";
+        } "code";
         qr.authored as t -> sr.authoredOn = t "authoredOn";
         qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> sr.encounter = e "encounter";
       } "createOtherOrder";
@@ -573,9 +676,9 @@ group ExtractChemotherapyPrescription(source qr : QR, target bundle : Bundle) {
       qr -> obs then SetSurveyCategory(qr, obs) "category";
       it -> obs.code as cc then {
         it -> cc.coding as cg then {
-          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
-          it -> cg.code = 'chemotherapy-regimen' "cd";
-          it -> cg.display = 'Chemotherapy regimen' "dsp";
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '72135-7' "cd";
+          it -> cg.display = 'Cancer diagnosis Narrative' "dsp";
         } "coding";
         it -> cc.text = 'Diagnosis this cycle was prescribed for' "codeText";
       } "code";
@@ -753,10 +856,10 @@ group SetResponseProvenance(source qr : QR, target r) {
 
 group ConformObservation(source qr : QR, target r) {
   qr.authored as t where ($this.toString().length() >= 20) -> r.issued = cast(t, 'instant') "issued";
-  qr.authored as t where ($this.toString().length() >= 20) -> r.effective = cast(t, 'instant') "effective";
-  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = au "performerFromAuthor";
-  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))).exists().not()) then {
-    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = src "performerFromSource";
+  qr.authored as t -> r.effective = t "effective";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = au "performerFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = src "performerFromSource";
   } "performerFallback";
 }
 
@@ -764,9 +867,9 @@ group ConformMedicationRequest(source qr : QR, target r) {
   qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> r.encounter = e "encounter";
   qr.authored as t -> r.authoredOn = t "authoredOn";
   qr -> r.priority = 'routine' "priority";
-  qr.author as au where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization'))))) -> r.requester = au "requesterFromAuthor";
-  qr where (author.where(((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization'))))).exists().not()) then {
-    qr.source as src where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization'))))) -> r.requester = src "requesterFromSource";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.requester = au "requesterFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.requester = src "requesterFromSource";
   } "requesterFallback";
 }
 
@@ -774,8 +877,8 @@ group ConformServiceRequest(source qr : QR, target r) {
   qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> r.encounter = e "encounter";
   qr.authored as t -> r.authoredOn = t "authoredOn";
   qr -> r.priority = 'routine' "priority";
-  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.requester = au "requesterFromAuthor";
-  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))).exists().not()) then {
-    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.requester = src "requesterFromSource";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.requester = au "requesterFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.requester = src "requesterFromSource";
   } "requesterFallback";
 }

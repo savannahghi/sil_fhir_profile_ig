@@ -1,7 +1,7 @@
 /// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractBishopScore"
 /// name = "ExtractBishopScore"
 /// title = "Bishop Score Extraction"
-/// description = "The Bishop score out as one Observation carrying the total, with the five weighted items as components and the fetal heart rate, the position of the presenting part and the membrane status alongside them. The total prefers what the form submitted and otherwise sums the item weights itself, and it only extracts when all five items have been answered — a Bishop of 6 out of three items answered reads as a favourable cervix and is not one."
+/// description = "The Bishop score out as one Observation carrying the total, with the five weighted items as components and the fetal heart rate, the position of the presenting part and the membrane status alongside them. The total is always summed from the item weights, so it agrees with the components even when a stale total was submitted, and it only extracts when all five items have been answered — a Bishop of 6 out of three items answered reads as a favourable cervix and is not one."
 
 uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
 uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
@@ -30,7 +30,13 @@ group ExtractBishopScore(source qr : QR, target bundle : Bundle) {
       qr -> code.text = 'Bishop score' "codeText";
     } "code";
 
-    // The submitted total wins; otherwise sum the five item weights.
+    // The total is always summed here from the five item weights, never taken
+    // from the submitted 'total' item. The five answers go out as components of
+    // this same Observation, so the value has to agree with them; a stale or
+    // hand-edited total (9 against components summing to 4) would otherwise be
+    // written as is and flip the interpretation. The guard below means all five
+    // are there, so the sum always exists and equals the form's own
+    // calculatedExpression whenever the form computed it correctly.
     //
     // The weight is read off the tail of the answer code, which is why the codes
     // are namespaced instrument-item-weight. Order matters in the nested iif:
@@ -42,17 +48,20 @@ group ExtractBishopScore(source qr : QR, target bundle : Bundle) {
     // and a partial sum is not a smaller Bishop score, it is a different
     // number; nothing in the resource would say which it was.
     qr where (item.where(linkId = 'assessment').item.answer.value.ofType(Coding).count() = 5) then {
-      qr -> obs.value = evaluate(qr, iif(item.where(linkId = 'total').answer.value.exists(), item.where(linkId = 'total').answer.value.truncate(), item.where(linkId = 'assessment').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-3'), 3, iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0)))).aggregate($this + $total, 0))) "totalValue";
+      qr -> obs.value = evaluate(qr, item.where(linkId = 'assessment').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-3'), 3, iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0)))).aggregate($this + $total, 0)) "totalValue";
 
       // Six or more is a favourable cervix. Stated as the interpretation rather
       // than left for a reader to recall, because the whole point of the score
       // is the induction decision it drives.
+      // POS/NEG with their HL7 displays; the obstetric wording ("favourable
+      // cervix") rides as the interpretation's text.
       qr -> obs.interpretation as interp then {
         qr -> interp.coding as coding then {
           qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation' "interpSystem";
-          qr -> coding.code = evaluate(qr, iif(iif(item.where(linkId = 'total').answer.value.exists(), item.where(linkId = 'total').answer.value.truncate(), item.where(linkId = 'assessment').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-3'), 3, iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0)))).aggregate($this + $total, 0)) >= 6, 'POS', 'NEG')) "interpCode";
-          qr -> coding.display = evaluate(qr, iif(iif(item.where(linkId = 'total').answer.value.exists(), item.where(linkId = 'total').answer.value.truncate(), item.where(linkId = 'assessment').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-3'), 3, iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0)))).aggregate($this + $total, 0)) >= 6, 'Favourable cervix', 'Unfavourable cervix')) "interpDisplay";
+          qr -> coding.code = evaluate(qr, iif((item.where(linkId = 'assessment').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-3'), 3, iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0)))).aggregate($this + $total, 0)) >= 6, 'POS', 'NEG')) "interpCode";
+          qr -> coding.display = evaluate(qr, iif((item.where(linkId = 'assessment').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-3'), 3, iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0)))).aggregate($this + $total, 0)) >= 6, 'Positive', 'Negative')) "interpDisplay";
         } "interpCoding";
+        qr -> interp.text = evaluate(qr, iif((item.where(linkId = 'assessment').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-3'), 3, iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0)))).aggregate($this + $total, 0)) >= 6, 'Favourable cervix', 'Unfavourable cervix')) "interpText";
       } "interpretation";
     } "totalRule";
 
@@ -160,8 +169,8 @@ group ExtractBishopScore(source qr : QR, target bundle : Bundle) {
         it -> comp.code as cc then {
           it -> cc.coding as cg then {
             it -> cg.system = 'http://loinc.org' "sys";
-            it -> cg.code = '11876-0' "cd";
-            it -> cg.display = 'Fetal presentation palpation' "dsp";
+            it -> cg.code = '11874-5' "cd";
+            it -> cg.display = 'Fetal position palpation' "dsp";
           } "coding";
         } "code";
         it -> comp then SetComponentValue(it, comp) "value";
@@ -173,7 +182,7 @@ group ExtractBishopScore(source qr : QR, target bundle : Bundle) {
       g.item as it where (linkId = 'alongside/remarks') then {
         it.answer first as a then {
           a.value as txt -> obs.note as note then {
-            txt -> note.text = txt "noteText";
+            txt -> note.text = evaluate(txt, 'Remarks: ' & $this.toString()) "noteText";
           } "createNote";
         } "remarksAnswer";
       } "remarksRule";
@@ -189,7 +198,7 @@ group ExtractBishopScore(source qr : QR, target bundle : Bundle) {
       g.item as it where (linkId = 'context/indication') then {
         it.answer first as a then {
           a.value as txt -> obs.note as note then {
-            txt -> note.text = txt "noteText";
+            txt -> note.text = evaluate(txt, 'Indication for assessment: ' & $this.toString()) "noteText";
           } "createNote";
         } "indicationAnswer";
       } "indicationRule";
@@ -344,9 +353,9 @@ group SetResponseProvenance(source qr : QR, target r) {
 
 group ConformObservation(source qr : QR, target r) {
   qr.authored as t where ($this.toString().length() >= 20) -> r.issued = cast(t, 'instant') "issued";
-  qr.authored as t where ($this.toString().length() >= 20) -> r.effective = cast(t, 'instant') "effective";
-  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = au "performerFromAuthor";
-  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))).exists().not()) then {
-    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = src "performerFromSource";
+  qr.authored as t -> r.effective = t "effective";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = au "performerFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = src "performerFromSource";
   } "performerFallback";
 }

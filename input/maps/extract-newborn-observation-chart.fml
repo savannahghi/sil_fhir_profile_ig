@@ -2,7 +2,7 @@
 /// name = "ExtractNewbornObservationChart"
 /// title = "Newborn Observation Chart Extraction"
 /// status = "active"
-/// description = "The newborn chart out as: one Observation per Apgar time point, coded to the LOINC panel with the five weighted signs as components and the total as its value, computed by the map when the client submits none; one Observation per timed skin-to-skin round; one Observation per follow-up round over the first four days; the birth and discharge weights as their own Observations; the immediate newborn care given as one panel rather than as Immunization or MedicationAdministration resources, which the chart gives no doses or times for; and a Procedure for resuscitation when it was done."
+/// description = "The newborn chart out as: one Observation per Apgar time point, coded to the LOINC panel with the five weighted signs as components and the total as its value, always summed by the map from the signs; one Observation per timed skin-to-skin round; one Observation per follow-up round over the first four days; the birth and discharge weights as their own Observations; the immediate newborn care given as one panel rather than as Immunization or MedicationAdministration resources, which the chart gives no doses or times for; and a Procedure for resuscitation when it was done."
 
 uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
 uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
@@ -87,11 +87,12 @@ group ExtractNewbornObservationChart(source qr : QR, target bundle : Bundle) {
   // separate codes for the one-, five- and ten-minute variants of each sign, so
   // a five-minute colour is never mistaken for a one-minute one.
   //
-  // The total is the Observation's value, taken from the form's calculated
-  // field if the client filled it, and otherwise summed from the answer codes.
-  // The weight is the tail of the code: apgar-colour-2 scores two. A client
-  // without a FHIRPath engine -- the questionnaire tester among them -- submits
-  // the total empty, and this is what makes such a submission still usable.
+  // The total is the Observation's value, always summed from the answer codes
+  // and never taken from the form's calculated field: a submitted total can
+  // disagree with the signs it claims to add up -- a stale one, or one typed
+  // over -- and the signs are what was assessed. The weight is the tail of the
+  // code: apgar-colour-2 scores two. A client without a FHIRPath engine submits
+  // the total empty and gets the same Observation.
   //
   // Guarded on all five signs being answered at that time point. An Apgar of 6
   // out of three signs assessed is not a lower Apgar, it is a different number,
@@ -107,7 +108,7 @@ group ExtractNewbornObservationChart(source qr : QR, target bundle : Bundle) {
           g -> cg.display = '1 minute Apgar panel' "dsp";
         } "coding";
       } "code";
-      g -> obs.value = evaluate(ag, iif(item.where(linkId = 'apgar/1-minute').item.where(linkId = 'apgar/1-minute/total').answer.value.exists(), item.where(linkId = 'apgar/1-minute').item.where(linkId = 'apgar/1-minute/total').answer.value.truncate(), item.where(linkId = 'apgar/1-minute').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0))) "totalValue";
+      g -> obs.value = evaluate(ag, item.where(linkId = 'apgar/1-minute').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0)) "totalValue";
       // Seven or more is normal, four to six needs support, three or less is
       // critically low. The chart prints those bands at its foot, so the
       // interpretation says which band the total fell in rather than leaving a
@@ -115,8 +116,8 @@ group ExtractNewbornObservationChart(source qr : QR, target bundle : Bundle) {
       g -> obs.interpretation as interp then {
         g -> interp.coding as coding then {
           g -> coding.system = 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation' "interpSystem";
-          g -> coding.code = evaluate(ag, iif(iif(item.where(linkId = 'apgar/1-minute').item.where(linkId = 'apgar/1-minute/total').answer.value.exists(), item.where(linkId = 'apgar/1-minute').item.where(linkId = 'apgar/1-minute/total').answer.value.truncate(), item.where(linkId = 'apgar/1-minute').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0)) >= 7, 'N', iif(iif(item.where(linkId = 'apgar/1-minute').item.where(linkId = 'apgar/1-minute/total').answer.value.exists(), item.where(linkId = 'apgar/1-minute').item.where(linkId = 'apgar/1-minute/total').answer.value.truncate(), item.where(linkId = 'apgar/1-minute').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0)) >= 4, 'A', 'LL'))) "interpCode";
-          g -> coding.display = evaluate(ag, iif(iif(item.where(linkId = 'apgar/1-minute').item.where(linkId = 'apgar/1-minute/total').answer.value.exists(), item.where(linkId = 'apgar/1-minute').item.where(linkId = 'apgar/1-minute/total').answer.value.truncate(), item.where(linkId = 'apgar/1-minute').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0)) >= 7, 'Normal', iif(iif(item.where(linkId = 'apgar/1-minute').item.where(linkId = 'apgar/1-minute/total').answer.value.exists(), item.where(linkId = 'apgar/1-minute').item.where(linkId = 'apgar/1-minute/total').answer.value.truncate(), item.where(linkId = 'apgar/1-minute').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0)) >= 4, 'Abnormal', 'Critically low'))) "interpDisplay";
+          g -> coding.code = evaluate(ag, iif(item.where(linkId = 'apgar/1-minute').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0) >= 7, 'N', iif(item.where(linkId = 'apgar/1-minute').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0) >= 4, 'A', 'LL'))) "interpCode";
+          g -> coding.display = evaluate(ag, iif(item.where(linkId = 'apgar/1-minute').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0) >= 7, 'Normal', iif(item.where(linkId = 'apgar/1-minute').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0) >= 4, 'Abnormal', 'Critical low'))) "interpDisplay";
         } "interpCoding";
       } "interpretation";
       g.item as it where (linkId = 'apgar/1-minute/colour' and answer.value.exists()) -> obs.component as comp then {
@@ -124,7 +125,7 @@ group ExtractNewbornObservationChart(source qr : QR, target bundle : Bundle) {
           it -> cc.coding as cg then {
             it -> cg.system = 'http://loinc.org' "sys";
             it -> cg.code = '32406-1' "cd";
-            it -> cg.display = '1 minute Apgar Appearance' "dsp";
+            it -> cg.display = '1 minute Apgar Color' "dsp";
           } "coding";
         } "code";
         it -> comp then SetComponentCodedValue(it, comp) "value";
@@ -134,7 +135,7 @@ group ExtractNewbornObservationChart(source qr : QR, target bundle : Bundle) {
           it -> cc.coding as cg then {
             it -> cg.system = 'http://loinc.org' "sys";
             it -> cg.code = '32407-9' "cd";
-            it -> cg.display = '1 minute Apgar Pulse' "dsp";
+            it -> cg.display = '1 minute Apgar Heart rate' "dsp";
           } "coding";
         } "code";
         it -> comp then SetComponentCodedValue(it, comp) "value";
@@ -144,7 +145,7 @@ group ExtractNewbornObservationChart(source qr : QR, target bundle : Bundle) {
           it -> cc.coding as cg then {
             it -> cg.system = 'http://loinc.org' "sys";
             it -> cg.code = '32409-5' "cd";
-            it -> cg.display = '1 minute Apgar Grimace' "dsp";
+            it -> cg.display = '1 minute Apgar Reflex irritability' "dsp";
           } "coding";
         } "code";
         it -> comp then SetComponentCodedValue(it, comp) "value";
@@ -154,7 +155,7 @@ group ExtractNewbornObservationChart(source qr : QR, target bundle : Bundle) {
           it -> cc.coding as cg then {
             it -> cg.system = 'http://loinc.org' "sys";
             it -> cg.code = '32408-7' "cd";
-            it -> cg.display = '1 minute Apgar Activity' "dsp";
+            it -> cg.display = '1 minute Apgar Muscle tone' "dsp";
           } "coding";
         } "code";
         it -> comp then SetComponentCodedValue(it, comp) "value";
@@ -164,7 +165,7 @@ group ExtractNewbornObservationChart(source qr : QR, target bundle : Bundle) {
           it -> cc.coding as cg then {
             it -> cg.system = 'http://loinc.org' "sys";
             it -> cg.code = '32410-3' "cd";
-            it -> cg.display = '1 minute Apgar Respiration' "dsp";
+            it -> cg.display = '1 minute Apgar Respiratory effort' "dsp";
           } "coding";
         } "code";
         it -> comp then SetComponentCodedValue(it, comp) "value";
@@ -178,10 +179,10 @@ group ExtractNewbornObservationChart(source qr : QR, target bundle : Bundle) {
         g -> cc.coding as cg then {
           g -> cg.system = 'http://loinc.org' "sys";
           g -> cg.code = '48333-9' "cd";
-          g -> cg.display = '5 minutes Apgar panel' "dsp";
+          g -> cg.display = '5 minute Apgar panel' "dsp";
         } "coding";
       } "code";
-      g -> obs.value = evaluate(ag, iif(item.where(linkId = 'apgar/5-minutes').item.where(linkId = 'apgar/5-minutes/total').answer.value.exists(), item.where(linkId = 'apgar/5-minutes').item.where(linkId = 'apgar/5-minutes/total').answer.value.truncate(), item.where(linkId = 'apgar/5-minutes').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0))) "totalValue";
+      g -> obs.value = evaluate(ag, item.where(linkId = 'apgar/5-minutes').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0)) "totalValue";
       // Seven or more is normal, four to six needs support, three or less is
       // critically low. The chart prints those bands at its foot, so the
       // interpretation says which band the total fell in rather than leaving a
@@ -189,8 +190,8 @@ group ExtractNewbornObservationChart(source qr : QR, target bundle : Bundle) {
       g -> obs.interpretation as interp then {
         g -> interp.coding as coding then {
           g -> coding.system = 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation' "interpSystem";
-          g -> coding.code = evaluate(ag, iif(iif(item.where(linkId = 'apgar/5-minutes').item.where(linkId = 'apgar/5-minutes/total').answer.value.exists(), item.where(linkId = 'apgar/5-minutes').item.where(linkId = 'apgar/5-minutes/total').answer.value.truncate(), item.where(linkId = 'apgar/5-minutes').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0)) >= 7, 'N', iif(iif(item.where(linkId = 'apgar/5-minutes').item.where(linkId = 'apgar/5-minutes/total').answer.value.exists(), item.where(linkId = 'apgar/5-minutes').item.where(linkId = 'apgar/5-minutes/total').answer.value.truncate(), item.where(linkId = 'apgar/5-minutes').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0)) >= 4, 'A', 'LL'))) "interpCode";
-          g -> coding.display = evaluate(ag, iif(iif(item.where(linkId = 'apgar/5-minutes').item.where(linkId = 'apgar/5-minutes/total').answer.value.exists(), item.where(linkId = 'apgar/5-minutes').item.where(linkId = 'apgar/5-minutes/total').answer.value.truncate(), item.where(linkId = 'apgar/5-minutes').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0)) >= 7, 'Normal', iif(iif(item.where(linkId = 'apgar/5-minutes').item.where(linkId = 'apgar/5-minutes/total').answer.value.exists(), item.where(linkId = 'apgar/5-minutes').item.where(linkId = 'apgar/5-minutes/total').answer.value.truncate(), item.where(linkId = 'apgar/5-minutes').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0)) >= 4, 'Abnormal', 'Critically low'))) "interpDisplay";
+          g -> coding.code = evaluate(ag, iif(item.where(linkId = 'apgar/5-minutes').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0) >= 7, 'N', iif(item.where(linkId = 'apgar/5-minutes').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0) >= 4, 'A', 'LL'))) "interpCode";
+          g -> coding.display = evaluate(ag, iif(item.where(linkId = 'apgar/5-minutes').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0) >= 7, 'Normal', iif(item.where(linkId = 'apgar/5-minutes').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0) >= 4, 'Abnormal', 'Critical low'))) "interpDisplay";
         } "interpCoding";
       } "interpretation";
       g.item as it where (linkId = 'apgar/5-minutes/colour' and answer.value.exists()) -> obs.component as comp then {
@@ -198,7 +199,7 @@ group ExtractNewbornObservationChart(source qr : QR, target bundle : Bundle) {
           it -> cc.coding as cg then {
             it -> cg.system = 'http://loinc.org' "sys";
             it -> cg.code = '32411-1' "cd";
-            it -> cg.display = '5 minutes Apgar Appearance' "dsp";
+            it -> cg.display = '5 minute Apgar Color' "dsp";
           } "coding";
         } "code";
         it -> comp then SetComponentCodedValue(it, comp) "value";
@@ -208,7 +209,7 @@ group ExtractNewbornObservationChart(source qr : QR, target bundle : Bundle) {
           it -> cc.coding as cg then {
             it -> cg.system = 'http://loinc.org' "sys";
             it -> cg.code = '32412-9' "cd";
-            it -> cg.display = '5 minutes Apgar Pulse' "dsp";
+            it -> cg.display = '5 minute Apgar Heart rate' "dsp";
           } "coding";
         } "code";
         it -> comp then SetComponentCodedValue(it, comp) "value";
@@ -218,7 +219,7 @@ group ExtractNewbornObservationChart(source qr : QR, target bundle : Bundle) {
           it -> cc.coding as cg then {
             it -> cg.system = 'http://loinc.org' "sys";
             it -> cg.code = '32414-5' "cd";
-            it -> cg.display = '5 minutes Apgar Grimace' "dsp";
+            it -> cg.display = '5 minute Apgar Reflex irritability' "dsp";
           } "coding";
         } "code";
         it -> comp then SetComponentCodedValue(it, comp) "value";
@@ -228,7 +229,7 @@ group ExtractNewbornObservationChart(source qr : QR, target bundle : Bundle) {
           it -> cc.coding as cg then {
             it -> cg.system = 'http://loinc.org' "sys";
             it -> cg.code = '32413-7' "cd";
-            it -> cg.display = '5 minutes Apgar Activity' "dsp";
+            it -> cg.display = '5 minute Apgar Muscle tone' "dsp";
           } "coding";
         } "code";
         it -> comp then SetComponentCodedValue(it, comp) "value";
@@ -238,7 +239,7 @@ group ExtractNewbornObservationChart(source qr : QR, target bundle : Bundle) {
           it -> cc.coding as cg then {
             it -> cg.system = 'http://loinc.org' "sys";
             it -> cg.code = '32415-2' "cd";
-            it -> cg.display = '5 minutes Apgar Respiration' "dsp";
+            it -> cg.display = '5 minute Apgar Respiratory effort' "dsp";
           } "coding";
         } "code";
         it -> comp then SetComponentCodedValue(it, comp) "value";
@@ -252,10 +253,10 @@ group ExtractNewbornObservationChart(source qr : QR, target bundle : Bundle) {
         g -> cc.coding as cg then {
           g -> cg.system = 'http://loinc.org' "sys";
           g -> cg.code = '48332-1' "cd";
-          g -> cg.display = '10 minutes Apgar panel' "dsp";
+          g -> cg.display = '10 minute Apgar panel' "dsp";
         } "coding";
       } "code";
-      g -> obs.value = evaluate(ag, iif(item.where(linkId = 'apgar/10-minutes').item.where(linkId = 'apgar/10-minutes/total').answer.value.exists(), item.where(linkId = 'apgar/10-minutes').item.where(linkId = 'apgar/10-minutes/total').answer.value.truncate(), item.where(linkId = 'apgar/10-minutes').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0))) "totalValue";
+      g -> obs.value = evaluate(ag, item.where(linkId = 'apgar/10-minutes').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0)) "totalValue";
       // Seven or more is normal, four to six needs support, three or less is
       // critically low. The chart prints those bands at its foot, so the
       // interpretation says which band the total fell in rather than leaving a
@@ -263,8 +264,8 @@ group ExtractNewbornObservationChart(source qr : QR, target bundle : Bundle) {
       g -> obs.interpretation as interp then {
         g -> interp.coding as coding then {
           g -> coding.system = 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation' "interpSystem";
-          g -> coding.code = evaluate(ag, iif(iif(item.where(linkId = 'apgar/10-minutes').item.where(linkId = 'apgar/10-minutes/total').answer.value.exists(), item.where(linkId = 'apgar/10-minutes').item.where(linkId = 'apgar/10-minutes/total').answer.value.truncate(), item.where(linkId = 'apgar/10-minutes').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0)) >= 7, 'N', iif(iif(item.where(linkId = 'apgar/10-minutes').item.where(linkId = 'apgar/10-minutes/total').answer.value.exists(), item.where(linkId = 'apgar/10-minutes').item.where(linkId = 'apgar/10-minutes/total').answer.value.truncate(), item.where(linkId = 'apgar/10-minutes').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0)) >= 4, 'A', 'LL'))) "interpCode";
-          g -> coding.display = evaluate(ag, iif(iif(item.where(linkId = 'apgar/10-minutes').item.where(linkId = 'apgar/10-minutes/total').answer.value.exists(), item.where(linkId = 'apgar/10-minutes').item.where(linkId = 'apgar/10-minutes/total').answer.value.truncate(), item.where(linkId = 'apgar/10-minutes').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0)) >= 7, 'Normal', iif(iif(item.where(linkId = 'apgar/10-minutes').item.where(linkId = 'apgar/10-minutes/total').answer.value.exists(), item.where(linkId = 'apgar/10-minutes').item.where(linkId = 'apgar/10-minutes/total').answer.value.truncate(), item.where(linkId = 'apgar/10-minutes').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0)) >= 4, 'Abnormal', 'Critically low'))) "interpDisplay";
+          g -> coding.code = evaluate(ag, iif(item.where(linkId = 'apgar/10-minutes').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0) >= 7, 'N', iif(item.where(linkId = 'apgar/10-minutes').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0) >= 4, 'A', 'LL'))) "interpCode";
+          g -> coding.display = evaluate(ag, iif(item.where(linkId = 'apgar/10-minutes').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0) >= 7, 'Normal', iif(item.where(linkId = 'apgar/10-minutes').item.answer.value.ofType(Coding).code.select(iif($this.endsWith('-2'), 2, iif($this.endsWith('-1'), 1, 0))).aggregate($this + $total, 0) >= 4, 'Abnormal', 'Critical low'))) "interpDisplay";
         } "interpCoding";
       } "interpretation";
       g.item as it where (linkId = 'apgar/10-minutes/colour' and answer.value.exists()) -> obs.component as comp then {
@@ -272,7 +273,7 @@ group ExtractNewbornObservationChart(source qr : QR, target bundle : Bundle) {
           it -> cc.coding as cg then {
             it -> cg.system = 'http://loinc.org' "sys";
             it -> cg.code = '32401-2' "cd";
-            it -> cg.display = '10 minutes Apgar Appearance' "dsp";
+            it -> cg.display = '10 minute Apgar Color' "dsp";
           } "coding";
         } "code";
         it -> comp then SetComponentCodedValue(it, comp) "value";
@@ -282,7 +283,7 @@ group ExtractNewbornObservationChart(source qr : QR, target bundle : Bundle) {
           it -> cc.coding as cg then {
             it -> cg.system = 'http://loinc.org' "sys";
             it -> cg.code = '32402-0' "cd";
-            it -> cg.display = '10 minutes Apgar Pulse' "dsp";
+            it -> cg.display = '10 minute Apgar Heart rate' "dsp";
           } "coding";
         } "code";
         it -> comp then SetComponentCodedValue(it, comp) "value";
@@ -292,7 +293,7 @@ group ExtractNewbornObservationChart(source qr : QR, target bundle : Bundle) {
           it -> cc.coding as cg then {
             it -> cg.system = 'http://loinc.org' "sys";
             it -> cg.code = '32404-6' "cd";
-            it -> cg.display = '10 minutes Apgar Grimace' "dsp";
+            it -> cg.display = '10 minute Apgar Reflex irritability' "dsp";
           } "coding";
         } "code";
         it -> comp then SetComponentCodedValue(it, comp) "value";
@@ -302,7 +303,7 @@ group ExtractNewbornObservationChart(source qr : QR, target bundle : Bundle) {
           it -> cc.coding as cg then {
             it -> cg.system = 'http://loinc.org' "sys";
             it -> cg.code = '32403-8' "cd";
-            it -> cg.display = '10 minutes Apgar Activity' "dsp";
+            it -> cg.display = '10 minute Apgar Muscle tone' "dsp";
           } "coding";
         } "code";
         it -> comp then SetComponentCodedValue(it, comp) "value";
@@ -312,7 +313,7 @@ group ExtractNewbornObservationChart(source qr : QR, target bundle : Bundle) {
           it -> cc.coding as cg then {
             it -> cg.system = 'http://loinc.org' "sys";
             it -> cg.code = '32405-3' "cd";
-            it -> cg.display = '10 minutes Apgar Respiration' "dsp";
+            it -> cg.display = '10 minute Apgar Respiratory effort' "dsp";
           } "coding";
         } "code";
         it -> comp then SetComponentCodedValue(it, comp) "value";
@@ -586,21 +587,67 @@ group ExtractNewbornObservationChart(source qr : QR, target bundle : Bundle) {
     sg.item as it where (linkId = 'skin-to-skin/breast-fed-first-hour' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
       qr -> obs then SetSurveyCategory(qr, obs) "category";
+      // LOINC 106792-5 is the question itself (breastfed within an hour of
+      // birth, answered Yes/No/Unknown from LL7005-3). It replaces 63895-7
+      // Breastfeeding status, whose answer list is current/exclusive feeding and
+      // has no place for a yes or no about the first hour.
       it -> obs.code as cc then {
         it -> cc.coding as cg then {
           it -> cg.system = 'http://loinc.org' "sys";
-          it -> cg.code = '63895-7' "cd";
-          it -> cg.display = 'Breastfeeding status' "dsp";
+          it -> cg.code = '106792-5' "cd";
+          it -> cg.display = 'Breastfed after birth 1 hour' "dsp";
         } "coding";
         it -> cc.text = 'Breast fed in the first hour' "codeText";
       } "code";
       it.answer first as a then {
         a.value as cv -> obs.value = create('CodeableConcept') as cc then {
           cv -> cc.coding = cv "valueCoding";
+          // The LOINC answer alongside the form's own v2-0532 coding.
+          cv where (system = 'http://terminology.hl7.org/CodeSystem/v2-0532' and code = 'Y') -> cc.coding as la then {
+            cv -> la.system = 'http://loinc.org' "laSys";
+            cv -> la.code = 'LA33-6' "laCode";
+            cv -> la.display = 'Yes' "laDisplay";
+          } "loincYes";
+          cv where (system = 'http://terminology.hl7.org/CodeSystem/v2-0532' and code = 'N') -> cc.coding as la then {
+            cv -> la.system = 'http://loinc.org' "laSys";
+            cv -> la.code = 'LA32-8' "laCode";
+            cv -> la.display = 'No' "laDisplay";
+          } "loincNo";
           cv.display as d -> cc.text = d "valueText";
         } "codedValue";
       } "answer";
     } "breastFedObservation";
+
+    // How long skin-to-skin lasted, and why it was interrupted if it was. One
+    // Observation: the duration is its value, as the hours the chart takes, and
+    // the reason is a labelled note on it. Created when either is answered, so
+    // a reason written without a duration is still kept. LOINC has no concept
+    // for skin-to-skin duration (only LA33543-2, an answer in a list of
+    // comfort measures), hence the local code.
+    sg where (item.where((linkId = 'skin-to-skin/completed-after' or linkId = 'skin-to-skin/interruption-reason') and answer.value.exists()).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      sg -> obs.code as cc then {
+        sg -> cc.coding as cg then {
+          sg -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          sg -> cg.code = 'skin-to-skin-duration' "cd";
+          sg -> cg.display = 'Skin-to-skin contact duration' "dsp";
+        } "coding";
+        sg -> cc.text = 'Skin-to-skin completed after' "codeText";
+      } "code";
+      sg.item as it where (linkId = 'skin-to-skin/completed-after' and answer.value.exists()) then {
+        it.answer first as a then {
+          a.value as v -> obs.value = v "durationValue";
+        } "answer";
+      } "durationRule";
+      sg.item as it where (linkId = 'skin-to-skin/interruption-reason' and answer.value.exists()) then {
+        it.answer first as a then {
+          a.value as txt -> obs.note as n then {
+            txt -> n.text = evaluate(txt, 'If interrupted, why: ' + $this.toString()) "reasonText";
+          } "reasonNote";
+        } "answer";
+      } "interruptionReasonRule";
+    } "skinToSkinDuration";
   } "skinToSkinGroup";
 
   // ── Immediate newborn care given ────────────────────────────────────────
@@ -713,15 +760,15 @@ group ExtractNewbornObservationChart(source qr : QR, target bundle : Bundle) {
         d.answer first as a then {
           // Observation.effective[x] takes dateTime, Period, Timing or instant
           // and no date, so the round's date is cast rather than copied.
-          a.value as dt where ($this.toString().length() = 10) -> evaluate(dt, $this.toString() + 'T00:00:00+03:00') as midnight, obs.effective = cast(midnight, 'instant') "roundDate";
+          a.value as dt where ($this.toString().length() = 10) -> evaluate(dt, $this.toString() + 'T00:00:00+03:00') as midnight, obs.effective = cast(midnight, 'dateTime') "roundDate";
         } "answer";
       } "roundDateRule";
 
       // Which staff member did the round overrides the response's source, so a
       // chart filled in at the end of a shift still attributes each round.
       g.item as s where (linkId = 'follow-up/round/staff' and answer.value.exists()) then {
-        s.answer first as a then {
-          a.value as ref where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> obs.performer = ref "roundPerformer";
+        s.answer first as a where (value.reference.empty() or (%obs.performer.reference contains value.reference).not()) then {
+          a.value as ref where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> obs.performer = ref "roundPerformer";
         } "answer";
       } "roundPerformerRule";
 
@@ -855,9 +902,9 @@ group ExtractNewbornObservationChart(source qr : QR, target bundle : Bundle) {
 
   // ── Resuscitation ───────────────────────────────────────────────────────
   // A Procedure, and only when it was actually done. `status = 'completed'`
-  // because the chart is written after the event, and the duration becomes
-  // Procedure.occurrenceTiming.repeat.duration rather than a note, so it can be
-  // audited across births.
+  // because the chart is written after the event. The duration is a note
+  // ("Resuscitation lasted N min"): SGHIProcedure takes occurrence only as a
+  // dateTime, so there is no Timing to carry it in.
   qr.item as g where (linkId = 'resuscitation') then {
     g.item as it where (linkId = 'resuscitation/done' and answer.value.ofType(Coding).code = 'Y') -> bundle.entry as entry, entry.resource = create('Procedure') as proc then {
       qr -> proc, entry then BuildProcedureBase(qr, proc, entry) "base";
@@ -874,6 +921,17 @@ group ExtractNewbornObservationChart(source qr : QR, target bundle : Bundle) {
           it -> cg.display = 'Resuscitation of a newborn' "dsp";
         } "coding";
       } "code";
+      // SGHIProcedure requires a category. None of SGHIProcedureCategory's
+      // seven (psychiatry, counselling, education, surgical, diagnostic,
+      // chiropractic, social service) describes a resuscitation, the binding is
+      // extensible, and LOINC has no procedure classes, so a local code.
+      it -> proc.category as cat then {
+        it -> cat.coding as cg then {
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/identifier-codesystem' "sys";
+          it -> cg.code = '277132007' "cd";
+          it -> cg.display = 'Therapeutic procedure' "dsp";
+        } "coding";
+      } "category";
       qr.authored as t -> proc.occurrence = t "occurrence";
       qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> proc.encounter = e "encounter";
       qr.author as au where (((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> proc.performer as p, p.actor = au "performerFromAuthor";
@@ -1095,10 +1153,10 @@ group SetResponseProvenance(source qr : QR, target r) {
 
 group ConformObservation(source qr : QR, target r) {
   qr.authored as t where ($this.toString().length() >= 20) -> r.issued = cast(t, 'instant') "issued";
-  qr.authored as t where ($this.toString().length() >= 20) -> r.effective = cast(t, 'instant') "effective";
-  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = au "performerFromAuthor";
-  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))).exists().not()) then {
-    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = src "performerFromSource";
+  qr.authored as t -> r.effective = t "effective";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = au "performerFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = src "performerFromSource";
   } "performerFallback";
 }
 

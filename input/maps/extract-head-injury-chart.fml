@@ -11,35 +11,65 @@ uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Observation as 
 group ExtractHeadInjuryChart(source qr : QR, target bundle : Bundle) {
   qr -> bundle.type = 'transaction' "setBundleType";
 
-  // ── Other injuries ──────────────────────────────────────────────────────
-  // A repeating coded answer, so "chest and spine" stays a different patient
-  // from "chest".
-  qr.item as g where (linkId = 'other-injuries') then {
-    g.item as it where (linkId = 'other-injuries/site' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+  // ── The admission ───────────────────────────────────────────────────────
+  // How often the chart is to be done: every one or two hours (up to four). It
+  // is the order the rounds are measured against, so it goes in the record as
+  // an interval in hours, timed at the response.
+  qr.item as g where (linkId = 'admission') then {
+    g.item as it where (linkId = 'admission/chart-frequency-hours' and answer.value.ofType(integer).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
-      qr -> obs then SetExamCategory(qr, obs) "category";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
       it -> obs.code as cc then {
         it -> cc.coding as cg then {
           it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
-          it -> cg.code = 'injury-other-injury-present' "cd";
-          it -> cg.display = 'Other injury present' "dsp";
+          it -> cg.code = 'head-injury-chart-frequency-in-hours' "cd";
+          it -> cg.display = 'Head injury chart frequency in hours' "dsp";
         } "coding";
       } "code";
-      it.answer as a then {
-        a.value as cv -> obs.component as comp then {
-          cv -> comp.code as cc then {
-            cv -> cc.coding as cg then {
-              cv -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
-              cv -> cg.code = 'injury-site' "cd";
-              cv -> cg.display = 'Site of another injury' "dsp";
-            } "coding";
-          } "code";
-          cv -> comp.value = create('CodeableConcept') as vc then {
-            cv -> vc.coding = cv "valueCoding";
-            cv.display as d -> vc.text = d "valueText";
-          } "codedValue";
-        } "siteComponent";
-      } "sites";
+      it.answer first as a then {
+        a.value as v -> obs.value = create('Quantity') as q then {
+          v -> q.value = v "qValue";
+          v -> q.unit = 'h' "qUnit";
+          v -> q.system = 'http://unitsofmeasure.org' "qSystem";
+          v -> q.code = 'h' "qCode";
+        } "hours";
+      } "answer";
+    } "chartFrequency";
+  } "admissionGroup";
+
+  // ── Other injuries ──────────────────────────────────────────────────────
+  // A repeating coded answer, so "chest and spine" stays a different patient
+  // from "chest".
+  // The Observation hangs off the group, not the site, so a detail typed with
+  // no site ticked still reaches the record.
+  qr.item as g where (linkId = 'other-injuries') then {
+    g where (item.answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetExamCategory(qr, obs) "category";
+      g -> obs.code as cc then {
+        g -> cc.coding as cg then {
+          g -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          g -> cg.code = 'injury-other-injury-present' "cd";
+          g -> cg.display = 'Other injury present' "dsp";
+        } "coding";
+      } "code";
+      g.item as it where (linkId = 'other-injuries/site') then {
+        it.answer as a then {
+          a.value as cv -> obs.component as comp then {
+            cv -> comp.code as cc then {
+              cv -> cc.coding as cg then {
+                cv -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+                cv -> cg.code = 'injury-site' "cd";
+                cv -> cg.display = 'Site of another injury' "dsp";
+              } "coding";
+            } "code";
+            cv -> comp.value = create('CodeableConcept') as vc then {
+              cv -> vc.coding = cv "valueCoding";
+              cv.display as d -> vc.text = d "valueText";
+            } "codedValue";
+          } "siteComponent";
+        } "sites";
+      } "siteItem";
       g.item as it where (linkId = 'other-injuries/detail') then {
         it.answer first as a then {
           a.value as txt -> obs.note as n, n.text = txt "text";
@@ -402,6 +432,7 @@ group ExtractHeadInjuryChart(source qr : QR, target bundle : Bundle) {
       it.answer first as a then {
         a.value as txt -> obs.note as n, n.text = txt "text";
       } "answer";
+      g -> obs then SetHeadInjuryRound(g, obs) "roundContext";
     } "narr_head_injury_remarks_on_a_head_injury_round";
 
   } "roundRows";
@@ -413,12 +444,12 @@ group ExtractHeadInjuryChart(source qr : QR, target bundle : Bundle) {
 group SetHeadInjuryRound(source g, target obs : Observation) {
   g.item as it where (linkId = 'round/at' and answer.value.exists()) then {
     it.answer first as a then {
-      a.value as v where ($this.toString().length() >= 20) -> obs.effective = cast(v, 'instant') "effective";
+      a.value as v where ($this.toString().length() >= 20) -> obs.effective = v "effective";
     } "answer";
   } "roundTimeRule";
   g.item as it where (linkId = 'round/recorded-by' and answer.value.exists()) then {
-    it.answer first as a then {
-      a.value as ref where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> obs.performer = ref "performer";
+    it.answer first as a where (value.reference.empty() or (%obs.performer.reference contains value.reference).not()) then {
+      a.value as ref where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> obs.performer = ref "performer";
     } "answer";
   } "recordedByRule";
 }
@@ -471,11 +502,16 @@ group SetObservationFullUrl(source obs : Observation, target entry) {
 // untyped `.value` accessor: reading `valueCoding` or `valueQuantity` by its
 // typed property name fails at transform time on HAPI R5 with "Attempt to read
 // invalid property ... on QuestionnaireResponse.item.answer".
+// A v2-0532 Yes/No answer often arrives without a display (the server's
+// expansion of v2-0136 carries none), and the form's recall reads the text, so
+// the code system's own display stands in when the answer has none.
 group SetComponentCodedValue(source it, target comp) {
   it.answer first as a then {
     a.value as cv -> comp.value = create('CodeableConcept') as cc then {
       cv -> cc.coding = cv "valueCoding";
       cv.display as d -> cc.text = d "valueText";
+      cv where (display.empty() and system = 'http://terminology.hl7.org/CodeSystem/v2-0532' and code = 'Y') -> cc.text = 'Yes' "yesText";
+      cv where (display.empty() and system = 'http://terminology.hl7.org/CodeSystem/v2-0532' and code = 'N') -> cc.text = 'No' "noText";
     } "codedValue";
   } "componentAnswer";
 }
@@ -560,9 +596,9 @@ group SetResponseProvenance(source qr : QR, target r) {
 
 group ConformObservation(source qr : QR, target r) {
   qr.authored as t where ($this.toString().length() >= 20) -> r.issued = cast(t, 'instant') "issued";
-  qr.authored as t where ($this.toString().length() >= 20) -> r.effective = cast(t, 'instant') "effective";
-  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = au "performerFromAuthor";
-  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))).exists().not()) then {
-    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = src "performerFromSource";
+  qr.authored as t -> r.effective = t "effective";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = au "performerFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = src "performerFromSource";
   } "performerFallback";
 }

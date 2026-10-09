@@ -195,7 +195,7 @@ group ExtractHduInputOutputChart(source qr : QR, target bundle : Bundle) {
         } "code";
         it -> comp then SetComponentValue(it, comp) "value";
       } "comp_fluid_balance_oral_or_nasogastric_volume";
-      h -> obs then SetHourTime(h, obs) "hourTime";
+      h -> obs then SetHourTime(qr, h, obs) "hourTime";
     } "hourlyIntake";
 
     h.item as o where (linkId = 'hour/out' and item.answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
@@ -258,17 +258,33 @@ group ExtractHduInputOutputChart(source qr : QR, target bundle : Bundle) {
         } "code";
         it -> comp then SetComponentValue(it, comp) "value";
       } "comp_fluid_balance_stool_passed";
-      h -> obs then SetHourTime(h, obs) "hourTime";
+      h -> obs then SetHourTime(qr, h, obs) "hourTime";
     } "hourlyOutput";
   } "hourlyRows";
 }
 
-group SetHourTime(source h, target obs : Observation) {
+// The row's clock time joined to a date, over the authored time
+// ConformObservation writes. The chart is the 24 hours up to the time it is
+// filed, so a row is the latest occurrence of its clock time at or before the
+// authored moment, with an hour of slack for a row charted a little early. The
+// offset is the unit's, East Africa Time, as the chart's times are wall-clock
+// times. The day is worked out on instants, not on the authored string, so an
+// authored time in UTC (the questionnaire tester sends one) gives the same day;
+// only the shift comes out of the comparison, because comparing two dateTimes
+// rewrites them into UTC in place.
+group SetHourTime(source qr : QR, source h, target obs : Observation) {
   h.item as it where (linkId = 'hour/time' and answer.value.exists()) then {
     it.answer first as a then {
       a.value as t -> obs.note as n, n.text = 'Recorded against the clock hour on the input and output chart' "timeNote";
     } "answer";
   } "hourTimeRule";
+  qr.authored as au where ($this.toString().length() >= 19) then {
+    h.item as it where (linkId = 'hour/time' and answer.value.exists()) then {
+      it.answer first as a then {
+        a.value as tm where ($this is time) -> evaluate(tm, %au.toString().substring(0, 10) + 'T' + $this.toString() + '+03:00') as cand, cast(cand, 'dateTime') as candDt, evaluate(candDt, iif($this + 1 day <= %au + 1 hour, 1, iif($this <= %au + 1 hour, 0, -1))) as shift, evaluate(tm, %au.toString().substring(0, 10)) as dayStr, cast(dayStr, 'date') as day0, evaluate(day0, iif(%shift = 1, $this + 1 day, iif(%shift = -1, $this - 1 day, $this)).toString() + 'T' + %tm.toString() + '+03:00') as stamp, obs.effective = cast(stamp, 'dateTime') "hourTimeOnAuthoredDay";
+      } "answer";
+    } "hourTimeRule";
+  } "hourAuthored";
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -398,9 +414,9 @@ group SetResponseProvenance(source qr : QR, target r) {
 
 group ConformObservation(source qr : QR, target r) {
   qr.authored as t where ($this.toString().length() >= 20) -> r.issued = cast(t, 'instant') "issued";
-  qr.authored as t where ($this.toString().length() >= 20) -> r.effective = cast(t, 'instant') "effective";
-  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = au "performerFromAuthor";
-  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))).exists().not()) then {
-    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> r.performer = src "performerFromSource";
+  qr.authored as t -> r.effective = t "effective";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = au "performerFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = src "performerFromSource";
   } "performerFallback";
 }

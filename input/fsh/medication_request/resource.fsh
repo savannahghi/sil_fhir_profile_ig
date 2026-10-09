@@ -14,9 +14,9 @@ Description: "An order or request for both supply of the medication and the inst
 * priorPrescription only SGHIReference
 * priorPrescription only Reference(SGHIMedicationRequest)
 
-* medication only SGHICodeableReference
+// Free text allowed: forms write the drug as the prescriber wrote it.
 * medication only CodeableReference(SGHIMedication)
-* medication from SGHIMedicationCodes (required)
+* medication from SGHIMedicationCodes (extensible)
 
 * informationSource only SGHIReference
 * informationSource only Reference(SGHIPatient or SGHIOrganization)
@@ -38,7 +38,7 @@ Description: "An order or request for both supply of the medication and the inst
 * authoredOn 1..1
 * requester 1..1
 * requester only SGHIReference
-* requester only Reference(SGHIPatient or SGHIOrganization)
+* requester only Reference(SGHIPatient or SGHIOrganization or SGHIPractitioner or SGHIPractitionerRole)
 
 * recorder only SGHIReference
 * recorder only Reference(SGHIPractitioner or SGHIPractitionerRole)
@@ -64,14 +64,15 @@ Description: "A comprehensive Dosage profile for SGHI prescriptions, ensuring st
 * site from ICHICodes
 * route only SGHICodeableConcept
 * method only SGHICodeableConcept
-* timing 1..1
+// Optional: a chemotherapy dose is given once per cycle, with no repeat pattern.
+* timing 0..1
 * site from SGHIBodySiteValueSet
 * method from SGHIMethodOfAdministration
 
 // We can require that either frequency or dayOfWeek is provided:
 * timing.repeat.frequency 0..1
 * timing.repeat.dayOfWeek 0..*
-* route 1..1
+* route 0..1
 * route from SGHIRouteOfAdministration (required)
 * doseAndRate 0..*
 * doseAndRate.type only SGHICodeableConcept
