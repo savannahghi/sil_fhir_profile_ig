@@ -143,7 +143,13 @@ group Problem(source qr : QR, source itm, target bundle : Bundle) {
         itm.text as t -> category.text = t "categoryText";
       } "problemCategory";
 
-      v -> cond.code as code, code.text = v "conditionCode";
+      // The ICD-11 code chosen from the search, with its display as the text;
+      // the text branch reads responses saved before the problems were coded.
+      v as c where ($this is Coding) -> cond.code as code then {
+        c -> code.coding = c "icd11Coding";
+        c.display as d -> code.text = d "icd11Text";
+      } "codedProblem";
+      v as txt where ($this is string) -> cond.code as code, code.text = txt "conditionCode";
     } "conditionEntry";
   } "answered";
 }

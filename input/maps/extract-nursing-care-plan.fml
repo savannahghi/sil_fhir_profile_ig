@@ -2,7 +2,7 @@
 /// name = "ExtractNursingCarePlan"
 /// title = "Nursing Care Plan Extraction"
 /// status = "active"
-/// description = "One CarePlan with an activity per problem, plus a Condition per nursing diagnosis and an Observation carrying the assessment, rationale, implementation and evaluation for that row. Every column is kept, including the scientific rationale -- this sheet is the one place the reasoning behind a nursing action is written down, and without it the intervention reads as arbitrary."
+/// description = "One CarePlan with an activity per problem, addressing the ICD-11 medical diagnosis chosen on the form, plus a Condition per nursing diagnosis (its ICD-11 code) and an Observation carrying the assessment, rationale, implementation and evaluation for that row. Every column is kept, including the scientific rationale -- this sheet is the one place the reasoning behind a nursing action is written down, and without it the intervention reads as arbitrary."
 
 uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
 uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
@@ -27,6 +27,21 @@ group ExtractNursingCarePlan(source qr : QR, target bundle : Bundle) {
         qr -> cg.display = 'Plan of care note' "dsp";
       } "coding";
     } "category";
+
+    // The medical diagnosis the plan is written against, as the ICD-11 code
+    // chosen on the form. A concept, not a reference: the diagnosis is the
+    // encounter's, recorded where it was made, and a second Condition here
+    // would be a copy of it.
+    qr.item as eg where (linkId = 'episode') then {
+      eg.item as md where (linkId = 'episode/medical-diagnosis' and answer.value.exists()) then {
+        md.answer first as a then {
+          a.value as c where ($this is Coding) -> plan.addresses as ad, ad.concept as cc then {
+            c -> cc.coding = c "icd11Coding";
+            c.display as d -> cc.text = d "icd11Text";
+          } "medicalDiagnosis";
+        } "answer";
+      } "medicalDiagnosisRule";
+    } "episodeGroup";
 
     // One activity per problem row, displaying the intervention. The expected
     // outcome rides as a note beside it, because a CarePlan activity has
@@ -76,8 +91,15 @@ group ExtractNursingCarePlan(source qr : QR, target bundle : Bundle) {
         } "coding";
         it -> cat.text = 'Nursing diagnosis' "catText";
       } "category";
+      // The ICD-11 code chosen from the search, with its display as the text.
+      // The form takes a code only; the text branch reads responses saved
+      // before the field was coded.
       it.answer first as a then {
-        a.value as txt -> cond.code as cc, cc.text = txt "codeText";
+        a.value as c where ($this is Coding) -> cond.code as cc then {
+          c -> cc.coding = c "icd11Coding";
+          c.display as d -> cc.text = d "icd11Text";
+        } "codedDiagnosis";
+        a.value as txt where ($this is string) -> cond.code as cc, cc.text = txt "codeText";
       } "answer";
       qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> cond.encounter = e "encounter";
       row.item as d where (linkId = 'problem/date' and answer.value.exists()) then {

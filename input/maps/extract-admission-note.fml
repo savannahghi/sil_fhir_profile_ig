@@ -70,7 +70,14 @@ group ExtractInpatientAdmissionNote(source qr : QR, target bundle : Bundle) {
           } "verCoding";
         } "verificationStatus";
 
-        aImp.value as v -> cond.code as code then {
+        // The ICD-11 code chosen from the search, with its display as the text.
+        // The form takes a code only; the text branch reads notes saved before
+        // the impression was coded.
+        aImp.value as c where ($this is Coding) -> cond.code as code then {
+          c -> code.coding = c "icd11Coding";
+          c.display as d -> code.text = d "icd11Text";
+        } "codedImpression";
+        aImp.value as v where ($this is string) -> cond.code as code then {
           v -> code.text = v "codeText";
         } "conditionCode";
       } "condition";
@@ -140,7 +147,16 @@ group BuildNoteBase(source qr : QR, target comp : Composition, target entry) {
 
 group AddSectionText(source it, target sec) {
   it.answer first as a then {
-    a.value as v -> sec.text as narrative then {
+    // A coded answer (the impression, the cause of death) reads as its display
+    // with the code after it: toString() gives nothing for a Coding, which would
+    // leave the section an empty paragraph.
+    a.value as v where ($this is Coding) -> sec.text as narrative then {
+      v -> narrative.status = 'generated' "narrativeStatus";
+      v -> narrative.div = create('xhtml') as xhtml then {
+        v -> xhtml.value = evaluate(a, '<div xmlns="http://www.w3.org/1999/xhtml"><p>' + iif(value.display.exists(), value.display + ' (' + value.code + ')', value.code).escape('html') + '</p></div>') "narrativeDiv";
+      } "narrativeXhtml";
+    } "codedSectionText";
+    a.value as v where (($this is Coding).not()) -> sec.text as narrative then {
       v -> narrative.status = 'generated' "narrativeStatus";
       v -> narrative.div = create('xhtml') as xhtml then {
         v -> xhtml.value = evaluate(a, '<div xmlns="http://www.w3.org/1999/xhtml"><p>' + value.toString().escape('html') + '</p></div>') "narrativeDiv";

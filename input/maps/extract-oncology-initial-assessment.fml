@@ -218,8 +218,15 @@ group ExtractOncologyInitialAssessment(source qr : QR, target bundle : Bundle) {
           it -> cg.display = 'Problem List Item' "dsp";
         } "coding";
       } "category";
+      // The ICD-11 code chosen from the search, with its display as the text.
+      // The form takes a code only; the text branch reads responses saved
+      // before the field was coded.
       it.answer first as a then {
-        a.value as txt -> cond.code as cc, cc.text = txt "codeText";
+        a.value as c where ($this is Coding) -> cond.code as cc then {
+          c -> cc.coding = c "icd11Coding";
+          c.display as d -> cc.text = d "icd11Text";
+        } "codedDiagnosis";
+        a.value as txt where ($this is string) -> cond.code as cc, cc.text = txt "codeText";
       } "answer";
       // The stage as written, on the Condition it stages. Text, as on the
       // chemotherapy prescription: a stage is written in whatever system the
