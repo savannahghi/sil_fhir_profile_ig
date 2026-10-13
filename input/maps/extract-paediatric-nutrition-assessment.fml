@@ -410,8 +410,15 @@ group ExtractPaediatricNutritionAssessment(source qr : QR, target bundle : Bundl
           it -> cg.display = 'Problem List Item' "dsp";
         } "coding";
       } "category";
+      // The ICD-11 code chosen from the search, with its display as the text.
+      // The form takes a code only; the text branch reads responses saved
+      // before the field was coded.
       it.answer first as a then {
-        a.value as txt -> cond.code as cc, cc.text = txt "codeText";
+        a.value as c where ($this is Coding) -> cond.code as cc then {
+          c -> cc.coding = c "icd11Coding";
+          c.display as d -> cc.text = d "icd11Text";
+        } "codedDiagnosis";
+        a.value as txt where ($this is string) -> cond.code as cc, cc.text = txt "codeText";
       } "answer";
       qr.authored as t -> cond.recordedDate = t "recordedDate";
       qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> cond.encounter = e "encounter";
