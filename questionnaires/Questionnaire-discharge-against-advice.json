@@ -1,0 +1,142 @@
+{
+  "resourceType": "Questionnaire",
+  "id": "discharge-against-advice",
+  "url": "https://fhir.slade360.co.ke/fhir/Questionnaire/discharge-against-advice",
+  "version": "1.0.0",
+  "name": "ClinicalDischargeAgainstMedicalAdvice",
+  "title": "Clinical Discharge Against Medical Advice",
+  "status": "draft",
+  "subjectType": [
+    "Patient"
+  ],
+  "date": "2026-09-18",
+  "description": "Record that a client has voluntarily withdrawn from the admission and is discharged against medical advice, signed by the client and the clinical officer.",
+  "extension": [
+    {
+      "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-targetStructureMap",
+      "valueCanonical": "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractDischargeAgainstAdvice"
+    }
+  ],
+  "item": [
+    {
+      "linkId": "client",
+      "type": "group",
+      "text": "Client",
+      "item": [
+        {
+          "linkId": "client.name",
+          "type": "string",
+          "text": "Client's name",
+          "required": true
+        },
+        {
+          "linkId": "client.admissionNumber",
+          "type": "string",
+          "text": "Admission number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "linkId": "statement",
+      "type": "display",
+      "text": "All information concerning the client named above has been disclosed in confidence to the clinical officer, and the records are protected by the clinical department. The client has voluntarily withdrawn from the admission and is therefore discharged against medical advice."
+    },
+    {
+      "linkId": "acknowledgement",
+      "type": "group",
+      "text": "Acknowledgement",
+      "item": [
+        {
+          "linkId": "acknowledgement.withdrawn",
+          "type": "boolean",
+          "required": true,
+          "text": "I confirm that I am withdrawing from the admission voluntarily, and that the risks of leaving against medical advice have been explained to me."
+        }
+      ]
+    },
+    {
+      "linkId": "clientSignature",
+      "type": "group",
+      "text": "Signed by the client",
+      "item": [
+        {
+          "linkId": "clientSignature.signed",
+          "type": "boolean",
+          "text": "The client has signed this form"
+        },
+        {
+          "linkId": "clientSignature.date",
+          "type": "date",
+          "text": "Date",
+          "required": true
+        }
+      ]
+    },
+    {
+      "linkId": "clinicalOfficer",
+      "type": "group",
+      "text": "Clinical officer",
+      "item": [
+        {
+          "linkId": "clinicalOfficer.name",
+          "type": "string",
+          "text": "Clinical officer's name",
+          "required": true
+        },
+        {
+          "linkId": "clinicalOfficer.date",
+          "type": "date",
+          "text": "Date"
+        }
+      ]
+    }
+  ],
+  "publisher": "Savannah Global Health Institute (SGHI)",
+  "contact": [
+    {
+      "telecom": [
+        {
+          "system": "url",
+          "value": "https://fhir.slade360.co.ke"
+        }
+      ]
+    }
+  ],
+  "jurisdiction": [
+    {
+      "coding": [
+        {
+          "system": "urn:iso:std:iso:3166",
+          "code": "KE",
+          "display": "Kenya"
+        }
+      ]
+    }
+  ],
+  "useContext": [
+    {
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+        "code": "workflow",
+        "display": "Workflow Setting"
+      },
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/clinical-form-category-codesystem",
+            "code": "discharge-summary",
+            "display": "Discharge summary"
+          }
+        ]
+      }
+    }
+  ],
+  "code": [
+    {
+      "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+      "code": "discharge-against-advice",
+      "display": "Discharge against medical advice"
+    }
+  ]
+}

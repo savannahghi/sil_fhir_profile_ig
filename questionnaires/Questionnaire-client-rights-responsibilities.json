@@ -1,0 +1,227 @@
+{
+  "resourceType": "Questionnaire",
+  "id": "client-rights-responsibilities",
+  "url": "https://fhir.slade360.co.ke/fhir/Questionnaire/client-rights-responsibilities",
+  "version": "1.0.0",
+  "name": "ClientRightsAndResponsibilities",
+  "title": "Client Rights and Responsibilities",
+  "status": "draft",
+  "subjectType": [
+    "Patient"
+  ],
+  "date": "2026-09-18",
+  "description": "The rights a client of the centre holds and the responsibilities they take on, each explained and acknowledged before treatment, then signed.",
+  "extension": [
+    {
+      "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-targetStructureMap",
+      "valueCanonical": "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractClientRightsResponsibilities"
+    }
+  ],
+  "item": [
+    {
+      "linkId": "preamble",
+      "type": "display",
+      "text": "As a client of the centre you hold the rights below. Each is explained to you before treatment begins; tick each one to record that it was explained and understood."
+    },
+    {
+      "linkId": "rights",
+      "type": "group",
+      "text": "Client rights — explained and understood",
+      "item": [
+        {
+          "linkId": "rights.informed",
+          "type": "boolean",
+          "text": "To be informed of your rights verbally and in writing, and to extend those same rights to fellow clients in treatment and to the management and staff of the centre."
+        },
+        {
+          "linkId": "rights.confidentiality",
+          "type": "boolean",
+          "text": "To have the confidentiality of your treatment and treatment records protected. Information about your treatment will not be disclosed to any person or agency without your written permission, except where the law requires disclosure."
+        },
+        {
+          "linkId": "rights.limitsOfConfidentiality",
+          "type": "boolean",
+          "text": "To know the limits of confidentiality and the situations in which the clinician or the centre is legally required to disclose information."
+        },
+        {
+          "linkId": "rights.informedConsent",
+          "type": "boolean",
+          "text": "To give informed consent, acknowledging your permission for the centre to provide treatment."
+        },
+        {
+          "linkId": "rights.promptTreatment",
+          "type": "boolean",
+          "text": "To receive prompt and adequate treatment, and to refuse treatment you do not want."
+        },
+        {
+          "linkId": "rights.medication",
+          "type": "boolean",
+          "text": "To be free from unnecessary or excessive medication, and to receive clear information about any recommended medication, its possible benefits, side effects and alternatives."
+        },
+        {
+          "linkId": "rights.safeEnvironment",
+          "type": "boolean",
+          "text": "To be provided a safe environment, free from physical, sexual and emotional abuse."
+        },
+        {
+          "linkId": "rights.treatmentPlan",
+          "type": "boolean",
+          "text": "To receive complete and accurate information about your treatment plan, its goals, methods, potential risks, benefits and progress."
+        },
+        {
+          "linkId": "rights.fees",
+          "type": "boolean",
+          "text": "To receive information about fees, payment methods, co-payment, and the length and duration of sessions and treatment."
+        },
+        {
+          "linkId": "rights.qualifiedProviders",
+          "type": "boolean",
+          "text": "To receive services from providers who are qualified and competent."
+        },
+        {
+          "linkId": "rights.clinicianCapabilities",
+          "type": "boolean",
+          "text": "To receive information about the professional capabilities and limitations of any clinician involved in your treatment."
+        },
+        {
+          "linkId": "rights.recording",
+          "type": "boolean",
+          "text": "To be free from audio or video recording without informed consent."
+        },
+        {
+          "linkId": "rights.recordAccess",
+          "type": "boolean",
+          "text": "To have access to information in your treatment records, with the approval of the clinical coordinator, during treatment."
+        },
+        {
+          "linkId": "rights.recordsForwarded",
+          "type": "boolean",
+          "text": "To have information forwarded to a new clinician following your treatment at this facility."
+        },
+        {
+          "linkId": "rights.grievance",
+          "type": "boolean",
+          "text": "To file a grievance if your rights have been denied or limited, verbally or in writing to the clinical coordinator, and to receive information about the grievance procedure in writing."
+        }
+      ]
+    },
+    {
+      "linkId": "responsibilities",
+      "type": "group",
+      "text": "Client responsibilities — accepted",
+      "item": [
+        {
+          "linkId": "responsibilities.participate",
+          "type": "boolean",
+          "text": "To follow and fully participate in the outlined treatment programme of the centre."
+        },
+        {
+          "linkId": "responsibilities.fullInformation",
+          "type": "boolean",
+          "text": "To provide full information about yourself, to enable a proper assessment."
+        },
+        {
+          "linkId": "responsibilities.askQuestions",
+          "type": "boolean",
+          "text": "To ask questions and understand your condition."
+        },
+        {
+          "linkId": "responsibilities.respect",
+          "type": "boolean",
+          "text": "To show respect to the staff and other clients in the centre."
+        },
+        {
+          "linkId": "responsibilities.goalPlanning",
+          "type": "boolean",
+          "text": "To participate in planning your goals for treatment."
+        },
+        {
+          "linkId": "responsibilities.cooperate",
+          "type": "boolean",
+          "text": "To cooperate in treatment planning."
+        },
+        {
+          "linkId": "responsibilities.rules",
+          "type": "boolean",
+          "text": "To fully abide by the centre's rules and regulations as stipulated."
+        }
+      ]
+    },
+    {
+      "linkId": "client",
+      "type": "group",
+      "text": "Client",
+      "item": [
+        {
+          "linkId": "client.name",
+          "type": "string",
+          "text": "Name of client",
+          "required": true
+        },
+        {
+          "linkId": "client.signed",
+          "type": "boolean",
+          "text": "The client has signed this form"
+        },
+        {
+          "linkId": "client.date",
+          "type": "date",
+          "text": "Date",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "publisher": "Savannah Global Health Institute (SGHI)",
+  "contact": [
+    {
+      "telecom": [
+        {
+          "system": "url",
+          "value": "https://fhir.slade360.co.ke"
+        }
+      ]
+    }
+  ],
+  "jurisdiction": [
+    {
+      "coding": [
+        {
+          "system": "urn:iso:std:iso:3166",
+          "code": "KE",
+          "display": "Kenya"
+        }
+      ]
+    }
+  ],
+  "useContext": [
+    {
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+        "code": "workflow",
+        "display": "Workflow Setting"
+      },
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/clinical-form-category-codesystem",
+            "code": "consent",
+            "display": "Consent"
+          }
+        ]
+      }
+    }
+  ],
+  "code": [
+    {
+      "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+      "code": "client-rights-responsibilities",
+      "display": "Client rights and responsibilities"
+    },
+    {
+      "system": "http://loinc.org",
+      "code": "59284-0",
+      "display": "Consent Document"
+    }
+  ]
+}

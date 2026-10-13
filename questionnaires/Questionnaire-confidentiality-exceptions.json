@@ -1,0 +1,166 @@
+{
+  "resourceType": "Questionnaire",
+  "id": "confidentiality-exceptions",
+  "url": "https://fhir.slade360.co.ke/fhir/Questionnaire/confidentiality-exceptions",
+  "version": "1.0.0",
+  "name": "ExceptionsToConfidentiality",
+  "title": "Exceptions to Confidentiality",
+  "status": "draft",
+  "subjectType": [
+    "Patient"
+  ],
+  "date": "2026-09-18",
+  "description": "Acknowledgement of the circumstances in which clinical information may be released without the client's written consent, explained by a clinician and signed by the client.",
+  "extension": [
+    {
+      "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-targetStructureMap",
+      "valueCanonical": "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractConfidentialityExceptions"
+    }
+  ],
+  "item": [
+    {
+      "linkId": "policy",
+      "type": "display",
+      "text": "The centre is committed to keeping the information you provide and your clinical record confidential, and to adhering to ethical addiction counselling standards as well as the national standards. You may give the centre written permission if you wish your information to be shared with specific people outside the agency."
+    },
+    {
+      "linkId": "exceptions",
+      "type": "group",
+      "text": "Exceptions — your clinical information will be released without your consent if",
+      "item": [
+        {
+          "linkId": "exceptions.imminentHarm",
+          "type": "boolean",
+          "text": "It is necessary to protect you or someone else from imminent physical harm."
+        },
+        {
+          "linkId": "exceptions.courtOrder",
+          "type": "boolean",
+          "text": "The centre receives a valid court order or subpoena that mandates release of your information."
+        },
+        {
+          "linkId": "exceptions.abuseReporting",
+          "type": "boolean",
+          "text": "The centre is reporting abuse of children, the elderly, or persons with disabilities."
+        },
+        {
+          "linkId": "exceptions.internalConsultation",
+          "type": "boolean",
+          "text": "Clinicians within the agency consult with each other about your treatment in order to provide the best possible care."
+        }
+      ]
+    },
+    {
+      "linkId": "acknowledgement",
+      "type": "group",
+      "text": "Acknowledgement",
+      "item": [
+        {
+          "linkId": "acknowledgement.agreed",
+          "type": "boolean",
+          "required": true,
+          "text": "I acknowledge that I have read, understood and agreed with the above information."
+        }
+      ]
+    },
+    {
+      "linkId": "client",
+      "type": "group",
+      "text": "Client",
+      "item": [
+        {
+          "linkId": "client.name",
+          "type": "string",
+          "text": "Client's name",
+          "required": true
+        },
+        {
+          "linkId": "client.signed",
+          "type": "boolean",
+          "text": "The client has signed this form"
+        },
+        {
+          "linkId": "client.date",
+          "type": "date",
+          "text": "Date",
+          "required": true
+        }
+      ]
+    },
+    {
+      "linkId": "clinician",
+      "type": "group",
+      "text": "Clinician",
+      "item": [
+        {
+          "linkId": "clinician.name",
+          "type": "string",
+          "text": "Clinician's name",
+          "required": true
+        },
+        {
+          "linkId": "clinician.designation",
+          "type": "string",
+          "text": "Designation"
+        },
+        {
+          "linkId": "clinician.date",
+          "type": "date",
+          "text": "Date"
+        }
+      ]
+    }
+  ],
+  "publisher": "Savannah Global Health Institute (SGHI)",
+  "contact": [
+    {
+      "telecom": [
+        {
+          "system": "url",
+          "value": "https://fhir.slade360.co.ke"
+        }
+      ]
+    }
+  ],
+  "jurisdiction": [
+    {
+      "coding": [
+        {
+          "system": "urn:iso:std:iso:3166",
+          "code": "KE",
+          "display": "Kenya"
+        }
+      ]
+    }
+  ],
+  "useContext": [
+    {
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+        "code": "workflow",
+        "display": "Workflow Setting"
+      },
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/clinical-form-category-codesystem",
+            "code": "consent",
+            "display": "Consent"
+          }
+        ]
+      }
+    }
+  ],
+  "code": [
+    {
+      "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+      "code": "confidentiality-exceptions",
+      "display": "Exceptions to confidentiality"
+    },
+    {
+      "system": "http://loinc.org",
+      "code": "59284-0",
+      "display": "Consent Document"
+    }
+  ]
+}
