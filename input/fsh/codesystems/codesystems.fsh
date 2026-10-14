@@ -2051,3 +2051,31 @@ Description: "The kind of move a patient is being made within the facility. Reco
 // these do not release the sending bed the way the three above do.
 * #theatre "Theatre" "A move to an operating theatre for surgery. Temporary: the patient returns to the ward, or to recovery and then the ward, and the bed is held for them."
 * #procedure "Procedure" "A move to a procedure or investigation area for something that cannot be done at the bedside. Temporary in the same way theatre is, and separate from it because it needs no theatre list, no anaesthetic booking and usually no recovery bay."
+
+// How a person signs for a consent, as offered on the consent screen. LOINC has
+// "Informed consent obtained" (19826-7) but no list of ways a consent is signed,
+// and nothing for an OTP or a fingerprint, so the codes are local.
+CodeSystem: SGHIConsentSigningMethodCodeSystem
+Id: consent-signing-method-codesystem
+Title: "SGHI Consent Signing Method Code System"
+Description: "How the person giving a consent signs for it: a one-time code to their phone, a thumb on the fingerprint reader, a printed form signed by hand, or a spoken agreement made in front of a witness."
+* ^status = #active
+* ^experimental = false
+* ^content = #complete
+* ^caseSensitive = true
+* ^property[0].code = #capture
+* ^property[0].uri = "https://fhir.slade360.co.ke/fhir/concept-properties#capture"
+* ^property[0].type = #string
+* ^property[0].description = "Where the proof of the signature comes from, shown as the tag beside each option. Digital: the system checks it at the point of care. Offline: a paper form signed by hand, with the signed pages uploaded. Witnessed: nothing is signed, and a witness attests to the agreement."
+* #otp "OTP" "A one-time code sent to the signer's phone and entered to confirm the consent. The verified code is the signature."
+  * ^property[0].code = #capture
+  * ^property[0].valueString = "Digital"
+* #fingerprint "Fingerprint" "The signer places a thumb on the fingerprint reader. The captured print is the signature."
+  * ^property[0].code = #capture
+  * ^property[0].valueString = "Digital"
+* #signed-form "Signed form" "The consent form is printed and signed by hand, and the signed pages are uploaded to the record."
+  * ^property[0].code = #capture
+  * ^property[0].valueString = "Offline"
+* #verbal "Verbal consent" "The signer agrees out loud, in front of a witness who attests to it. Nothing is signed."
+  * ^property[0].code = #capture
+  * ^property[0].valueString = "Witnessed"

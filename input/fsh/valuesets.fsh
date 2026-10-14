@@ -2374,6 +2374,17 @@ Description: "The kind of move a patient is being made within the facility. Boun
 * include SGHITransferCodeSystem#theatre "Theatre"
 * include SGHITransferCodeSystem#procedure "Procedure"
 
+ValueSet: SGHIConsentSigningMethod
+Id: consent-signing-method
+Title: "SGHI Consent Signing Method"
+Description: "How the person giving a consent signs for it, as offered on the consent screen. OTP and fingerprint are digital, a signed form is offline, and verbal consent is witnessed."
+* ^status = #active
+* ^experimental = false
+* include SGHIConsentSigningMethodCodeSystem#otp "OTP"
+* include SGHIConsentSigningMethodCodeSystem#fingerprint "Fingerprint"
+* include SGHIConsentSigningMethodCodeSystem#signed-form "Signed form"
+* include SGHIConsentSigningMethodCodeSystem#verbal "Verbal consent"
+
 // ── Mental wellness template value sets ──────────────────────────────────────
 // Drawn from MentalWellnessCodeSystem (input/fsh/codesystems/mental-wellness.fsh),
 // generated from the mental-health templates; regenerate rather than hand-edit.
