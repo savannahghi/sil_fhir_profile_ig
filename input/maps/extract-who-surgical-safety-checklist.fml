@@ -1,0 +1,652 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractWHOSurgicalSafetyChecklist"
+/// name = "ExtractWHOSurgicalSafetyChecklist"
+/// title = "WHO Surgical Safety Checklist Extraction"
+/// status = "active"
+/// description = "Each of the three WHO pauses the team recorded becomes a Procedure belonging to the procedure the checklist was done for: based on the procedure order the response names in basedOn, and part of the operation it names in partOf, when it names one. A Procedure is written only when the response can fill every element SGHIProcedure requires (a Practitioner author or source among them), so none the profile refuses is ever written. The answers to each pause go on one Observation per phase, coded exactly as the North Kinangop checklist codes them, so the two forms count together, and the instrument, sponge and needle count gets an Observation of its own. A pause nobody recorded produces nothing, so a missing sign out is a missing resource rather than an empty one."
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/Procedure" alias Procedure as target
+uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Observation as target
+
+group ExtractWHOSurgicalSafetyChecklist(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  // ── The three pauses ────────────────────────────────────────────────────
+  // Two resources per pause the team recorded.
+  //
+  // An Observation for the answers, one component per check, in the codes the
+  // North Kinangop checklist already writes. Always written.
+  //
+  // A Procedure for the pause itself: it was held, when, and for which
+  // procedure. "For which procedure" comes from the response, because the form
+  // never asks it: QuestionnaireResponse.basedOn names the procedure order
+  // (Advantage sends every procedure to the record as a ServiceRequest) and
+  // QuestionnaireResponse.partOf names the operation, which R5 defines for
+  // exactly this case ("the surgery a checklist was executed as part of").
+  // The Procedure points at the Observation through supportingInfo; the link
+  // cannot run the other way, as SGHIObservation.partOf accepts only a
+  // MedicationDispense. AddPauseProcedure writes it only when every element
+  // SGHIProcedure requires can be filled from the response, so a Procedure
+  // this map writes is never one the profile refuses.
+  //
+  // Each pause is guarded on at least one of its own items being answered, and
+  // carries the pause's own completion time when the team recorded one, so the
+  // interval between induction and incision is recoverable.
+  qr.item as wg where (linkId = 'who-checklist') then {
+    wg.item as g where (linkId = 'who-checklist/sign-in' and item.answer.value.exists()) -> bundle.entry as oentry, oentry.resource = create('Observation') as obs then {
+      qr -> obs, oentry then BuildObsBase(qr, obs, oentry) "observationBase";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      qr -> obs then SetObservationOrder(qr, obs) "order";
+      g -> obs.code as cc then {
+        g -> cc.coding as cg then {
+          g -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          g -> cg.code = 'surgical-safety-phase' "cd";
+          g -> cg.display = 'Surgical safety checklist phase' "dsp";
+        } "coding";
+        g -> cc.text = 'Sign in — before induction of anaesthesia' "codeText";
+      } "code";
+      g -> obs.value = create('CodeableConcept') as vc then {
+        g -> vc.coding as vcg then {
+          g -> vcg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/answer-codesystem' "sys";
+          g -> vcg.code = 'phase-sign-in' "cd";
+          g -> vcg.display = 'Sign in — before induction of anaesthesia' "dsp";
+        } "coding";
+      } "phaseValue";
+
+      // The pause's own time, over the authored-time floor both base groups
+      // write. A date with no time says less than `authored` does, so only a
+      // completion time with a clock time replaces it.
+      g.item as ct where (linkId = 'who-checklist/sign-in/completed-at' and answer.value.exists()) then {
+        ct.answer first as a then {
+          a.value as t where ($this is dateTime and $this.toString().length() >= 20) -> obs.effective = t "pauseTime";
+        } "answer";
+      } "completedAt";
+
+      g.item as it where (linkId = 'who-checklist/sign-in/identity-site-procedure-consent' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'who-check-patient-confirmed-identity-site-procedure-and' "cd";
+            it -> cg.display = 'Patient confirmed identity, site, procedure and consent' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetCheckAnswer(it, comp) "value";
+      } "identitySiteProcedureConsent";
+      g.item as it where (linkId = 'who-checklist/sign-in/site-marked' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'who-check-site-marked' "cd";
+            it -> cg.display = 'Site marked' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetCheckAnswer(it, comp) "value";
+      } "siteMarked";
+      g.item as it where (linkId = 'who-checklist/sign-in/anaesthesia-machine-and-medication-check' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'who-check-anaesthesia-machine-and-medication-check-complete' "cd";
+            it -> cg.display = 'Anaesthesia machine and medication check complete' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetCheckAnswer(it, comp) "value";
+      } "anaesthesiaCheck";
+      g.item as it where (linkId = 'who-checklist/sign-in/pulse-oximeter-on-and-functioning' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'who-check-pulse-oximeter-on-the-patient-and-functioning' "cd";
+            it -> cg.display = 'Pulse oximeter on the patient and functioning' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetCheckAnswer(it, comp) "value";
+      } "pulseOximeter";
+      g.item as it where (linkId = 'who-checklist/sign-in/known-allergy-reviewed' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'who-check-known-allergy-reviewed' "cd";
+            it -> cg.display = 'Known allergy reviewed' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetCheckAnswer(it, comp) "value";
+      } "knownAllergy";
+      g.item as it where (linkId = 'who-checklist/sign-in/difficult-airway-or-aspiration-risk' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'who-check-difficult-airway-or-aspiration-risk-assessed' "cd";
+            it -> cg.display = 'Difficult airway or aspiration risk assessed' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetCheckAnswer(it, comp) "value";
+      } "airwayRisk";
+      g.item as it where (linkId = 'who-checklist/sign-in/blood-loss-risk-over-500ml' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'who-check-risk-of-over-500-ml-blood-loss-assessed-access-and' "cd";
+            it -> cg.display = 'Risk of over 500 ml blood loss assessed, access and fluids planned' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetCheckAnswer(it, comp) "value";
+      } "bloodLossRisk";
+
+      // The pause itself, as a Procedure, when the response can give it everything
+      // SGHIProcedure requires. Last, so the Observation already has its id.
+      qr -> bundle, obs then AddPauseProcedure(qr, g, bundle, obs) "pauseProcedure";
+    } "signIn";
+
+    wg.item as g where (linkId = 'who-checklist/time-out' and item.answer.value.exists()) -> bundle.entry as oentry, oentry.resource = create('Observation') as obs then {
+      qr -> obs, oentry then BuildObsBase(qr, obs, oentry) "observationBase";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      qr -> obs then SetObservationOrder(qr, obs) "order";
+      g -> obs.code as cc then {
+        g -> cc.coding as cg then {
+          g -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          g -> cg.code = 'surgical-safety-phase' "cd";
+          g -> cg.display = 'Surgical safety checklist phase' "dsp";
+        } "coding";
+        g -> cc.text = 'Time out — before skin incision' "codeText";
+      } "code";
+      g -> obs.value = create('CodeableConcept') as vc then {
+        g -> vc.coding as vcg then {
+          g -> vcg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/answer-codesystem' "sys";
+          g -> vcg.code = 'phase-time-out' "cd";
+          g -> vcg.display = 'Time out — before skin incision' "dsp";
+        } "coding";
+      } "phaseValue";
+
+      g.item as ct where (linkId = 'who-checklist/time-out/completed-at' and answer.value.exists()) then {
+        ct.answer first as a then {
+          a.value as t where ($this is dateTime and $this.toString().length() >= 20) -> obs.effective = t "pauseTime";
+        } "answer";
+      } "completedAt";
+
+      g.item as it where (linkId = 'who-checklist/time-out/team-introductions' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'who-check-all-team-members-introduced-by-name-and-role' "cd";
+            it -> cg.display = 'All team members introduced by name and role' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetCheckAnswer(it, comp) "value";
+      } "teamIntroductions";
+      g.item as it where (linkId = 'who-checklist/time-out/confirm-patient-procedure-incision' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'who-check-patient-procedure-and-incision-site-confirmed' "cd";
+            it -> cg.display = 'Patient, procedure and incision site confirmed' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetCheckAnswer(it, comp) "value";
+      } "patientProcedureIncision";
+      g.item as it where (linkId = 'who-checklist/time-out/antibiotic-prophylaxis-within-60-minutes' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'who-check-antibiotic-prophylaxis-given-within-the-last-60' "cd";
+            it -> cg.display = 'Antibiotic prophylaxis given within the last 60 minutes' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetCheckAnswer(it, comp) "value";
+      } "antibioticProphylaxis";
+      g.item as it where (linkId = 'who-checklist/time-out/critical-steps-reviewed' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'who-check-critical-or-non-routine-steps-reviewed' "cd";
+            it -> cg.display = 'Critical or non-routine steps reviewed' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetCheckAnswer(it, comp) "value";
+      } "criticalSteps";
+      g.item as it where (linkId = 'who-checklist/time-out/case-duration-reviewed' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'who-check-case-duration-reviewed' "cd";
+            it -> cg.display = 'Case duration reviewed' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetCheckAnswer(it, comp) "value";
+      } "caseDuration";
+      g.item as it where (linkId = 'who-checklist/time-out/anticipated-blood-loss-reviewed' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'who-check-anticipated-blood-loss-reviewed' "cd";
+            it -> cg.display = 'Anticipated blood loss reviewed' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetCheckAnswer(it, comp) "value";
+      } "anticipatedBloodLoss";
+      g.item as it where (linkId = 'who-checklist/time-out/anaesthetist-patient-specific-concerns' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'who-check-anaesthetist-s-patient-specific-concerns-reviewed' "cd";
+            it -> cg.display = 'Anaesthetist\'s patient-specific concerns reviewed' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetCheckAnswer(it, comp) "value";
+      } "anaesthetistConcerns";
+      g.item as it where (linkId = 'who-checklist/time-out/sterility-confirmed' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'who-check-sterility-including-indicator-results-confirmed' "cd";
+            it -> cg.display = 'Sterility, including indicator results, confirmed' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetCheckAnswer(it, comp) "value";
+      } "sterility";
+      g.item as it where (linkId = 'who-checklist/time-out/equipment-issues-reviewed' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'who-check-equipment-issues-or-concerns-reviewed' "cd";
+            it -> cg.display = 'Equipment issues or concerns reviewed' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetCheckAnswer(it, comp) "value";
+      } "equipmentIssues";
+      g.item as it where (linkId = 'who-checklist/time-out/essential-imaging-displayed' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'who-check-essential-imaging-displayed' "cd";
+            it -> cg.display = 'Essential imaging displayed' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetCheckAnswer(it, comp) "value";
+      } "essentialImaging";
+
+      // The pause itself, as a Procedure, when the response can give it everything
+      // SGHIProcedure requires. Last, so the Observation already has its id.
+      qr -> bundle, obs then AddPauseProcedure(qr, g, bundle, obs) "pauseProcedure";
+    } "timeOut";
+
+    wg.item as g where (linkId = 'who-checklist/sign-out' and item.answer.value.exists()) -> bundle.entry as oentry, oentry.resource = create('Observation') as obs then {
+      qr -> obs, oentry then BuildObsBase(qr, obs, oentry) "observationBase";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      qr -> obs then SetObservationOrder(qr, obs) "order";
+      g -> obs.code as cc then {
+        g -> cc.coding as cg then {
+          g -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          g -> cg.code = 'surgical-safety-phase' "cd";
+          g -> cg.display = 'Surgical safety checklist phase' "dsp";
+        } "coding";
+        g -> cc.text = 'Sign out — before the patient leaves the operating room' "codeText";
+      } "code";
+      g -> obs.value = create('CodeableConcept') as vc then {
+        g -> vc.coding as vcg then {
+          g -> vcg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/answer-codesystem' "sys";
+          g -> vcg.code = 'phase-sign-out' "cd";
+          g -> vcg.display = 'Sign out — before the patient leaves the operating room' "dsp";
+        } "coding";
+      } "phaseValue";
+
+      g.item as ct where (linkId = 'who-checklist/sign-out/completed-at' and answer.value.exists()) then {
+        ct.answer first as a then {
+          a.value as t where ($this is dateTime and $this.toString().length() >= 20) -> obs.effective = t "pauseTime";
+        } "answer";
+      } "completedAt";
+
+      g.item as it where (linkId = 'who-checklist/sign-out/procedure-name-recorded' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'who-check-name-of-the-procedure-verbally-confirmed' "cd";
+            it -> cg.display = 'Name of the procedure verbally confirmed' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetCheckAnswer(it, comp) "value";
+      } "procedureName";
+      g.item as it where (linkId = 'who-checklist/sign-out/counts-complete' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'who-check-instrument-sponge-and-needle-counts-complete' "cd";
+            it -> cg.display = 'Instrument, sponge and needle counts complete' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetCheckAnswer(it, comp) "value";
+      } "counts";
+      g.item as it where (linkId = 'who-checklist/sign-out/specimen-labelling' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'who-check-specimen-labelling-read-aloud-including-the-patient' "cd";
+            it -> cg.display = 'Specimen labelling read aloud, including the patient name' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetCheckAnswer(it, comp) "value";
+      } "specimenLabelling";
+      g.item as it where (linkId = 'who-checklist/sign-out/equipment-problems-addressed' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'who-check-equipment-problems-to-be-addressed-identified' "cd";
+            it -> cg.display = 'Equipment problems to be addressed identified' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetCheckAnswer(it, comp) "value";
+      } "equipmentProblems";
+      g.item as it where (linkId = 'who-checklist/sign-out/recovery-key-concerns' and answer.value.exists()) -> obs.component as comp then {
+        it -> comp.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'who-check-key-concerns-for-recovery-and-management-reviewed' "cd";
+            it -> cg.display = 'Key concerns for recovery and management reviewed' "dsp";
+          } "coding";
+        } "code";
+        it -> comp then SetCheckAnswer(it, comp) "value";
+      } "recoveryConcerns";
+
+      // The pause itself, as a Procedure, when the response can give it everything
+      // SGHIProcedure requires. Last, so the Observation already has its id.
+      qr -> bundle, obs then AddPauseProcedure(qr, g, bundle, obs) "pauseProcedure";
+    } "signOut";
+  } "whoChecklist";
+
+  // ── The instrument, sponge and needle count ─────────────────────────────
+  // Also an Observation of its own, as on the North Kinangop checklist. An
+  // incorrect count is a never event and a retained item is a serious
+  // incident; a fact that triggers an incident report has to be findable by
+  // its own code and not only as one component of the sign out.
+  qr.item as wg where (linkId = 'who-checklist') then {
+    wg.item as g where (linkId = 'who-checklist/sign-out') then {
+      g.item as it where (linkId = 'who-checklist/sign-out/counts-complete' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+        qr -> obs then SetSurveyCategory(qr, obs) "category";
+        qr -> obs then SetObservationOrder(qr, obs) "order";
+        it -> obs.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'instrument-count-complete' "cd";
+            it -> cg.display = 'Instrument, sponge and needle count complete' "dsp";
+          } "coding";
+        } "code";
+        // Confirmed at sign out, so it carries the sign out's own time.
+        g.item as ct where (linkId = 'who-checklist/sign-out/completed-at' and answer.value.exists()) then {
+          ct.answer first as a then {
+            a.value as t where ($this is dateTime and $this.toString().length() >= 20) -> obs.effective = t "countEffective";
+          } "answer";
+        } "countTime";
+        it -> obs then SetCheckAnswer(it, obs) "value";
+
+        // Anything other than a confirmed count is abnormal. Stated, not left
+        // to a reader: this is the flag a theatre audit filters on.
+        it.answer first as a then {
+          a.value as cv where ($this is Coding and code != 'check-confirmed') -> obs.interpretation as interp then {
+            cv -> interp.coding as icg then {
+              cv -> icg.system = 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation' "sys";
+              cv -> icg.code = 'A' "cd";
+              cv -> icg.display = 'Abnormal' "dsp";
+            } "coding";
+          } "abnormal";
+        } "countInterpretation";
+      } "instrumentCount";
+    } "signOutGroup";
+  } "countGroup";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared scaffolding. Repeated in each map rather than imported: the transform
+// engine resolves `imports` against whatever StructureMaps happen to be on the
+// server, and a form that stops extracting because a shared map was not
+// uploaded is a worse failure than a duplicated group.
+//
+// Source parameters below are left untyped on purpose. Writing `: Element` makes
+// the publisher's validator compare QuestionnaireResponse.item against the
+// literal 'Element' and report them as incompatible, which is noise.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// The pause as a Procedure, written only when the response can fill every
+// element SGHIProcedure requires, each with a value the profile accepts:
+//
+//   subject     a literal Patient/ or Practitioner/ reference (base R5: 1..1)
+//   encounter   a literal Encounter/ reference
+//   occurrence  and recorded: `authored`
+//   recorder    the author, else the source, as a literal Practitioner/ or
+//               PractitionerRole/ reference. An Organization source is not
+//               one, and nothing here names a person the response does not
+//   identifier  at least one of the response's identifiers that meets the
+//               identifier rules (system, value, an Organization assigner, a
+//               valid use, and a type, if any, whose every coding is this
+//               server's default-id: the server's validator refuses the type
+//               outright when any coding is from elsewhere)
+//
+// Everything else the Procedure carries is fixed by this map (status,
+// category, code) or optional and copied only when it fits (basedOn, partOf).
+// A response that cannot fill these still extracts its answers; it just has
+// no Procedure, rather than one the profile would refuse.
+//
+// "This server" is read off the questionnaire's canonical, which is how the
+// server found this map: $extract resolves the questionnaire by its url, and
+// each environment's copy has that environment's host.
+group AddPauseProcedure(source qr : QR, source g, target bundle : Bundle, target obs : Observation) {
+  qr where (subject.reference.matches('^(Patient|Practitioner)/[A-Za-z0-9.-]{1,64}(/_history/[A-Za-z0-9.-]{1,64})?$') and encounter.reference.matches('^(Encounter)/[A-Za-z0-9.-]{1,64}(/_history/[A-Za-z0-9.-]{1,64})?$') and authored.exists() and (author | source).where(reference.matches('^(Practitioner|PractitionerRole)/[A-Za-z0-9.-]{1,64}(/_history/[A-Za-z0-9.-]{1,64})?$')).exists() and identifier.where(system.matches('^[!-~]+$') and value.exists() and assigner.reference.matches('^(Organization)/[A-Za-z0-9.-]{1,64}(/_history/[A-Za-z0-9.-]{1,64})?$') and (assigner.type.empty() or assigner.type = 'Organization') and assigner.identifier.empty() and (use.empty() or use = 'usual' or use = 'official' or use = 'temp' or use = 'secondary' or use = 'old') and (period.empty() or period.start.empty() or period.end.empty()) and extension.empty() and descendants().extension.empty() and (type.empty() or (type.coding.exists() and %qr.questionnaire.contains('/Questionnaire/') and type.coding.all(code = 'default-id' and display = 'Default Resource Identifier' and system = %qr.questionnaire.substring(0, %qr.questionnaire.indexOf('/Questionnaire/')) + '/CodeSystem/default-identifier-codesystem')))).exists()) -> bundle.entry as entry, entry.resource = create('Procedure') as proc then {
+    qr -> proc, entry then BuildProcedureBase(qr, proc, entry) "base";
+    qr -> proc then SetPauseProcedure(qr, proc) "pause";
+    g where (linkId = 'who-checklist/sign-in') -> proc.code as pc then {
+      g -> pc.coding as cg then {
+        g -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+        g -> cg.code = 'surgical-safety-sign-in' "cd";
+        g -> cg.display = 'Surgical safety sign in' "dsp";
+      } "coding";
+      g -> pc.text = 'Sign in — before induction of anaesthesia' "codeText";
+    } "signInCode";
+    g where (linkId = 'who-checklist/time-out') -> proc.code as pc then {
+      g -> pc.coding as cg then {
+        g -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+        g -> cg.code = 'surgical-safety-time-out' "cd";
+        g -> cg.display = 'Surgical safety time out' "dsp";
+      } "coding";
+      g -> pc.text = 'Time out — before skin incision' "codeText";
+    } "timeOutCode";
+    g where (linkId = 'who-checklist/sign-out') -> proc.code as pc then {
+      g -> pc.coding as cg then {
+        g -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+        g -> cg.code = 'surgical-safety-sign-out' "cd";
+        g -> cg.display = 'Surgical safety sign out' "dsp";
+      } "coding";
+      g -> pc.text = 'Sign out — before the patient leaves the operating room' "codeText";
+    } "signOutCode";
+    // reference() reads the id BuildObsBase gave the Observation; the caller
+    // runs this group last for that reason.
+    g -> proc.supportingInfo = create('Reference') as ref, ref.reference = reference(obs) "answers";
+    // The pause's own time over the authored-time floor, as on the Observation.
+    g.item as ct where ((linkId = 'who-checklist/sign-in/completed-at' or linkId = 'who-checklist/time-out/completed-at' or linkId = 'who-checklist/sign-out/completed-at') and answer.value.exists()) then {
+      ct.answer first as a then {
+        a.value as t where ($this is dateTime and $this.toString().length() >= 20) -> proc.occurrence = cast(t, 'dateTime') "pauseTime";
+      } "answer";
+    } "completedAt";
+  } "pauseProcedure";
+}
+
+// What every pause has in common. The links to the procedure are copied from
+// the response as they are, and only when they are a literal reference of a
+// type the element accepts: SGHIProcedure takes one ServiceRequest as basedOn
+// and one Procedure or Observation as partOf, and SGHIReference needs the
+// `reference` itself. `first` applies after the `where`, so a CarePlan listed
+// ahead of the order does not hide it.
+group SetPauseProcedure(source qr : QR, target proc : Procedure) {
+  qr -> proc.status = 'completed' "status";
+  // 387713003 Surgical procedure, the SGHIProcedureCategory code the theatre
+  // note uses: each pause is a step of the operation it was held for.
+  qr -> proc.category as cat then {
+    qr -> cat.coding as cg then {
+      qr -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/identifier-codesystem' "sys";
+      qr -> cg.code = '387713003' "cd";
+      qr -> cg.display = 'Surgical procedure (procedure)' "dsp";
+    } "coding";
+  } "category";
+  qr.basedOn first as b where (((reference.exists() and (reference.startsWith('ServiceRequest/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/ServiceRequest')))) and reference.matches('^(ServiceRequest)/[A-Za-z0-9.-]{1,64}(/_history/[A-Za-z0-9.-]{1,64})?$')) -> proc.basedOn = create('Reference') as ref, ref.reference = evaluate(b, reference.toString()) "procedureOrder";
+  qr.partOf first as p where (((reference.exists() and (reference.startsWith('Procedure/') or reference.startsWith('Observation/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Procedure') or ('/' + type).endsWith('/Observation')))) and reference.matches('^(Procedure|Observation)/[A-Za-z0-9.-]{1,64}(/_history/[A-Za-z0-9.-]{1,64})?$')) -> proc.partOf = create('Reference') as ref, ref.reference = evaluate(p, reference.toString()) "operation";
+}
+
+// The same procedure order on the answers, so one search on the order
+// (`?based-on=ServiceRequest/<id>`) finds the pauses and their answers alike.
+group SetObservationOrder(source qr : QR, target obs : Observation) {
+  qr.basedOn first as b where (((reference.exists() and (reference.startsWith('ServiceRequest/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/ServiceRequest')))) and reference.exists()) -> obs.basedOn = b "procedureOrder";
+}
+
+// A check's answer, read through the untyped `.value` accessor: reading
+// `valueCoding` by name fails on HAPI R5 ("Attempt to read invalid property").
+// The form offers only codings, but a client that sends text instead keeps it
+// as text rather than failing the whole extraction on a Coding conversion.
+group SetCheckAnswer(source it, target comp) {
+  it.answer first as a then {
+    a.value as cv where ($this is Coding) -> comp.value = create('CodeableConcept') as cc then {
+      cv -> cc.coding = cv "valueCoding";
+      cv.display as d -> cc.text = d "valueText";
+    } "codedValue";
+    a.value as sv where ($this is string) -> comp.value = sv "textValue";
+  } "checkAnswer";
+}
+
+group BuildProcedureBase(source qr : QR, target r : Procedure, target entry) {
+  qr -> r then SetProcedureProvenance(qr, r) "responseProvenance";
+  qr -> r.id = uuid() then SetProcedureFullUrl(r, entry) "idAndFullUrl";
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Procedure' "requestUrl";
+  } "entryRequest";
+
+  // The response's own time, as a floor. The pause's completion time
+  // overwrites it when the team recorded one. Every time a Procedure carries is
+  // cast, which makes a new dateTime from the value alone: the response's own
+  // element would bring any extension it carries along with it.
+  qr.authored as t -> r.occurrence = cast(t, 'dateTime') "occurrenceFallback";
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Practitioner/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner')))) and reference.matches('^(Patient|Practitioner)/[A-Za-z0-9.-]{1,64}(/_history/[A-Za-z0-9.-]{1,64})?$')) -> r.subject = create('Reference') as ref, ref.reference = evaluate(s, reference.toString()) "subject";
+  qr -> r then ConformProcedure(qr, r) "profileConformance";
+}
+
+group SetProcedureFullUrl(source r : Procedure, target entry) {
+  r.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/Procedure/', id) "assignFullUrl";
+}
+
+group BuildObsBase(source qr : QR, target obs : Observation, target entry) {
+  qr -> obs then SetResponseProvenance(qr, obs) "responseProvenance";
+  qr -> obs.id = uuid() then SetObservationFullUrl(obs, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Observation' "requestUrl";
+  } "entryRequest";
+
+  qr -> obs.status = 'final' "status";
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient')))) and reference.exists()) -> obs.subject = s "subject";
+  qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter')))) and reference.exists()) -> obs.encounter = e "encounter";
+
+  // A stored response's id already reads "QuestionnaireResponse/<id>", so it is
+  // a relative reference as it stands. The hasValue() guard is what stops an
+  // unsaved response -- one posted straight to $extract rather than saved first
+  // -- from writing "QuestionnaireResponse/null" into the record.
+  qr.id as qid where ($this.hasValue()) -> obs.derivedFrom = create('Reference') as ref, ref.reference = qid "linkQuestionnaireResponse";
+  qr -> obs then ConformObservation(qr, obs) "profileConformance";
+}
+
+group SetObservationFullUrl(source obs : Observation, target entry) {
+  obs.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/Observation/', id) "assignFullUrl";
+}
+
+group SetSurveyCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'survey' "categoryCode";
+      qr -> coding.display = 'Survey' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+//
+// Two kinds of tag on everything this map creates. The first says which form
+// produced it, by the form's document type (who-surgical-safety-checklist, not
+// the North Kinangop sheet's surgical-safety-checklist), so the two forms'
+// resources stay apart while sharing every clinical code. The second copies the
+// tenant tags off the response, because nothing else on the path puts them
+// there. The response's identifier is copied the same way.
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+
+group SetResponseProvenance(source qr : QR, target r) {
+  qr -> r.meta as m then {
+    qr -> m.tag as t then {
+      qr -> t.system = 'http://slade360edi.com/questionnaire-provenance' "provenanceSystem";
+      qr -> t.code = 'who-surgical-safety-checklist' "provenanceCode";
+      qr -> t.display = 'WHO surgical safety checklist' "provenanceDisplay";
+    } "provenanceTag";
+  } "provenanceMeta";
+
+  // Every tag the response carries, onto the resource. `meta` is 0..1, so this
+  // lands on the same meta the rule above created rather than a second one.
+  qr.meta as qm then {
+    qm.tag as qt -> r.meta as m, m.tag = qt "copyTag";
+  } "tenantTags";
+
+  // The response's identifiers, as they are. Every profile wants one, and it is
+  // the response's to give: nothing here mints one, so a response without an
+  // identifier extracts resources without one. Only an identifier that meets
+  // every identifier rule of the profiles is copied (system, value, a literal
+  // Organization assigner, a valid use, and a type, if any, whose every coding
+  // is this server's default-id, read off the questionnaire's canonical); any
+  // other is left behind whole, not altered. AddPauseProcedure tests the same.
+  qr.identifier as qid where (system.matches('^[!-~]+$') and value.exists() and assigner.reference.matches('^(Organization)/[A-Za-z0-9.-]{1,64}(/_history/[A-Za-z0-9.-]{1,64})?$') and (assigner.type.empty() or assigner.type = 'Organization') and assigner.identifier.empty() and (use.empty() or use = 'usual' or use = 'official' or use = 'temp' or use = 'secondary' or use = 'old') and (period.empty() or period.start.empty() or period.end.empty()) and extension.empty() and descendants().extension.empty() and (type.empty() or (type.coding.exists() and %qr.questionnaire.contains('/Questionnaire/') and type.coding.all(code = 'default-id' and display = 'Default Resource Identifier' and system = %qr.questionnaire.substring(0, %qr.questionnaire.indexOf('/Questionnaire/')) + '/CodeSystem/default-identifier-codesystem')))) -> r.identifier = qid "identifier";
+}
+
+// The same for a Procedure, with one difference: a tag is copied only when it
+// is well formed (a system and a code without stray whitespace, no extension),
+// because a malformed tag would make the Procedure fail its profile. None of
+// the 1,618 tags on 800 platform responses checked on 2026-10-14 (all four
+// servers) was malformed, so in practice every tag still goes across; a
+// malformed one stays on the response and the answer Observations.
+group SetProcedureProvenance(source qr : QR, target r) {
+  qr -> r.meta as m then {
+    qr -> m.tag as t then {
+      qr -> t.system = 'http://slade360edi.com/questionnaire-provenance' "provenanceSystem";
+      qr -> t.code = 'who-surgical-safety-checklist' "provenanceCode";
+      qr -> t.display = 'WHO surgical safety checklist' "provenanceDisplay";
+    } "provenanceTag";
+  } "provenanceMeta";
+  qr.meta as qm then {
+    qm.tag as qt where ((system.empty() or system.matches('^[!-~]+$')) and (code.empty() or code.matches('^[!-~]+( [!-~]+)*$')) and extension.empty() and descendants().extension.empty()) -> r.meta as m, m.tag = qt "copyTag";
+  } "tenantTags";
+  qr.identifier as qid where (system.matches('^[!-~]+$') and value.exists() and assigner.reference.matches('^(Organization)/[A-Za-z0-9.-]{1,64}(/_history/[A-Za-z0-9.-]{1,64})?$') and (assigner.type.empty() or assigner.type = 'Organization') and assigner.identifier.empty() and (use.empty() or use = 'usual' or use = 'official' or use = 'temp' or use = 'secondary' or use = 'old') and (period.empty() or period.start.empty() or period.end.empty()) and extension.empty() and descendants().extension.empty() and (type.empty() or (type.coding.exists() and %qr.questionnaire.contains('/Questionnaire/') and type.coding.all(code = 'default-id' and display = 'Default Resource Identifier' and system = %qr.questionnaire.substring(0, %qr.questionnaire.indexOf('/Questionnaire/')) + '/CodeSystem/default-identifier-codesystem')))) -> r.identifier = qid "identifier";
+}
+
+// ── Conformance to the IG profiles ───────────────────────────────────────────
+//
+// What the IG's profiles require that the response itself can supply. Called at
+// the end of each base group. The encounter and every who-element are the
+// response's own: the author, else the source, when the element accepts it.
+// ── Conformance to the IG profiles ───────────────────────────────────────────
+
+group ConformObservation(source qr : QR, target r) {
+  qr.authored as t where ($this.toString().length() >= 20) -> r.issued = cast(t, 'instant') "issued";
+  qr.authored as t -> r.effective = t "effective";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole')))) and reference.exists()) -> r.performer = au "performerFromAuthor";
+  // empty(), not exists().not(): typeguard.py rewrites that form to the house
+  // guard, which also admits a logical reference, and SGHIReference does not.
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole')))) and reference.exists()).empty()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole')))) and reference.exists()) -> r.performer = src "performerFromSource";
+  } "performerFallback";
+}
+
+group ConformProcedure(source qr : QR, target r) {
+  qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter')))) and reference.matches('^(Encounter)/[A-Za-z0-9.-]{1,64}(/_history/[A-Za-z0-9.-]{1,64})?$')) -> r.encounter = create('Reference') as ref, ref.reference = evaluate(e, reference.toString()) "encounter";
+  qr.authored as t -> r.recorded = cast(t, 'dateTime') "recorded";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole')))) and reference.matches('^(Practitioner|PractitionerRole)/[A-Za-z0-9.-]{1,64}(/_history/[A-Za-z0-9.-]{1,64})?$')) -> r.recorder = create('Reference') as ref, ref.reference = evaluate(au, reference.toString()) "recorderFromAuthor";
+  // empty(), not exists().not(): typeguard.py rewrites that form to the house
+  // guard, which also admits a logical reference, and SGHIReference does not.
+  qr where (author.where(((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole')))) and reference.matches('^(Practitioner|PractitionerRole)/[A-Za-z0-9.-]{1,64}(/_history/[A-Za-z0-9.-]{1,64})?$')).empty()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole')))) and reference.matches('^(Practitioner|PractitionerRole)/[A-Za-z0-9.-]{1,64}(/_history/[A-Za-z0-9.-]{1,64})?$')) -> r.recorder = create('Reference') as ref, ref.reference = evaluate(src, reference.toString()) "recorderFromSource";
+  } "recorderFallback";
+}

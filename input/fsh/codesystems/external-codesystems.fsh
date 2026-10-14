@@ -34,6 +34,7 @@ Description: "The hospital paper forms that have been modelled as Questionnaires
 * #bishop-score "Bishop score" "Cervical assessment before induction of labour, scored across dilation, effacement, consistency, position and station."
 * #paediatric-triage-record "Paediatric triage record" "The casualty triage sheet for a child: triage level, vital signs, the SAMPLE history and the emergency and priority signs looked for."
 * #surgical-safety-checklist "Surgical safety checklist" "The hospital's pre-operative and post-operative ward checklist together with the WHO three-phase theatre checklist."
+* #who-surgical-safety-checklist "WHO surgical safety checklist" "The WHO Surgical Safety Checklist on its own, for any facility: the sign in before induction of anaesthesia, the time out before skin incision and the sign out before the patient leaves the operating room. The ward sections that surgical-safety-checklist wraps around the same three phases are not part of it."
 * #anaesthetic-record "Anaesthetic record" "The intra-operative anaesthetic chart: technique, agents, the observations recorded through the case, blood loss and the reversal and post-operative instructions."
 * #palliative-care-assessment "Palliative care assessment" "The palliative care service's first assessment: the symptom checklist, prior oncological treatment, and the social and spiritual assessment with the problem and action plan."
 * #blood-donor-questionnaire "Blood donor questionnaire" "The Kenya Tissue and Transplant Authority donor form (FRM CLN 001): donor details, the deferral questionnaire, the declaration and consent, and the donor screening and donation outcome."
@@ -793,6 +794,15 @@ Description: "What the forms record where no code system this IG can resolve say
 * #spectacle-lens-near "Spectacle lens for near vision" "A spectacle lens prescribed from the near vision (NV) row of an eyewear prescription: sphere, cylinder and axis for reading distance. Carried on VisionPrescription.lensSpecification.product beside HL7's lens code. Recorded on the optical prescription."
 
 // ── Surgical safety checklist ───────────────────────────────────────────
+// The three pauses themselves, as Procedure.code. The WHO checklist's
+// extraction records each phase the team went through as a Procedure based on
+// the procedure order (or part of the operation, where there is a Procedure for
+// it), so the record says which pauses were held, when, and for which
+// procedure. The answers stay on the phase Observation, under
+// #surgical-safety-phase, exactly as the North Kinangop sheet records them.
+* #surgical-safety-sign-in "Surgical safety sign in" "The first pause of the WHO Surgical Safety Checklist, held before induction of anaesthesia with at least the nurse and the anaesthetist present. Recorded as a Procedure belonging to the procedure it was held for."
+* #surgical-safety-time-out "Surgical safety time out" "The second pause of the WHO Surgical Safety Checklist, held before skin incision with the nurse, the anaesthetist and the surgeon present. Recorded as a Procedure belonging to the procedure it was held for."
+* #surgical-safety-sign-out "Surgical safety sign out" "The third pause of the WHO Surgical Safety Checklist, held before the patient leaves the operating room with the nurse, the anaesthetist and the surgeon present. Recorded as a Procedure belonging to the procedure it was held for."
 * #who-check-all-team-members-introduced-by-name-and-role "All team members introduced by name and role" "One confirmation on the surgical safety checklist. The answer says whether it was confirmed, was not applicable, or was not done — three distinct answers, because a correctly skipped item is not a missed one. Recorded on the surgical safety checklist."
 * #who-check-anaesthesia-machine-and-medication-check-complete "Anaesthesia machine and medication check complete" "One confirmation on the surgical safety checklist. The answer says whether it was confirmed, was not applicable, or was not done — three distinct answers, because a correctly skipped item is not a missed one. Recorded on the surgical safety checklist."
 * #who-check-anaesthetist-s-patient-specific-concerns-reviewed "Anaesthetist's patient-specific concerns reviewed" "One confirmation on the surgical safety checklist. The answer says whether it was confirmed, was not applicable, or was not done — three distinct answers, because a correctly skipped item is not a missed one. Recorded on the surgical safety checklist."
