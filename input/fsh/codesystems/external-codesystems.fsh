@@ -95,6 +95,11 @@ Description: "The hospital paper forms that have been modelled as Questionnaires
 * #oncology-initial-assessment "Oncology initial assessment form" "The oncology clinic's first assessment of a new patient: measurements and vital signs, the referral, the diagnosis and stage, the history including family history of cancer, the female patient section, social history, histology and immunohistochemistry, previous treatment, examination with the ECOG performance status, the radiology summary and the treatment plan."
 * #cancer-treatment-consent "Cancer centre informed consent" "The patient's consent to chemotherapy, hormonal or targeted therapy: the diagnosis and the drug regimen explained, the intended purpose of the treatment, the common side effects and risks, and the signatures of the patient, any interpreter and the doctor."
 * #hormonal-therapy-treatment-plan "Hormonal therapy treatment plan" "The running sheet for a patient on hormonal therapy, one row per cycle: the date, the cycle number, the drug given, the PSA, calcium and alkaline phosphatase, remarks, and the date to come again."
+* #assist-screening "ASSIST screening tool" "The ASSIST screening tool, NIDA-modified for non-medical drug use: lifetime use of ten substances; for each substance used, how often in the past three months it was used, craved, caused problems and got in the way of what was expected; whether anyone has expressed concern or the patient failed to cut down; drug injection; and a score per substance with the response it indicates."
+* #beck-depression-inventory "Beck's depression inventory" "Beck's Depression Inventory: twenty-one groups of statements scored 0 to 3, totalled out of 63, with the level of depression the total indicates."
+* #gad-7-anxiety "GAD-7 anxiety" "The GAD-7: seven anxiety problems over the last two weeks, scored 0 to 3 and totalled out of 21 with the severity of anxiety, and how difficult they have made work, home and relationships."
+* #therapy-consent "Therapy consent form" "The client's consent to therapy: what therapy is, its confidentiality and the exceptions to it, signed by the client."
+* #psychiatric-clinical-interview "Psychiatric clinical interview" "The psychiatric clinical interview: referral, history of the presenting illness, past psychiatric and medical history, family, social and personal history, the mental status examination, physical examination, case summary, psychological formulation, intervention, impression with DSM-5-TR and ICD-10, and plan."
 
 
 CodeSystem: SGHIConceptCodeSystem
@@ -830,6 +835,36 @@ Description: "What the forms record where no code system this IG can resolve say
 // ── Wound care ──────────────────────────────────────────────────────────
 * #wound-care-surgical-dressing-grade "Surgical dressing grade" "The grading a nurse ticked on the surgical dressing sheet. The sheet prints three bare letters and never expands them, so the answer records the letter rather than an invented meaning. Recorded on the surgical dressing chart."
 
+// ── Psychiatry and psychology (North Kinangop) ───────────────────────
+// What the ASSIST screening tool, the GAD-7, the therapy consent and the
+// psychiatric clinical interview record that LOINC does not name: ASSIST
+// question 1 per substance, the extra injection questions and the score
+// sheet's indicated responses, the GAD-7 severity bands, the referral source
+// and the therapist's verification of a consent.
+* #assist-lifetime-use-cannabis "Lifetime use of cannabis" "Whether the patient has ever used cannabis, question 1 of the ASSIST screening tool. LOINC names the other ASSIST questions per substance but not this one. Recorded on the ASSIST screening tool."
+* #assist-lifetime-use-cocaine "Lifetime use of cocaine" "Whether the patient has ever used cocaine, question 1 of the ASSIST screening tool. LOINC names the other ASSIST questions per substance but not this one. Recorded on the ASSIST screening tool."
+* #assist-lifetime-use-prescription-stimulants "Lifetime use of prescription stimulants" "Whether the patient has ever used prescription stimulants, question 1 of the ASSIST screening tool. LOINC names the other ASSIST questions per substance but not this one. Recorded on the ASSIST screening tool."
+* #assist-lifetime-use-methamphetamine "Lifetime use of methamphetamine" "Whether the patient has ever used methamphetamine, question 1 of the ASSIST screening tool. LOINC names the other ASSIST questions per substance but not this one. Recorded on the ASSIST screening tool."
+* #assist-lifetime-use-inhalants "Lifetime use of inhalants" "Whether the patient has ever used inhalants, question 1 of the ASSIST screening tool. LOINC names the other ASSIST questions per substance but not this one. Recorded on the ASSIST screening tool."
+* #assist-lifetime-use-sedatives "Lifetime use of sedatives" "Whether the patient has ever used sedatives, question 1 of the ASSIST screening tool. LOINC names the other ASSIST questions per substance but not this one. Recorded on the ASSIST screening tool."
+* #assist-lifetime-use-hallucinogens "Lifetime use of hallucinogens" "Whether the patient has ever used hallucinogens, question 1 of the ASSIST screening tool. LOINC names the other ASSIST questions per substance but not this one. Recorded on the ASSIST screening tool."
+* #assist-lifetime-use-street-opioids "Lifetime use of street opioids" "Whether the patient has ever used street opioids, question 1 of the ASSIST screening tool. LOINC names the other ASSIST questions per substance but not this one. Recorded on the ASSIST screening tool."
+* #assist-lifetime-use-prescription-opioids "Lifetime use of prescription opioids" "Whether the patient has ever used prescription opioids, question 1 of the ASSIST screening tool. LOINC names the other ASSIST questions per substance but not this one. Recorded on the ASSIST screening tool."
+* #assist-lifetime-use-other "Lifetime use of other drugs" "Whether the patient has ever used other drugs, question 1 of the ASSIST screening tool. LOINC names the other ASSIST questions per substance but not this one. Recorded on the ASSIST screening tool."
+* #assist-other-substance "Other substance used to get high" "The other drug the patient named under question 1j of the ASSIST screening tool. Recorded on the ASSIST screening tool."
+* #assist-injection-frequency "How often drugs were injected in the past three months" "ASSIST extra drug injection question, asked when drugs were injected in the past three months: once per week or less, or more than once per week. Recorded on the ASSIST screening tool."
+* #assist-injection-three-days-in-a-row "Injected drugs three or more days in a row in the past three months" "ASSIST extra drug injection question, asked when drugs were injected in the past three months. Recorded on the ASSIST screening tool."
+* #assist-injection-indicated-response "Indicated response for drug injection" "The response the ASSIST score sheet indicates for drug injection in the past three months: a brief intervention when it was once per week or less and never three or more days in a row, otherwise a brief intervention that includes options for treatment. Recorded on the ASSIST screening tool."
+* #assist-brief-education "Brief education" "The response the ASSIST score sheet indicates: Brief education. Carried on Observation.interpretation. Recorded on the ASSIST screening tool."
+* #assist-brief-intervention "Brief intervention" "The response the ASSIST score sheet indicates: Brief intervention. Carried on Observation.interpretation. Recorded on the ASSIST screening tool."
+* #assist-brief-intervention-with-treatment "Brief intervention with options that include treatment" "The response the ASSIST score sheet indicates: Brief intervention (offer options that include treatment). Carried on Observation.interpretation. Recorded on the ASSIST screening tool."
+* #gad7-minimal-anxiety "Minimal anxiety" "GAD-7 anxiety severity for a total of 0 to 4, as the GAD-7 scoring prints it. Carried on Observation.interpretation. Recorded on the GAD-7 anxiety form."
+* #gad7-mild-anxiety "Mild anxiety" "GAD-7 anxiety severity for a total of 5 to 9, as the GAD-7 scoring prints it. Carried on Observation.interpretation. Recorded on the GAD-7 anxiety form."
+* #gad7-moderate-anxiety "Moderate anxiety" "GAD-7 anxiety severity for a total of 10 to 14, as the GAD-7 scoring prints it. Carried on Observation.interpretation. Recorded on the GAD-7 anxiety form."
+* #gad7-severe-anxiety "Severe anxiety" "GAD-7 anxiety severity for a total of 15 to 21, as the GAD-7 scoring prints it. Carried on Observation.interpretation. Recorded on the GAD-7 anxiety form."
+* #psychology-referral-source "Referral source" "Who or which department referred the patient for psychiatric or psychological review. Recorded on the psychiatric clinical interview."
+* #consent-verified-by-therapist "Verified by the therapist who discussed the consent" "A consent verification made by the therapist who discussed the consent with the client and recorded it. Recorded on the therapy consent form."
+
 
 // Added 2026-10-08 with the sandbox extraction fixes: answers the maps had no rule for, and
 // values that were filed under a wrong code. Each was looked for in LOINC first.
@@ -1253,6 +1288,21 @@ Description: "The answers the pick lists offer, where the list is local to these
 * #anti-cancer-hormonal-therapy "Hormonal therapy" "Hormonal therapy, such as an LHRH agonist, an anti-androgen, an anti-oestrogen or an aromatase inhibitor. Recorded on the cancer centre informed consent."
 * #anti-cancer-targeted-therapy "Targeted therapy" "Targeted therapy against a molecular feature of the cancer, such as a HER2 antibody or a tyrosine kinase inhibitor. Recorded on the cancer centre informed consent."
 
+// ── Psychiatry and psychology (North Kinangop) ───────────────────────
+* #assist-injection-weekly-or-less "Once per week or less" "How often the patient injected drugs in the past three months: once per week or less. ASSIST extra drug injection question."
+* #assist-injection-more-than-weekly "More than once per week" "How often the patient injected drugs in the past three months: more than once per week. ASSIST extra drug injection question."
+* #referral-source-self "Self-referral" "Who referred the patient for psychiatric or psychological review: self-referral. Recorded on the psychiatric clinical interview."
+* #referral-source-family "Family or friends" "Who referred the patient for psychiatric or psychological review: family or friends. Recorded on the psychiatric clinical interview."
+* #referral-source-medical-ward "Medical ward" "Who referred the patient for psychiatric or psychological review: medical ward. Recorded on the psychiatric clinical interview."
+* #referral-source-surgical-ward "Surgical ward" "Who referred the patient for psychiatric or psychological review: surgical ward. Recorded on the psychiatric clinical interview."
+* #referral-source-paediatric-ward "Paediatric ward" "Who referred the patient for psychiatric or psychological review: paediatric ward. Recorded on the psychiatric clinical interview."
+* #referral-source-obstetrics-gynaecology "Obstetrics and gynaecology" "Who referred the patient for psychiatric or psychological review: obstetrics and gynaecology. Recorded on the psychiatric clinical interview."
+* #referral-source-oncology "Oncology" "Who referred the patient for psychiatric or psychological review: oncology. Recorded on the psychiatric clinical interview."
+* #referral-source-outpatient "Outpatient clinic" "Who referred the patient for psychiatric or psychological review: outpatient clinic. Recorded on the psychiatric clinical interview."
+* #referral-source-other-facility "Another facility" "Who referred the patient for psychiatric or psychological review: another facility. Recorded on the psychiatric clinical interview."
+* #referral-source-court-or-police "Court or police" "Who referred the patient for psychiatric or psychological review: court or police. Recorded on the psychiatric clinical interview."
+* #referral-source-other "Other" "Who referred the patient for psychiatric or psychological review: other. Recorded on the psychiatric clinical interview."
+
 
 CodeSystem: SGHIScoreCodeSystem
 Id: score-codesystem
@@ -1308,3 +1358,36 @@ Description: "The answers to the scored instruments on the forms: the Bishop sco
 * #apgar-respiration-0 "Absent" "Apgar respiratory effort: not breathing."
 * #apgar-respiration-1 "Weak, irregular or gasping" "Apgar respiratory effort: slow, weak, irregular or gasping."
 * #apgar-respiration-2 "Strong cry" "Apgar respiratory effort: a good, strong cry."
+
+// ── GAD-7 and ASSIST (North Kinangop) ────────────────────────────────
+// The weight is the code's last segment, as for every instrument here.
+* #gad7-not-at-all-0 "Not at all" "GAD-7 item answer: not at all over the last two weeks, scoring 0."
+* #gad7-several-days-1 "Several days" "GAD-7 item answer: several days over the last two weeks, scoring 1."
+* #gad7-more-than-half-the-days-2 "More than half the days" "GAD-7 item answer: more than half the days over the last two weeks, scoring 2."
+* #gad7-nearly-every-day-3 "Nearly every day" "GAD-7 item answer: nearly every day over the last two weeks, scoring 3."
+* #assist-used-never-0 "Never" "ASSIST question 2, use in the past three months: never, scoring 0."
+* #assist-used-once-or-twice-2 "Once or twice" "ASSIST question 2, use in the past three months: once or twice, scoring 2."
+* #assist-used-monthly-3 "Monthly" "ASSIST question 2, use in the past three months: monthly, scoring 3."
+* #assist-used-weekly-4 "Weekly" "ASSIST question 2, use in the past three months: weekly, scoring 4."
+* #assist-used-daily-6 "Daily or almost daily" "ASSIST question 2, use in the past three months: daily or almost daily, scoring 6."
+* #assist-urge-never-0 "Never" "ASSIST question 3, strong desire or urge to use in the past three months: never, scoring 0."
+* #assist-urge-once-or-twice-3 "Once or twice" "ASSIST question 3, strong desire or urge to use in the past three months: once or twice, scoring 3."
+* #assist-urge-monthly-4 "Monthly" "ASSIST question 3, strong desire or urge to use in the past three months: monthly, scoring 4."
+* #assist-urge-weekly-5 "Weekly" "ASSIST question 3, strong desire or urge to use in the past three months: weekly, scoring 5."
+* #assist-urge-daily-6 "Daily or almost daily" "ASSIST question 3, strong desire or urge to use in the past three months: daily or almost daily, scoring 6."
+* #assist-problems-never-0 "Never" "ASSIST question 4, use led to health, social, legal or financial problems in the past three months: never, scoring 0."
+* #assist-problems-once-or-twice-4 "Once or twice" "ASSIST question 4, use led to health, social, legal or financial problems in the past three months: once or twice, scoring 4."
+* #assist-problems-monthly-5 "Monthly" "ASSIST question 4, use led to health, social, legal or financial problems in the past three months: monthly, scoring 5."
+* #assist-problems-weekly-6 "Weekly" "ASSIST question 4, use led to health, social, legal or financial problems in the past three months: weekly, scoring 6."
+* #assist-problems-daily-7 "Daily or almost daily" "ASSIST question 4, use led to health, social, legal or financial problems in the past three months: daily or almost daily, scoring 7."
+* #assist-failed-expected-never-0 "Never" "ASSIST question 5, failed to do what was normally expected because of use in the past three months: never, scoring 0."
+* #assist-failed-expected-once-or-twice-5 "Once or twice" "ASSIST question 5, failed to do what was normally expected because of use in the past three months: once or twice, scoring 5."
+* #assist-failed-expected-monthly-6 "Monthly" "ASSIST question 5, failed to do what was normally expected because of use in the past three months: monthly, scoring 6."
+* #assist-failed-expected-weekly-7 "Weekly" "ASSIST question 5, failed to do what was normally expected because of use in the past three months: weekly, scoring 7."
+* #assist-failed-expected-daily-8 "Daily or almost daily" "ASSIST question 5, failed to do what was normally expected because of use in the past three months: daily or almost daily, scoring 8."
+* #assist-concern-never-0 "No, never" "ASSIST question 6, anyone ever expressed concern about the use: no, never, scoring 0."
+* #assist-concern-past-3-months-6 "Yes, in the past 3 months" "ASSIST question 6, anyone ever expressed concern about the use: yes, in the past 3 months, scoring 6."
+* #assist-concern-before-3-months-3 "Yes, but not in the past 3 months" "ASSIST question 6, anyone ever expressed concern about the use: yes, but not in the past 3 months, scoring 3."
+* #assist-cut-down-never-0 "No, never" "ASSIST question 7, ever tried and failed to control, cut down or stop using: no, never, scoring 0."
+* #assist-cut-down-past-3-months-6 "Yes, in the past 3 months" "ASSIST question 7, ever tried and failed to control, cut down or stop using: yes, in the past 3 months, scoring 6."
+* #assist-cut-down-before-3-months-3 "Yes, but not in the past 3 months" "ASSIST question 7, ever tried and failed to control, cut down or stop using: yes, but not in the past 3 months, scoring 3."
