@@ -49,6 +49,7 @@ Description: "A single code system for the mental wellness and rehabilitation te
 * #suicide-attempt-reported "Suicide attempt reported"
 * #suicidal-thoughts-observed "Suicidal thoughts observed at interview"
 * #suicidal-ideation-reported "Suicidal ideation reported"
+* #harm-to-others-thoughts-observed "Thoughts of harming others observed at interview" "Thoughts of harming another person elicited in the mental state examination, recorded yes or no with the intent, the lethality of the intent and any plan."
 
 // ── Document and agreement types ──
 * #follow-up-agreement "Follow-up agreement"
@@ -975,6 +976,14 @@ Description: "A single code system for the mental wellness and rehabilitation te
 * #mse.memoryRecent "Memory — recent"
 * #mse.memoryPast "Memory — past"
 * #mse.insightJudgment "Insight and judgment"
+// Added for the North Kinangop psychiatric clinical interview, which keeps these
+// headings apart where the domains above combine them.
+* #mse.appearance "Appearance" "Mental state examination: apparent age, cleanliness, general physical condition and any abnormal involuntary movements. Recorded separately from behaviour where a form asks for them apart."
+* #mse.behaviour "Behaviour" "Mental state examination: appropriateness of behaviour, motor activity, eye contact, abnormal movements or postures, distractibility, aggression, rapport and attitude."
+* #mse.thoughtForm "Thought form (process)" "Mental state examination: the form of thought, such as loosening of associations, tangentiality, circumstantiality, blocking, perseveration or flight of ideas."
+* #mse.thoughtContent "Thought content" "Mental state examination: the content of thought, such as delusions, overvalued ideas, preoccupations, obsessions, and thoughts of suicide, self-harm or harm to others."
+* #mse.judgement "Judgement" "Mental state examination: whether the patient understands the consequences of their actions."
+* #mse.insight "Insight" "Mental state examination: whether the patient sees their experiences as the result of illness and will accept advice and treatment."
 * #formulation.diagnostic "Diagnostic formulation"
 * #formulation.impression "Impression"
 * #formulation.treatmentPlan "Treatment plan"

@@ -1,0 +1,157 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractTherapyConsent"
+/// name = "ExtractTherapyConsent"
+/// title = "Therapy Consent Extraction"
+/// status = "active"
+/// description = "The therapy consent form out as one Consent, made only once the client has signed: the client as grantor and as a grantee beside the therapist who recorded it (the response's author, who also verifies it), the signing time as its period, therapy under LOINC LA21148-4 as its provision, and the four exceptions to confidentiality as further provisions in the form's words."
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/Consent" alias Consent as target
+
+group ExtractTherapyConsent(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  // ── One Consent, made only once the client has signed ──────────────────────
+  qr where (item.where(linkId = 'client').item.where(linkId = 'client/signed').answer.value.ofType(boolean) = true) -> bundle.entry as entry, entry.resource = create('Consent') as consent then {
+    qr -> consent, entry then BuildConsentBase(qr, consent, entry) "base";
+    qr -> consent.status = 'active' "status";
+    qr -> consent.decision = 'permit' "decision";
+    qr -> consent.category as cc then {
+      qr -> cc.coding as cg then {
+        qr -> cg.system = 'http://loinc.org' "sys";
+        qr -> cg.code = '59284-0' "cd";
+        qr -> cg.display = 'Consent Document' "dsp";
+      } "coding";
+      qr -> cc.text = 'Consent to therapy' "text";
+    } "category";
+
+    // The client consents for themselves, as on the cancer consent: the grantor,
+    // and a grantee beside the therapist who recorded it (ConformConsent adds the
+    // response's author).
+    qr.subject as s where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient'))))) -> consent.grantor = s "grantorPatient";
+    qr.subject as s where (reference.startsWith('Patient/') and ((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> consent.grantee = s "granteePatient";
+
+    // The signing time, from the form: period.start, as Consent.date is a date.
+    qr.item as cg where (linkId = 'client') then {
+      cg.item as it where (linkId = 'client/signed-at' and answer.value.ofType(dateTime).exists()) then {
+        it.answer first as a then {
+          a.value as t -> consent.period as per, per.start = t "signedPeriodStart";
+        } "answer";
+      } "signedAtRule";
+    } "clientGroup";
+
+    // The therapist's verification: the response's author, when a Practitioner or
+    // PractitionerRole. Recording the form is their attestation, as with the
+    // doctor on the cancer consent.
+    qr.author as au where (((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> consent.verification as ver then {
+      au -> ver.verified = true "verified";
+      au -> ver.verificationType as vt then {
+        au -> vt.coding as cg then {
+          au -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          au -> cg.code = 'consent-verified-by-therapist' "cd";
+          au -> cg.display = 'Verified by the therapist who discussed the consent' "dsp";
+        } "coding";
+        au -> vt.text = 'Therapist' "text";
+      } "verificationType";
+      au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> ver.verifiedBy = au "verifiedBy";
+      qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> ver.verifiedWith = s "verifiedWith";
+      qr.item as cg2 where (linkId = 'client') then {
+        cg2.item as st where (linkId = 'client/signed-at' and answer.value.ofType(dateTime).exists()) then {
+          st.answer first as sa then {
+            sa.value as t -> ver.verificationDate = t "verificationDate";
+          } "answer";
+        } "signedAtRule";
+      } "clientGroupForVerification";
+    } "therapistVerification";
+
+    // What is consented to: therapy, under LOINC; then the four exceptions to
+    // confidentiality the client read, as printed.
+    qr -> consent.provision as prov then {
+      qr -> prov.code as pc then {
+        qr -> pc.coding as cg then {
+          qr -> cg.system = 'http://loinc.org' "sys";
+          qr -> cg.code = 'LA21148-4' "cd";
+          qr -> cg.display = 'Counseling or psychotherapy' "dsp";
+        } "coding";
+        qr -> pc.text = 'Therapy' "text";
+      } "code";
+    } "therapyProvision";
+    qr -> consent.provision as prov, prov.code as pc, pc.text = 'Exception to confidentiality: Therapy professionals work as a team. Your therapist may consult with other therapists to provide the best possible care. These consultations are for professional and training purposes.' "exception_team";
+    qr -> consent.provision as prov, prov.code as pc, pc.text = 'Exception to confidentiality: If there is evidence of clear and imminent danger of harm to self and/or others, a therapist is legally required to report this information to the authorities responsible for ensuring safety.' "exception_danger";
+    qr -> consent.provision as prov, prov.code as pc, pc.text = 'Exception to confidentiality: A court order, issued by a judge, may require the Counseling services staff to release information contained in records and/or require a therapist to testify in a court hearing.' "exception_court";
+    qr -> consent.provision as prov, prov.code as pc, pc.text = 'Exception to confidentiality: Ethical standards require that staff of counseling services who learn of, or strongly suspect, physical or sexual abuse or neglect of any person under 18 years of age must report this information to protection services.' "exception_child_protection";
+  } "consent";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared scaffolding. Repeated in each map rather than imported: the transform
+// engine resolves `imports` against whatever StructureMaps happen to be on the
+// server, and a form that stops extracting because a shared map was not
+// uploaded is a worse failure than a duplicated group.
+// ─────────────────────────────────────────────────────────────────────────────
+
+group BuildConsentBase(source qr : QR, target r : Consent, target entry) {
+  qr -> r then SetResponseProvenance(qr, r) "responseProvenance";
+  qr.id as qid where ($this.hasValue()) -> r.sourceReference = create('Reference') as srcRef, srcRef.reference = qid "linkQuestionnaireResponse";
+  qr -> r.id = uuid() then SetConsentFullUrl(r, entry) "idAndFullUrl";
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Consent' "requestUrl";
+  } "entryRequest";
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> r.subject = s "subject";
+  qr -> r then ConformConsent(qr, r) "profileConformance";
+}
+
+group SetConsentFullUrl(source r : Consent, target entry) {
+  r.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/Consent/', id) "assignFullUrl";
+}
+
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+//
+// Two tags on everything this map creates. The first says which questionnaire
+// produced it, so a form that reopens mid-admission recalls its own earlier
+// entries and not another form's. The second copies the tenant tags off the
+// response, because nothing else on the path puts them there. The response's
+// identifier is copied the same way.
+//
+// The code is the form's document type, not the questionnaire's id: every
+// environment mints its own ids, and there is only one set of maps, so an id
+// here would tie the tag to whichever environment stamped it.
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+
+group SetResponseProvenance(source qr : QR, target r) {
+  qr -> r.meta as m then {
+    qr -> m.tag as t then {
+      qr -> t.system = 'http://slade360edi.com/questionnaire-provenance' "provenanceSystem";
+      qr -> t.code = 'therapy-consent' "provenanceCode";
+      qr -> t.display = 'Therapy consent form' "provenanceDisplay";
+    } "provenanceTag";
+  } "provenanceMeta";
+
+  // Every tag the response carries, onto the resource. `meta` is 0..1, so this
+  // lands on the same meta the rule above created rather than a second one.
+  qr.meta as qm then {
+    qm.tag as qt -> r.meta as m, m.tag = qt "copyTag";
+  } "tenantTags";
+
+  // The response's identifiers, as they are. Every profile wants one, and it is
+  // the response's to give: nothing here mints one, so a response without an
+  // identifier extracts resources without one. One whose assigner is not of a
+  // type the profiles allow there is left behind whole, not altered.
+  qr.identifier as qid where (assigner.empty() or assigner.where(((reference.exists() and (reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization'))))).exists()) -> r.identifier = qid "identifier";
+}
+
+// ── Conformance to the IG profiles ───────────────────────────────────────────
+//
+// What the IG's profiles require that the response itself can supply. Called at
+// the end of each base group. The encounter and every who-element are the
+// response's own; see mapmeta.py for what is and is not here.
+// ── Conformance to the IG profiles ───────────────────────────────────────────
+
+group ConformConsent(source qr : QR, target r) {
+  qr.authored as t -> evaluate(t, $this.toString().substring(0, 10)) as day, r.date = cast(day, 'date') "date";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.grantee = au "granteeFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.grantee = src "granteeFromSource";
+  } "granteeFallback";
+}
