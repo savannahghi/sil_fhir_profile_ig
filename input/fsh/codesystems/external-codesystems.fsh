@@ -100,6 +100,7 @@ Description: "The hospital paper forms that have been modelled as Questionnaires
 * #gad-7-anxiety "GAD-7 anxiety" "The GAD-7: seven anxiety problems over the last two weeks, scored 0 to 3 and totalled out of 21 with the severity of anxiety, and how difficult they have made work, home and relationships."
 * #therapy-consent "Therapy consent form" "The client's consent to therapy: what therapy is, its confidentiality and the exceptions to it, signed by the client."
 * #psychiatric-clinical-interview "Psychiatric clinical interview" "The psychiatric clinical interview: referral, history of the presenting illness, past psychiatric and medical history, family, social and personal history, the mental status examination, physical examination, case summary, psychological formulation, intervention, impression with DSM-5-TR and ICD-10, and plan."
+* #plan-of-care-note "Plan of care note" "The doctor's plan for a patient, written as a diary: one entry at admission, one whenever the direction of care changes, one when discharge is planned. Each entry carries the overall plan, the discharge plan when discharge is being planned, and what the patient and family have been told."
 
 
 CodeSystem: SGHIConceptCodeSystem
@@ -1303,6 +1304,23 @@ Description: "The answers the pick lists offer, where the list is local to these
 * #referral-source-court-or-police "Court or police" "Who referred the patient for psychiatric or psychological review: court or police. Recorded on the psychiatric clinical interview."
 * #referral-source-other "Other" "Who referred the patient for psychiatric or psychological review: other. Recorded on the psychiatric clinical interview."
 
+
+// ── Answers added for the plan of care note and the progress note ────────────
+* #plan-initial "Admission plan" "The first plan of care entry of a stay, written at admission."
+* #plan-update "Plan update" "A plan of care entry written because the direction of care changed."
+* #plan-discharge "Discharge plan" "The plan of care entry written when discharge is being planned."
+* #review-ward-round "Ward round" "A progress note written on the regular ward round."
+* #review-consultant-round "Consultant round" "A progress note written on the consultant's round."
+* #review-on-call "On-call review" "A progress note written by the on-call doctor outside the round."
+* #review-specialist-consult "Specialist consult" "A progress note written by a specialist asked to see the patient."
+* #trajectory-improving "Improving" "The patient is getting better since the last review."
+* #trajectory-stable "Stable" "The patient is much as they were at the last review."
+* #trajectory-deteriorating "Deteriorating" "The patient is getting worse since the last review."
+* #disposition-continue "Continue current level of care" "No change to where or how intensively the patient is cared for."
+* #disposition-step-up "Step up (HDU/ICU)" "The patient needs a higher level of care than the ward can give."
+* #disposition-step-down "Step down" "The patient can move to a lower level of care."
+* #disposition-discharge-planned "Discharge planned" "Discharge is being planned, with an expected date."
+* #disposition-discharge-today "Discharge today" "The patient goes home today."
 
 CodeSystem: SGHIScoreCodeSystem
 Id: score-codesystem

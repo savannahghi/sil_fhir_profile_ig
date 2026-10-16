@@ -856,6 +856,49 @@ Description: "The decision recorded at a patient, family and doctors’ conferen
 * include SGHIAnswerCodeSystem#resus-dnr
 * include SGHIAnswerCodeSystem#resus-full
 
+ValueSet: SGHIPlanOfCareEntryType
+Id: plan-of-care-entry-type
+Title: "SGHI Plan of Care Entry Type"
+Description: "Which kind of entry a plan of care note is: the admission plan, an update because the direction of care changed, or the discharge plan."
+* ^status = #active
+* ^experimental = false
+* include SGHIAnswerCodeSystem#plan-initial
+* include SGHIAnswerCodeSystem#plan-update
+* include SGHIAnswerCodeSystem#plan-discharge
+
+ValueSet: SGHIProgressNoteReviewType
+Id: progress-note-review-type
+Title: "SGHI Progress Note Review Type"
+Description: "Which kind of review a progress note records: the ward round, the consultant round, an on-call review or a specialist consult."
+* ^status = #active
+* ^experimental = false
+* include SGHIAnswerCodeSystem#review-ward-round
+* include SGHIAnswerCodeSystem#review-consultant-round
+* include SGHIAnswerCodeSystem#review-on-call
+* include SGHIAnswerCodeSystem#review-specialist-consult
+
+ValueSet: SGHIClinicalTrajectory
+Id: clinical-trajectory
+Title: "SGHI Clinical Trajectory"
+Description: "The doctor's one-word judgement of the patient's direction since the last review."
+* ^status = #active
+* ^experimental = false
+* include SGHIAnswerCodeSystem#trajectory-improving
+* include SGHIAnswerCodeSystem#trajectory-stable
+* include SGHIAnswerCodeSystem#trajectory-deteriorating
+
+ValueSet: SGHIWardDisposition
+Id: ward-disposition
+Title: "SGHI Ward Disposition"
+Description: "What a progress note decides about where the patient is cared for next: continue, step up, step down, or discharge planned or today."
+* ^status = #active
+* ^experimental = false
+* include SGHIAnswerCodeSystem#disposition-continue
+* include SGHIAnswerCodeSystem#disposition-step-up
+* include SGHIAnswerCodeSystem#disposition-step-down
+* include SGHIAnswerCodeSystem#disposition-discharge-planned
+* include SGHIAnswerCodeSystem#disposition-discharge-today
+
 ValueSet: SGHIBodyPartDisposition
 Id: body-part-disposition
 Title: "SGHI Body Part Disposition"
