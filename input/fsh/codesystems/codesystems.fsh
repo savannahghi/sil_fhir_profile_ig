@@ -1635,20 +1635,22 @@ Description: "Antigens administered under the Kenya Expanded Programme on Immuni
 * ^status = #active
 * #bcg "BCG" "Bacille Calmette-Guerin vaccine, given at birth against tuberculosis."
 * #bopv "Bivalent oral poliovirus vaccine" "Live attenuated oral polio vaccine containing types 1 and 3. Given as a birth dose and at 6, 10 and 14 weeks."
-* #ipv "Inactivated poliovirus vaccine" "Injectable inactivated polio vaccine, given at 14 weeks alongside the third bivalent oral dose. A distinct product from bOPV despite the register sharing one item code between them."
+* #ipv "Inactivated poliovirus vaccine" "Injectable inactivated polio vaccine, given in two doses under the current KEPI schedule, the first at 14 weeks alongside the third bivalent oral dose. A distinct product from bOPV despite the register sharing one item code between them."
 * #penta "DTP-HepB-Hib (pentavalent) vaccine" "Combined diphtheria, tetanus, pertussis, hepatitis B and Haemophilus influenzae type b vaccine. Given at 6, 10 and 14 weeks."
 * #pcv10 "Pneumococcal conjugate vaccine (PCV10)" "Ten-valent pneumococcal conjugate vaccine, given at 6, 10 and 14 weeks."
-* #rota "Rotavirus vaccine" "Oral rotavirus vaccine, given at 6 and 10 weeks."
+* #rota "Rotavirus vaccine" "Oral rotavirus vaccine, given at 6, 10 and 14 weeks."
 * #mr "Measles-rubella vaccine" "Combined measles and rubella vaccine. First dose at 9 months, second between 18 months and 2 years."
 * #yf "Yellow fever vaccine" "Yellow fever vaccine, given at 9 months in yellow-fever-risk counties only, which is why it is excluded from the Fully Immunised Child milestone."
 
 CodeSystem: SGHIKEPISupplementCodeSystem
 Id: kepi-supplement
 Title: "SGHI KEPI Supplement"
-Description: "Micronutrient supplements recorded alongside immunisation on the MOH 510 Immunisation Permanent Register. Held apart from the antigen code system because a supplement is not a vaccine and must not count towards the Fully Immunised Child milestone."
+Description: "Non-vaccine preventive medicines recorded alongside immunisation on the MOH 510 Immunisation Permanent Register: micronutrient supplements and the deworming rounds. Held apart from the antigen code system because none of them is a vaccine and none must count towards the Fully Immunised Child milestone."
 * ^status = #active
 * #vitamin-a-100000 "Vitamin A 100,000 IU" "Vitamin A supplement at 100,000 international units, given once between 6 and 11 months."
 * #vitamin-a-200000 "Vitamin A 200,000 IU" "Vitamin A supplement at 200,000 international units, given from 12 months onwards."
+* #deworming-6-12 "Deworming (6-12 months)" "Deworming round recorded in the 6-12 month row of the register. The row carries a date only: it names neither the anthelmintic given nor its dose, so neither is coded here."
+* #deworming-12-plus "Deworming (12 months onwards)" "Deworming round recorded in the 12-months-onwards row of the register. The row carries a date only: it names neither the anthelmintic given nor its dose, so neither is coded here."
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Medication administration

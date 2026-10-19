@@ -2008,10 +2008,12 @@ Description: "Antigens recorded on the MOH 510 Immunisation Permanent Register. 
 ValueSet: SGHIKEPISupplement
 Id: kepi-supplement
 Title: "SGHI KEPI Supplement"
-Description: "Micronutrient supplements recorded alongside immunisation on the MOH 510 register. Bound by MedicationAdministration.medication.concept on resources extracted from section Z."
+Description: "Non-vaccine preventive medicines recorded alongside immunisation on the MOH 510 register: micronutrient supplements and the deworming rounds. Bound by MedicationAdministration.medication.concept on resources extracted from section Z and from the deworming rows."
 * ^status = #active
 * include SGHIKEPISupplementCodeSystem#vitamin-a-100000 "Vitamin A 100,000 IU"
 * include SGHIKEPISupplementCodeSystem#vitamin-a-200000 "Vitamin A 200,000 IU"
+* include SGHIKEPISupplementCodeSystem#deworming-6-12 "Deworming (6-12 months)"
+* include SGHIKEPISupplementCodeSystem#deworming-12-plus "Deworming (12 months onwards)"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Medication administration
