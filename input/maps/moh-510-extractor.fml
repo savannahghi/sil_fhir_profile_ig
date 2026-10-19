@@ -2,7 +2,7 @@
 /// name = "ExtractMOH510ImmunisationRegister"
 /// title = "MOH 510 Immunisation Permanent Register Extraction"
 /// status = "active"
-/// description = "Extracts a transaction Bundle from a QuestionnaireResponse to the Kenya MOH 510 Immunisation Permanent Register: guardian RelatedPersons, growth-monitoring Observations, one Immunization per antigen dose for sections L-Y/AA-AB/AD, Vitamin A MedicationAdministrations for section Z, danger-signs and education Observations, and an Appointment for the next scheduled visit. It creates no Patient, Encounter or EpisodeOfCare -- the register is launched from inside a visit the EMR has already opened, so all three arrive as context on the QuestionnaireResponse and are referenced rather than minted. QuestionnaireResponse.subject and .encounter are therefore both required."
+/// description = "Extracts a transaction Bundle from a QuestionnaireResponse to the Kenya MOH 510 Immunisation Permanent Register: guardian RelatedPersons, growth-monitoring Observations, one Immunization per antigen dose for sections L-Y/AA-AB/AD, Vitamin A MedicationAdministrations for section Z, deworming MedicationAdministrations, danger-signs and education Observations, and an Appointment for the next scheduled visit. It creates no Patient, Encounter or EpisodeOfCare -- the register is launched from inside a visit the EMR has already opened, so all three arrive as context on the QuestionnaireResponse and are referenced rather than minted. QuestionnaireResponse.subject and .encounter are therefore both required."
 /// experimental = "true"
 
 uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
@@ -323,7 +323,7 @@ group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) 
               qr -> vccQ.code = 'ipv' "ipvCode";
               qr -> vccQ.display = 'Inactivated poliovirus vaccine' "ipvDisplay";
             } "ipvCoding";
-            qr -> vcQ.text = 'IPV' "ipvText";
+            qr -> vcQ.text = 'IPV 1' "ipvText";
           } "ipvVaccineCode";
           qr -> imQ.protocolApplied as paQ then {
             qr -> paQ.series = 'Polio (IPV)' "ipvSeries";
@@ -332,6 +332,30 @@ group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) 
         } "ipvImmunization";
       } "ipvAnswer";
     } "ipvRule";
+
+    // IPV 2 is the same antigen as IPV 1, told apart by the dose number alone.
+    // The register gained a second IPV column when KEPI moved to a two-dose
+    // schedule, and the first was relabelled "IPV 1" to match.
+    gVax.item as itQ2 where linkId = 'IMM-VAX-Q2-ipv2' then {
+      itQ2.answer first as aQ2 then {
+        aQ2 -> bundle.entry as eQ2, eQ2.resource = create('Immunization') as imQ2 then {
+          qr -> imQ2 then CopyResponseTags(qr, imQ2) "responseTags";
+          qr -> imQ2, eQ2 then BuildImm(qr, itQ2, aQ2, imQ2, eQ2) "ipv2Base";
+          qr -> imQ2.vaccineCode as vcQ2 then {
+            qr -> vcQ2.coding as vccQ2 then {
+              qr -> vccQ2.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/kepi-antigen' "ipv2System";
+              qr -> vccQ2.code = 'ipv' "ipv2Code";
+              qr -> vccQ2.display = 'Inactivated poliovirus vaccine' "ipv2Display";
+            } "ipv2Coding";
+            qr -> vcQ2.text = 'IPV 2' "ipv2Text";
+          } "ipv2VaccineCode";
+          qr -> imQ2.protocolApplied as paQ2 then {
+            qr -> paQ2.series = 'Polio (IPV)' "ipv2Series";
+            qr -> paQ2.doseNumber = '2' "ipv2Dose";
+          } "ipv2Protocol";
+        } "ipv2Immunization";
+      } "ipv2Answer";
+    } "ipv2Rule";
 
     gVax.item as itR where linkId = 'IMM-VAX-R-penta1' then {
       itR.answer first as aR then {
@@ -500,6 +524,28 @@ group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) 
         } "rota2Immunization";
       } "rota2Answer";
     } "rota2Rule";
+
+    // Rota 3, added when the register moved to a three-dose rotavirus course.
+    gVax.item as itY2 where linkId = 'IMM-VAX-Y2-rota3' then {
+      itY2.answer first as aY2 then {
+        aY2 -> bundle.entry as eY2, eY2.resource = create('Immunization') as imY2 then {
+          qr -> imY2 then CopyResponseTags(qr, imY2) "responseTags";
+          qr -> imY2, eY2 then BuildImm(qr, itY2, aY2, imY2, eY2) "rota3Base";
+          qr -> imY2.vaccineCode as vcY2 then {
+            qr -> vcY2.coding as vccY2 then {
+              qr -> vccY2.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/kepi-antigen' "rota3System";
+              qr -> vccY2.code = 'rota' "rota3Code";
+              qr -> vccY2.display = 'Rotavirus vaccine' "rota3Display";
+            } "rota3Coding";
+            qr -> vcY2.text = 'Rota 3' "rota3Text";
+          } "rota3VaccineCode";
+          qr -> imY2.protocolApplied as paY2 then {
+            qr -> paY2.series = 'Rotavirus' "rota3Series";
+            qr -> paY2.doseNumber = '3' "rota3Dose";
+          } "rota3Protocol";
+        } "rota3Immunization";
+      } "rota3Answer";
+    } "rota3Rule";
   } "vaccineGroup";
 
   // ------------------------------------------------- Z Vitamin A supplements
@@ -559,6 +605,59 @@ group ExtractMOH510ImmunisationRegister(source qr : QR, target bundle : Bundle) 
       } "vitA200Answer";
     } "vitA200Rule";
   } "supplementationGroup";
+
+  // ------------------------------------------------------------- Deworming
+  // Modelled exactly as Vitamin A is: one MedicationAdministration per register
+  // row, keyed on the row's linkId, carrying a kepi-supplement concept. The two
+  // sit in the same code system because what they share is what matters here --
+  // the register records them next to the antigens, they extract to the same
+  // resource type, and neither counts towards Fully Immunised Child.
+  //
+  // No dosage is written, unlike Vitamin A. The Vitamin A rows state their
+  // strength in the question text, so the map can assert 100,000 and 200,000 IU
+  // from the form itself; the deworming rows state only an age band, and the
+  // form captures neither the drug nor the dose. Writing a milligram figure
+  // here would be asserting something nobody recorded.
+  qr.item as gDw where linkId = 'IMM-group-deworming' then {
+
+    gDw.item as itDw1 where linkId = 'IMM-DW-1-6-12m' then {
+      itDw1.answer first as aDw1 then {
+        aDw1 -> bundle.entry as eDw1, eDw1.resource = create('MedicationAdministration') as maDw1 then {
+          qr -> maDw1 then CopyResponseTags(qr, maDw1) "responseTags";
+          qr -> maDw1, eDw1 then BuildMedAdmin(qr, itDw1, aDw1, maDw1, eDw1) "deworm1Base";
+          qr -> maDw1.medication as mcrDw1 then {
+            qr -> mcrDw1.concept as mccDw1 then {
+              qr -> mccDw1.coding as mcoDw1 then {
+                qr -> mcoDw1.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/kepi-supplement' "deworm1System";
+                qr -> mcoDw1.code = 'deworming-6-12' "deworm1Code";
+                qr -> mcoDw1.display = 'Deworming (6-12 months)' "deworm1Display";
+              } "deworm1Coding";
+              qr -> mccDw1.text = 'Deworming (6-12 months)' "deworm1Text";
+            } "deworm1Concept";
+          } "deworm1Medication";
+        } "deworm1Resource";
+      } "deworm1Answer";
+    } "deworm1Rule";
+
+    gDw.item as itDw2 where linkId = 'IMM-DW-2-12m-plus' then {
+      itDw2.answer first as aDw2 then {
+        aDw2 -> bundle.entry as eDw2, eDw2.resource = create('MedicationAdministration') as maDw2 then {
+          qr -> maDw2 then CopyResponseTags(qr, maDw2) "responseTags";
+          qr -> maDw2, eDw2 then BuildMedAdmin(qr, itDw2, aDw2, maDw2, eDw2) "deworm2Base";
+          qr -> maDw2.medication as mcrDw2 then {
+            qr -> mcrDw2.concept as mccDw2 then {
+              qr -> mccDw2.coding as mcoDw2 then {
+                qr -> mcoDw2.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/kepi-supplement' "deworm2System";
+                qr -> mcoDw2.code = 'deworming-12-plus' "deworm2Code";
+                qr -> mcoDw2.display = 'Deworming (12 months onwards)' "deworm2Display";
+              } "deworm2Coding";
+              qr -> mccDw2.text = 'Deworming (12 months onwards)' "deworm2Text";
+            } "deworm2Concept";
+          } "deworm2Medication";
+        } "deworm2Resource";
+      } "deworm2Answer";
+    } "deworm2Rule";
+  } "dewormingGroup";
 
   // ------------------------------------------------------ AA-AB MR1 + Yellow Fever
   qr.item as gMrYf where linkId = 'IMM-group-mr-yf' then {
