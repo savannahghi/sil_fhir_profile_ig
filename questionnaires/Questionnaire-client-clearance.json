@@ -1,0 +1,446 @@
+{
+  "resourceType": "Questionnaire",
+  "id": "client-clearance",
+  "url": "https://fhir.slade360.co.ke/fhir/Questionnaire/client-clearance",
+  "version": "1.0.0",
+  "name": "ClientClearanceForm",
+  "title": "Client's Clearance Form",
+  "status": "draft",
+  "subjectType": [
+    "Patient"
+  ],
+  "date": "2026-09-18",
+  "description": "Discharge clearance: each department signs the client off, recording the date, the clearance officer, any amount outstanding or settled, and remarks.",
+  "extension": [
+    {
+      "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-targetStructureMap",
+      "valueCanonical": "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractClientClearance"
+    }
+  ],
+  "item": [
+    {
+      "linkId": "client",
+      "type": "group",
+      "text": "Client",
+      "item": [
+        {
+          "linkId": "client.name",
+          "type": "string",
+          "text": "Client's name",
+          "required": true
+        },
+        {
+          "linkId": "client.admissionNumber",
+          "type": "string",
+          "text": "Admission number",
+          "required": true
+        },
+        {
+          "linkId": "client.admissionDate",
+          "type": "date",
+          "text": "Admission date"
+        },
+        {
+          "linkId": "client.dischargeDate",
+          "type": "date",
+          "text": "Discharge date"
+        },
+        {
+          "linkId": "client.reason",
+          "type": "coding",
+          "text": "Reason for clearance",
+          "required": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "referral",
+                "display": "Referral"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "completion",
+                "display": "Completion"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "withdrawal",
+                "display": "Withdrawal"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "clearance",
+      "type": "group",
+      "text": "Departmental clearance",
+      "item": [
+        {
+          "linkId": "clearance.adminAccounts",
+          "type": "group",
+          "text": "Admin / Accounts",
+          "item": [
+            {
+              "linkId": "clearance.adminAccounts.cleared",
+              "type": "boolean",
+              "text": "Admin / Accounts — cleared"
+            },
+            {
+              "linkId": "clearance.adminAccounts.date",
+              "type": "date",
+              "text": "Admin / Accounts — date"
+            },
+            {
+              "linkId": "clearance.adminAccounts.officer",
+              "type": "string",
+              "text": "Admin / Accounts — clearance officer"
+            },
+            {
+              "linkId": "clearance.adminAccounts.amount",
+              "type": "decimal",
+              "text": "Admin / Accounts — amount (KES)"
+            },
+            {
+              "linkId": "clearance.adminAccounts.remarks",
+              "type": "text",
+              "text": "Admin / Accounts — remarks",
+              "code": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "34109-9",
+                  "display": "Note"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "clearance.primaryCounsellor",
+          "type": "group",
+          "text": "Primary counsellor",
+          "item": [
+            {
+              "linkId": "clearance.primaryCounsellor.cleared",
+              "type": "boolean",
+              "text": "Primary counsellor — cleared"
+            },
+            {
+              "linkId": "clearance.primaryCounsellor.date",
+              "type": "date",
+              "text": "Primary counsellor — date"
+            },
+            {
+              "linkId": "clearance.primaryCounsellor.officer",
+              "type": "string",
+              "text": "Primary counsellor — clearance officer"
+            },
+            {
+              "linkId": "clearance.primaryCounsellor.amount",
+              "type": "decimal",
+              "text": "Primary counsellor — amount (KES)"
+            },
+            {
+              "linkId": "clearance.primaryCounsellor.remarks",
+              "type": "text",
+              "text": "Primary counsellor — remarks",
+              "code": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "34109-9",
+                  "display": "Note"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "clearance.store",
+          "type": "group",
+          "text": "Store",
+          "item": [
+            {
+              "linkId": "clearance.store.cleared",
+              "type": "boolean",
+              "text": "Store — cleared"
+            },
+            {
+              "linkId": "clearance.store.date",
+              "type": "date",
+              "text": "Store — date"
+            },
+            {
+              "linkId": "clearance.store.officer",
+              "type": "string",
+              "text": "Store — clearance officer"
+            },
+            {
+              "linkId": "clearance.store.amount",
+              "type": "decimal",
+              "text": "Store — amount (KES)"
+            },
+            {
+              "linkId": "clearance.store.remarks",
+              "type": "text",
+              "text": "Store — remarks",
+              "code": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "34109-9",
+                  "display": "Note"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "clearance.socialWork",
+          "type": "group",
+          "text": "Social work",
+          "item": [
+            {
+              "linkId": "clearance.socialWork.cleared",
+              "type": "boolean",
+              "text": "Social work — cleared"
+            },
+            {
+              "linkId": "clearance.socialWork.date",
+              "type": "date",
+              "text": "Social work — date"
+            },
+            {
+              "linkId": "clearance.socialWork.officer",
+              "type": "string",
+              "text": "Social work — clearance officer"
+            },
+            {
+              "linkId": "clearance.socialWork.amount",
+              "type": "decimal",
+              "text": "Social work — amount (KES)"
+            },
+            {
+              "linkId": "clearance.socialWork.remarks",
+              "type": "text",
+              "text": "Social work — remarks",
+              "code": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "34109-9",
+                  "display": "Note"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "clearance.libraryNhif",
+          "type": "group",
+          "text": "Library / NHIF",
+          "item": [
+            {
+              "linkId": "clearance.libraryNhif.cleared",
+              "type": "boolean",
+              "text": "Library / NHIF — cleared"
+            },
+            {
+              "linkId": "clearance.libraryNhif.date",
+              "type": "date",
+              "text": "Library / NHIF — date"
+            },
+            {
+              "linkId": "clearance.libraryNhif.officer",
+              "type": "string",
+              "text": "Library / NHIF — clearance officer"
+            },
+            {
+              "linkId": "clearance.libraryNhif.amount",
+              "type": "decimal",
+              "text": "Library / NHIF — amount (KES)"
+            },
+            {
+              "linkId": "clearance.libraryNhif.remarks",
+              "type": "text",
+              "text": "Library / NHIF — remarks",
+              "code": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "34109-9",
+                  "display": "Note"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "clearance.pharmacyNursing",
+          "type": "group",
+          "text": "Pharmacy / Nursing",
+          "item": [
+            {
+              "linkId": "clearance.pharmacyNursing.cleared",
+              "type": "boolean",
+              "text": "Pharmacy / Nursing — cleared"
+            },
+            {
+              "linkId": "clearance.pharmacyNursing.date",
+              "type": "date",
+              "text": "Pharmacy / Nursing — date"
+            },
+            {
+              "linkId": "clearance.pharmacyNursing.officer",
+              "type": "string",
+              "text": "Pharmacy / Nursing — clearance officer"
+            },
+            {
+              "linkId": "clearance.pharmacyNursing.amount",
+              "type": "decimal",
+              "text": "Pharmacy / Nursing — amount (KES)"
+            },
+            {
+              "linkId": "clearance.pharmacyNursing.remarks",
+              "type": "text",
+              "text": "Pharmacy / Nursing — remarks",
+              "code": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "34109-9",
+                  "display": "Note"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "clearance.dischargeOfficer",
+          "type": "group",
+          "text": "Discharge officer",
+          "item": [
+            {
+              "linkId": "clearance.dischargeOfficer.cleared",
+              "type": "boolean",
+              "text": "Discharge officer — cleared"
+            },
+            {
+              "linkId": "clearance.dischargeOfficer.date",
+              "type": "date",
+              "text": "Discharge officer — date"
+            },
+            {
+              "linkId": "clearance.dischargeOfficer.officer",
+              "type": "string",
+              "text": "Discharge officer — clearance officer"
+            },
+            {
+              "linkId": "clearance.dischargeOfficer.amount",
+              "type": "decimal",
+              "text": "Discharge officer — amount (KES)"
+            },
+            {
+              "linkId": "clearance.dischargeOfficer.remarks",
+              "type": "text",
+              "text": "Discharge officer — remarks",
+              "code": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "34109-9",
+                  "display": "Note"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "clearance.securityOfficer",
+          "type": "group",
+          "text": "Security officer",
+          "item": [
+            {
+              "linkId": "clearance.securityOfficer.cleared",
+              "type": "boolean",
+              "text": "Security officer — cleared"
+            },
+            {
+              "linkId": "clearance.securityOfficer.date",
+              "type": "date",
+              "text": "Security officer — date"
+            },
+            {
+              "linkId": "clearance.securityOfficer.officer",
+              "type": "string",
+              "text": "Security officer — clearance officer"
+            },
+            {
+              "linkId": "clearance.securityOfficer.amount",
+              "type": "decimal",
+              "text": "Security officer — amount (KES)"
+            },
+            {
+              "linkId": "clearance.securityOfficer.remarks",
+              "type": "text",
+              "text": "Security officer — remarks",
+              "code": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "34109-9",
+                  "display": "Note"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "publisher": "Savannah Global Health Institute (SGHI)",
+  "contact": [
+    {
+      "telecom": [
+        {
+          "system": "url",
+          "value": "https://fhir.slade360.co.ke"
+        }
+      ]
+    }
+  ],
+  "jurisdiction": [
+    {
+      "coding": [
+        {
+          "system": "urn:iso:std:iso:3166",
+          "code": "KE",
+          "display": "Kenya"
+        }
+      ]
+    }
+  ],
+  "useContext": [
+    {
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+        "code": "workflow",
+        "display": "Workflow Setting"
+      },
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/clinical-form-category-codesystem",
+            "code": "discharge-summary",
+            "display": "Discharge summary"
+          }
+        ]
+      }
+    }
+  ],
+  "code": [
+    {
+      "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+      "code": "discharge-clearance",
+      "display": "Discharge clearance"
+    }
+  ]
+}

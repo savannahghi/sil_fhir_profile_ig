@@ -1,0 +1,310 @@
+{
+  "resourceType": "Questionnaire",
+  "id": "discharge-clearance-summary",
+  "url": "https://fhir.slade360.co.ke/fhir/Questionnaire/discharge-clearance-summary",
+  "version": "1.0.0",
+  "name": "DischargeClearanceSummary",
+  "title": "Discharge Clearance Summary",
+  "status": "draft",
+  "subjectType": [
+    "Patient"
+  ],
+  "date": "2026-09-18",
+  "description": "Discharge sign-off: the centre's property returned by the client, and a signature from each party clearing the discharge.",
+  "extension": [
+    {
+      "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-targetStructureMap",
+      "valueCanonical": "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractDischargeClearanceSummary"
+    }
+  ],
+  "item": [
+    {
+      "linkId": "client",
+      "type": "group",
+      "text": "Client",
+      "item": [
+        {
+          "linkId": "client.name",
+          "type": "string",
+          "text": "Name of the client",
+          "required": true
+        },
+        {
+          "linkId": "client.admissionDate",
+          "type": "date",
+          "text": "Date of admission"
+        },
+        {
+          "linkId": "client.dischargeDate",
+          "type": "date",
+          "text": "Date of discharge"
+        }
+      ]
+    },
+    {
+      "linkId": "items",
+      "type": "group",
+      "text": "Centre property returned",
+      "item": [
+        {
+          "linkId": "items.blankets",
+          "type": "group",
+          "text": "Blankets",
+          "item": [
+            {
+              "linkId": "items.blankets.returned",
+              "type": "boolean",
+              "text": "Blankets — returned"
+            },
+            {
+              "linkId": "items.blankets.quantity",
+              "type": "integer",
+              "text": "Blankets — quantity"
+            },
+            {
+              "linkId": "items.blankets.remarks",
+              "type": "string",
+              "text": "Blankets — remarks"
+            }
+          ]
+        },
+        {
+          "linkId": "items.bedSheets",
+          "type": "group",
+          "text": "Bed sheets",
+          "item": [
+            {
+              "linkId": "items.bedSheets.returned",
+              "type": "boolean",
+              "text": "Bed sheets — returned"
+            },
+            {
+              "linkId": "items.bedSheets.quantity",
+              "type": "integer",
+              "text": "Bed sheets — quantity"
+            },
+            {
+              "linkId": "items.bedSheets.remarks",
+              "type": "string",
+              "text": "Bed sheets — remarks"
+            }
+          ]
+        },
+        {
+          "linkId": "items.pillow",
+          "type": "group",
+          "text": "Pillow",
+          "item": [
+            {
+              "linkId": "items.pillow.returned",
+              "type": "boolean",
+              "text": "Pillow — returned"
+            },
+            {
+              "linkId": "items.pillow.quantity",
+              "type": "integer",
+              "text": "Pillow — quantity"
+            },
+            {
+              "linkId": "items.pillow.remarks",
+              "type": "string",
+              "text": "Pillow — remarks"
+            }
+          ]
+        },
+        {
+          "linkId": "items.pillowCase",
+          "type": "group",
+          "text": "Pillow case",
+          "item": [
+            {
+              "linkId": "items.pillowCase.returned",
+              "type": "boolean",
+              "text": "Pillow case — returned"
+            },
+            {
+              "linkId": "items.pillowCase.quantity",
+              "type": "integer",
+              "text": "Pillow case — quantity"
+            },
+            {
+              "linkId": "items.pillowCase.remarks",
+              "type": "string",
+              "text": "Pillow case — remarks"
+            }
+          ]
+        },
+        {
+          "linkId": "items.cutlery",
+          "type": "group",
+          "text": "Cutlery",
+          "item": [
+            {
+              "linkId": "items.cutlery.returned",
+              "type": "boolean",
+              "text": "Cutlery — returned"
+            },
+            {
+              "linkId": "items.cutlery.quantity",
+              "type": "integer",
+              "text": "Cutlery — quantity"
+            },
+            {
+              "linkId": "items.cutlery.remarks",
+              "type": "string",
+              "text": "Cutlery — remarks"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "signatories",
+      "type": "group",
+      "text": "Cleared and signed by",
+      "item": [
+        {
+          "linkId": "signatories.accountOffice",
+          "type": "group",
+          "text": "Account office",
+          "item": [
+            {
+              "linkId": "signatories.accountOffice.name",
+              "type": "string",
+              "text": "Name"
+            }
+          ]
+        },
+        {
+          "linkId": "signatories.counsellor",
+          "type": "group",
+          "text": "Counsellor",
+          "item": [
+            {
+              "linkId": "signatories.counsellor.name",
+              "type": "string",
+              "text": "Name"
+            }
+          ]
+        },
+        {
+          "linkId": "signatories.clinician",
+          "type": "group",
+          "text": "Clinician",
+          "item": [
+            {
+              "linkId": "signatories.clinician.name",
+              "type": "string",
+              "text": "Name"
+            }
+          ]
+        },
+        {
+          "linkId": "signatories.security",
+          "type": "group",
+          "text": "Security",
+          "item": [
+            {
+              "linkId": "signatories.security.name",
+              "type": "string",
+              "text": "Name"
+            }
+          ]
+        },
+        {
+          "linkId": "signatories.kitchen",
+          "type": "group",
+          "text": "Kitchen",
+          "item": [
+            {
+              "linkId": "signatories.kitchen.name",
+              "type": "string",
+              "text": "Name"
+            }
+          ]
+        },
+        {
+          "linkId": "signatories.guardian",
+          "type": "group",
+          "text": "Parent / guardian",
+          "item": [
+            {
+              "linkId": "signatories.guardian.name",
+              "type": "string",
+              "text": "Name"
+            },
+            {
+              "linkId": "signatories.guardian.signed",
+              "type": "boolean",
+              "text": "The guardian has signed this form"
+            }
+          ]
+        },
+        {
+          "linkId": "signatories.client",
+          "type": "group",
+          "text": "Client",
+          "item": [
+            {
+              "linkId": "signatories.client.name",
+              "type": "string",
+              "text": "Name"
+            },
+            {
+              "linkId": "signatories.client.signed",
+              "type": "boolean",
+              "text": "The client has signed this form"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "publisher": "Savannah Global Health Institute (SGHI)",
+  "contact": [
+    {
+      "telecom": [
+        {
+          "system": "url",
+          "value": "https://fhir.slade360.co.ke"
+        }
+      ]
+    }
+  ],
+  "jurisdiction": [
+    {
+      "coding": [
+        {
+          "system": "urn:iso:std:iso:3166",
+          "code": "KE",
+          "display": "Kenya"
+        }
+      ]
+    }
+  ],
+  "useContext": [
+    {
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+        "code": "workflow",
+        "display": "Workflow Setting"
+      },
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/clinical-form-category-codesystem",
+            "code": "discharge-summary",
+            "display": "Discharge summary"
+          }
+        ]
+      }
+    }
+  ],
+  "code": [
+    {
+      "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+      "code": "discharge-clearance-summary",
+      "display": "Discharge clearance summary"
+    }
+  ]
+}

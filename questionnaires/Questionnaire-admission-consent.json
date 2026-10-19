@@ -1,0 +1,209 @@
+{
+  "resourceType": "Questionnaire",
+  "id": "admission-consent",
+  "url": "https://fhir.slade360.co.ke/fhir/Questionnaire/admission-consent",
+  "version": "1.0.0",
+  "name": "AdmissionConsentForm",
+  "title": "Admission Consent Form",
+  "status": "draft",
+  "subjectType": [
+    "Patient"
+  ],
+  "date": "2026-09-17",
+  "description": "Consent to undertake a rehabilitation programme, with the cardinal rules and ground norms the client accepts on admission.",
+  "extension": [
+    {
+      "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-targetStructureMap",
+      "valueCanonical": "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractAdmissionConsent"
+    }
+  ],
+  "item": [
+    {
+      "linkId": "preamble",
+      "type": "display",
+      "text": "Rehabilitation is an active participation in a special therapy designed to help one transition from a dependent role to a holistic recovery. A team of highly skilled professionals develops a programme in consultation with the patient to meet individual needs and to ensure maximum benefit."
+    },
+    {
+      "linkId": "client",
+      "type": "group",
+      "text": "Client",
+      "item": [
+        {
+          "linkId": "client.name",
+          "type": "string",
+          "text": "Name",
+          "required": true
+        },
+        {
+          "linkId": "client.idNumber",
+          "type": "string",
+          "text": "ID number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "linkId": "consent",
+      "type": "group",
+      "text": "Consent to treatment",
+      "item": [
+        {
+          "linkId": "consent.treatment",
+          "type": "boolean",
+          "required": true,
+          "text": "I wish to undertake the rehabilitation programme, which has been explained to me, and I consent to treatment as advised and recommended."
+        },
+        {
+          "linkId": "consent.duration",
+          "type": "boolean",
+          "required": true,
+          "text": "I understand that the programme takes a minimum of ninety (90) days, and I agree to the terms and conditions below for that period."
+        }
+      ]
+    },
+    {
+      "linkId": "cardinalRules",
+      "type": "group",
+      "text": "Cardinal rules",
+      "item": [
+        {
+          "linkId": "cardinalRules.drugs",
+          "type": "boolean",
+          "text": "Drugs: I shall not at any time use or be found in possession of drugs, within or outside the premises, during the treatment period."
+        },
+        {
+          "linkId": "cardinalRules.sex",
+          "type": "boolean",
+          "text": "Sex: no sexual act of any kind is acceptable during the treatment period."
+        },
+        {
+          "linkId": "cardinalRules.violence",
+          "type": "boolean",
+          "text": "Violence: no verbal, physical or emotional abuse, including threats to staff or fellow clients, is allowed."
+        },
+        {
+          "linkId": "cardinalRules.property",
+          "type": "boolean",
+          "text": "Destruction of property: I shall respect the property of clients, staff, the centre and the neighbourhood; destroying it will be penalised."
+        },
+        {
+          "linkId": "cardinalRules.theft",
+          "type": "boolean",
+          "text": "Theft: no theft of property belonging to fellow clients, staff, the centre or neighbours will be tolerated."
+        }
+      ]
+    },
+    {
+      "linkId": "groundNorms",
+      "type": "group",
+      "text": "Ground norms",
+      "item": [
+        {
+          "linkId": "groundNorms.permission",
+          "type": "boolean",
+          "text": "I shall never leave the compound without permission from staff."
+        },
+        {
+          "linkId": "groundNorms.stealing",
+          "type": "boolean",
+          "text": "I shall not steal or abuse."
+        },
+        {
+          "linkId": "groundNorms.hygiene",
+          "type": "boolean",
+          "text": "I shall maintain the required standards of hygiene."
+        },
+        {
+          "linkId": "groundNorms.abstinence",
+          "type": "boolean",
+          "text": "I shall abstain from all mood-altering substances."
+        },
+        {
+          "linkId": "groundNorms.programme",
+          "type": "boolean",
+          "text": "I shall adhere to the daily programme and all required activities, and shall not abscond from the programme or any of its activities."
+        },
+        {
+          "linkId": "groundNorms.conduct",
+          "type": "boolean",
+          "text": "I shall be responsible and uphold the set virtues and the moral and spiritual standards."
+        },
+        {
+          "linkId": "groundNorms.prohibitedItems",
+          "type": "boolean",
+          "text": "I shall not be found in possession of illegal items, for example knives, phones or drugs."
+        }
+      ]
+    },
+    {
+      "linkId": "virtues",
+      "type": "display",
+      "text": "Key virtues: honesty, humility and self-acceptance."
+    },
+    {
+      "linkId": "signature",
+      "type": "group",
+      "text": "Signature",
+      "item": [
+        {
+          "linkId": "signature.signed",
+          "type": "boolean",
+          "text": "The client has signed this form"
+        },
+        {
+          "linkId": "signature.date",
+          "type": "date",
+          "text": "Date signed",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "publisher": "Savannah Global Health Institute (SGHI)",
+  "contact": [
+    {
+      "telecom": [
+        {
+          "system": "url",
+          "value": "https://fhir.slade360.co.ke"
+        }
+      ]
+    }
+  ],
+  "jurisdiction": [
+    {
+      "coding": [
+        {
+          "system": "urn:iso:std:iso:3166",
+          "code": "KE",
+          "display": "Kenya"
+        }
+      ]
+    }
+  ],
+  "useContext": [
+    {
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+        "code": "workflow",
+        "display": "Workflow Setting"
+      },
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/clinical-form-category-codesystem",
+            "code": "consent",
+            "display": "Consent"
+          }
+        ]
+      }
+    }
+  ],
+  "code": [
+    {
+      "system": "http://loinc.org",
+      "code": "59284-0",
+      "display": "Consent Document"
+    }
+  ]
+}
