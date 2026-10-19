@@ -101,6 +101,13 @@ Description: "The hospital paper forms that have been modelled as Questionnaires
 * #therapy-consent "Therapy consent form" "The client's consent to therapy: what therapy is, its confidentiality and the exceptions to it, signed by the client."
 * #psychiatric-clinical-interview "Psychiatric clinical interview" "The psychiatric clinical interview: referral, history of the presenting illness, past psychiatric and medical history, family, social and personal history, the mental status examination, physical examination, case summary, psychological formulation, intervention, impression with DSM-5-TR and ICD-10, and plan."
 * #plan-of-care-note "Plan of care note" "The doctor's plan for a patient, written as a diary: one entry at admission, one whenever the direction of care changes, one when discharge is planned. Each entry carries the overall plan, the discharge plan when discharge is being planned, and what the patient and family have been told."
+* #adult-observation-chart "Adult observation chart" "The ward observation chart: the NEWS2 set with the mean arterial pressure and NEWS2 total the form records, read as a flowsheet one column per minute."
+* #labour-care-guide "WHO Labour Care Guide" "The WHO Labour Care Guide (2020), the partograph that replaced it: supportive care, the baby, the woman and labour progress, charted from the diagnosis of active labour to the birth."
+* #anaesthesia-chart "Anaesthesia chart" "The intra-operative anaesthesia record as the anaesthetic record form stores it: the pressures, pulse and saturation of each timed reading in five-minute columns, with the blood loss and duration recorded for the case."
+* #fluid-balance-chart "Fluid balance chart" "The intake and output record as a chart: intake and output by the hour with every volume row added up, and the sheet's totals and balance as the form records them."
+* #neuro-observation-chart "Neurological observation chart" "The ICU neurological chart: the Glasgow Coma Scale and its parts, each pupil by its side, limb power and the vital signs taken with them, by the hour."
+* #antenatal-ward-chart "Antenatal ward chart" "An antenatal admission: the admission facts above, then each round's vitals, the fetal heart rate with its flag, and the obstetric findings of the round."
+* #blood-glucose-chart "Blood glucose chart" "Capillary blood glucose as the vital signs form records it, one column per reading across encounters, with the insulin given against each reading."
 
 
 CodeSystem: SGHIConceptCodeSystem
@@ -888,6 +895,27 @@ Description: "What the forms record where no code system this IG can resolve say
 * #birth-history-on-newborn-handover "Birth history on newborn handover" "Panel of the birth history recorded on the newborn unit handover form: whether the baby was resuscitated, how oxygen was given and for how long, meconium-stained liquor, whether urine or stool has been passed, and the presenting complaints. It does not by itself mean the baby was resuscitated."
 * #obs-clock-time-recorded "Clock time recorded" "The clock time the form records for an observation, without a date. Carried as a valueTime component so the recorded time is not lost or guessed into a full date. Recorded on the newborn unit handover form (continuation vital signs)."
 * #fluid-balance-irrigation-balance "Irrigation balance" "Irrigation volume returned less irrigation volume instilled on a continuous bladder irrigation, recorded when that figure is below zero (less came back than went in), so it cannot be recorded as a urine output. Recorded on the surgical continuous irrigation record."
+* #lcg-labour-onset "Labour onset" "How labour began, spontaneous or induced. Recorded once on the WHO Labour Care Guide."
+* #lcg-active-labour "Active first stage of labour diagnosed" "The moment the active first stage of labour was diagnosed, which opens the WHO Labour Care Guide. Recorded once, as yes."
+* #lcg-risk-factors "Risk factors in labour" "Risk factors noted on admission in labour, as text, on the WHO Labour Care Guide."
+* #lcg-birth "Birth" "The moment of birth, recorded once, which closes the second stage on the WHO Labour Care Guide."
+* #lcg-companion "Companion present" "Whether a companion of choice is present, charted hourly on the WHO Labour Care Guide."
+* #lcg-pain-relief "Pain relief" "Whether pain relief was given, charted hourly on the WHO Labour Care Guide."
+* #lcg-oral-fluid "Oral fluid" "Whether oral fluid was taken, charted hourly on the WHO Labour Care Guide."
+* #lcg-posture "Posture" "Whether the woman is mobile or supine, charted hourly on the WHO Labour Care Guide."
+* #lcg-fhr-deceleration "Fetal heart rate deceleration" "The kind of deceleration heard, if any, charted with each fetal heart rate on the WHO Labour Care Guide."
+* #lcg-amniotic-fluid "Amniotic fluid" "The state of the membranes and liquor at an examination on the WHO Labour Care Guide."
+* #lcg-caput "Caput" "The degree of caput succedaneum at an examination on the WHO Labour Care Guide."
+* #lcg-moulding "Moulding" "The degree of moulding at an examination on the WHO Labour Care Guide."
+* #lcg-contractions-per-10-min "Contractions per 10 minutes" "How many contractions in ten minutes, charted every column on the WHO Labour Care Guide."
+* #lcg-contraction-duration "Duration of contractions" "How long contractions last, in seconds, charted every column on the WHO Labour Care Guide."
+* #lcg-pushing "Pushing" "Whether the woman is pushing, charted in the second stage on the WHO Labour Care Guide."
+* #lcg-descent-fifths "Descent of the head" "Fifths of the fetal head palpable above the pelvic brim at an examination on the WHO Labour Care Guide."
+* #lcg-assessment "Assessment in labour" "The assessment made at a round on the WHO Labour Care Guide, as text."
+* #lcg-plan "Plan in labour" "The plan made at a round on the WHO Labour Care Guide, as text."
+* #on-supplemental-oxygen "On supplemental oxygen" "Whether the patient is receiving supplemental oxygen, yes or no, as NEWS2 scores it."
+* #acvpu-conscious-level "ACVPU conscious level" "The patient's level of consciousness on the ACVPU scale, as NEWS2 scores it."
+* #news2-total "NEWS2 total score" "The National Early Warning Score 2 total, as the observation chart records it."
 
 CodeSystem: SGHIAnswerCodeSystem
 Id: answer-codesystem
@@ -1321,6 +1349,8 @@ Description: "The answers the pick lists offer, where the list is local to these
 * #disposition-step-down "Step down" "The patient can move to a lower level of care."
 * #disposition-discharge-planned "Discharge planned" "Discharge is being planned, with an expected date."
 * #disposition-discharge-today "Discharge today" "The patient goes home today."
+* #labour-onset-spontaneous "Spontaneous" "Labour began on its own."
+* #labour-onset-induced "Induced" "Labour was induced."
 
 CodeSystem: SGHIScoreCodeSystem
 Id: score-codesystem

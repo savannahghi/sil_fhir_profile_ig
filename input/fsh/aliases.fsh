@@ -19,3 +19,9 @@ Alias: $v2-0487 = http://terminology.hl7.org/CodeSystem/v2-0487
 Alias: $v2-0493 = http://terminology.hl7.org/CodeSystem/v2-0493
 Alias: $reason-medication-not-given = http://hl7.org/fhir/reason-medication-not-given
 Alias: $medication-admin-status = http://hl7.org/fhir/CodeSystem/medication-admin-status
+Alias: $loinc = http://loinc.org
+Alias: $ucum = http://unitsofmeasure.org
+Alias: $usage-context-type = http://terminology.hl7.org/CodeSystem/usage-context-type
+// The extraction maps write this host into Observation.code in every
+// environment, so a template that must match stored data names it the same way.
+Alias: $sghi-concept = https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem
