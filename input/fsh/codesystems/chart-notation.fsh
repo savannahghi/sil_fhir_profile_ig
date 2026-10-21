@@ -30,6 +30,8 @@ Description: "The marks the WHO Labour Care Guide (2020) is written in. One mark
 * #"+++" "Three plus" "Caput or moulding: third degree. Urine dipstick: three plus."
 * #"++++" "Four plus" "Urine dipstick: four plus."
 * #"-" "Negative" "Urine dipstick: negative."
+* #spontaneous "Spontaneous" "Labour onset: spontaneous."
+* #induced "Induced" "Labour onset: induced."
 
 CodeSystem: SGHIACVPUCodeSystem
 Id: acvpu-codesystem
