@@ -36,6 +36,14 @@ Context: ObservationDefinition
 * value[x] only canonical
 * valueCanonical only Canonical(Questionnaire)
 
+Extension: FlowsheetCaseQuestionnaire
+Id: flowsheet-case-questionnaire
+Title: "Flowsheet case form"
+Description: "The form filled once per case, whose answers are the facts above the grid rather than a column: the labour details on the Labour Care Guide, the pre-anaesthetic assessment on the anaesthesia chart. Absent on a chart that has no such form."
+Context: ObservationDefinition
+* value[x] only canonical
+* valueCanonical only Canonical(Questionnaire)
+
 Extension: FlowsheetAliases
 Id: flowsheet-aliases
 Title: "Flowsheet aliases"

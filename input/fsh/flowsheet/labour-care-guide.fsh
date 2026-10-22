@@ -15,6 +15,12 @@ Description: "The flowsheet template for the WHO Labour Care Guide."
 * extension[FlowsheetDefaultWindow].valueQuantity = 48 'h'
 * extension[FlowsheetMaxWindow].valueQuantity = 31 'd'
 * extension[FlowsheetAliases].valueCanonical = Canonical(flowsheet-observation-aliases)
+// The two forms the chart records through. Each is one Questionnaire on the
+// CDR, named by id so the reference resolves on every environment, and both
+// extract through ExtractLabourCareGuide: the assessment form adds a column,
+// the details form fills the facts above the grid.
+* extension[FlowsheetEntryQuestionnaire].valueCanonical = "https://fhir.slade360.co.ke/fhir/Questionnaire/dde009af-43dc-51f5-aa4c-2f7a61072659"
+* extension[FlowsheetCaseQuestionnaire].valueCanonical = "https://fhir.slade360.co.ke/fhir/Questionnaire/7da38e8e-3a6b-5147-9de7-bdaa2686ee3d"
 * extension[FlowsheetStage][+].extension[key].valueId = "first"
 * extension[FlowsheetStage][=].extension[title].valueString = "Active first stage"
 * extension[FlowsheetStage][=].extension[start-row].valueId = "active-labour"
