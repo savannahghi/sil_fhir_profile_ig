@@ -13,6 +13,21 @@ group ExtractLabourCareGuide(source qr : QR, target bundle : Bundle) {
 
   // ── Labour details, once ──────────────────────────────────────────────
   qr.item as g where (linkId = 'labour-details') then {
+    g.item as it where (linkId = 'labour-details/gravida' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '11996-6' "cd";
+          it -> cg.display = 'Pregnancies' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as v -> obs.value = v "value";
+      } "answer";
+    } "labour_details_gravida";
+
     g.item as it where (linkId = 'labour-details/parity' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
       qr -> obs then SetSurveyCategory(qr, obs) "category";
@@ -27,6 +42,21 @@ group ExtractLabourCareGuide(source qr : QR, target bundle : Bundle) {
         a.value as v -> obs.value = v "value";
       } "answer";
     } "labour_details_parity";
+
+    g.item as it where (linkId = 'labour-details/abortions' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '11612-9' "cd";
+          it -> cg.display = 'Abortions' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as v -> obs.value = v "value";
+      } "answer";
+    } "labour_details_abortions";
 
     g.item as it where (linkId = 'labour-details/labour-onset' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
