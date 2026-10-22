@@ -45,12 +45,25 @@ Usage: #definition
 * insert FlowsheetSection(admission, Identifying information)
 * code = SGHIDocumentTypeCodeSystem#labour-care-guide "WHO Labour Care Guide"
 * extension[FlowsheetHeader].valueBoolean = true
+* hasMember[+] = Reference(labour-care-guide-gravida)
 * hasMember[+] = Reference(labour-care-guide-parity)
+* hasMember[+] = Reference(labour-care-guide-abortions)
 * hasMember[+] = Reference(labour-care-guide-labour-onset)
 * hasMember[+] = Reference(labour-care-guide-active-labour)
 * hasMember[+] = Reference(labour-care-guide-membranes-ruptured)
 * hasMember[+] = Reference(labour-care-guide-risk-factors)
 * hasMember[+] = Reference(labour-care-guide-birth)
+
+// Gravida, parity and abortions are three rows because the ward writes them
+// as one line ("2+0", "G3P2+0"): the form reads the numbers out, and each is
+// its own coded Observation.
+Instance: labour-care-guide-gravida
+InstanceOf: ObservationDefinition
+Usage: #definition
+* insert FlowsheetRow(gravida, Gravida)
+* code = $loinc#11996-6 "[#] Pregnancies"
+* permittedDataType = #Quantity
+* permittedUnit = $ucum#1 "pregnancies"
 
 Instance: labour-care-guide-parity
 InstanceOf: ObservationDefinition
@@ -59,6 +72,14 @@ Usage: #definition
 * code = $loinc#11977-6 "[#] Parity"
 * permittedDataType = #Quantity
 * permittedUnit = $ucum#1 "births"
+
+Instance: labour-care-guide-abortions
+InstanceOf: ObservationDefinition
+Usage: #definition
+* insert FlowsheetRow(abortions, Abortions)
+* code = $loinc#11612-9 "[#] Abortions"
+* permittedDataType = #Quantity
+* permittedUnit = $ucum#1 "abortions"
 
 Instance: labour-care-guide-labour-onset
 InstanceOf: ObservationDefinition
