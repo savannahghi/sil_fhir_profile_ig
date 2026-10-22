@@ -93,5 +93,7 @@ Usage: #definition
 * code = $loinc#59408-5 "Oxygen saturation in Arterial blood by Pulse oximetry"
 * permittedDataType = #Quantity
 * permittedUnit = $ucum#% "%"
+* extension[FlowsheetPlot].valueRange.low = 80 '%'
+* extension[FlowsheetPlot].valueRange.high = 100 '%'
 * extension[FlowsheetAlert].valueString = "<94"
 * insert AbsoluteRange(50, 100, %)

@@ -158,6 +158,8 @@ Usage: #definition
 * code = $loinc#55283-6 "Fetal Heart rate"
 * permittedDataType = #Quantity
 * permittedUnit = $ucum#/min "bpm"
+* extension[FlowsheetPlot].valueRange.low = 80 '/min'
+* extension[FlowsheetPlot].valueRange.high = 200 '/min'
 * extension[FlowsheetAlert].valueString = "<110, ≥160"
 * insert AbsoluteRange(50, 240, /min)
 
@@ -228,6 +230,8 @@ Usage: #definition
 * code = $loinc#8867-4 "Heart rate"
 * permittedDataType = #Quantity
 * permittedUnit = $ucum#/min "bpm"
+* extension[FlowsheetPlot].valueRange.low = 40 '/min'
+* extension[FlowsheetPlot].valueRange.high = 160 '/min'
 * extension[FlowsheetAlert].valueString = "<60, ≥120"
 * insert CellWidth(first, 60)
 * insert CellWidth(second, 30)
@@ -240,6 +244,8 @@ Usage: #definition
 * code = $loinc#8480-6 "Systolic blood pressure"
 * permittedDataType = #Quantity
 * permittedUnit = $ucum#mm[Hg] "mmHg"
+* extension[FlowsheetPlot].valueRange.low = 60 'mm[Hg]'
+* extension[FlowsheetPlot].valueRange.high = 200 'mm[Hg]'
 * extension[FlowsheetAlert].valueString = "<80, ≥140"
 * insert CellWidth(first, 60)
 * insert CellWidth(second, 30)
@@ -251,6 +257,8 @@ Usage: #definition
 * code = $loinc#8462-4 "Diastolic blood pressure"
 * permittedDataType = #Quantity
 * permittedUnit = $ucum#mm[Hg] "mmHg"
+* extension[FlowsheetPlot].valueRange.low = 30 'mm[Hg]'
+* extension[FlowsheetPlot].valueRange.high = 130 'mm[Hg]'
 * extension[FlowsheetAlert].valueString = "≥90"
 * insert CellWidth(first, 60)
 * insert CellWidth(second, 30)
@@ -262,6 +270,8 @@ Usage: #definition
 * code = $loinc#8310-5 "Body temperature"
 * permittedDataType = #Quantity
 * permittedUnit = $ucum#Cel "°C"
+* extension[FlowsheetPlot].valueRange.low = 35 'Cel'
+* extension[FlowsheetPlot].valueRange.high = 40 'Cel'
 * extension[FlowsheetDecimals].valueInteger = 1
 * extension[FlowsheetAlert].valueString = "<35.0, ≥37.5"
 * insert CellWidth(first, 60)
@@ -305,6 +315,8 @@ Usage: #definition
 * code = $sghi-concept#lcg-contractions-per-10-min "Contractions per 10 minutes"
 * permittedDataType = #Quantity
 * permittedUnit = $ucum#"{#}/(10.min)" "per 10 min"
+* extension[FlowsheetPlot].valueRange.low = 0 '{#}/(10.min)'
+* extension[FlowsheetPlot].valueRange.high = 6 '{#}/(10.min)'
 * extension[FlowsheetAlert].valueString = "≤2, >5"
 
 Instance: labour-care-guide-contraction-duration
