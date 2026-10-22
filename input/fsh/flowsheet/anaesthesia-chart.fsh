@@ -41,14 +41,18 @@ Usage: #definition
 * hasMember[+] = Reference(anaesthesia-chart-airway-secured)
 * hasMember[+] = Reference(anaesthesia-chart-block-performed)
 * hasMember[+] = Reference(anaesthesia-chart-incision)
+* hasMember[+] = Reference(anaesthesia-chart-tourniquet-on)
+* hasMember[+] = Reference(anaesthesia-chart-tourniquet-off)
 * hasMember[+] = Reference(anaesthesia-chart-closure)
 * hasMember[+] = Reference(anaesthesia-chart-airway-removed)
+* hasMember[+] = Reference(anaesthesia-chart-block-height-reached)
 * hasMember[+] = Reference(anaesthesia-chart-anaesthesia-end)
 * hasMember[+] = Reference(anaesthesia-chart-weight)
 * hasMember[+] = Reference(anaesthesia-chart-asa-grade)
 * hasMember[+] = Reference(anaesthesia-chart-mallampati)
 * hasMember[+] = Reference(anaesthesia-chart-difficult-airway)
-* hasMember[+] = Reference(anaesthesia-chart-duration)
+* hasMember[+] = Reference(anaesthesia-chart-baseline-sbp)
+* hasMember[+] = Reference(anaesthesia-chart-baseline-dbp)
 
 Instance: anaesthesia-chart-core
 InstanceOf: ObservationDefinition
@@ -64,6 +68,7 @@ Usage: #definition
 * hasMember[+] = Reference(anaesthesia-chart-temperature)
 * hasMember[+] = Reference(anaesthesia-chart-etco2)
 * hasMember[+] = Reference(anaesthesia-chart-oxygen)
+* hasMember[+] = Reference(anaesthesia-chart-fio2)
 * hasMember[+] = Reference(anaesthesia-chart-rhythm)
 * hasMember[+] = Reference(anaesthesia-chart-cvp)
 
@@ -102,9 +107,9 @@ Usage: #definition
 * hasMember[+] = Reference(anaesthesia-chart-colloid-blood)
 * hasMember[+] = Reference(anaesthesia-chart-blood-loss)
 * hasMember[+] = Reference(anaesthesia-chart-urine)
-* hasMember[+] = Reference(anaesthesia-chart-vasopressor)
-* hasMember[+] = Reference(anaesthesia-chart-other-drug)
+* hasMember[+] = Reference(anaesthesia-chart-drugs)
 * hasMember[+] = Reference(anaesthesia-chart-complication)
+* hasMember[+] = Reference(anaesthesia-chart-tourniquet)
 
 Instance: anaesthesia-chart-recovery
 InstanceOf: ObservationDefinition
@@ -153,6 +158,20 @@ Usage: #definition
 * code = $sghi-concept#anaes-event-incision "Incision"
 * permittedDataType = #boolean
 
+Instance: anaesthesia-chart-tourniquet-on
+InstanceOf: ObservationDefinition
+Usage: #definition
+* insert FlowsheetRow(tourniquet-on, Tourniquet on)
+* code = $sghi-concept#anaes-event-tourniquet-on "Tourniquet on"
+* permittedDataType = #boolean
+
+Instance: anaesthesia-chart-tourniquet-off
+InstanceOf: ObservationDefinition
+Usage: #definition
+* insert FlowsheetRow(tourniquet-off, Tourniquet off)
+* code = $sghi-concept#anaes-event-tourniquet-off "Tourniquet off"
+* permittedDataType = #boolean
+
 Instance: anaesthesia-chart-closure
 InstanceOf: ObservationDefinition
 Usage: #definition
@@ -166,6 +185,13 @@ Usage: #definition
 * insert FlowsheetRow(airway-removed, Extubation or airway out)
 * code = $sghi-concept#anaes-event-airway-removed "Extubation or airway out"
 * permittedDataType = #boolean
+
+Instance: anaesthesia-chart-block-height-reached
+InstanceOf: ObservationDefinition
+Usage: #definition
+* insert FlowsheetRow(block-height-reached, Block height reached)
+* code = $sghi-concept#anaes-block-height-reached "Block height reached"
+* permittedDataType = #CodeableConcept
 
 Instance: anaesthesia-chart-anaesthesia-end
 InstanceOf: ObservationDefinition
@@ -203,13 +229,21 @@ Usage: #definition
 * code = $sghi-concept#anaes-difficult-airway-predicted "Difficult airway predicted"
 * permittedDataType = #CodeableConcept
 
-Instance: anaesthesia-chart-duration
+Instance: anaesthesia-chart-baseline-sbp
 InstanceOf: ObservationDefinition
 Usage: #definition
-* insert FlowsheetRow(duration, Duration of anaesthesia)
-* code = $loinc#89874-2 "Duration of anesthesia"
+* insert FlowsheetRow(baseline-sbp, Baseline systolic BP)
+* code = $sghi-concept#anaes-baseline-sbp "Baseline systolic BP"
 * permittedDataType = #Quantity
-* permittedUnit = $ucum#min "minutes"
+* permittedUnit = $ucum#mm[Hg] "mmHg"
+
+Instance: anaesthesia-chart-baseline-dbp
+InstanceOf: ObservationDefinition
+Usage: #definition
+* insert FlowsheetRow(baseline-dbp, Baseline diastolic BP)
+* code = $sghi-concept#anaes-baseline-dbp "Baseline diastolic BP"
+* permittedDataType = #Quantity
+* permittedUnit = $ucum#mm[Hg] "mmHg"
 
 Instance: anaesthesia-chart-pulse
 InstanceOf: ObservationDefinition
@@ -219,8 +253,8 @@ Usage: #definition
 * permittedDataType = #Quantity
 * permittedUnit = $ucum#/min "/min"
 * extension[FlowsheetAlert].valueString = "<50, ≥120"
-* extension[FlowsheetPlot].valueRange.low = 30 '/min'
-* extension[FlowsheetPlot].valueRange.high = 160 '/min'
+* extension[FlowsheetPlot].valueRange.low = 40 '/min'
+* extension[FlowsheetPlot].valueRange.high = 200 '/min'
 * insert AbsoluteRange(20, 250, /min)
 
 Instance: anaesthesia-chart-sbp
@@ -230,7 +264,7 @@ Usage: #definition
 * code = $loinc#8480-6 "Systolic blood pressure"
 * permittedDataType = #Quantity
 * permittedUnit = $ucum#mm[Hg] "mmHg"
-* extension[FlowsheetAlert].valueString = "<90, ≥160; ±20% of baseline"
+* extension[FlowsheetAlert].valueString = "<90, ≥160; 20% from baseline"
 * extension[FlowsheetPlot].valueRange.low = 40 'mm[Hg]'
 * extension[FlowsheetPlot].valueRange.high = 200 'mm[Hg]'
 * insert AbsoluteRange(40, 300, mm[Hg])
@@ -243,8 +277,8 @@ Usage: #definition
 * permittedDataType = #Quantity
 * permittedUnit = $ucum#mm[Hg] "mmHg"
 * extension[FlowsheetAlert].valueString = "≥100"
-* extension[FlowsheetPlot].valueRange.low = 30 'mm[Hg]'
-* extension[FlowsheetPlot].valueRange.high = 130 'mm[Hg]'
+* extension[FlowsheetPlot].valueRange.low = 40 'mm[Hg]'
+* extension[FlowsheetPlot].valueRange.high = 200 'mm[Hg]'
 * insert AbsoluteRange(20, 200, mm[Hg])
 
 Instance: anaesthesia-chart-map
@@ -256,7 +290,7 @@ Usage: #definition
 * permittedUnit = $ucum#mm[Hg] "mmHg"
 * extension[FlowsheetAlert].valueString = "<65"
 * extension[FlowsheetPlot].valueRange.low = 40 'mm[Hg]'
-* extension[FlowsheetPlot].valueRange.high = 140 'mm[Hg]'
+* extension[FlowsheetPlot].valueRange.high = 200 'mm[Hg]'
 * insert AbsoluteRange(20, 250, mm[Hg])
 
 Instance: anaesthesia-chart-spo2
@@ -267,7 +301,7 @@ Usage: #definition
 * permittedDataType = #Quantity
 * permittedUnit = $ucum#% "%"
 * extension[FlowsheetAlert].valueString = "<94"
-* extension[FlowsheetPlot].valueRange.low = 80 '%'
+* extension[FlowsheetPlot].valueRange.low = 85 '%'
 * extension[FlowsheetPlot].valueRange.high = 100 '%'
 * insert AbsoluteRange(50, 100, %)
 
@@ -316,6 +350,15 @@ Usage: #definition
 * permittedDataType = #Quantity
 * permittedUnit = $ucum#L/min "L/min"
 * insert AbsoluteRange(0, 15, L/min)
+
+Instance: anaesthesia-chart-fio2
+InstanceOf: ObservationDefinition
+Usage: #definition
+* insert FlowsheetRow(fio2, FiO2)
+* code = $loinc#3150-0 "Inhaled oxygen concentration"
+* permittedDataType = #Quantity
+* permittedUnit = $ucum#% "%"
+* insert AbsoluteRange(21, 100, %)
 
 Instance: anaesthesia-chart-rhythm
 InstanceOf: ObservationDefinition
@@ -434,25 +477,25 @@ Usage: #definition
 * permittedUnit = $ucum#mL "mL"
 * extension[FlowsheetAggregate].valueCode = #sum
 
-Instance: anaesthesia-chart-vasopressor
+Instance: anaesthesia-chart-drugs
 InstanceOf: ObservationDefinition
 Usage: #definition
-* insert FlowsheetRow(vasopressor, Vasopressor)
-* code = $sghi-concept#anaes-vasopressor-given "Vasopressor"
-* permittedDataType = #string
-
-Instance: anaesthesia-chart-other-drug
-InstanceOf: ObservationDefinition
-Usage: #definition
-* insert FlowsheetRow(other-drug, Other drug)
-* code = $sghi-concept#anaes-other-drug-given "Other drug"
+* insert FlowsheetRow(drugs, Drugs)
+* code = $sghi-concept#anaes-drug-given "Drug given"
 * permittedDataType = #string
 
 Instance: anaesthesia-chart-complication
 InstanceOf: ObservationDefinition
 Usage: #definition
-* insert FlowsheetRow(complication, Complication and action taken)
-* code = $sghi-concept#anaes-complication "Complication and action taken"
+* insert FlowsheetRow(complication, Complication)
+* code = $sghi-concept#anaes-complication "Complication"
+* permittedDataType = #string
+
+Instance: anaesthesia-chart-tourniquet
+InstanceOf: ObservationDefinition
+Usage: #definition
+* insert FlowsheetRow(tourniquet, Tourniquet limb and pressure)
+* code = $sghi-concept#anaes-tourniquet-detail "Tourniquet limb and pressure"
 * permittedDataType = #string
 
 Instance: anaesthesia-chart-aldrete-activity

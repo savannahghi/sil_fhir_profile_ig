@@ -129,3 +129,10 @@ Context: ObservationDefinition
     width 1..1
 * extension[stage].value[x] only id
 * extension[width].value[x] only Quantity
+
+Extension: FlowsheetPrefill
+Id: flowsheet-prefill
+Title: "Flowsheet prefill"
+Description: "What the page a chart is drawn on fills a form's question with from that chart: \"latest:<row>\" for the row's latest reading in the window, \"total:<row>\" for its total. The person filling the form can still correct it, as at handover, where the last vitals and the totals come from the anaesthesia chart."
+Context: Questionnaire.item
+* value[x] only string
