@@ -39,6 +39,8 @@ Usage: #definition
 * code = $loinc#9279-1 "Respiratory rate"
 * permittedDataType = #Quantity
 * permittedUnit = $ucum#/min "breaths/min"
+* extension[FlowsheetPlot].valueRange.low = 5 '/min'
+* extension[FlowsheetPlot].valueRange.high = 40 '/min'
 * insert AbsoluteRange(4, 80, /min)
 
 Instance: adult-observation-chart-spo2
@@ -48,6 +50,8 @@ Usage: #definition
 * code = $loinc#59408-5 "Oxygen saturation in Arterial blood by Pulse oximetry"
 * permittedDataType = #Quantity
 * permittedUnit = $ucum#% "%"
+* extension[FlowsheetPlot].valueRange.low = 80 '%'
+* extension[FlowsheetPlot].valueRange.high = 100 '%'
 * insert AbsoluteRange(50, 100, %)
 
 Instance: adult-observation-chart-oxygen
@@ -64,6 +68,8 @@ Usage: #definition
 * code = $loinc#8480-6 "Systolic blood pressure"
 * permittedDataType = #Quantity
 * permittedUnit = $ucum#mm[Hg] "mmHg"
+* extension[FlowsheetPlot].valueRange.low = 60 'mm[Hg]'
+* extension[FlowsheetPlot].valueRange.high = 220 'mm[Hg]'
 * insert AbsoluteRange(40, 300, mm[Hg])
 
 Instance: adult-observation-chart-dbp
@@ -73,6 +79,8 @@ Usage: #definition
 * code = $loinc#8462-4 "Diastolic blood pressure"
 * permittedDataType = #Quantity
 * permittedUnit = $ucum#mm[Hg] "mmHg"
+* extension[FlowsheetPlot].valueRange.low = 30 'mm[Hg]'
+* extension[FlowsheetPlot].valueRange.high = 130 'mm[Hg]'
 * insert AbsoluteRange(20, 200, mm[Hg])
 
 Instance: adult-observation-chart-pulse
@@ -82,6 +90,8 @@ Usage: #definition
 * code = $loinc#8867-4 "Heart rate"
 * permittedDataType = #Quantity
 * permittedUnit = $ucum#/min "bpm"
+* extension[FlowsheetPlot].valueRange.low = 30 '/min'
+* extension[FlowsheetPlot].valueRange.high = 160 '/min'
 * insert AbsoluteRange(20, 250, /min)
 
 Instance: adult-observation-chart-acvpu
@@ -98,6 +108,8 @@ Usage: #definition
 * code = $loinc#8310-5 "Body temperature"
 * permittedDataType = #Quantity
 * permittedUnit = $ucum#Cel "°C"
+* extension[FlowsheetPlot].valueRange.low = 34 'Cel'
+* extension[FlowsheetPlot].valueRange.high = 41 'Cel'
 * extension[FlowsheetDecimals].valueInteger = 1
 * insert AbsoluteRange(25, 45, Cel)
 
@@ -116,6 +128,8 @@ Usage: #definition
 * code = $loinc#8478-0 "Mean blood pressure"
 * permittedDataType = #Quantity
 * permittedUnit = $ucum#mm[Hg] "mmHg"
+* extension[FlowsheetPlot].valueRange.low = 40 'mm[Hg]'
+* extension[FlowsheetPlot].valueRange.high = 140 'mm[Hg]'
 
 Instance: adult-observation-chart-news2
 InstanceOf: ObservationDefinition
@@ -124,3 +138,5 @@ Usage: #definition
 * code = $sghi-concept#news2-total "NEWS2 total score"
 * permittedDataType = #integer
 * permittedUnit = $ucum#"{score}" "score"
+* extension[FlowsheetPlot].valueRange.low = 0 '{score}'
+* extension[FlowsheetPlot].valueRange.high = 20 '{score}'

@@ -71,6 +71,8 @@ Usage: #definition
 * code = $loinc#8310-5 "Body temperature"
 * permittedDataType = #Quantity
 * permittedUnit = $ucum#Cel "°C"
+* extension[FlowsheetPlot].valueRange.low = 35 'Cel'
+* extension[FlowsheetPlot].valueRange.high = 40 'Cel'
 * extension[FlowsheetDecimals].valueInteger = 1
 * insert AbsoluteRange(25, 45, Cel)
 
@@ -81,6 +83,8 @@ Usage: #definition
 * code = $loinc#8867-4 "Heart rate"
 * permittedDataType = #Quantity
 * permittedUnit = $ucum#/min "bpm"
+* extension[FlowsheetPlot].valueRange.low = 40 '/min'
+* extension[FlowsheetPlot].valueRange.high = 160 '/min'
 * insert AbsoluteRange(20, 250, /min)
 
 Instance: antenatal-ward-chart-rr
@@ -90,6 +94,8 @@ Usage: #definition
 * code = $loinc#9279-1 "Respiratory rate"
 * permittedDataType = #Quantity
 * permittedUnit = $ucum#/min "breaths/min"
+* extension[FlowsheetPlot].valueRange.low = 5 '/min'
+* extension[FlowsheetPlot].valueRange.high = 40 '/min'
 * insert AbsoluteRange(4, 80, /min)
 
 Instance: antenatal-ward-chart-sbp
@@ -99,6 +105,8 @@ Usage: #definition
 * code = $loinc#8480-6 "Systolic blood pressure"
 * permittedDataType = #Quantity
 * permittedUnit = $ucum#mm[Hg] "mmHg"
+* extension[FlowsheetPlot].valueRange.low = 60 'mm[Hg]'
+* extension[FlowsheetPlot].valueRange.high = 200 'mm[Hg]'
 * extension[FlowsheetAlert].valueString = "≥140"
 * insert AbsoluteRange(40, 300, mm[Hg])
 
@@ -109,6 +117,8 @@ Usage: #definition
 * code = $loinc#8462-4 "Diastolic blood pressure"
 * permittedDataType = #Quantity
 * permittedUnit = $ucum#mm[Hg] "mmHg"
+* extension[FlowsheetPlot].valueRange.low = 30 'mm[Hg]'
+* extension[FlowsheetPlot].valueRange.high = 130 'mm[Hg]'
 * extension[FlowsheetAlert].valueString = "≥90"
 * insert AbsoluteRange(20, 200, mm[Hg])
 
