@@ -74,6 +74,7 @@ Description: "Where a flowsheet is offered. A screen asks for the templates of o
 * #postnatal "Postnatal ward"
 * #newborn "Newborn unit"
 * #outpatient "Outpatient clinic"
+* #dialysis "Dialysis"
 
 ValueSet: SGHIFlowsheetContexts
 Id: flowsheet-contexts
