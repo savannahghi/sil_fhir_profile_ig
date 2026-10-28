@@ -1234,6 +1234,36 @@ Description: "A code system enumerating local codes used across ANC, PNC, CWC an
 * #ros-skin "Skin" "Review of Systems: Skin."
 * #ros-reproductive "Reproductive" "Review of Systems: Reproductive system."
 
+// --- MOH 405 ANC Register: question concepts ---
+// These name what a register cell asks, not what the answer says, and exist
+// because LOINC 2.83 has no code for any of them. Each was searched for first;
+// where LOINC did have one it is used on the form instead of a code here.
+* #anc-fgm-complication "FGM-associated complication" "Complication associated with female genital mutilation, observed at an antenatal visit. LOINC has no code for female genital mutilation or its sequelae."
+* #anc-hiv-test-kit-name "HIV test kit name" "Trade name of the rapid test kit used for an HIV test. LOINC's only kit-name code is for urine drug screens."
+* #anc-hiv-test-kit-expiry "HIV test kit expiry date" "Expiry date printed on the HIV rapid test kit used."
+* #anc-haart-started "HAART started in antenatal care" "Whether highly active antiretroviral therapy was started during this antenatal episode."
+* #anc-tetanus-toxoid-dose "Tetanus toxoid dose given" "Which tetanus toxoid dose in the schedule was given at this visit. LOINC's tetanus toxoid codes are all lymphocyte proliferation assays."
+* #anc-referred-from "Referred from" "Where the client was referred from into this antenatal visit."
+* #anc-referred-to "Referred to" "Where the client is being referred on to."
+* #anc-llitn-received "Insecticide-treated net received" "Whether a long-lasting insecticidal treated net was issued at this visit. LOINC's insecticide codes are all toxicology assays."
+* #anc-hb-test-done "Haemoglobin test performed" "Whether a haemoglobin test was performed at this visit. Distinct from the result (LOINC 718-7): on a register, a test not done and a result not yet back are different facts."
+* #anc-malaria-test-done "Malaria test performed" "Whether a malaria test was performed at this visit."
+* #anc-malaria-test-result "Malaria test result" "Result of the malaria test performed at this visit."
+* #anc-obstetric-ultrasound-done "Obstetric ultrasound performed" "Whether the client has had an obstetric ultrasound."
+* #anc-partner-hiv-test-done "Partner HIV testing performed" "Whether the client's partner was tested for HIV at this visit. The client's own testing uses LOINC 55277-8; the partner needs a separate code so a partner's result is never stored under the client's."
+* #anc-partner-hiv-result "Partner HIV test result" "Result of the partner's HIV test. Separate from the client's own final result (LOINC 56888-1) for the same reason."
+
+// --- MOH 405 ANC Register: medicines given ---
+// The register's preventive and prophylaxis cells are yes/no, so the medicine
+// is named by the code rather than by the answer. They sit on
+// MedicationAdministration.medication.concept, and previously all five shared a
+// single code that does not exist in LOINC.
+* #anc-deworming "Deworming in pregnancy" "Anthelmintic given at an antenatal visit. The register records neither the drug nor the dose."
+* #anc-iptp "Intermittent preventive treatment in pregnancy" "Sulfadoxine-pyrimethamine given as intermittent preventive treatment of malaria in pregnancy."
+* #anc-ctx "Cotrimoxazole prophylaxis" "Cotrimoxazole prophylaxis given to an HIV-positive antenatal client."
+* #anc-infant-azt "Infant zidovudine prophylaxis" "Zidovudine dispensed for the infant as part of prevention of mother-to-child transmission."
+* #anc-infant-nvp "Infant nevirapine prophylaxis" "Nevirapine dispensed for the infant as part of prevention of mother-to-child transmission."
+
 CodeSystem: SGHIVisitCategoryCodeSystem
 Id: visit-category-codesystem
 Title: "SGHI Visit Category Code System"
