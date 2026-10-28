@@ -1,0 +1,1564 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractMOH405ANCRegister"
+/// name = "ExtractMOH405ANCRegister"
+/// title = "MOH 405 Antenatal Care Register Extraction"
+/// status = "active"
+/// description = "Extracts a transaction Bundle from a QuestionnaireResponse to the Kenya MOH 405 Antenatal Care Register (2019). Visit administration, obstetric history, anthropometrics, laboratory results, HIV testing and the partner result all round out as Observations under the codes the register itself names; blood pressure as one panel with a systolic and a diastolic component; comorbidities as Conditions; tetanus toxoid as an Immunization carrying its dose number; deworming, IPTp, supplementation and the three HIV prophylaxis cells as MedicationAdministrations; and an onward referral as a ServiceRequest. It creates no Patient, Encounter or EpisodeOfCare: the register is filled inside a visit the EMR has already opened, so all three arrive as context on the response and are referenced rather than minted. The client demographics group is populated from the Patient on launch and is not extracted -- writing it back would mint a second copy of the record it was read from."
+/// experimental = "true"
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Observation as target
+uses "http://hl7.org/fhir/StructureDefinition/Condition" alias Condition as target
+uses "http://hl7.org/fhir/StructureDefinition/Immunization" alias Immunization as target
+uses "http://hl7.org/fhir/StructureDefinition/MedicationAdministration" alias MedicationAdministration as target
+uses "http://hl7.org/fhir/StructureDefinition/ServiceRequest" alias ServiceRequest as target
+
+group ExtractMOH405ANCRegister(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  // Visit administration. The visit date is not an Observation of its own: it
+  // is the effective time every resource below carries, set by SetVisitEffective.
+  qr.item as g where (linkId = 'ANC-visit-admin') then {
+
+    g.item as it where (linkId = 'ANC-VA-Q2-anc-number-new' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SurveyCategory(qr, obs) "category";
+      it -> obs.code as ccANC_VA_Q2_ then {
+        it -> ccANC_VA_Q2_.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '76435-7' "cd";
+          it -> cg.display = 'Medical record number' "dsp";
+        } "coding";
+        it -> ccANC_VA_Q2_.text = 'Medical record number' "codeText";
+      } "code";
+      it.answer first as a then {
+        a.value as v -> obs.value = v "value";
+      } "answer";
+      qr -> obs then SetVisitEffective(qr, obs) "visitDate";
+    } "obs_ANC_VA_Q2_anc_number_new";
+
+    g.item as it where (linkId = 'ANC-VA-Q3-anc-number-revisit' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SurveyCategory(qr, obs) "category";
+      it -> obs.code as ccANC_VA_Q3_ then {
+        it -> ccANC_VA_Q3_.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '76435-7' "cd";
+          it -> cg.display = 'Medical record number' "dsp";
+        } "coding";
+        it -> ccANC_VA_Q3_.text = 'Medical record number' "codeText";
+      } "code";
+      it.answer first as a then {
+        a.value as v -> obs.value = v "value";
+      } "answer";
+      qr -> obs then SetVisitEffective(qr, obs) "visitDate";
+    } "obs_ANC_VA_Q3_anc_number_revisit";
+
+    g.item as it where (linkId = 'ANC-VA-Q4-visit-count' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SurveyCategory(qr, obs) "category";
+      it -> obs.code as ccANC_VA_Q4_ then {
+        it -> ccANC_VA_Q4_.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '68493-6' "cd";
+          it -> cg.display = 'Prenatal visits for this pregnancy #' "dsp";
+        } "coding";
+        it -> ccANC_VA_Q4_.text = 'Prenatal visits for this pregnancy #' "codeText";
+      } "code";
+      it.answer first as a then {
+        a.value as v -> obs.value = v "value";
+      } "answer";
+      qr -> obs then SetVisitEffective(qr, obs) "visitDate";
+    } "obs_ANC_VA_Q4_visit_count";
+
+  } "group_ANC_visit_admin";
+
+  // Obstetric history. Parity, gravidity and the two dates are re-stated at every
+  // visit, so each visit's Observation is that visit's answer, not a correction
+  // of the last one.
+  qr.item as g where (linkId = 'ANC-obstetric-history') then {
+
+    g.item as it where (linkId = 'ANC-OH-Q1-parity' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SurveyCategory(qr, obs) "category";
+      it -> obs.code as ccANC_OH_Q1_ then {
+        it -> ccANC_OH_Q1_.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '11977-6' "cd";
+          it -> cg.display = 'Parity' "dsp";
+        } "coding";
+        it -> ccANC_OH_Q1_.text = 'Parity' "codeText";
+      } "code";
+      it.answer first as a then {
+        a.value as v -> obs.value = v "value";
+      } "answer";
+      qr -> obs then SetVisitEffective(qr, obs) "visitDate";
+    } "obs_ANC_OH_Q1_parity";
+
+    g.item as it where (linkId = 'ANC-OH-Q2-miscarriages' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SurveyCategory(qr, obs) "category";
+      it -> obs.code as ccANC_OH_Q2_ then {
+        it -> ccANC_OH_Q2_.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '11612-9' "cd";
+          it -> cg.display = '[#] Abortions' "dsp";
+        } "coding";
+        it -> ccANC_OH_Q2_.text = '[#] Abortions' "codeText";
+      } "code";
+      it.answer first as a then {
+        a.value as v -> obs.value = v "value";
+      } "answer";
+      qr -> obs then SetVisitEffective(qr, obs) "visitDate";
+    } "obs_ANC_OH_Q2_miscarriages";
+
+    g.item as it where (linkId = 'ANC-OH-Q3-gravidae' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SurveyCategory(qr, obs) "category";
+      it -> obs.code as ccANC_OH_Q3_ then {
+        it -> ccANC_OH_Q3_.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '11996-6' "cd";
+          it -> cg.display = 'Gravida' "dsp";
+        } "coding";
+        it -> ccANC_OH_Q3_.text = 'Gravida' "codeText";
+      } "code";
+      it.answer first as a then {
+        a.value as v -> obs.value = v "value";
+      } "answer";
+      qr -> obs then SetVisitEffective(qr, obs) "visitDate";
+    } "obs_ANC_OH_Q3_gravidae";
+
+    g.item as it where (linkId = 'ANC-OH-Q4-lmp' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SurveyCategory(qr, obs) "category";
+      it -> obs.code as ccANC_OH_Q4_ then {
+        it -> ccANC_OH_Q4_.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '8665-2' "cd";
+          it -> cg.display = 'Last menstrual period start date' "dsp";
+        } "coding";
+        it -> ccANC_OH_Q4_.text = 'Last menstrual period start date' "codeText";
+      } "code";
+      it.answer first as a then {
+        a.value as v -> obs.value = cast(v, 'dateTime') "dateValue";
+      } "answer";
+      qr -> obs then SetVisitEffective(qr, obs) "visitDate";
+    } "obs_ANC_OH_Q4_lmp";
+
+    g.item as it where (linkId = 'ANC-OH-Q5-edd' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SurveyCategory(qr, obs) "category";
+      it -> obs.code as ccANC_OH_Q5_ then {
+        it -> ccANC_OH_Q5_.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '11778-8' "cd";
+          it -> cg.display = 'Delivery date estimated' "dsp";
+        } "coding";
+        it -> ccANC_OH_Q5_.text = 'Delivery date estimated' "codeText";
+      } "code";
+      it.answer first as a then {
+        a.value as v -> obs.value = cast(v, 'dateTime') "dateValue";
+      } "answer";
+      qr -> obs then SetVisitEffective(qr, obs) "visitDate";
+    } "obs_ANC_OH_Q5_edd";
+
+    g.item as it where (linkId = 'ANC-OH-Q6-gestation' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SurveyCategory(qr, obs) "category";
+      it -> obs.code as ccANC_OH_Q6_ then {
+        it -> ccANC_OH_Q6_.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '49051-6' "cd";
+          it -> cg.display = 'Gestational age in weeks' "dsp";
+        } "coding";
+        it -> ccANC_OH_Q6_.text = 'Gestational age in weeks' "codeText";
+      } "code";
+      it.answer first as a then {
+        a.value as n -> obs.value = create('Quantity') as qANC_OH_Q then {
+          n -> qANC_OH_Q.value = n "qtyValue";
+          n -> qANC_OH_Q.unit = 'wk' "qtyUnit";
+          n -> qANC_OH_Q.system = 'http://unitsofmeasure.org' "qtySystem";
+          n -> qANC_OH_Q.code = 'wk' "qtyCode";
+        } "quantity";
+      } "answer";
+      qr -> obs then SetVisitEffective(qr, obs) "visitDate";
+    } "obs_ANC_OH_Q6_gestation";
+
+  } "group_ANC_obstetric_history";
+
+  // Anthropometrics. Height and weight carry UCUM units; blood pressure is built
+  // separately below as a panel, because a systolic without its diastolic is not
+  // a reading.
+  qr.item as g where (linkId = 'ANC-anthropometrics') then {
+
+    g.item as it where (linkId = 'ANC-AV-Q1-muac') then {
+      it.answer as a where (value.exists()) then {
+        a -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then ExamCategory(qr, obs) "category";
+          it -> obs.code as ccANC_AV_Q1_ then {
+            it -> ccANC_AV_Q1_.coding as cg then {
+              it -> cg.system = 'http://loinc.org' "sys";
+              it -> cg.code = '56072-2' "cd";
+              it -> cg.display = 'Mid upper arm circumference' "dsp";
+            } "coding";
+            it -> ccANC_AV_Q1_.text = 'Mid upper arm circumference' "codeText";
+          } "code";
+          a.value as cv where ($this is Coding) -> obs.value = create('CodeableConcept') as vcc then {
+            cv -> vcc.coding = cv "valueCoding";
+            cv.display as d -> vcc.text = d "valueText";
+          } "codedValue";
+          qr -> obs then SetVisitEffective(qr, obs) "visitDate";
+        } "obs_ANC_AV_Q1_muac";
+      } "answers";
+    } "item_ANC_AV_Q1_muac";
+
+    g.item as it where (linkId = 'ANC-AV-Q2-height' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then VitalSignsCategory(qr, obs) "category";
+      it -> obs.code as ccANC_AV_Q2_ then {
+        it -> ccANC_AV_Q2_.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '8302-2' "cd";
+          it -> cg.display = 'Body height' "dsp";
+        } "coding";
+        it -> ccANC_AV_Q2_.text = 'Body height' "codeText";
+      } "code";
+      it.answer first as a then {
+        a.value as n -> obs.value = create('Quantity') as qANC_AV_Q then {
+          n -> qANC_AV_Q.value = n "qtyValue";
+          n -> qANC_AV_Q.unit = 'cm' "qtyUnit";
+          n -> qANC_AV_Q.system = 'http://unitsofmeasure.org' "qtySystem";
+          n -> qANC_AV_Q.code = 'cm' "qtyCode";
+        } "quantity";
+      } "answer";
+      qr -> obs then SetVisitEffective(qr, obs) "visitDate";
+    } "obs_ANC_AV_Q2_height";
+
+    g.item as it where (linkId = 'ANC-AV-Q3-weight' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then VitalSignsCategory(qr, obs) "category";
+      it -> obs.code as ccANC_AV_Q3_ then {
+        it -> ccANC_AV_Q3_.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '29463-7' "cd";
+          it -> cg.display = 'Body weight' "dsp";
+        } "coding";
+        it -> ccANC_AV_Q3_.text = 'Body weight' "codeText";
+      } "code";
+      it.answer first as a then {
+        a.value as n -> obs.value = create('Quantity') as qANC_AV_Q then {
+          n -> qANC_AV_Q.value = n "qtyValue";
+          n -> qANC_AV_Q.unit = 'kg' "qtyUnit";
+          n -> qANC_AV_Q.system = 'http://unitsofmeasure.org' "qtySystem";
+          n -> qANC_AV_Q.code = 'kg' "qtyCode";
+        } "quantity";
+      } "answer";
+      qr -> obs then SetVisitEffective(qr, obs) "visitDate";
+    } "obs_ANC_AV_Q3_weight";
+
+    g.item as it where (linkId = 'ANC-AV-Q6-breast-exam') then {
+      it.answer as a where (value.exists()) then {
+        a -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then ExamCategory(qr, obs) "category";
+          it -> obs.code as ccANC_AV_Q6_ then {
+            it -> ccANC_AV_Q6_.coding as cg then {
+              it -> cg.system = 'http://loinc.org' "sys";
+              it -> cg.code = '32451-7' "cd";
+              it -> cg.display = 'Physical findings of Breast' "dsp";
+            } "coding";
+            it -> ccANC_AV_Q6_.text = 'Physical findings of Breast' "codeText";
+          } "code";
+          a.value as cv where ($this is Coding) -> obs.value = create('CodeableConcept') as vcc then {
+            cv -> vcc.coding = cv "valueCoding";
+            cv.display as d -> vcc.text = d "valueText";
+          } "codedValue";
+          qr -> obs then SetVisitEffective(qr, obs) "visitDate";
+        } "obs_ANC_AV_Q6_breast_exam";
+      } "answers";
+    } "item_ANC_AV_Q6_breast_exam";
+
+    g.item as it where (linkId = 'ANC-AV-Q7-fgm') then {
+      it.answer as a where (value.exists()) then {
+        a -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then ExamCategory(qr, obs) "category";
+          it -> obs.code as ccANC_AV_Q7_ then {
+            it -> ccANC_AV_Q7_.coding as cg then {
+              it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/special-clinic-code-system' "sys";
+              it -> cg.code = 'anc-fgm-complication' "cd";
+              it -> cg.display = 'FGM-associated complication' "dsp";
+            } "coding";
+            it -> ccANC_AV_Q7_.text = 'FGM-associated complication' "codeText";
+          } "code";
+          a.value as cv where ($this is Coding) -> obs.value = create('CodeableConcept') as vcc then {
+            cv -> vcc.coding = cv "valueCoding";
+            cv.display as d -> vcc.text = d "valueText";
+          } "codedValue";
+          qr -> obs then SetVisitEffective(qr, obs) "visitDate";
+        } "obs_ANC_AV_Q7_fgm";
+      } "answers";
+    } "item_ANC_AV_Q7_fgm";
+
+  } "group_ANC_anthropometrics";
+
+  // Laboratory investigations. The 'test done' cells are kept as coded
+  // Observations in their own right: on a paper register the absence of a result
+  // and a test that was never ordered are different facts, and only this column
+  // tells them apart.
+  qr.item as g where (linkId = 'ANC-laboratory') then {
+
+    g.item as it where (linkId = 'ANC-LB-Q1-hb-status') then {
+      it.answer as a where (value.exists()) then {
+        a -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then LaboratoryCategory(qr, obs) "category";
+          it -> obs.code as ccANC_LB_Q1_ then {
+            it -> ccANC_LB_Q1_.coding as cg then {
+              it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/special-clinic-code-system' "sys";
+              it -> cg.code = 'anc-hb-test-done' "cd";
+              it -> cg.display = 'Haemoglobin test performed' "dsp";
+            } "coding";
+            it -> ccANC_LB_Q1_.text = 'Haemoglobin test performed' "codeText";
+          } "code";
+          a.value as cv where ($this is Coding) -> obs.value = create('CodeableConcept') as vcc then {
+            cv -> vcc.coding = cv "valueCoding";
+            cv.display as d -> vcc.text = d "valueText";
+          } "codedValue";
+          qr -> obs then SetVisitEffective(qr, obs) "visitDate";
+        } "obs_ANC_LB_Q1_hb_status";
+      } "answers";
+    } "item_ANC_LB_Q1_hb_status";
+
+    g.item as it where (linkId = 'ANC-LB-Q2-hb-value' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then LaboratoryCategory(qr, obs) "category";
+      it -> obs.code as ccANC_LB_Q2_ then {
+        it -> ccANC_LB_Q2_.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '718-7' "cd";
+          it -> cg.display = 'Hemoglobin [Mass/volume] in Blood' "dsp";
+        } "coding";
+        it -> ccANC_LB_Q2_.text = 'Hemoglobin [Mass/volume] in Blood' "codeText";
+      } "code";
+      it.answer first as a then {
+        a.value as n -> obs.value = create('Quantity') as qANC_LB_Q then {
+          n -> qANC_LB_Q.value = n "qtyValue";
+          n -> qANC_LB_Q.unit = 'g/dL' "qtyUnit";
+          n -> qANC_LB_Q.system = 'http://unitsofmeasure.org' "qtySystem";
+          n -> qANC_LB_Q.code = 'g/dL' "qtyCode";
+        } "quantity";
+      } "answer";
+      qr -> obs then SetVisitEffective(qr, obs) "visitDate";
+    } "obs_ANC_LB_Q2_hb_value";
+
+    g.item as it where (linkId = 'ANC-LB-Q3-blood-sugar') then {
+      it.answer as a where (value.exists()) then {
+        a -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then LaboratoryCategory(qr, obs) "category";
+          it -> obs.code as ccANC_LB_Q3_ then {
+            it -> ccANC_LB_Q3_.coding as cg then {
+              it -> cg.system = 'http://loinc.org' "sys";
+              it -> cg.code = '15074-8' "cd";
+              it -> cg.display = 'Glucose [Moles/volume] in Blood' "dsp";
+            } "coding";
+            it -> ccANC_LB_Q3_.text = 'Glucose [Moles/volume] in Blood' "codeText";
+          } "code";
+          a.value as cv where ($this is Coding) -> obs.value = create('CodeableConcept') as vcc then {
+            cv -> vcc.coding = cv "valueCoding";
+            cv.display as d -> vcc.text = d "valueText";
+          } "codedValue";
+          qr -> obs then SetVisitEffective(qr, obs) "visitDate";
+        } "obs_ANC_LB_Q3_blood_sugar";
+      } "answers";
+    } "item_ANC_LB_Q3_blood_sugar";
+
+    g.item as it where (linkId = 'ANC-LB-Q4-blood-group') then {
+      it.answer as a where (value.exists()) then {
+        a -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then LaboratoryCategory(qr, obs) "category";
+          it -> obs.code as ccANC_LB_Q4_ then {
+            it -> ccANC_LB_Q4_.coding as cg then {
+              it -> cg.system = 'http://loinc.org' "sys";
+              it -> cg.code = '883-9' "cd";
+              it -> cg.display = 'ABO group [Type] in Blood' "dsp";
+            } "coding";
+            it -> ccANC_LB_Q4_.text = 'ABO group [Type] in Blood' "codeText";
+          } "code";
+          a.value as cv where ($this is Coding) -> obs.value = create('CodeableConcept') as vcc then {
+            cv -> vcc.coding = cv "valueCoding";
+            cv.display as d -> vcc.text = d "valueText";
+          } "codedValue";
+          qr -> obs then SetVisitEffective(qr, obs) "visitDate";
+        } "obs_ANC_LB_Q4_blood_group";
+      } "answers";
+    } "item_ANC_LB_Q4_blood_group";
+
+    g.item as it where (linkId = 'ojy8vwq') then {
+      it.answer as a where (value.exists()) then {
+        a -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then LaboratoryCategory(qr, obs) "category";
+          it -> obs.code as ccojy8vwq then {
+            it -> ccojy8vwq.coding as cg then {
+              it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/special-clinic-code-system' "sys";
+              it -> cg.code = 'anc-malaria-test-done' "cd";
+              it -> cg.display = 'Malaria test performed' "dsp";
+            } "coding";
+            it -> ccojy8vwq.text = 'Malaria test performed' "codeText";
+          } "code";
+          a.value as cv where ($this is Coding) -> obs.value = create('CodeableConcept') as vcc then {
+            cv -> vcc.coding = cv "valueCoding";
+            cv.display as d -> vcc.text = d "valueText";
+          } "codedValue";
+          qr -> obs then SetVisitEffective(qr, obs) "visitDate";
+        } "obs_ojy8vwq";
+      } "answers";
+    } "item_ojy8vwq";
+
+    g.item as it where (linkId = 'iq9q66c') then {
+      it.answer as a where (value.exists()) then {
+        a -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then LaboratoryCategory(qr, obs) "category";
+          it -> obs.code as cciq9q66c then {
+            it -> cciq9q66c.coding as cg then {
+              it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/special-clinic-code-system' "sys";
+              it -> cg.code = 'anc-malaria-test-result' "cd";
+              it -> cg.display = 'Malaria test result' "dsp";
+            } "coding";
+            it -> cciq9q66c.text = 'Malaria test result' "codeText";
+          } "code";
+          a.value as cv where ($this is Coding) -> obs.value = create('CodeableConcept') as vcc then {
+            cv -> vcc.coding = cv "valueCoding";
+            cv.display as d -> vcc.text = d "valueText";
+          } "codedValue";
+          qr -> obs then SetVisitEffective(qr, obs) "visitDate";
+        } "obs_iq9q66c";
+      } "answers";
+    } "item_iq9q66c";
+
+    g.item as it where (linkId = 'ANC-LB-Q5-urinalysis') then {
+      it.answer as a where (value.exists()) then {
+        a -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then LaboratoryCategory(qr, obs) "category";
+          it -> obs.code as ccANC_LB_Q5_ then {
+            it -> ccANC_LB_Q5_.coding as cg then {
+              it -> cg.system = 'http://loinc.org' "sys";
+              it -> cg.code = '5778-6' "cd";
+              it -> cg.display = 'Color of Urine' "dsp";
+            } "coding";
+            it -> ccANC_LB_Q5_.text = 'Color of Urine' "codeText";
+          } "code";
+          a.value as cv where ($this is Coding) -> obs.value = create('CodeableConcept') as vcc then {
+            cv -> vcc.coding = cv "valueCoding";
+            cv.display as d -> vcc.text = d "valueText";
+          } "codedValue";
+          qr -> obs then SetVisitEffective(qr, obs) "visitDate";
+        } "obs_ANC_LB_Q5_urinalysis";
+      } "answers";
+    } "item_ANC_LB_Q5_urinalysis";
+
+    g.item as it where (linkId = 'ANC-LB-Q6-syph-done') then {
+      it.answer as a where (value.exists()) then {
+        a -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then LaboratoryCategory(qr, obs) "category";
+          it -> obs.code as ccANC_LB_Q6_ then {
+            it -> ccANC_LB_Q6_.coding as cg then {
+              it -> cg.system = 'http://loinc.org' "sys";
+              it -> cg.code = '20507-0' "cd";
+              it -> cg.display = 'Reagin Ab [Presence] in Serum' "dsp";
+            } "coding";
+            it -> ccANC_LB_Q6_.text = 'Reagin Ab [Presence] in Serum' "codeText";
+          } "code";
+          a.value as cv where ($this is Coding) -> obs.value = create('CodeableConcept') as vcc then {
+            cv -> vcc.coding = cv "valueCoding";
+            cv.display as d -> vcc.text = d "valueText";
+          } "codedValue";
+          qr -> obs then SetVisitEffective(qr, obs) "visitDate";
+        } "obs_ANC_LB_Q6_syph_done";
+      } "answers";
+    } "item_ANC_LB_Q6_syph_done";
+
+    g.item as it where (linkId = 'ANC-LB-Q7-syph-type') then {
+      it.answer as a where (value.exists()) then {
+        a -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then LaboratoryCategory(qr, obs) "category";
+          it -> obs.code as ccANC_LB_Q7_ then {
+            it -> ccANC_LB_Q7_.coding as cg then {
+              it -> cg.system = 'http://loinc.org' "sys";
+              it -> cg.code = '22461-8' "cd";
+              it -> cg.display = 'Reagin Ab [Titer] in Serum by RPR' "dsp";
+            } "coding";
+            it -> ccANC_LB_Q7_.text = 'Reagin Ab [Titer] in Serum by RPR' "codeText";
+          } "code";
+          a.value as cv where ($this is Coding) -> obs.value = create('CodeableConcept') as vcc then {
+            cv -> vcc.coding = cv "valueCoding";
+            cv.display as d -> vcc.text = d "valueText";
+          } "codedValue";
+          qr -> obs then SetVisitEffective(qr, obs) "visitDate";
+        } "obs_ANC_LB_Q7_syph_type";
+      } "answers";
+    } "item_ANC_LB_Q7_syph_type";
+
+    g.item as it where (linkId = 'ANC-LB-Q8-syph-result') then {
+      it.answer as a where (value.exists()) then {
+        a -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then LaboratoryCategory(qr, obs) "category";
+          it -> obs.code as ccANC_LB_Q8_ then {
+            it -> ccANC_LB_Q8_.coding as cg then {
+              it -> cg.system = 'http://loinc.org' "sys";
+              it -> cg.code = '11083-3' "cd";
+              it -> cg.display = 'Syphilis test result' "dsp";
+            } "coding";
+            it -> ccANC_LB_Q8_.text = 'Syphilis test result' "codeText";
+          } "code";
+          a.value as cv where ($this is Coding) -> obs.value = create('CodeableConcept') as vcc then {
+            cv -> vcc.coding = cv "valueCoding";
+            cv.display as d -> vcc.text = d "valueText";
+          } "codedValue";
+          qr -> obs then SetVisitEffective(qr, obs) "visitDate";
+        } "obs_ANC_LB_Q8_syph_result";
+      } "answers";
+    } "item_ANC_LB_Q8_syph_result";
+
+    g.item as it where (linkId = 'ANC-LB-Q9-syph-treated') then {
+      it.answer as a where (value.exists()) then {
+        a -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then LaboratoryCategory(qr, obs) "category";
+          it -> obs.code as ccANC_LB_Q9_ then {
+            it -> ccANC_LB_Q9_.coding as cg then {
+              it -> cg.system = 'http://loinc.org' "sys";
+              it -> cg.code = '75197-4' "cd";
+              it -> cg.display = 'Syphilis treatment was given and treatment description [CDC.CS]' "dsp";
+            } "coding";
+            it -> ccANC_LB_Q9_.text = 'Syphilis treatment was given and treatment description [CDC.CS]' "codeText";
+          } "code";
+          a.value as cv where ($this is Coding) -> obs.value = create('CodeableConcept') as vcc then {
+            cv -> vcc.coding = cv "valueCoding";
+            cv.display as d -> vcc.text = d "valueText";
+          } "codedValue";
+          qr -> obs then SetVisitEffective(qr, obs) "visitDate";
+        } "obs_ANC_LB_Q9_syph_treated";
+      } "answers";
+    } "item_ANC_LB_Q9_syph_treated";
+
+    g.item as it where (linkId = 'ANC-LB-Q10-tb') then {
+      it.answer as a where (value.exists()) then {
+        a -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then LaboratoryCategory(qr, obs) "category";
+          it -> obs.code as ccANC_LB_Q10 then {
+            it -> ccANC_LB_Q10.coding as cg then {
+              it -> cg.system = 'http://loinc.org' "sys";
+              it -> cg.code = '45228-4' "cd";
+              it -> cg.display = 'Tuberculosis screening panel' "dsp";
+            } "coding";
+            it -> ccANC_LB_Q10.text = 'Tuberculosis screening panel' "codeText";
+          } "code";
+          a.value as cv where ($this is Coding) -> obs.value = create('CodeableConcept') as vcc then {
+            cv -> vcc.coding = cv "valueCoding";
+            cv.display as d -> vcc.text = d "valueText";
+          } "codedValue";
+          qr -> obs then SetVisitEffective(qr, obs) "visitDate";
+        } "obs_ANC_LB_Q10_tb";
+      } "answers";
+    } "item_ANC_LB_Q10_tb";
+
+    g.item as it where (linkId = 'zpf8pvr') then {
+      it.answer as a where (value.exists()) then {
+        a -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then LaboratoryCategory(qr, obs) "category";
+          it -> obs.code as cczpf8pvr then {
+            it -> cczpf8pvr.coding as cg then {
+              it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/special-clinic-code-system' "sys";
+              it -> cg.code = 'anc-obstetric-ultrasound-done' "cd";
+              it -> cg.display = 'Obstetric ultrasound performed' "dsp";
+            } "coding";
+            it -> cczpf8pvr.text = 'Obstetric ultrasound performed' "codeText";
+          } "code";
+          a.value as cv where ($this is Coding) -> obs.value = create('CodeableConcept') as vcc then {
+            cv -> vcc.coding = cv "valueCoding";
+            cv.display as d -> vcc.text = d "valueText";
+          } "codedValue";
+          qr -> obs then SetVisitEffective(qr, obs) "visitDate";
+        } "obs_zpf8pvr";
+      } "answers";
+    } "item_zpf8pvr";
+
+  } "group_ANC_laboratory";
+
+  // HIV status and ART management. The three test kits are handled after this
+  // block, since each is a nested group rather than a single cell.
+  qr.item as g where (linkId = 'ANC-hiv-art') then {
+
+    g.item as it where (linkId = 'ANC-HV-Q1-hiv-status') then {
+      it.answer as a where (value.exists()) then {
+        a -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then LaboratoryCategory(qr, obs) "category";
+          it -> obs.code as ccANC_HV_Q1_ then {
+            it -> ccANC_HV_Q1_.coding as cg then {
+              it -> cg.system = 'http://loinc.org' "sys";
+              it -> cg.code = '55277-8' "cd";
+              it -> cg.display = 'HIV status' "dsp";
+            } "coding";
+            it -> ccANC_HV_Q1_.text = 'HIV status' "codeText";
+          } "code";
+          a.value as cv where ($this is Coding) -> obs.value = create('CodeableConcept') as vcc then {
+            cv -> vcc.coding = cv "valueCoding";
+            cv.display as d -> vcc.text = d "valueText";
+          } "codedValue";
+          qr -> obs then SetVisitEffective(qr, obs) "visitDate";
+        } "obs_ANC_HV_Q1_hiv_status";
+      } "answers";
+    } "item_ANC_HV_Q1_hiv_status";
+
+    g.item as it where (linkId = 'ANC-HV-Q2-hiv-test-type') then {
+      it.answer as a where (value.exists()) then {
+        a -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then LaboratoryCategory(qr, obs) "category";
+          it -> obs.code as ccANC_HV_Q2_ then {
+            it -> ccANC_HV_Q2_.coding as cg then {
+              it -> cg.system = 'http://loinc.org' "sys";
+              it -> cg.code = '75622-1' "cd";
+              it -> cg.display = 'HIV 1 and 2 tests' "dsp";
+            } "coding";
+            it -> ccANC_HV_Q2_.text = 'HIV 1 and 2 tests' "codeText";
+          } "code";
+          a.value as cv where ($this is Coding) -> obs.value = create('CodeableConcept') as vcc then {
+            cv -> vcc.coding = cv "valueCoding";
+            cv.display as d -> vcc.text = d "valueText";
+          } "codedValue";
+          qr -> obs then SetVisitEffective(qr, obs) "visitDate";
+        } "obs_ANC_HV_Q2_hiv_test_type";
+      } "answers";
+    } "item_ANC_HV_Q2_hiv_test_type";
+
+    g.item as it where (linkId = 'ANC-HV-Q6-final-result') then {
+      it.answer as a where (value.exists()) then {
+        a -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then LaboratoryCategory(qr, obs) "category";
+          it -> obs.code as ccANC_HV_Q6_ then {
+            it -> ccANC_HV_Q6_.coding as cg then {
+              it -> cg.system = 'http://loinc.org' "sys";
+              it -> cg.code = '56888-1' "cd";
+              it -> cg.display = 'HIV status' "dsp";
+            } "coding";
+            it -> ccANC_HV_Q6_.text = 'HIV status' "codeText";
+          } "code";
+          a.value as cv where ($this is Coding) -> obs.value = create('CodeableConcept') as vcc then {
+            cv -> vcc.coding = cv "valueCoding";
+            cv.display as d -> vcc.text = d "valueText";
+          } "codedValue";
+          qr -> obs then SetVisitEffective(qr, obs) "visitDate";
+        } "obs_ANC_HV_Q6_final_result";
+      } "answers";
+    } "item_ANC_HV_Q6_final_result";
+
+    g.item as it where (linkId = 'ANC-HV-Q7-who-stage') then {
+      it.answer as a where (value.exists()) then {
+        a -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then SurveyCategory(qr, obs) "category";
+          it -> obs.code as ccANC_HV_Q7_ then {
+            it -> ccANC_HV_Q7_.coding as cg then {
+              it -> cg.system = 'http://loinc.org' "sys";
+              it -> cg.code = '45233-4' "cd";
+              it -> cg.display = 'HIV disease classification CDC' "dsp";
+            } "coding";
+            it -> ccANC_HV_Q7_.text = 'HIV disease classification CDC' "codeText";
+          } "code";
+          a.value as cv where ($this is Coding) -> obs.value = create('CodeableConcept') as vcc then {
+            cv -> vcc.coding = cv "valueCoding";
+            cv.display as d -> vcc.text = d "valueText";
+          } "codedValue";
+          qr -> obs then SetVisitEffective(qr, obs) "visitDate";
+        } "obs_ANC_HV_Q7_who_stage";
+      } "answers";
+    } "item_ANC_HV_Q7_who_stage";
+
+    g.item as it where (linkId = 'ANC-HV-Q8-viral-load' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then LaboratoryCategory(qr, obs) "category";
+      it -> obs.code as ccANC_HV_Q8_ then {
+        it -> ccANC_HV_Q8_.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '20447-9' "cd";
+          it -> cg.display = 'HIV 1 RNA [#/volume] (viral load) in Serum or Plasma by NAA' "dsp";
+        } "coding";
+        it -> ccANC_HV_Q8_.text = 'HIV 1 RNA [#/volume] (viral load) in Serum or Plasma by NAA' "codeText";
+      } "code";
+      it.answer first as a then {
+        a.value as n -> obs.value = create('Quantity') as qANC_HV_Q then {
+          n -> qANC_HV_Q.value = n "qtyValue";
+          n -> qANC_HV_Q.unit = 'copies/mL' "qtyUnit";
+          n -> qANC_HV_Q.system = 'http://unitsofmeasure.org' "qtySystem";
+          n -> qANC_HV_Q.code = '{copies}/mL' "qtyCode";
+        } "quantity";
+      } "answer";
+      qr -> obs then SetVisitEffective(qr, obs) "visitDate";
+    } "obs_ANC_HV_Q8_viral_load";
+
+    g.item as it where (linkId = 'ANC-HV-Q9-arv-before-anc') then {
+      it.answer as a where (value.exists()) then {
+        a -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then SurveyCategory(qr, obs) "category";
+          it -> obs.code as ccANC_HV_Q9_ then {
+            it -> ccANC_HV_Q9_.coding as cg then {
+              it -> cg.system = 'http://loinc.org' "sys";
+              it -> cg.code = '45683-0' "cd";
+              it -> cg.display = 'HIV antiretroviral drug regimen' "dsp";
+            } "coding";
+            it -> ccANC_HV_Q9_.text = 'HIV antiretroviral drug regimen' "codeText";
+          } "code";
+          a.value as cv where ($this is Coding) -> obs.value = create('CodeableConcept') as vcc then {
+            cv -> vcc.coding = cv "valueCoding";
+            cv.display as d -> vcc.text = d "valueText";
+          } "codedValue";
+          qr -> obs then SetVisitEffective(qr, obs) "visitDate";
+        } "obs_ANC_HV_Q9_arv_before_anc";
+      } "answers";
+    } "item_ANC_HV_Q9_arv_before_anc";
+
+    g.item as it where (linkId = 'ANC-HV-Q10-haart-started') then {
+      it.answer as a where (value.exists()) then {
+        a -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then SurveyCategory(qr, obs) "category";
+          it -> obs.code as ccANC_HV_Q10 then {
+            it -> ccANC_HV_Q10.coding as cg then {
+              it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/special-clinic-code-system' "sys";
+              it -> cg.code = 'anc-haart-started' "cd";
+              it -> cg.display = 'HAART started in antenatal care' "dsp";
+            } "coding";
+            it -> ccANC_HV_Q10.text = 'HAART started in antenatal care' "codeText";
+          } "code";
+          a.value as cv where ($this is Coding) -> obs.value = create('CodeableConcept') as vcc then {
+            cv -> vcc.coding = cv "valueCoding";
+            cv.display as d -> vcc.text = d "valueText";
+          } "codedValue";
+          qr -> obs then SetVisitEffective(qr, obs) "visitDate";
+        } "obs_ANC_HV_Q10_haart_started";
+      } "answers";
+    } "item_ANC_HV_Q10_haart_started";
+
+    g.item as it where (linkId = 'ANC-HV-Q14-partner-test') then {
+      it.answer as a where (value.exists()) then {
+        a -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then SurveyCategory(qr, obs) "category";
+          it -> obs.code as ccANC_HV_Q14 then {
+            it -> ccANC_HV_Q14.coding as cg then {
+              it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/special-clinic-code-system' "sys";
+              it -> cg.code = 'anc-partner-hiv-test-done' "cd";
+              it -> cg.display = 'Partner HIV testing performed' "dsp";
+            } "coding";
+            it -> ccANC_HV_Q14.text = 'Partner HIV testing performed' "codeText";
+          } "code";
+          a.value as cv where ($this is Coding) -> obs.value = create('CodeableConcept') as vcc then {
+            cv -> vcc.coding = cv "valueCoding";
+            cv.display as d -> vcc.text = d "valueText";
+          } "codedValue";
+          qr -> obs then SetVisitEffective(qr, obs) "visitDate";
+        } "obs_ANC_HV_Q14_partner_test";
+      } "answers";
+    } "item_ANC_HV_Q14_partner_test";
+
+    g.item as it where (linkId = 'ANC-HV-Q15-partner-result') then {
+      it.answer as a where (value.exists()) then {
+        a -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then LaboratoryCategory(qr, obs) "category";
+          it -> obs.code as ccANC_HV_Q15 then {
+            it -> ccANC_HV_Q15.coding as cg then {
+              it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/special-clinic-code-system' "sys";
+              it -> cg.code = 'anc-partner-hiv-result' "cd";
+              it -> cg.display = 'Partner HIV test result' "dsp";
+            } "coding";
+            it -> ccANC_HV_Q15.text = 'Partner HIV test result' "codeText";
+          } "code";
+          a.value as cv where ($this is Coding) -> obs.value = create('CodeableConcept') as vcc then {
+            cv -> vcc.coding = cv "valueCoding";
+            cv.display as d -> vcc.text = d "valueText";
+          } "codedValue";
+          qr -> obs then SetVisitEffective(qr, obs) "visitDate";
+        } "obs_ANC_HV_Q15_partner_result";
+      } "answers";
+    } "item_ANC_HV_Q15_partner_result";
+
+  } "group_ANC_hiv_art";
+
+  // Post-partum family planning counselling.
+  qr.item as g where (linkId = 'ANC-ppfp') then {
+
+    g.item as it where (linkId = 'ANC-FP-Q1-method') then {
+      it.answer as a where (value.exists()) then {
+        a -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then SurveyCategory(qr, obs) "category";
+          it -> obs.code as ccANC_FP_Q1_ then {
+            it -> ccANC_FP_Q1_.coding as cg then {
+              it -> cg.system = 'http://loinc.org' "sys";
+              it -> cg.code = '8659-5' "cd";
+              it -> cg.display = 'Family planning method' "dsp";
+            } "coding";
+            it -> ccANC_FP_Q1_.text = 'Family planning method' "codeText";
+          } "code";
+          a.value as cv where ($this is Coding) -> obs.value = create('CodeableConcept') as vcc then {
+            cv -> vcc.coding = cv "valueCoding";
+            cv.display as d -> vcc.text = d "valueText";
+          } "codedValue";
+          qr -> obs then SetVisitEffective(qr, obs) "visitDate";
+        } "obs_ANC_FP_Q1_method";
+      } "answers";
+    } "item_ANC_FP_Q1_method";
+
+  } "group_ANC_ppfp";
+
+  // Malaria prevention. The register codes this cell against the visit-date LOINC,
+  // which is a transcription error on the form; the map uses a local code so the
+  // net is not recorded as a second visit date.
+  qr.item as g where (linkId = 'ANC-llitn') then {
+
+    g.item as it where (linkId = 'ANC-ML-Q1-llitn') then {
+      it.answer as a where (value.exists()) then {
+        a -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then SurveyCategory(qr, obs) "category";
+          it -> obs.code as ccANC_ML_Q1_ then {
+            it -> ccANC_ML_Q1_.coding as cg then {
+              it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/special-clinic-code-system' "sys";
+              it -> cg.code = 'anc-llitn-received' "cd";
+              it -> cg.display = 'Insecticide-treated net received' "dsp";
+            } "coding";
+            it -> ccANC_ML_Q1_.text = 'Insecticide-treated net received' "codeText";
+          } "code";
+          a.value as cv where ($this is Coding) -> obs.value = create('CodeableConcept') as vcc then {
+            cv -> vcc.coding = cv "valueCoding";
+            cv.display as d -> vcc.text = d "valueText";
+          } "codedValue";
+          qr -> obs then SetVisitEffective(qr, obs) "visitDate";
+        } "obs_ANC_ML_Q1_llitn";
+      } "answers";
+    } "item_ANC_ML_Q1_llitn";
+
+  } "group_ANC_llitn";
+
+  // Referrals. Where the client came from is an Observation; where she is sent is
+  // a ServiceRequest, built below.
+  qr.item as g where (linkId = 'ANC-referrals') then {
+
+    g.item as it where (linkId = 'ANC-RF-Q1-referred-from') then {
+      it.answer as a where (value.exists()) then {
+        a -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then SurveyCategory(qr, obs) "category";
+          it -> obs.code as ccANC_RF_Q1_ then {
+            it -> ccANC_RF_Q1_.coding as cg then {
+              it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/special-clinic-code-system' "sys";
+              it -> cg.code = 'anc-referred-from' "cd";
+              it -> cg.display = 'Referred from' "dsp";
+            } "coding";
+            it -> ccANC_RF_Q1_.text = 'Referred from' "codeText";
+          } "code";
+          a.value as cv where ($this is Coding) -> obs.value = create('CodeableConcept') as vcc then {
+            cv -> vcc.coding = cv "valueCoding";
+            cv.display as d -> vcc.text = d "valueText";
+          } "codedValue";
+          qr -> obs then SetVisitEffective(qr, obs) "visitDate";
+        } "obs_ANC_RF_Q1_referred_from";
+      } "answers";
+    } "item_ANC_RF_Q1_referred_from";
+
+  } "group_ANC_referrals";
+
+  // Free-text remarks, kept both as the Observation value and as a note.
+  qr.item as g where (linkId = 'ANC-remarks') then {
+
+    g.item as it where (linkId = 'ANC-RK-Q1-remarks' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SurveyCategory(qr, obs) "category";
+      it -> obs.code as ccANC_RK_Q1_ then {
+        it -> ccANC_RK_Q1_.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '48767-8' "cd";
+          it -> cg.display = 'Annotation comment' "dsp";
+        } "coding";
+        it -> ccANC_RK_Q1_.text = 'Annotation comment' "codeText";
+      } "code";
+      it.answer first as a then {
+        a.value as v -> obs.value = v "value";
+        a.value as v -> obs.note as n, n.text = v "note";
+      } "answer";
+      qr -> obs then SetVisitEffective(qr, obs) "visitDate";
+    } "obs_ANC_RK_Q1_remarks";
+
+  } "group_ANC_remarks";
+
+  // Blood pressure as one panel under 85354-9, systolic and diastolic as its two
+  // components. The panel is created off the systolic cell and the diastolic is
+  // read from its sibling, so a visit that recorded only one of the two still
+  // produces a reading rather than nothing -- but the pair stays in one resource,
+  // which is what a reader of a blood pressure needs.
+  qr.item as g where (linkId = 'ANC-anthropometrics' and item.where(linkId = 'ANC-AV-Q4-bp-systolic').answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+    qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+    qr -> obs then VitalSignsCategory(qr, obs) "category";
+    g -> obs.code as ccBp then {
+      g -> ccBp.coding as cgBp then {
+        g -> cgBp.system = 'http://loinc.org' "sys";
+        g -> cgBp.code = '85354-9' "cd";
+        g -> cgBp.display = 'Blood pressure panel with all children optional' "dsp";
+      } "coding";
+      g -> ccBp.text = 'Blood pressure' "codeText";
+    } "code";
+
+    g.item as itS where (linkId = 'ANC-AV-Q4-bp-systolic' and answer.value.exists()) -> obs.component as compS then {
+      itS -> compS.code as ccS then {
+        itS -> ccS.coding as cgS then {
+          itS -> cgS.system = 'http://loinc.org' "sys";
+          itS -> cgS.code = '8480-6' "cd";
+          itS -> cgS.display = 'Systolic blood pressure' "dsp";
+        } "coding";
+      } "code";
+      itS.answer first as aS then {
+        aS.value as n -> compS.value = create('Quantity') as qS then {
+          n -> qS.value = n "qtyValue";
+          n -> qS.unit = 'mmHg' "qtyUnit";
+          n -> qS.system = 'http://unitsofmeasure.org' "qtySystem";
+          n -> qS.code = 'mm[Hg]' "qtyCode";
+        } "quantity";
+      } "answer";
+    } "systolic";
+
+    g.item as itD where (linkId = 'ANC-AV-Q5-bp-diastolic' and answer.value.exists()) -> obs.component as compD then {
+      itD -> compD.code as ccD then {
+        itD -> ccD.coding as cgD then {
+          itD -> cgD.system = 'http://loinc.org' "sys";
+          itD -> cgD.code = '8462-4' "cd";
+          itD -> cgD.display = 'Diastolic blood pressure' "dsp";
+        } "coding";
+      } "code";
+      itD.answer first as aD then {
+        aD.value as n -> compD.value = create('Quantity') as qD then {
+          n -> qD.value = n "qtyValue";
+          n -> qD.unit = 'mmHg' "qtyUnit";
+          n -> qD.system = 'http://unitsofmeasure.org' "qtySystem";
+          n -> qD.code = 'mm[Hg]' "qtyCode";
+        } "quantity";
+      } "answer";
+    } "diastolic";
+
+    qr -> obs then SetVisitEffective(qr, obs) "visitDate";
+  } "obs_blood_pressure";
+
+  // The three HIV rapid tests. Each is its own Observation under 89365-1 carrying
+  // the result, with the kit name, lot number and expiry as components: a reactive
+  // result that cannot be traced to a kit and lot is not auditable, and the three
+  // belong to the result rather than standing alone.
+  qr.item as gHiv where (linkId = 'ANC-hiv-art') then {
+
+    gHiv.item as gT1 where (linkId = 'ANC-HV-Q3-test1' and item.where(linkId = 'ANC-HV-Q3d-result').answer.value.exists()) -> bundle.entry as eT1, eT1.resource = create('Observation') as obsT1 then {
+      qr -> obsT1, eT1 then BuildObsBase(qr, obsT1, eT1) "base";
+      qr -> obsT1 then LaboratoryCategory(qr, obsT1) "category";
+      gT1 -> obsT1.code as ccT1 then {
+        gT1 -> ccT1.coding as cgT1 then {
+          gT1 -> cgT1.system = 'http://loinc.org' "sys";
+          gT1 -> cgT1.code = '89365-1' "cd";
+          gT1 -> cgT1.display = 'HIV 1 and 2 Ab [Presence] in Serum, Plasma or Blood by Rapid immunoassay' "dsp";
+        } "coding";
+        gT1 -> ccT1.text = 'HIV rapid test 1' "codeText";
+      } "code";
+      gT1.item as itR1 where (linkId = 'ANC-HV-Q3d-result') then {
+        itR1.answer first as aR1 then {
+          aR1.value as cv where ($this is Coding) -> obsT1.value = create('CodeableConcept') as vccT1 then {
+            cv -> vccT1.coding = cv "valueCoding";
+            cv.display as d -> vccT1.text = d "valueText";
+          } "codedValue";
+        } "answer";
+      } "result";
+      gT1 -> obsT1 then HivKitDetail(gT1, obsT1) "kitDetail";
+      qr -> obsT1 then SetVisitEffective(qr, obsT1) "visitDate";
+    } "obs_hiv_test_1";
+
+    gHiv.item as gT2 where (linkId = 'ANC-HV-Q4-test2' and item.where(linkId = 'ANC-HV-Q4d-result').answer.value.exists()) -> bundle.entry as eT2, eT2.resource = create('Observation') as obsT2 then {
+      qr -> obsT2, eT2 then BuildObsBase(qr, obsT2, eT2) "base";
+      qr -> obsT2 then LaboratoryCategory(qr, obsT2) "category";
+      gT2 -> obsT2.code as ccT2 then {
+        gT2 -> ccT2.coding as cgT2 then {
+          gT2 -> cgT2.system = 'http://loinc.org' "sys";
+          gT2 -> cgT2.code = '89365-1' "cd";
+          gT2 -> cgT2.display = 'HIV 1 and 2 Ab [Presence] in Serum, Plasma or Blood by Rapid immunoassay' "dsp";
+        } "coding";
+        gT2 -> ccT2.text = 'HIV rapid test 2' "codeText";
+      } "code";
+      gT2.item as itR2 where (linkId = 'ANC-HV-Q4d-result') then {
+        itR2.answer first as aR2 then {
+          aR2.value as cv where ($this is Coding) -> obsT2.value = create('CodeableConcept') as vccT2 then {
+            cv -> vccT2.coding = cv "valueCoding";
+            cv.display as d -> vccT2.text = d "valueText";
+          } "codedValue";
+        } "answer";
+      } "result";
+      gT2 -> obsT2 then HivKitDetail(gT2, obsT2) "kitDetail";
+      qr -> obsT2 then SetVisitEffective(qr, obsT2) "visitDate";
+    } "obs_hiv_test_2";
+
+    gHiv.item as gT3 where (linkId = 'ANC-HV-Q5-test3' and item.where(linkId = 'ANC-HV-Q5d-result').answer.value.exists()) -> bundle.entry as eT3, eT3.resource = create('Observation') as obsT3 then {
+      qr -> obsT3, eT3 then BuildObsBase(qr, obsT3, eT3) "base";
+      qr -> obsT3 then LaboratoryCategory(qr, obsT3) "category";
+      gT3 -> obsT3.code as ccT3 then {
+        gT3 -> ccT3.coding as cgT3 then {
+          gT3 -> cgT3.system = 'http://loinc.org' "sys";
+          gT3 -> cgT3.code = '89365-1' "cd";
+          gT3 -> cgT3.display = 'HIV 1 and 2 Ab [Presence] in Serum, Plasma or Blood by Rapid immunoassay' "dsp";
+        } "coding";
+        gT3 -> ccT3.text = 'HIV rapid test 3' "codeText";
+      } "code";
+      gT3.item as itR3 where (linkId = 'ANC-HV-Q5d-result') then {
+        itR3.answer first as aR3 then {
+          aR3.value as cv where ($this is Coding) -> obsT3.value = create('CodeableConcept') as vccT3 then {
+            cv -> vccT3.coding = cv "valueCoding";
+            cv.display as d -> vccT3.text = d "valueText";
+          } "codedValue";
+        } "answer";
+      } "result";
+      gT3 -> obsT3 then HivKitDetail(gT3, obsT3) "kitDetail";
+      qr -> obsT3 then SetVisitEffective(qr, obsT3) "visitDate";
+    } "obs_hiv_test_3";
+
+  } "group_hiv_tests";
+
+  // Other conditions observed. One Condition per answer, because the cell repeats
+  // and a reader filtering a problem list wants them apart. "Other (Specify)" is
+  // the one answer whose meaning lives in the free-text sibling, so that text
+  // becomes the Condition's own text rather than being dropped.
+  qr.item as gCm where (linkId = 'ANC-comorbidities') then {
+    gCm.item as itCm where (linkId = 'ANC-CM-Q1-conditions') then {
+      itCm.answer as aCm where (value.exists()) then {
+        aCm -> bundle.entry as eCm, eCm.resource = create('Condition') as cond then {
+          qr -> cond, eCm then BuildConditionBase(qr, cond, eCm) "base";
+          aCm.value as cv where ($this is Coding) -> cond.code as ccCm then {
+            cv -> ccCm.coding = cv "conditionCoding";
+            cv.display as d -> ccCm.text = d "conditionText";
+          } "codedCondition";
+          gCm -> cond then OtherConditionText(gCm, aCm, cond) "otherText";
+        } "cond_anc_comorbidity";
+      } "answers";
+    } "item_conditions";
+  } "group_comorbidities";
+
+  // Tetanus toxoid. The answer names the dose, not the vaccine, so the vaccine is
+  // stated here (CVX 112, tetanus toxoid unspecified formulation) and the answer
+  // becomes protocolApplied.doseNumber. "None / Not Applicable" is a statement
+  // that nothing was given, so it creates no Immunization.
+  qr.item as gTx where (linkId = 'ANC-treatment') then {
+    gTx.item as itTt where (linkId = 'ANC-TX-Q3-tt') then {
+      itTt.answer first as aTt where (value.ofType(Coding).where(code != 'tt-none').exists()) then {
+        aTt -> bundle.entry as eTt, eTt.resource = create('Immunization') as imm then {
+          qr -> imm, eTt then BuildImmunizationBase(qr, imm, eTt) "base";
+          aTt -> imm.vaccineCode as ccTt then {
+            aTt -> ccTt.coding as cgTt then {
+              aTt -> cgTt.system = 'http://hl7.org/fhir/sid/cvx' "sys";
+              aTt -> cgTt.code = '112' "cd";
+              aTt -> cgTt.display = 'tetanus toxoid, unspecified formulation' "dsp";
+            } "coding";
+            aTt -> ccTt.text = 'Tetanus toxoid' "codeText";
+          } "vaccineCode";
+          aTt.value as cv where ($this is Coding and code = 'tt-dose-1') -> imm.protocolApplied as paTt1 then {
+            cv -> paTt1.doseNumber = '1' "doseNumber";
+          } "dose1";
+          aTt.value as cv where ($this is Coding and code = 'tt-dose-2') -> imm.protocolApplied as paTt2 then {
+            cv -> paTt2.doseNumber = '2' "doseNumber";
+          } "dose2";
+          aTt.value as cv where ($this is Coding and code = 'tt-dose-3') -> imm.protocolApplied as paTt3 then {
+            cv -> paTt3.doseNumber = '3' "doseNumber";
+          } "dose3";
+          aTt.value as cv where ($this is Coding and code = 'tt-dose-4') -> imm.protocolApplied as paTt4 then {
+            cv -> paTt4.doseNumber = '4' "doseNumber";
+          } "dose4";
+          aTt.value as cv where ($this is Coding and code = 'tt-dose-5') -> imm.protocolApplied as paTt5 then {
+            cv -> paTt5.doseNumber = '5' "doseNumber";
+          } "dose5";
+        } "imm_tetanus_toxoid";
+      } "answer";
+    } "item_tt";
+  } "group_treatment_immunisation";
+
+  // Preventive and prophylactic medicines. The three HIV cells and deworming are
+  // yes/no, so the medicine is named here and the answer only decides whether the
+  // administration happened at all; IPTp and supplementation carry the product in
+  // the answer itself, so that coding is copied through onto medication.concept.
+  qr.item as gMa0 where (linkId = 'ANC-treatment') then {
+    gMa0.item as itMa0 where (linkId = 'ANC-TX-Q1-deworming') then {
+      itMa0.answer first as aMa0 where (value.ofType(Coding).where(code = 'Y').exists()) then {
+        aMa0 -> bundle.entry as eMa0, eMa0.resource = create('MedicationAdministration') as maMa0 then {
+          qr -> maMa0, eMa0 then BuildMedAdminBase(qr, maMa0, eMa0) "base";
+          qr -> maMa0.medication as mcrMa0 then {
+            qr -> mcrMa0.concept as mccMa0 then {
+              qr -> mccMa0.coding as mcoMa0 then {
+                qr -> mcoMa0.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/special-clinic-code-system' "sys";
+                qr -> mcoMa0.code = 'anc-deworming' "cd";
+                qr -> mcoMa0.display = 'Deworming in pregnancy' "dsp";
+              } "coding";
+              qr -> mccMa0.text = 'Deworming in pregnancy' "text";
+            } "concept";
+          } "medication";
+        } "medadmin_ANC_TX_Q1_deworming";
+      } "answer";
+    } "item_ANC_TX_Q1_deworming";
+  } "group_ANC_TX_Q1_deworming";
+
+  qr.item as gMa1 where (linkId = 'ANC-treatment') then {
+    gMa1.item as itMa1 where (linkId = 'ANC-TX-Q2-ipt') then {
+      itMa1.answer first as aMa1 where (value.ofType(Coding).exists()) then {
+        aMa1 -> bundle.entry as eMa1, eMa1.resource = create('MedicationAdministration') as maMa1 then {
+          qr -> maMa1, eMa1 then BuildMedAdminBase(qr, maMa1, eMa1) "base";
+          aMa1.value as cv where ($this is Coding) -> maMa1.medication as mcrMa1 then {
+            cv -> mcrMa1.concept as mccMa1 then {
+              cv -> mccMa1.coding = cv "coding";
+              cv.display as d -> mccMa1.text = d "text";
+            } "concept";
+          } "medication";
+        } "medadmin_ANC_TX_Q2_ipt";
+      } "answer";
+    } "item_ANC_TX_Q2_ipt";
+  } "group_ANC_TX_Q2_ipt";
+
+  qr.item as gMa2 where (linkId = 'ANC-supplementation') then {
+    gMa2.item as itMa2 where (linkId = 'ANC-SP-Q1-supplements') then {
+      itMa2.answer first as aMa2 where (value.ofType(Coding).exists()) then {
+        aMa2 -> bundle.entry as eMa2, eMa2.resource = create('MedicationAdministration') as maMa2 then {
+          qr -> maMa2, eMa2 then BuildMedAdminBase(qr, maMa2, eMa2) "base";
+          aMa2.value as cv where ($this is Coding) -> maMa2.medication as mcrMa2 then {
+            cv -> mcrMa2.concept as mccMa2 then {
+              cv -> mccMa2.coding = cv "coding";
+              cv.display as d -> mccMa2.text = d "text";
+            } "concept";
+          } "medication";
+        } "medadmin_ANC_SP_Q1_supplements";
+      } "answer";
+    } "item_ANC_SP_Q1_supplements";
+  } "group_ANC_SP_Q1_supplements";
+
+  qr.item as gMa3 where (linkId = 'ANC-hiv-art') then {
+    gMa3.item as itMa3 where (linkId = 'ANC-HV-Q11-ctx') then {
+      itMa3.answer first as aMa3 where (value.ofType(Coding).where(code = 'Y').exists()) then {
+        aMa3 -> bundle.entry as eMa3, eMa3.resource = create('MedicationAdministration') as maMa3 then {
+          qr -> maMa3, eMa3 then BuildMedAdminBase(qr, maMa3, eMa3) "base";
+          qr -> maMa3.medication as mcrMa3 then {
+            qr -> mcrMa3.concept as mccMa3 then {
+              qr -> mccMa3.coding as mcoMa3 then {
+                qr -> mcoMa3.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/special-clinic-code-system' "sys";
+                qr -> mcoMa3.code = 'anc-ctx' "cd";
+                qr -> mcoMa3.display = 'Cotrimoxazole prophylaxis' "dsp";
+              } "coding";
+              qr -> mccMa3.text = 'Cotrimoxazole prophylaxis' "text";
+            } "concept";
+          } "medication";
+        } "medadmin_ANC_HV_Q11_ctx";
+      } "answer";
+    } "item_ANC_HV_Q11_ctx";
+  } "group_ANC_HV_Q11_ctx";
+
+  qr.item as gMa4 where (linkId = 'ANC-hiv-art') then {
+    gMa4.item as itMa4 where (linkId = 'ANC-HV-Q12-azt') then {
+      itMa4.answer first as aMa4 where (value.ofType(Coding).where(code = 'Y').exists()) then {
+        aMa4 -> bundle.entry as eMa4, eMa4.resource = create('MedicationAdministration') as maMa4 then {
+          qr -> maMa4, eMa4 then BuildMedAdminBase(qr, maMa4, eMa4) "base";
+          qr -> maMa4.medication as mcrMa4 then {
+            qr -> mcrMa4.concept as mccMa4 then {
+              qr -> mccMa4.coding as mcoMa4 then {
+                qr -> mcoMa4.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/special-clinic-code-system' "sys";
+                qr -> mcoMa4.code = 'anc-infant-azt' "cd";
+                qr -> mcoMa4.display = 'Infant zidovudine prophylaxis' "dsp";
+              } "coding";
+              qr -> mccMa4.text = 'Infant zidovudine prophylaxis' "text";
+            } "concept";
+          } "medication";
+        } "medadmin_ANC_HV_Q12_azt";
+      } "answer";
+    } "item_ANC_HV_Q12_azt";
+  } "group_ANC_HV_Q12_azt";
+
+  qr.item as gMa5 where (linkId = 'ANC-hiv-art') then {
+    gMa5.item as itMa5 where (linkId = 'ANC-HV-Q13-nvp') then {
+      itMa5.answer first as aMa5 where (value.ofType(Coding).where(code = 'Y').exists()) then {
+        aMa5 -> bundle.entry as eMa5, eMa5.resource = create('MedicationAdministration') as maMa5 then {
+          qr -> maMa5, eMa5 then BuildMedAdminBase(qr, maMa5, eMa5) "base";
+          qr -> maMa5.medication as mcrMa5 then {
+            qr -> mcrMa5.concept as mccMa5 then {
+              qr -> mccMa5.coding as mcoMa5 then {
+                qr -> mcoMa5.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/special-clinic-code-system' "sys";
+                qr -> mcoMa5.code = 'anc-infant-nvp' "cd";
+                qr -> mcoMa5.display = 'Infant nevirapine prophylaxis' "dsp";
+              } "coding";
+              qr -> mccMa5.text = 'Infant nevirapine prophylaxis' "text";
+            } "concept";
+          } "medication";
+        } "medadmin_ANC_HV_Q13_nvp";
+      } "answer";
+    } "item_ANC_HV_Q13_nvp";
+  } "group_ANC_HV_Q13_nvp";
+
+  // An onward referral. ServiceRequest is what carries an intent to refer; the
+  // destination becomes the code and the free-text reason its reasonCode, so a
+  // reader sees why without opening the response.
+  qr.item as gRf where (linkId = 'ANC-referrals') then {
+    gRf.item as itRf where (linkId = 'ANC-RF-Q2-referred-to') then {
+      itRf.answer first as aRf where (value.ofType(Coding).exists()) then {
+        aRf -> bundle.entry as eRf, eRf.resource = create('ServiceRequest') as sr then {
+          qr -> sr, eRf then BuildServiceRequestBase(qr, sr, eRf) "base";
+          aRf.value as cv where ($this is Coding) -> sr.code as ccRf then {
+            cv -> ccRf.concept as cptRf then {
+              cv -> cptRf.coding = cv "referralCoding";
+              cv.display as d -> cptRf.text = d "referralText";
+            } "concept";
+          } "code";
+          gRf -> sr then ReferralReason(gRf, sr) "reason";
+        } "servicerequest_anc_referral";
+      } "answer";
+    } "item_referred_to";
+  } "group_referral_out";
+
+}
+
+// ── Bases ────────────────────────────────────────────────────────────────────
+//
+// What every resource of a kind needs before anything form-specific is written:
+// an id and a fullUrl so later entries can point at it, a POST request line, the
+// status, and the subject and encounter the response arrived with.
+
+group BuildObsBase(source qr : QR, target obs : Observation, target entry) {
+  qr -> obs then SetResponseProvenance(qr, obs) "responseProvenance";
+  qr -> obs.id = uuid() then SetObservationFullUrl(obs, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Observation' "requestUrl";
+  } "entryRequest";
+
+  qr -> obs.status = 'final' "status";
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> obs.subject = s "subject";
+  qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> obs.encounter = e "encounter";
+
+  // A stored response's id already reads "QuestionnaireResponse/<id>", so it is a
+  // relative reference as it stands. The hasValue() guard is what stops a response
+  // posted straight to $extract, rather than saved first, from writing
+  // "QuestionnaireResponse/null" into the record.
+  qr.id as qid where ($this.hasValue()) -> obs.derivedFrom = create('Reference') as ref, ref.reference = qid "linkQuestionnaireResponse";
+  qr -> obs then ConformObservation(qr, obs) "profileConformance";
+}
+
+group BuildConditionBase(source qr : QR, target cond : Condition, target entry) {
+  qr -> cond then SetResponseProvenance(qr, cond) "responseProvenance";
+  qr -> cond.id = uuid() then SetConditionFullUrl(cond, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Condition' "requestUrl";
+  } "entryRequest";
+
+  qr -> cond.clinicalStatus as cs then {
+    qr -> cs.coding as csc then {
+      qr -> csc.system = 'http://terminology.hl7.org/CodeSystem/condition-clinical' "clinSystem";
+      qr -> csc.code = 'active' "clinCode";
+      qr -> csc.display = 'Active' "clinDisplay";
+    } "clinCoding";
+  } "clinicalStatus";
+
+  qr -> cond.category as cat then {
+    qr -> cat.coding as catc then {
+      qr -> catc.system = 'http://terminology.hl7.org/CodeSystem/condition-category' "catSystem";
+      qr -> catc.code = 'encounter-diagnosis' "catCode";
+      qr -> catc.display = 'Encounter Diagnosis' "catDisplay";
+    } "catCoding";
+  } "category";
+
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> cond.subject = s "subject";
+  qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> cond.encounter = e "encounter";
+  qr.authored as t -> cond.recordedDate = t "recordedDate";
+  qr.id as qid where ($this.hasValue()) -> cond.evidence as ev, ev.reference = create('Reference') as ref, ref.reference = qid "linkQuestionnaireResponse";
+}
+
+group BuildImmunizationBase(source qr : QR, target imm : Immunization, target entry) {
+  qr -> imm then SetResponseProvenance(qr, imm) "responseProvenance";
+  qr -> imm.id = uuid() then SetImmunizationFullUrl(imm, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Immunization' "requestUrl";
+  } "entryRequest";
+
+  qr -> imm.status = 'completed' "status";
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> imm.patient = s "patient";
+  qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> imm.encounter = e "encounter";
+  qr -> imm then SetVisitOccurrence(qr, imm) "occurrence";
+}
+
+group BuildMedAdminBase(source qr : QR, target ma : MedicationAdministration, target entry) {
+  qr -> ma then SetResponseProvenance(qr, ma) "responseProvenance";
+  qr -> ma.id = uuid() then SetMedAdminFullUrl(ma, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'MedicationAdministration' "requestUrl";
+  } "entryRequest";
+
+  qr -> ma.status = 'completed' "status";
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> ma.subject = s "subject";
+  qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> ma.encounter = e "encounter";
+  qr -> ma then SetVisitOccurence(qr, ma) "occurence";
+}
+
+group BuildServiceRequestBase(source qr : QR, target sr : ServiceRequest, target entry) {
+  qr -> sr then SetResponseProvenance(qr, sr) "responseProvenance";
+  qr -> sr.id = uuid() then SetServiceRequestFullUrl(sr, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'ServiceRequest' "requestUrl";
+  } "entryRequest";
+
+  qr -> sr.status = 'active' "status";
+  qr -> sr.intent = 'order' "intent";
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> sr.subject = s "subject";
+  qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> sr.encounter = e "encounter";
+  qr.authored as t -> sr.authoredOn = t "authoredOn";
+  qr -> sr then ConformServiceRequest(qr, sr) "profileConformance";
+}
+
+// ── fullUrls ─────────────────────────────────────────────────────────────────
+//
+// urn:uuid, so a later entry in the same transaction can reference this one and
+// the server resolves it on commit.
+
+group SetObservationFullUrl(source obs : Observation, target entry) {
+  obs.id as oid -> entry.fullUrl = append('urn:uuid:', oid) "fullUrl";
+}
+group SetConditionFullUrl(source cond : Condition, target entry) {
+  cond.id as cid -> entry.fullUrl = append('urn:uuid:', cid) "fullUrl";
+}
+group SetImmunizationFullUrl(source imm : Immunization, target entry) {
+  imm.id as iid -> entry.fullUrl = append('urn:uuid:', iid) "fullUrl";
+}
+group SetMedAdminFullUrl(source ma : MedicationAdministration, target entry) {
+  ma.id as mid -> entry.fullUrl = append('urn:uuid:', mid) "fullUrl";
+}
+group SetServiceRequestFullUrl(source sr : ServiceRequest, target entry) {
+  sr.id as sid -> entry.fullUrl = append('urn:uuid:', sid) "fullUrl";
+}
+
+// ── The visit date ───────────────────────────────────────────────────────────
+//
+// Every resource this map writes is dated by the visit the register row belongs
+// to, not by the moment the form was submitted -- a register filled in the
+// afternoon for a morning clinic would otherwise date everything to the
+// afternoon. ConformObservation has already set effective from `authored`, so
+// these groups overwrite it when the visit-date cell was filled and leave the
+// `authored` fallback standing when it was not.
+//
+// R5 spells MedicationAdministration.occurence[x] with one 'r' and
+// Immunization.occurrence[x] with two. That is a typo in the specification, not
+// here, and the two groups below are separate because of it.
+
+group SetVisitEffective(source qr : QR, target obs : Observation) {
+  qr.item as g where (linkId = 'ANC-visit-admin') then {
+    g.item as it where (linkId = 'ANC-VA-Q1-visit-date') then {
+      it.answer first as a then {
+        a.value as d -> obs.effective = cast(d, 'dateTime') "visitEffective";
+      } "answer";
+    } "dateItem";
+  } "adminGroup";
+}
+
+group SetVisitOccurrence(source qr : QR, target imm : Immunization) {
+  qr.authored as t -> imm.occurrence = cast(t, 'dateTime') "authoredOccurrence";
+  qr.item as g where (linkId = 'ANC-visit-admin') then {
+    g.item as it where (linkId = 'ANC-VA-Q1-visit-date') then {
+      it.answer first as a then {
+        a.value as d -> imm.occurrence = cast(d, 'dateTime') "visitOccurrence";
+      } "answer";
+    } "dateItem";
+  } "adminGroup";
+}
+
+group SetVisitOccurence(source qr : QR, target ma : MedicationAdministration) {
+  qr.authored as t -> ma.occurence = cast(t, 'dateTime') "authoredOccurence";
+  qr.item as g where (linkId = 'ANC-visit-admin') then {
+    g.item as it where (linkId = 'ANC-VA-Q1-visit-date') then {
+      it.answer first as a then {
+        a.value as d -> ma.occurence = cast(d, 'dateTime') "visitOccurence";
+      } "answer";
+    } "dateItem";
+  } "adminGroup";
+}
+
+// ── Detail groups ────────────────────────────────────────────────────────────
+
+// Kit name, lot number and expiry as components of the result they belong to.
+// Matched on the linkId suffix so one group serves all three tests.
+group HivKitDetail(source g, target obs : Observation) {
+  g.item as itK where (linkId.endsWith('-kit-name') and answer.value.exists()) -> obs.component as compK then {
+    itK -> compK.code as ccK then {
+      itK -> ccK.coding as cgK then {
+        itK -> cgK.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/special-clinic-code-system' "sys";
+        itK -> cgK.code = 'anc-hiv-test-kit-name' "cd";
+        itK -> cgK.display = 'HIV test kit name' "dsp";
+      } "coding";
+    } "code";
+    itK.answer first as aK then {
+      aK.value as v -> compK.value = v "value";
+    } "answer";
+  } "kitName";
+
+  g.item as itL where (linkId.endsWith('-lot-no') and answer.value.exists()) -> obs.component as compL then {
+    itL -> compL.code as ccL then {
+      itL -> ccL.coding as cgL then {
+        itL -> cgL.system = 'http://loinc.org' "sys";
+        itL -> cgL.code = '43156-9' "cd";
+        itL -> cgL.display = 'Reagent Lot number' "dsp";
+      } "coding";
+    } "code";
+    itL.answer first as aL then {
+      aL.value as v -> compL.value = v "value";
+    } "answer";
+  } "lotNumber";
+
+  g.item as itE where (linkId.endsWith('-expiry') and answer.value.exists()) -> obs.component as compE then {
+    itE -> compE.code as ccE then {
+      itE -> ccE.coding as cgE then {
+        itE -> cgE.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/special-clinic-code-system' "sys";
+        itE -> cgE.code = 'anc-hiv-test-kit-expiry' "cd";
+        itE -> cgE.display = 'HIV test kit expiry date' "dsp";
+      } "coding";
+    } "code";
+    itE.answer first as aE then {
+      aE.value as v -> compE.value = cast(v, 'dateTime') "value";
+    } "answer";
+  } "expiry";
+}
+
+// "Other (Specify)" carries its meaning in the sibling free-text cell.
+group OtherConditionText(source g, source a, target cond : Condition) {
+  a.value as cv where ($this is Coding and code = 'anc-other') then {
+    g.item as itOther where (linkId = 'ANC-CM-Q2-other-specify' and answer.value.exists()) then {
+      itOther.answer first as aOther then {
+        aOther.value as txt -> cond.code as ccOther, ccOther.text = txt "otherText";
+      } "answer";
+    } "specifyItem";
+  } "isOther";
+}
+
+group ReferralReason(source g, target sr : ServiceRequest) {
+  g.item as itR where (linkId = 'ANC-RF-Q3-reason' and answer.value.exists()) then {
+    itR.answer first as aR then {
+      aR.value as txt -> sr.reason as rsn, rsn.concept as rc, rc.text = txt "reasonText";
+    } "answer";
+  } "reasonItem";
+}
+
+// ── Categories ───────────────────────────────────────────────────────────────
+
+group SurveyCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'survey' "categoryCode";
+      qr -> coding.display = 'Survey' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+group VitalSignsCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'vital-signs' "categoryCode";
+      qr -> coding.display = 'Vital Signs' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+group ExamCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'exam' "categoryCode";
+      qr -> coding.display = 'Exam' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+group LaboratoryCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'laboratory' "categoryCode";
+      qr -> coding.display = 'Laboratory' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+//
+// Two tags on everything this map creates. The first says which questionnaire
+// produced it, so a form that reopens mid-visit recalls its own earlier entries
+// and not another form's. The second copies the tenant tags off the response,
+// because nothing else on the path puts them there. The response's identifier is
+// copied the same way.
+//
+// The code is the form's document type, not the questionnaire's id: every
+// environment mints its own ids, and there is only one set of maps, so an id here
+// would tie the tag to whichever environment stamped it.
+
+group SetResponseProvenance(source qr : QR, target r) {
+  qr -> r.meta as m then {
+    qr -> m.tag as t then {
+      qr -> t.system = 'http://slade360edi.com/questionnaire-provenance' "provenanceSystem";
+      qr -> t.code = 'moh-405-anc-register' "provenanceCode";
+      qr -> t.display = 'MOH 405 antenatal care register' "provenanceDisplay";
+    } "provenanceTag";
+  } "provenanceMeta";
+
+  // Every tag the response carries, onto the resource. `meta` is 0..1, so this
+  // lands on the same meta the rule above created rather than a second one.
+  qr.meta as qm then {
+    qm.tag as qt -> r.meta as m, m.tag = qt "copyTag";
+  } "tenantTags";
+
+  // The response's identifiers, as they are. Nothing here mints one, so a
+  // response without an identifier extracts resources without one.
+  qr.identifier as qid where (assigner.empty() or assigner.where(((reference.exists() and (reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization'))))).exists()) -> r.identifier = qid "identifier";
+}
+
+// ── Conformance to the IG profiles ───────────────────────────────────────────
+
+group ConformObservation(source qr : QR, target r) {
+  qr.authored as t where ($this.toString().length() >= 20) -> r.issued = cast(t, 'instant') "issued";
+  qr.authored as t -> r.effective = t "effective";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = au "performerFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = src "performerFromSource";
+  } "performerFallback";
+}
+
+group ConformServiceRequest(source qr : QR, target r) {
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.requester = au "requesterFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.requester = src "requesterFromSource";
+  } "requesterFallback";
+}
