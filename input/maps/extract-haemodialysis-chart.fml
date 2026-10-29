@@ -1386,7 +1386,11 @@ group ExtractHaemodialysisChart(source qr : QR, target bundle : Bundle) {
         } "coding";
       } "code";
       it.answer first as a then {
-        a.value as v -> obs.value = v "value";
+        a.value as v -> obs.value = create('Quantity') as q then {
+          v -> q.value = v "amount";
+          v -> q.system = 'http://unitsofmeasure.org' "system";
+          v -> q.code = '1' "unit";
+        } "value";
       } "answer";
     } "post_dialysis_ktv";
     g.item as it where (linkId = 'post-dialysis/urr' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
