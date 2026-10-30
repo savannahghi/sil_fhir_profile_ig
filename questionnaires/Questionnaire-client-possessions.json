@@ -1,0 +1,144 @@
+{
+  "resourceType": "Questionnaire",
+  "id": "client-possessions",
+  "url": "https://fhir.slade360.co.ke/fhir/Questionnaire/client-possessions",
+  "version": "1.0.0",
+  "name": "ClientPossessionsForm",
+  "title": "Client Possessions Form",
+  "status": "draft",
+  "subjectType": [
+    "Patient"
+  ],
+  "date": "2026-09-18",
+  "description": "Receipt for the personal possessions collected from a client and held by the centre, listing each item and signed by the client and a representative of the centre.",
+  "extension": [
+    {
+      "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-targetStructureMap",
+      "valueCanonical": "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractClientPossessions"
+    }
+  ],
+  "item": [
+    {
+      "linkId": "intro",
+      "type": "display",
+      "text": "List each item collected from the client and held by the centre. Add a row per item."
+    },
+    {
+      "linkId": "items",
+      "type": "group",
+      "text": "Item collected",
+      "repeats": true,
+      "item": [
+        {
+          "linkId": "item.description",
+          "type": "string",
+          "text": "Description"
+        },
+        {
+          "linkId": "item.quantity",
+          "type": "integer",
+          "text": "Quantity"
+        },
+        {
+          "linkId": "item.condition",
+          "type": "string",
+          "text": "Condition noted"
+        }
+      ]
+    },
+    {
+      "linkId": "client",
+      "type": "group",
+      "text": "Client",
+      "item": [
+        {
+          "linkId": "client.name",
+          "type": "string",
+          "text": "Client's name",
+          "required": true
+        },
+        {
+          "linkId": "client.date",
+          "type": "date",
+          "text": "Date",
+          "required": true
+        },
+        {
+          "linkId": "client.signed",
+          "type": "boolean",
+          "text": "The client has signed this form"
+        }
+      ]
+    },
+    {
+      "linkId": "representative",
+      "type": "group",
+      "text": "Centre representative",
+      "item": [
+        {
+          "linkId": "representative.name",
+          "type": "string",
+          "text": "Representative's name",
+          "required": true
+        },
+        {
+          "linkId": "representative.date",
+          "type": "date",
+          "text": "Date"
+        },
+        {
+          "linkId": "representative.signed",
+          "type": "boolean",
+          "text": "The representative has signed this form"
+        }
+      ]
+    }
+  ],
+  "publisher": "Savannah Global Health Institute (SGHI)",
+  "contact": [
+    {
+      "telecom": [
+        {
+          "system": "url",
+          "value": "https://fhir.slade360.co.ke"
+        }
+      ]
+    }
+  ],
+  "jurisdiction": [
+    {
+      "coding": [
+        {
+          "system": "urn:iso:std:iso:3166",
+          "code": "KE",
+          "display": "Kenya"
+        }
+      ]
+    }
+  ],
+  "useContext": [
+    {
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+        "code": "workflow",
+        "display": "Workflow Setting"
+      },
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/clinical-form-category-codesystem",
+            "code": "admission-record",
+            "display": "Admission record"
+          }
+        ]
+      }
+    }
+  ],
+  "code": [
+    {
+      "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+      "code": "possessions-receipt",
+      "display": "Client possessions receipt"
+    }
+  ]
+}

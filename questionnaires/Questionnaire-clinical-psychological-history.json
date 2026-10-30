@@ -1,0 +1,869 @@
+{
+  "resourceType": "Questionnaire",
+  "id": "clinical-psychological-history",
+  "url": "https://fhir.slade360.co.ke/fhir/Questionnaire/clinical-psychological-history",
+  "version": "1.0.0",
+  "name": "ClinicalPsychologicalHistoryForm",
+  "title": "Clinical / Psychological History Form",
+  "status": "draft",
+  "subjectType": [
+    "Patient"
+  ],
+  "date": "2026-09-18",
+  "description": "Psychiatric intake: biodata, general physical examination and vitals, the presenting problem and its history, family genealogy, developmental and social history, mental state examination, diagnostic formulation and treatment plan.",
+  "extension": [
+    {
+      "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-targetStructureMap",
+      "valueCanonical": "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractClinicalPsychologicalHistory"
+    }
+  ],
+  "item": [
+    {
+      "linkId": "biodata",
+      "type": "group",
+      "text": "Biodata and demographics",
+      "item": [
+        {
+          "linkId": "biodata.ipNumber",
+          "type": "string",
+          "text": "Client I/P number",
+          "required": true
+        },
+        {
+          "linkId": "biodata.date",
+          "type": "date",
+          "text": "Date of this history",
+          "required": true
+        },
+        {
+          "linkId": "biodata.gender",
+          "type": "coding",
+          "text": "Gender",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/administrative-gender",
+                "code": "male",
+                "display": "Male"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/administrative-gender",
+                "code": "female",
+                "display": "Female"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/administrative-gender",
+                "code": "other",
+                "display": "Other"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/administrative-gender",
+                "code": "unknown",
+                "display": "Unknown"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "biodata.dob",
+          "type": "date",
+          "text": "Date of birth"
+        },
+        {
+          "linkId": "biodata.age",
+          "type": "integer",
+          "text": "Age"
+        },
+        {
+          "linkId": "biodata.maritalStatus",
+          "type": "coding",
+          "text": "Marital status",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-MaritalStatus",
+                "code": "S",
+                "display": "Never married"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-MaritalStatus",
+                "code": "M",
+                "display": "Married"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-MaritalStatus",
+                "code": "L",
+                "display": "Legally separated"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-MaritalStatus",
+                "code": "D",
+                "display": "Divorced"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-MaritalStatus",
+                "code": "W",
+                "display": "Widowed"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-MaritalStatus",
+                "code": "UNK",
+                "display": "Unknown"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "biodata.address",
+          "type": "text",
+          "text": "Physical address",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        },
+        {
+          "linkId": "biodata.religion",
+          "type": "string",
+          "text": "Religion"
+        },
+        {
+          "linkId": "biodata.occupation",
+          "type": "string",
+          "text": "Occupation"
+        },
+        {
+          "linkId": "biodata.nextOfKin",
+          "type": "string",
+          "text": "Next of kin"
+        },
+        {
+          "linkId": "biodata.nextOfKinContact",
+          "type": "string",
+          "text": "Next of kin contact"
+        },
+        {
+          "linkId": "biodata.allergies",
+          "type": "string",
+          "text": "Allergies"
+        },
+        {
+          "linkId": "biodata.informant",
+          "type": "string",
+          "text": "Informant"
+        },
+        {
+          "linkId": "biodata.referralSource",
+          "type": "string",
+          "text": "Source of referral"
+        }
+      ]
+    },
+    {
+      "linkId": "examination",
+      "type": "group",
+      "text": "General physical examination",
+      "item": [
+        {
+          "linkId": "examination.note",
+          "type": "display",
+          "text": "Tick a sign to record it as present. Leave it unticked if it is absent, and blank the whole form section if it was not examined."
+        },
+        {
+          "linkId": "examination.pallor",
+          "type": "boolean",
+          "text": "Pallor"
+        },
+        {
+          "linkId": "examination.oedema",
+          "type": "boolean",
+          "text": "Oedema"
+        },
+        {
+          "linkId": "examination.dehydration",
+          "type": "boolean",
+          "text": "Dehydration"
+        },
+        {
+          "linkId": "examination.oralThrush",
+          "type": "boolean",
+          "text": "Oral thrush"
+        },
+        {
+          "linkId": "examination.cyanosis",
+          "type": "boolean",
+          "text": "Cyanosis"
+        }
+      ]
+    },
+    {
+      "linkId": "vitals",
+      "type": "group",
+      "text": "Vitals",
+      "item": [
+        {
+          "linkId": "vitals.temperature",
+          "type": "decimal",
+          "text": "Temperature (°C)",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "8310-5",
+              "display": "Body temperature"
+            }
+          ]
+        },
+        {
+          "linkId": "vitals.systolic",
+          "type": "integer",
+          "text": "Blood pressure — systolic (mmHg)",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "8480-6",
+              "display": "Systolic blood pressure"
+            }
+          ]
+        },
+        {
+          "linkId": "vitals.diastolic",
+          "type": "integer",
+          "text": "Blood pressure — diastolic (mmHg)",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "8462-4",
+              "display": "Diastolic blood pressure"
+            }
+          ]
+        },
+        {
+          "linkId": "vitals.randomBloodSugar",
+          "type": "decimal",
+          "text": "Random blood sugar (mmol/L)",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "15074-8",
+              "display": "Glucose [Moles/volume] in Blood"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "history",
+      "type": "group",
+      "text": "History",
+      "item": [
+        {
+          "linkId": "history.presentingProblem",
+          "type": "text",
+          "text": "The presenting problem, allegations or reasons for admission",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        },
+        {
+          "linkId": "history.historyOfPresenting",
+          "type": "text",
+          "text": "History of the presenting problem",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        },
+        {
+          "linkId": "history.pastPsychiatric",
+          "type": "text",
+          "text": "Past psychiatric history and previous treatment",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        },
+        {
+          "linkId": "history.pastMedical",
+          "type": "text",
+          "text": "Past medical and surgical history and treatment, including vegetative signs",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        },
+        {
+          "linkId": "history.family",
+          "type": "text",
+          "text": "Family history",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        },
+        {
+          "linkId": "history.developmental",
+          "type": "text",
+          "text": "Developmental history — prenatal where possible, birth, childhood milestones, schooling, occupation",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        },
+        {
+          "linkId": "history.social",
+          "type": "text",
+          "text": "Social and interpersonal relationships",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        },
+        {
+          "linkId": "history.sexuality",
+          "type": "text",
+          "text": "Sexuality and sexual history",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        },
+        {
+          "linkId": "history.suicidality",
+          "type": "text",
+          "text": "Suicidality",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "familyMembers",
+      "type": "group",
+      "text": "Family member",
+      "repeats": true,
+      "item": [
+        {
+          "linkId": "familyMember.order",
+          "type": "integer",
+          "text": "Order of birth"
+        },
+        {
+          "linkId": "familyMember.name",
+          "type": "string",
+          "text": "Name"
+        },
+        {
+          "linkId": "familyMember.sex",
+          "type": "coding",
+          "text": "Sex",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/administrative-gender",
+                "code": "male",
+                "display": "Male"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/administrative-gender",
+                "code": "female",
+                "display": "Female"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/administrative-gender",
+                "code": "other",
+                "display": "Other"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://hl7.org/fhir/administrative-gender",
+                "code": "unknown",
+                "display": "Unknown"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "familyMember.dob",
+          "type": "date",
+          "text": "Date of birth"
+        },
+        {
+          "linkId": "familyMember.occupation",
+          "type": "string",
+          "text": "Occupation"
+        },
+        {
+          "linkId": "familyMember.conditions",
+          "type": "string",
+          "text": "Mental illness or comorbidities"
+        },
+        {
+          "linkId": "familyMember.status",
+          "type": "coding",
+          "text": "Dead or alive",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "alive",
+                "display": "Alive"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "dead",
+                "display": "Deceased"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "mse",
+      "type": "group",
+      "text": "Mental state examination",
+      "item": [
+        {
+          "linkId": "mse.appearanceBehaviour",
+          "type": "text",
+          "text": "Appearance and behaviour",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        },
+        {
+          "linkId": "mse.attitude",
+          "type": "text",
+          "text": "Attitude",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        },
+        {
+          "linkId": "mse.grooming",
+          "type": "text",
+          "text": "General appearance and grooming",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        },
+        {
+          "linkId": "mse.facialExpression",
+          "type": "text",
+          "text": "Facial expression",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        },
+        {
+          "linkId": "mse.posture",
+          "type": "text",
+          "text": "Posture",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        },
+        {
+          "linkId": "mse.gait",
+          "type": "text",
+          "text": "Gait",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        },
+        {
+          "linkId": "mse.psychomotor",
+          "type": "text",
+          "text": "Psychomotor activity",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        },
+        {
+          "linkId": "mse.speech",
+          "type": "text",
+          "text": "Voice, speech and language",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        },
+        {
+          "linkId": "mse.mood",
+          "type": "text",
+          "text": "Mood",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        },
+        {
+          "linkId": "mse.affect",
+          "type": "text",
+          "text": "Affect",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        },
+        {
+          "linkId": "mse.thought",
+          "type": "text",
+          "text": "Thought content and process",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        },
+        {
+          "linkId": "mse.perception",
+          "type": "text",
+          "text": "Perception",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        },
+        {
+          "linkId": "mse.cognition",
+          "type": "text",
+          "text": "Cognitive processes",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        },
+        {
+          "linkId": "mse.orientationTime",
+          "type": "text",
+          "text": "Orientation — time",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        },
+        {
+          "linkId": "mse.orientationPeople",
+          "type": "text",
+          "text": "Orientation — people",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        },
+        {
+          "linkId": "mse.orientationPlace",
+          "type": "text",
+          "text": "Orientation — place",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        },
+        {
+          "linkId": "mse.consciousness",
+          "type": "text",
+          "text": "Level of consciousness",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        },
+        {
+          "linkId": "mse.attention",
+          "type": "text",
+          "text": "Attention and concentration",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        },
+        {
+          "linkId": "mse.memoryImmediate",
+          "type": "text",
+          "text": "Memory — immediate",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        },
+        {
+          "linkId": "mse.memoryRecent",
+          "type": "text",
+          "text": "Memory — recent",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        },
+        {
+          "linkId": "mse.memoryPast",
+          "type": "text",
+          "text": "Memory — past",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        },
+        {
+          "linkId": "mse.insightJudgment",
+          "type": "text",
+          "text": "Insight and judgment",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        }
+      ],
+      "code": [
+        {
+          "system": "http://loinc.org",
+          "code": "10190-7",
+          "display": "Mental status Narrative"
+        }
+      ]
+    },
+    {
+      "linkId": "formulation",
+      "type": "group",
+      "text": "Formulation and plan",
+      "item": [
+        {
+          "linkId": "formulation.diagnostic",
+          "type": "text",
+          "text": "Diagnostic formulation",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        },
+        {
+          "linkId": "formulation.impression",
+          "type": "text",
+          "text": "Impression",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        },
+        {
+          "linkId": "formulation.treatmentPlan",
+          "type": "text",
+          "text": "Treatment plan",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "admittingOfficer",
+      "type": "group",
+      "text": "Admitting officer",
+      "item": [
+        {
+          "linkId": "admittingOfficer.name",
+          "type": "string",
+          "text": "Name",
+          "required": true
+        },
+        {
+          "linkId": "admittingOfficer.date",
+          "type": "date",
+          "text": "Date"
+        }
+      ]
+    }
+  ],
+  "publisher": "Savannah Global Health Institute (SGHI)",
+  "contact": [
+    {
+      "telecom": [
+        {
+          "system": "url",
+          "value": "https://fhir.slade360.co.ke"
+        }
+      ]
+    }
+  ],
+  "jurisdiction": [
+    {
+      "coding": [
+        {
+          "system": "urn:iso:std:iso:3166",
+          "code": "KE",
+          "display": "Kenya"
+        }
+      ]
+    }
+  ],
+  "useContext": [
+    {
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+        "code": "workflow",
+        "display": "Workflow Setting"
+      },
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/clinical-form-category-codesystem",
+            "code": "clinical-assessment",
+            "display": "Clinical assessment"
+          }
+        ]
+      }
+    }
+  ],
+  "code": [
+    {
+      "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+      "code": "clinical-history",
+      "display": "Clinical history"
+    },
+    {
+      "system": "http://loinc.org",
+      "code": "78306-8",
+      "display": "Mental health History and physical note"
+    }
+  ]
+}

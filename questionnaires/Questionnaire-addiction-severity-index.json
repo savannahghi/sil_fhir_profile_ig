@@ -1,0 +1,4560 @@
+{
+  "resourceType": "Questionnaire",
+  "id": "addiction-severity-index",
+  "url": "https://fhir.slade360.co.ke/fhir/Questionnaire/addiction-severity-index",
+  "version": "1.0.0",
+  "name": "AddictionSeverityIndex",
+  "title": "Comprehensive Assessment / Addiction Severity Index",
+  "status": "draft",
+  "subjectType": [
+    "Patient"
+  ],
+  "date": "2026-09-17",
+  "description": "Comprehensive intake assessment across seven domains — general information, medical, employment and support, alcohol and drug use, legal, family and social, and psychiatric status. Each domain closes with an interviewer severity rating and confidence ratings.",
+  "extension": [
+    {
+      "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-targetStructureMap",
+      "valueCanonical": "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractAddictionSeverityIndex"
+    }
+  ],
+  "item": [
+    {
+      "linkId": "general",
+      "type": "group",
+      "text": "General information",
+      "item": [
+        {
+          "linkId": "general.G1",
+          "type": "string",
+          "text": "G1. Client's IP number",
+          "required": true
+        },
+        {
+          "linkId": "general.G2",
+          "type": "date",
+          "text": "G2. Date of admission"
+        },
+        {
+          "linkId": "general.G3",
+          "type": "date",
+          "text": "G3. Date of birth"
+        },
+        {
+          "linkId": "general.G4",
+          "type": "date",
+          "text": "G4. Date of interview",
+          "required": true
+        },
+        {
+          "linkId": "general.G5",
+          "type": "time",
+          "text": "G5. Time begun"
+        },
+        {
+          "linkId": "general.G6",
+          "type": "time",
+          "text": "G6. Time ended"
+        },
+        {
+          "linkId": "general.G7",
+          "type": "string",
+          "text": "G7. Interviewer's name",
+          "required": true
+        },
+        {
+          "linkId": "general.G8",
+          "type": "coding",
+          "text": "G8. Special circumstances for not doing the assessment",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "G8-1",
+                "display": "Patient terminated"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "G8-2",
+                "display": "Patient refused"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "G8-3",
+                "display": "Patient unable to respond"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "G8-4",
+                "display": "Other"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "general.G8s",
+          "type": "string",
+          "text": "G8. If other, specify"
+        },
+        {
+          "linkId": "general.G8note",
+          "type": "display",
+          "text": "If any of the above applies and the interviewer suspects a psychiatric case, refer for treatment first. If the patient is healthy, plan a brief intervention; if resistance persists, refer to another counsellor and discuss with the treatment team. Write SOAP notes for any action taken."
+        },
+        {
+          "linkId": "general.G9",
+          "type": "coding",
+          "text": "G9. Residence — whom are you living with?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "G9-1",
+                "display": "Parents"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "G9-2",
+                "display": "Spouse"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "G9-3",
+                "display": "Alone"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "G9-4",
+                "display": "Sibling or relative"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "G9-5",
+                "display": "Friends"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "G9-6",
+                "display": "Other"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "general.G9s",
+          "type": "string",
+          "text": "G9. If other, specify"
+        },
+        {
+          "linkId": "general.G10",
+          "type": "coding",
+          "text": "G10. Is this residence owned by you or your parents?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "G10-0",
+                "display": "You"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "G10-1",
+                "display": "Parents"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "G10-2",
+                "display": "Others"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "general.G10s",
+          "type": "string",
+          "text": "G10. If others, specify"
+        },
+        {
+          "linkId": "general.G11",
+          "type": "coding",
+          "text": "G11. How long have you lived at your current address?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "G11-1",
+                "display": "0–3 months"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "G11-2",
+                "display": "3–6 months"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "G11-3",
+                "display": "6 months to one year"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "G11-4",
+                "display": "One year and above"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "general.G12",
+          "type": "coding",
+          "text": "G12. Do you have a religious preference?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "G12-1",
+                "display": "Protestant"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "G12-2",
+                "display": "Catholic"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "G12-3",
+                "display": "Islamic"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "G12-4",
+                "display": "Jewish"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "G12-5",
+                "display": "Other"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "G12-6",
+                "display": "None"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "general.G12s",
+          "type": "string",
+          "text": "G12. If other, specify"
+        },
+        {
+          "linkId": "general.G13",
+          "type": "coding",
+          "text": "G13. Have you been in a controlled environment in the past 30 days? (a place theoretically without access to drugs)",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "G13-1",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "G13-2",
+                "display": "Jail or prison"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "G13-3",
+                "display": "Psychiatric treatment"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "G13-4",
+                "display": "Medical treatment"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "G13-5",
+                "display": "Alcohol or drug treatment"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "G13-6",
+                "display": "Other"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "general.G13s",
+          "type": "string",
+          "text": "G13. If other, specify"
+        },
+        {
+          "linkId": "general.G14",
+          "type": "coding",
+          "text": "G14. How many days?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "G14-1",
+                "display": "0–7 days"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "G14-2",
+                "display": "7–14 days"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "G14-3",
+                "display": "14 days and above"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "general.comments",
+          "type": "text",
+          "text": "Further information and comments (quote the question number)",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "medical",
+      "type": "group",
+      "text": "Medical status",
+      "item": [
+        {
+          "linkId": "medical.M1",
+          "type": "integer",
+          "text": "M1. How many times in your life have you been hospitalised for medical problems? (include overdoses and DTs; exclude detox, alcohol/drug and psychiatric treatment, and uncomplicated childbirth)"
+        },
+        {
+          "linkId": "medical.M2",
+          "type": "string",
+          "text": "M2. How long ago was your last hospitalisation for a medical problem?"
+        },
+        {
+          "linkId": "medical.M3",
+          "type": "coding",
+          "text": "M3. Do you have any chronic medical problems which continue to interfere with your life?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "M3-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "M3-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "medical.M4",
+          "type": "coding",
+          "text": "M4. Are you taking any prescribed medication on a regular basis for a medical problem?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "M4-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "M4-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "medical.M5",
+          "type": "integer",
+          "text": "M5. How many days have you experienced medical problems in the past 30 days?"
+        },
+        {
+          "linkId": "medical.M5s",
+          "type": "string",
+          "text": "M5. Specify the problem"
+        },
+        {
+          "linkId": "medical.M6",
+          "type": "coding",
+          "text": "M6. How troubled or bothered have you been by these medical problems in the past 30 days?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "M6-0",
+                "display": "0 — Not at all"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "M6-1",
+                "display": "1 — Slightly"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "M6-2",
+                "display": "2 — Moderately"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "M6-3",
+                "display": "3 — Considerably"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "M6-4",
+                "display": "4 — Extremely"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "medical.M7",
+          "type": "coding",
+          "text": "M7. How important to you now is treatment for these medical problems?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "M7-0",
+                "display": "0 — Not at all"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "M7-1",
+                "display": "1 — Slightly"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "M7-2",
+                "display": "2 — Moderately"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "M7-3",
+                "display": "3 — Considerably"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "M7-4",
+                "display": "4 — Extremely"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "medical.M8",
+          "type": "coding",
+          "text": "M8. Interviewer severity rating: the patient's need for medical treatment",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "M8-0",
+                "display": "0 — No real problem, treatment not indicated"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "M8-1",
+                "display": "1 — No real problem, treatment not indicated"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "M8-2",
+                "display": "2 — Slight problem, treatment probably not necessary"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "M8-3",
+                "display": "3 — Slight problem, treatment probably not necessary"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "M8-4",
+                "display": "4 — Moderate problem, some treatment indicated"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "M8-5",
+                "display": "5 — Moderate problem, some treatment indicated"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "M8-6",
+                "display": "6 — Considerable problem, treatment necessary"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "M8-7",
+                "display": "7 — Considerable problem, treatment necessary"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "M8-8",
+                "display": "8 — Extreme problem, treatment absolutely necessary"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "M8-9",
+                "display": "9 — Extreme problem, treatment absolutely necessary"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "medical.M9",
+          "type": "coding",
+          "text": "M9. Is the above information significantly distorted by the patient's misrepresentation?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "M9-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "M9-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "medical.M10",
+          "type": "coding",
+          "text": "M10. Is the above information significantly distorted by the patient's inability to understand?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "M10-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "M10-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "medical.M11",
+          "type": "coding",
+          "text": "M11. Is the above information significantly distorted by the patient's resistance to treatment?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "M11-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "M11-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "medical.comments",
+          "type": "text",
+          "text": "Further information and comments (quote the question number)",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "employment",
+      "type": "group",
+      "text": "Employment and support status",
+      "item": [
+        {
+          "linkId": "employment.E1",
+          "type": "string",
+          "text": "E1. Education completed"
+        },
+        {
+          "linkId": "employment.E2",
+          "type": "string",
+          "text": "E2. Training or technical education completed"
+        },
+        {
+          "linkId": "employment.E3",
+          "type": "coding",
+          "text": "E3. Do you have a profession, trade or skill?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "E3-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "E3-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "employment.E3s",
+          "type": "string",
+          "text": "E3. If yes, specify"
+        },
+        {
+          "linkId": "employment.E4",
+          "type": "coding",
+          "text": "E4. Do you have a valid driver's licence?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "E4-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "E4-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "employment.E5",
+          "type": "coding",
+          "text": "E5. Do you have a full-time job? (35+ hours weekly)",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "E5-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "E5-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "employment.E6",
+          "type": "string",
+          "text": "E6. If not, what is your occupation?"
+        },
+        {
+          "linkId": "employment.E7",
+          "type": "coding",
+          "text": "E7. Does someone contribute to your support in any way?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "E7-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "E7-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "employment.E8",
+          "type": "coding",
+          "text": "E8. Does this support constitute the majority of your support?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "E8-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "E8-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "employment.E9",
+          "type": "coding",
+          "text": "E9. What is your usual employment pattern over the past 3 years?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "E9-1",
+                "display": "Full time (35+ hours)"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "E9-2",
+                "display": "Retired or on disability"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "E9-3",
+                "display": "Unemployed"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "E9-4",
+                "display": "Student"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "E9-5",
+                "display": "Military service"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "E9-6",
+                "display": "Part time (irregular hours)"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "E9-7",
+                "display": "Part time (regular hours)"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "E9-8",
+                "display": "In a controlled environment"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "employment.E10",
+          "type": "integer",
+          "text": "E10. How many people depend on you for the majority of their food, shelter and so on?"
+        },
+        {
+          "linkId": "employment.E11",
+          "type": "integer",
+          "text": "E11. How many days have you experienced employment problems in the past 30?"
+        },
+        {
+          "linkId": "employment.E12",
+          "type": "coding",
+          "text": "E12. How troubled or bothered have you been by these employment problems in the past 30 days?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "E12-0",
+                "display": "0 — Not at all"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "E12-1",
+                "display": "1 — Slightly"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "E12-2",
+                "display": "2 — Moderately"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "E12-3",
+                "display": "3 — Considerably"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "E12-4",
+                "display": "4 — Extremely"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "employment.E13",
+          "type": "coding",
+          "text": "E13. How important to you now is counselling for these employment problems?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "E13-0",
+                "display": "0 — Not at all"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "E13-1",
+                "display": "1 — Slightly"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "E13-2",
+                "display": "2 — Moderately"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "E13-3",
+                "display": "3 — Considerably"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "E13-4",
+                "display": "4 — Extremely"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "employment.E14",
+          "type": "coding",
+          "text": "E14. Interviewer severity rating: the patient's need for employment counselling",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "E14-0",
+                "display": "0 — No real problem, treatment not indicated"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "E14-1",
+                "display": "1 — No real problem, treatment not indicated"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "E14-2",
+                "display": "2 — Slight problem, treatment probably not necessary"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "E14-3",
+                "display": "3 — Slight problem, treatment probably not necessary"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "E14-4",
+                "display": "4 — Moderate problem, some treatment indicated"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "E14-5",
+                "display": "5 — Moderate problem, some treatment indicated"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "E14-6",
+                "display": "6 — Considerable problem, treatment necessary"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "E14-7",
+                "display": "7 — Considerable problem, treatment necessary"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "E14-8",
+                "display": "8 — Extreme problem, treatment absolutely necessary"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "E14-9",
+                "display": "9 — Extreme problem, treatment absolutely necessary"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "employment.E15",
+          "type": "coding",
+          "text": "E15. Is the above information significantly distorted by the client's misrepresentation?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "E15-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "E15-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "employment.E16",
+          "type": "coding",
+          "text": "E16. Is the above information significantly distorted by the client's inability to understand?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "E16-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "E16-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "employment.E17",
+          "type": "coding",
+          "text": "E17. Is the above information significantly distorted by the patient's resistance to treatment?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "E17-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "E17-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "employment.comments",
+          "type": "text",
+          "text": "Further information and comments (quote the question number)",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "drugs",
+      "type": "group",
+      "text": "Alcohol and drug use",
+      "item": [
+        {
+          "linkId": "drugs.note",
+          "type": "display",
+          "text": "Record the usual or most recent route of administration. Where more than one route applies, choose the most severe."
+        },
+        {
+          "linkId": "drugs.D1",
+          "type": "group",
+          "text": "D1. Alcohol",
+          "item": [
+            {
+              "linkId": "drugs.D1.days",
+              "type": "integer",
+              "text": "D1. Alcohol — days used in the past 30"
+            },
+            {
+              "linkId": "drugs.D1.years",
+              "type": "integer",
+              "text": "D1. Alcohol — lifetime years of use"
+            },
+            {
+              "linkId": "drugs.D1.route",
+              "type": "coding",
+              "text": "D1. Alcohol — route of administration",
+              "answerOption": [
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-1",
+                    "display": "Oral"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-2",
+                    "display": "Nasal"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-3",
+                    "display": "Smoking"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-4",
+                    "display": "Non-IV injection"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-5",
+                    "display": "IV"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "drugs.D2",
+          "type": "group",
+          "text": "D2. Alcohol (used to intoxication)",
+          "item": [
+            {
+              "linkId": "drugs.D2.days",
+              "type": "integer",
+              "text": "D2. Alcohol (used to intoxication) — days used in the past 30"
+            },
+            {
+              "linkId": "drugs.D2.years",
+              "type": "integer",
+              "text": "D2. Alcohol (used to intoxication) — lifetime years of use"
+            },
+            {
+              "linkId": "drugs.D2.route",
+              "type": "coding",
+              "text": "D2. Alcohol (used to intoxication) — route of administration",
+              "answerOption": [
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-1",
+                    "display": "Oral"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-2",
+                    "display": "Nasal"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-3",
+                    "display": "Smoking"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-4",
+                    "display": "Non-IV injection"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-5",
+                    "display": "IV"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "drugs.D3",
+          "type": "group",
+          "text": "D3. Heroin",
+          "item": [
+            {
+              "linkId": "drugs.D3.days",
+              "type": "integer",
+              "text": "D3. Heroin — days used in the past 30"
+            },
+            {
+              "linkId": "drugs.D3.years",
+              "type": "integer",
+              "text": "D3. Heroin — lifetime years of use"
+            },
+            {
+              "linkId": "drugs.D3.route",
+              "type": "coding",
+              "text": "D3. Heroin — route of administration",
+              "answerOption": [
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-1",
+                    "display": "Oral"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-2",
+                    "display": "Nasal"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-3",
+                    "display": "Smoking"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-4",
+                    "display": "Non-IV injection"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-5",
+                    "display": "IV"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "drugs.D4",
+          "type": "group",
+          "text": "D4. Methadone",
+          "item": [
+            {
+              "linkId": "drugs.D4.days",
+              "type": "integer",
+              "text": "D4. Methadone — days used in the past 30"
+            },
+            {
+              "linkId": "drugs.D4.years",
+              "type": "integer",
+              "text": "D4. Methadone — lifetime years of use"
+            },
+            {
+              "linkId": "drugs.D4.route",
+              "type": "coding",
+              "text": "D4. Methadone — route of administration",
+              "answerOption": [
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-1",
+                    "display": "Oral"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-2",
+                    "display": "Nasal"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-3",
+                    "display": "Smoking"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-4",
+                    "display": "Non-IV injection"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-5",
+                    "display": "IV"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "drugs.D5",
+          "type": "group",
+          "text": "D5. Other opiates or analgesics",
+          "item": [
+            {
+              "linkId": "drugs.D5.days",
+              "type": "integer",
+              "text": "D5. Other opiates or analgesics — days used in the past 30"
+            },
+            {
+              "linkId": "drugs.D5.years",
+              "type": "integer",
+              "text": "D5. Other opiates or analgesics — lifetime years of use"
+            },
+            {
+              "linkId": "drugs.D5.route",
+              "type": "coding",
+              "text": "D5. Other opiates or analgesics — route of administration",
+              "answerOption": [
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-1",
+                    "display": "Oral"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-2",
+                    "display": "Nasal"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-3",
+                    "display": "Smoking"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-4",
+                    "display": "Non-IV injection"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-5",
+                    "display": "IV"
+                  }
+                }
+              ]
+            },
+            {
+              "linkId": "drugs.D5.specify",
+              "type": "string",
+              "text": "D5. Other opiates or analgesics — specify"
+            }
+          ]
+        },
+        {
+          "linkId": "drugs.D6",
+          "type": "group",
+          "text": "D6. Barbiturates",
+          "item": [
+            {
+              "linkId": "drugs.D6.days",
+              "type": "integer",
+              "text": "D6. Barbiturates — days used in the past 30"
+            },
+            {
+              "linkId": "drugs.D6.years",
+              "type": "integer",
+              "text": "D6. Barbiturates — lifetime years of use"
+            },
+            {
+              "linkId": "drugs.D6.route",
+              "type": "coding",
+              "text": "D6. Barbiturates — route of administration",
+              "answerOption": [
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-1",
+                    "display": "Oral"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-2",
+                    "display": "Nasal"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-3",
+                    "display": "Smoking"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-4",
+                    "display": "Non-IV injection"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-5",
+                    "display": "IV"
+                  }
+                }
+              ]
+            },
+            {
+              "linkId": "drugs.D6.specify",
+              "type": "string",
+              "text": "D6. Barbiturates — specify"
+            }
+          ]
+        },
+        {
+          "linkId": "drugs.D7",
+          "type": "group",
+          "text": "D7. Other sedatives, hypnotics or tranquillisers",
+          "item": [
+            {
+              "linkId": "drugs.D7.days",
+              "type": "integer",
+              "text": "D7. Other sedatives, hypnotics or tranquillisers — days used in the past 30"
+            },
+            {
+              "linkId": "drugs.D7.years",
+              "type": "integer",
+              "text": "D7. Other sedatives, hypnotics or tranquillisers — lifetime years of use"
+            },
+            {
+              "linkId": "drugs.D7.route",
+              "type": "coding",
+              "text": "D7. Other sedatives, hypnotics or tranquillisers — route of administration",
+              "answerOption": [
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-1",
+                    "display": "Oral"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-2",
+                    "display": "Nasal"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-3",
+                    "display": "Smoking"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-4",
+                    "display": "Non-IV injection"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-5",
+                    "display": "IV"
+                  }
+                }
+              ]
+            },
+            {
+              "linkId": "drugs.D7.specify",
+              "type": "string",
+              "text": "D7. Other sedatives, hypnotics or tranquillisers — specify"
+            }
+          ]
+        },
+        {
+          "linkId": "drugs.D8",
+          "type": "group",
+          "text": "D8. Cocaine",
+          "item": [
+            {
+              "linkId": "drugs.D8.days",
+              "type": "integer",
+              "text": "D8. Cocaine — days used in the past 30"
+            },
+            {
+              "linkId": "drugs.D8.years",
+              "type": "integer",
+              "text": "D8. Cocaine — lifetime years of use"
+            },
+            {
+              "linkId": "drugs.D8.route",
+              "type": "coding",
+              "text": "D8. Cocaine — route of administration",
+              "answerOption": [
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-1",
+                    "display": "Oral"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-2",
+                    "display": "Nasal"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-3",
+                    "display": "Smoking"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-4",
+                    "display": "Non-IV injection"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-5",
+                    "display": "IV"
+                  }
+                }
+              ]
+            },
+            {
+              "linkId": "drugs.D8.specify",
+              "type": "string",
+              "text": "D8. Cocaine — specify"
+            }
+          ]
+        },
+        {
+          "linkId": "drugs.D9",
+          "type": "group",
+          "text": "D9. Amphetamines",
+          "item": [
+            {
+              "linkId": "drugs.D9.days",
+              "type": "integer",
+              "text": "D9. Amphetamines — days used in the past 30"
+            },
+            {
+              "linkId": "drugs.D9.years",
+              "type": "integer",
+              "text": "D9. Amphetamines — lifetime years of use"
+            },
+            {
+              "linkId": "drugs.D9.route",
+              "type": "coding",
+              "text": "D9. Amphetamines — route of administration",
+              "answerOption": [
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-1",
+                    "display": "Oral"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-2",
+                    "display": "Nasal"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-3",
+                    "display": "Smoking"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-4",
+                    "display": "Non-IV injection"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-5",
+                    "display": "IV"
+                  }
+                }
+              ]
+            },
+            {
+              "linkId": "drugs.D9.specify",
+              "type": "string",
+              "text": "D9. Amphetamines — specify"
+            }
+          ]
+        },
+        {
+          "linkId": "drugs.D10",
+          "type": "group",
+          "text": "D10. Cannabis",
+          "item": [
+            {
+              "linkId": "drugs.D10.days",
+              "type": "integer",
+              "text": "D10. Cannabis — days used in the past 30"
+            },
+            {
+              "linkId": "drugs.D10.years",
+              "type": "integer",
+              "text": "D10. Cannabis — lifetime years of use"
+            },
+            {
+              "linkId": "drugs.D10.route",
+              "type": "coding",
+              "text": "D10. Cannabis — route of administration",
+              "answerOption": [
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-1",
+                    "display": "Oral"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-2",
+                    "display": "Nasal"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-3",
+                    "display": "Smoking"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-4",
+                    "display": "Non-IV injection"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-5",
+                    "display": "IV"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "drugs.D11",
+          "type": "group",
+          "text": "D11. Hallucinogens",
+          "item": [
+            {
+              "linkId": "drugs.D11.days",
+              "type": "integer",
+              "text": "D11. Hallucinogens — days used in the past 30"
+            },
+            {
+              "linkId": "drugs.D11.years",
+              "type": "integer",
+              "text": "D11. Hallucinogens — lifetime years of use"
+            },
+            {
+              "linkId": "drugs.D11.route",
+              "type": "coding",
+              "text": "D11. Hallucinogens — route of administration",
+              "answerOption": [
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-1",
+                    "display": "Oral"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-2",
+                    "display": "Nasal"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-3",
+                    "display": "Smoking"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-4",
+                    "display": "Non-IV injection"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-5",
+                    "display": "IV"
+                  }
+                }
+              ]
+            },
+            {
+              "linkId": "drugs.D11.specify",
+              "type": "string",
+              "text": "D11. Hallucinogens — specify"
+            }
+          ]
+        },
+        {
+          "linkId": "drugs.D12",
+          "type": "group",
+          "text": "D12. Inhalants",
+          "item": [
+            {
+              "linkId": "drugs.D12.days",
+              "type": "integer",
+              "text": "D12. Inhalants — days used in the past 30"
+            },
+            {
+              "linkId": "drugs.D12.years",
+              "type": "integer",
+              "text": "D12. Inhalants — lifetime years of use"
+            },
+            {
+              "linkId": "drugs.D12.route",
+              "type": "coding",
+              "text": "D12. Inhalants — route of administration",
+              "answerOption": [
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-1",
+                    "display": "Oral"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-2",
+                    "display": "Nasal"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-3",
+                    "display": "Smoking"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-4",
+                    "display": "Non-IV injection"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                    "code": "route-5",
+                    "display": "IV"
+                  }
+                }
+              ]
+            },
+            {
+              "linkId": "drugs.D12.specify",
+              "type": "string",
+              "text": "D12. Inhalants — specify"
+            }
+          ]
+        },
+        {
+          "linkId": "drugs.D13",
+          "type": "string",
+          "text": "D13. According to the interviewer, which substance is or are the major problem?"
+        },
+        {
+          "linkId": "drugs.D14",
+          "type": "integer",
+          "text": "D14. How long was your last period of voluntary abstinence from this major substance? (months; 0 = never abstinent)"
+        },
+        {
+          "linkId": "drugs.D15",
+          "type": "integer",
+          "text": "D15. How many months ago did this abstinence end? (1 = still abstinent)"
+        },
+        {
+          "linkId": "drugs.D16",
+          "type": "integer",
+          "text": "D16. How many times have you had alcohol DTs?"
+        },
+        {
+          "linkId": "drugs.D17",
+          "type": "integer",
+          "text": "D17. How many times have you overdosed on drugs?"
+        },
+        {
+          "linkId": "drugs.D18",
+          "type": "integer",
+          "text": "D18. How many times in your life have you been treated for alcohol abuse?"
+        },
+        {
+          "linkId": "drugs.D19",
+          "type": "integer",
+          "text": "D19. How many times in your life have you been treated for drug abuse?"
+        },
+        {
+          "linkId": "drugs.D20",
+          "type": "integer",
+          "text": "D20. How many of these alcohol treatments were detox only?"
+        },
+        {
+          "linkId": "drugs.D21",
+          "type": "integer",
+          "text": "D21. How many of these drug treatments were detox only?"
+        },
+        {
+          "linkId": "drugs.D22",
+          "type": "integer",
+          "text": "D22. How much money did you spend on alcohol in the past 30 days? (KES)"
+        },
+        {
+          "linkId": "drugs.D23",
+          "type": "integer",
+          "text": "D23. How much money did you spend on drugs in the past 30 days? (KES)"
+        },
+        {
+          "linkId": "drugs.D24",
+          "type": "integer",
+          "text": "D24. How many days in the past 30 have you experienced alcohol problems?"
+        },
+        {
+          "linkId": "drugs.D25",
+          "type": "integer",
+          "text": "D25. How many days in the past 30 have you experienced drug problems?"
+        },
+        {
+          "linkId": "drugs.D26",
+          "type": "coding",
+          "text": "D26. How troubled or bothered have you been in the past 30 days by alcohol problems?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D26-0",
+                "display": "0 — Not at all"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D26-1",
+                "display": "1 — Slightly"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D26-2",
+                "display": "2 — Moderately"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D26-3",
+                "display": "3 — Considerably"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D26-4",
+                "display": "4 — Extremely"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "drugs.D27",
+          "type": "coding",
+          "text": "D27. How troubled or bothered have you been in the past 30 days by drug problems?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D27-0",
+                "display": "0 — Not at all"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D27-1",
+                "display": "1 — Slightly"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D27-2",
+                "display": "2 — Moderately"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D27-3",
+                "display": "3 — Considerably"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D27-4",
+                "display": "4 — Extremely"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "drugs.D28",
+          "type": "coding",
+          "text": "D28. How important to you now is treatment for these alcohol problems?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D28-0",
+                "display": "0 — Not at all"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D28-1",
+                "display": "1 — Slightly"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D28-2",
+                "display": "2 — Moderately"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D28-3",
+                "display": "3 — Considerably"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D28-4",
+                "display": "4 — Extremely"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "drugs.D29",
+          "type": "coding",
+          "text": "D29. How important to you now is treatment for these drug problems?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D29-0",
+                "display": "0 — Not at all"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D29-1",
+                "display": "1 — Slightly"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D29-2",
+                "display": "2 — Moderately"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D29-3",
+                "display": "3 — Considerably"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D29-4",
+                "display": "4 — Extremely"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "drugs.D30",
+          "type": "coding",
+          "text": "D30. Interviewer severity rating: the patient's need for treatment for alcohol problems",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D30-0",
+                "display": "0 — No real problem, treatment not indicated"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D30-1",
+                "display": "1 — No real problem, treatment not indicated"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D30-2",
+                "display": "2 — Slight problem, treatment probably not necessary"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D30-3",
+                "display": "3 — Slight problem, treatment probably not necessary"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D30-4",
+                "display": "4 — Moderate problem, some treatment indicated"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D30-5",
+                "display": "5 — Moderate problem, some treatment indicated"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D30-6",
+                "display": "6 — Considerable problem, treatment necessary"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D30-7",
+                "display": "7 — Considerable problem, treatment necessary"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D30-8",
+                "display": "8 — Extreme problem, treatment absolutely necessary"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D30-9",
+                "display": "9 — Extreme problem, treatment absolutely necessary"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "drugs.D31",
+          "type": "coding",
+          "text": "D31. Interviewer severity rating: the patient's need for treatment for drug problems",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D31-0",
+                "display": "0 — No real problem, treatment not indicated"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D31-1",
+                "display": "1 — No real problem, treatment not indicated"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D31-2",
+                "display": "2 — Slight problem, treatment probably not necessary"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D31-3",
+                "display": "3 — Slight problem, treatment probably not necessary"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D31-4",
+                "display": "4 — Moderate problem, some treatment indicated"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D31-5",
+                "display": "5 — Moderate problem, some treatment indicated"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D31-6",
+                "display": "6 — Considerable problem, treatment necessary"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D31-7",
+                "display": "7 — Considerable problem, treatment necessary"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D31-8",
+                "display": "8 — Extreme problem, treatment absolutely necessary"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D31-9",
+                "display": "9 — Extreme problem, treatment absolutely necessary"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "drugs.D32",
+          "type": "coding",
+          "text": "D32. Is the above information significantly distorted by the client's misrepresentation?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D32-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D32-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "drugs.D33",
+          "type": "coding",
+          "text": "D33. Is the above information significantly distorted by the client's inability to understand?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D33-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D33-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "drugs.D34",
+          "type": "coding",
+          "text": "D34. Is the above information significantly distorted by the patient's resistance to treatment?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D34-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "D34-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "drugs.comments",
+          "type": "text",
+          "text": "Further information and comments (quote the question number)",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "legal",
+      "type": "group",
+      "text": "Legal status",
+      "item": [
+        {
+          "linkId": "legal.L1",
+          "type": "coding",
+          "text": "L1. Was this admission prompted or suggested by the criminal justice system?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "L1-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "L1-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "legal.L2",
+          "type": "coding",
+          "text": "L2. Are you on probation?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "L2-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "L2-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "legal.chargesNote",
+          "type": "display",
+          "text": "How many times in your life have you been arrested and/or charged with the following?"
+        },
+        {
+          "linkId": "legal.L3",
+          "type": "integer",
+          "text": "L3. Shoplifting or vandalism"
+        },
+        {
+          "linkId": "legal.L4",
+          "type": "integer",
+          "text": "L4. Parole or probation violations"
+        },
+        {
+          "linkId": "legal.L5",
+          "type": "integer",
+          "text": "L5. Drug charges"
+        },
+        {
+          "linkId": "legal.L6",
+          "type": "integer",
+          "text": "L6. Forgery"
+        },
+        {
+          "linkId": "legal.L7",
+          "type": "integer",
+          "text": "L7. Weapons offence"
+        },
+        {
+          "linkId": "legal.L8",
+          "type": "integer",
+          "text": "L8. Stealing, breaking and entering"
+        },
+        {
+          "linkId": "legal.L9",
+          "type": "integer",
+          "text": "L9. Robbery"
+        },
+        {
+          "linkId": "legal.L10",
+          "type": "integer",
+          "text": "L10. Assault"
+        },
+        {
+          "linkId": "legal.L11",
+          "type": "integer",
+          "text": "L11. Arson"
+        },
+        {
+          "linkId": "legal.L12",
+          "type": "integer",
+          "text": "L12. Rape"
+        },
+        {
+          "linkId": "legal.L13",
+          "type": "integer",
+          "text": "L13. Homicide or manslaughter"
+        },
+        {
+          "linkId": "legal.L14",
+          "type": "integer",
+          "text": "L14. Prostitution"
+        },
+        {
+          "linkId": "legal.L15",
+          "type": "integer",
+          "text": "L15. Contempt of court"
+        },
+        {
+          "linkId": "legal.L16",
+          "type": "integer",
+          "text": "L16. Disorderly conduct, vagrancy, public intoxication"
+        },
+        {
+          "linkId": "legal.L17",
+          "type": "integer",
+          "text": "L17. Driving while intoxicated"
+        },
+        {
+          "linkId": "legal.L18",
+          "type": "integer",
+          "text": "L18. Major driving violations — speeding, reckless driving, no licence"
+        },
+        {
+          "linkId": "legal.L19",
+          "type": "integer",
+          "text": "L19. Other charges"
+        },
+        {
+          "linkId": "legal.L19s",
+          "type": "string",
+          "text": "L19. If other, specify"
+        },
+        {
+          "linkId": "legal.L20",
+          "type": "string",
+          "text": "L20. Which of these charges resulted in convictions?"
+        },
+        {
+          "linkId": "legal.L21",
+          "type": "integer",
+          "text": "L21. How many months were you incarcerated in your life?"
+        },
+        {
+          "linkId": "legal.L22",
+          "type": "string",
+          "text": "L22. How long was your last incarceration? (of 2 weeks or more)"
+        },
+        {
+          "linkId": "legal.L23",
+          "type": "string",
+          "text": "L23. What was it for?"
+        },
+        {
+          "linkId": "legal.L24",
+          "type": "coding",
+          "text": "L24. Are you presently awaiting charges, trial or sentence?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "L24-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "L24-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "legal.L25",
+          "type": "string",
+          "text": "L25. What for?"
+        },
+        {
+          "linkId": "legal.L26",
+          "type": "integer",
+          "text": "L26. How many days in the past 30 were you detained or incarcerated?"
+        },
+        {
+          "linkId": "legal.L27",
+          "type": "integer",
+          "text": "L27. How many days in the past 30 have you engaged in illegal activities for profit?"
+        },
+        {
+          "linkId": "legal.L28",
+          "type": "coding",
+          "text": "L28. How serious do you feel your present legal problems are?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "L28-0",
+                "display": "0 — Not at all"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "L28-1",
+                "display": "1 — Slightly"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "L28-2",
+                "display": "2 — Moderately"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "L28-3",
+                "display": "3 — Considerably"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "L28-4",
+                "display": "4 — Extremely"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "legal.L29",
+          "type": "coding",
+          "text": "L29. How important to you now is counselling or referral for these legal problems?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "L29-0",
+                "display": "0 — Not at all"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "L29-1",
+                "display": "1 — Slightly"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "L29-2",
+                "display": "2 — Moderately"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "L29-3",
+                "display": "3 — Considerably"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "L29-4",
+                "display": "4 — Extremely"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "legal.L30",
+          "type": "coding",
+          "text": "L30. Interviewer severity rating: the patient's need for legal services or counselling",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "L30-0",
+                "display": "0 — No real problem, treatment not indicated"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "L30-1",
+                "display": "1 — No real problem, treatment not indicated"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "L30-2",
+                "display": "2 — Slight problem, treatment probably not necessary"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "L30-3",
+                "display": "3 — Slight problem, treatment probably not necessary"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "L30-4",
+                "display": "4 — Moderate problem, some treatment indicated"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "L30-5",
+                "display": "5 — Moderate problem, some treatment indicated"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "L30-6",
+                "display": "6 — Considerable problem, treatment necessary"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "L30-7",
+                "display": "7 — Considerable problem, treatment necessary"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "L30-8",
+                "display": "8 — Extreme problem, treatment absolutely necessary"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "L30-9",
+                "display": "9 — Extreme problem, treatment absolutely necessary"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "legal.L31",
+          "type": "coding",
+          "text": "L31. Is the above information significantly distorted by the client's misrepresentation?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "L31-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "L31-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "legal.L32",
+          "type": "coding",
+          "text": "L32. Is the above information significantly distorted by the client's inability to understand?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "L32-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "L32-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "legal.L33",
+          "type": "coding",
+          "text": "L33. Is the above information significantly distorted by the patient's resistance to treatment?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "L33-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "L33-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "legal.comments",
+          "type": "text",
+          "text": "Further information and comments (quote the question number)",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "family",
+      "type": "group",
+      "text": "Family and social relationships",
+      "item": [
+        {
+          "linkId": "family.F1",
+          "type": "coding",
+          "text": "F1. Marital status",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F1-1",
+                "display": "Married"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F1-2",
+                "display": "Remarried"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F1-3",
+                "display": "Widowed"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F1-4",
+                "display": "Separated"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F1-5",
+                "display": "Divorced"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F1-6",
+                "display": "Never married"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "family.F2",
+          "type": "string",
+          "text": "F2. How long have you been in this marital status?"
+        },
+        {
+          "linkId": "family.F3",
+          "type": "coding",
+          "text": "F3. Are you satisfied with this situation?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F3-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F3-1",
+                "display": "Indifferent"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F3-2",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "family.F4",
+          "type": "coding",
+          "text": "F4. Usual living arrangements over the past 3 years",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F4-1",
+                "display": "With sexual partner and children"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F4-2",
+                "display": "With sexual partner alone"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F4-3",
+                "display": "With children alone"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F4-4",
+                "display": "With parents"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F4-5",
+                "display": "With siblings"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F4-6",
+                "display": "With friends"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F4-7",
+                "display": "Alone"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F4-8",
+                "display": "Controlled environment"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F4-9",
+                "display": "No stable arrangement"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "family.F5",
+          "type": "string",
+          "text": "F5. How long have you lived in these arrangements?"
+        },
+        {
+          "linkId": "family.F6",
+          "type": "coding",
+          "text": "F6. Are you satisfied with these arrangements?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F6-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F6-1",
+                "display": "Indifferent"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F6-2",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "family.F7",
+          "type": "coding",
+          "text": "F7. Do you live with anyone who has a current alcohol problem?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F7-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F7-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "family.F8",
+          "type": "coding",
+          "text": "F8. Do you live with anyone who uses non-prescribed drugs, or abuses prescribed drugs?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F8-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F8-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "family.F9",
+          "type": "coding",
+          "text": "F9. With whom do you spend most of your free time?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F9-1",
+                "display": "Family"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F9-2",
+                "display": "Friends"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F9-3",
+                "display": "Alone"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "family.F10",
+          "type": "coding",
+          "text": "F10. Are you satisfied with spending your free time this way?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F10-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F10-1",
+                "display": "Indifferent"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F10-2",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "family.F11",
+          "type": "integer",
+          "text": "F11. How many close friends do you have?"
+        },
+        {
+          "linkId": "family.reciprocalNote",
+          "type": "display",
+          "text": "Would you say you have had a close reciprocal relationship with any of the following?"
+        },
+        {
+          "linkId": "family.F12",
+          "type": "coding",
+          "text": "F12. Mother",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F12-0",
+                "display": "Clearly no for all in class"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F12-1",
+                "display": "Clearly yes for any in class"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F12-2",
+                "display": "Uncertain or don't know"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F12-3",
+                "display": "Never was a relative"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "family.F13",
+          "type": "coding",
+          "text": "F13. Father",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F13-0",
+                "display": "Clearly no for all in class"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F13-1",
+                "display": "Clearly yes for any in class"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F13-2",
+                "display": "Uncertain or don't know"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F13-3",
+                "display": "Never was a relative"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "family.F14",
+          "type": "coding",
+          "text": "F14. Brothers or sisters",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F14-0",
+                "display": "Clearly no for all in class"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F14-1",
+                "display": "Clearly yes for any in class"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F14-2",
+                "display": "Uncertain or don't know"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F14-3",
+                "display": "Never was a relative"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "family.F15",
+          "type": "coding",
+          "text": "F15. Sexual partner or spouse",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F15-0",
+                "display": "Clearly no for all in class"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F15-1",
+                "display": "Clearly yes for any in class"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F15-2",
+                "display": "Uncertain or don't know"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F15-3",
+                "display": "Never was a relative"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "family.F16",
+          "type": "coding",
+          "text": "F16. Children",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F16-0",
+                "display": "Clearly no for all in class"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F16-1",
+                "display": "Clearly yes for any in class"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F16-2",
+                "display": "Uncertain or don't know"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F16-3",
+                "display": "Never was a relative"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "family.F17",
+          "type": "coding",
+          "text": "F17. Friends",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F17-0",
+                "display": "Clearly no for all in class"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F17-1",
+                "display": "Clearly yes for any in class"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F17-2",
+                "display": "Uncertain or don't know"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F17-3",
+                "display": "Never was a relative"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "family.problemsNote",
+          "type": "display",
+          "text": "Have you had significant periods in the past 30 days in which you experienced serious problems getting along with the following?"
+        },
+        {
+          "linkId": "family.F18",
+          "type": "coding",
+          "text": "F18. Mother",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F18-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F18-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "family.F19",
+          "type": "coding",
+          "text": "F19. Father",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F19-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F19-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "family.F20",
+          "type": "coding",
+          "text": "F20. Brothers or sisters",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F20-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F20-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "family.F21",
+          "type": "coding",
+          "text": "F21. Sexual partner or spouse",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F21-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F21-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "family.F22",
+          "type": "coding",
+          "text": "F22. Children",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F22-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F22-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "family.F23",
+          "type": "coding",
+          "text": "F23. Other significant family",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F23-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F23-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "family.F24",
+          "type": "coding",
+          "text": "F24. Close friends",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F24-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F24-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "family.F25",
+          "type": "coding",
+          "text": "F25. Neighbours",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F25-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F25-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "family.F26",
+          "type": "coding",
+          "text": "F26. Co-workers",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F26-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F26-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "family.F23s",
+          "type": "string",
+          "text": "F23. Other significant family — specify"
+        },
+        {
+          "linkId": "family.abuseNote",
+          "type": "display",
+          "text": "Has anyone ever abused you?"
+        },
+        {
+          "linkId": "family.F27.past30",
+          "type": "coding",
+          "text": "F27. Emotionally — in the past 30 days",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "past30-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "past30-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "family.F27.lifetime",
+          "type": "coding",
+          "text": "F27. Emotionally — in your life",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "lifetime-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "lifetime-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "family.F28.past30",
+          "type": "coding",
+          "text": "F28. Physically — in the past 30 days",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "past30-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "past30-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "family.F28.lifetime",
+          "type": "coding",
+          "text": "F28. Physically — in your life",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "lifetime-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "lifetime-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "family.F29.past30",
+          "type": "coding",
+          "text": "F29. Sexually — in the past 30 days",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "past30-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "past30-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "family.F29.lifetime",
+          "type": "coding",
+          "text": "F29. Sexually — in your life",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "lifetime-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "lifetime-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "family.F30",
+          "type": "integer",
+          "text": "F30. How many days in the past 30 have you had serious conflicts with your family?"
+        },
+        {
+          "linkId": "family.F31",
+          "type": "integer",
+          "text": "F31. How many days in the past 30 have you had serious conflicts with other people?"
+        },
+        {
+          "linkId": "family.F32",
+          "type": "coding",
+          "text": "F32. How troubled or bothered have you been in the past 30 days by family problems?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F32-0",
+                "display": "0 — Not at all"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F32-1",
+                "display": "1 — Slightly"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F32-2",
+                "display": "2 — Moderately"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F32-3",
+                "display": "3 — Considerably"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F32-4",
+                "display": "4 — Extremely"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "family.F33",
+          "type": "coding",
+          "text": "F33. How troubled or bothered have you been in the past 30 days by social problems?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F33-0",
+                "display": "0 — Not at all"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F33-1",
+                "display": "1 — Slightly"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F33-2",
+                "display": "2 — Moderately"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F33-3",
+                "display": "3 — Considerably"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F33-4",
+                "display": "4 — Extremely"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "family.F34",
+          "type": "coding",
+          "text": "F34. How important to you now is treatment or counselling for these family problems?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F34-0",
+                "display": "0 — Not at all"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F34-1",
+                "display": "1 — Slightly"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F34-2",
+                "display": "2 — Moderately"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F34-3",
+                "display": "3 — Considerably"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F34-4",
+                "display": "4 — Extremely"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "family.F35",
+          "type": "coding",
+          "text": "F35. How important to you now is treatment or counselling for these social problems?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F35-0",
+                "display": "0 — Not at all"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F35-1",
+                "display": "1 — Slightly"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F35-2",
+                "display": "2 — Moderately"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F35-3",
+                "display": "3 — Considerably"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F35-4",
+                "display": "4 — Extremely"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "family.F36",
+          "type": "coding",
+          "text": "F36. Interviewer severity rating: the patient's need for family or social counselling",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F36-0",
+                "display": "0 — No real problem, treatment not indicated"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F36-1",
+                "display": "1 — No real problem, treatment not indicated"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F36-2",
+                "display": "2 — Slight problem, treatment probably not necessary"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F36-3",
+                "display": "3 — Slight problem, treatment probably not necessary"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F36-4",
+                "display": "4 — Moderate problem, some treatment indicated"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F36-5",
+                "display": "5 — Moderate problem, some treatment indicated"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F36-6",
+                "display": "6 — Considerable problem, treatment necessary"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F36-7",
+                "display": "7 — Considerable problem, treatment necessary"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F36-8",
+                "display": "8 — Extreme problem, treatment absolutely necessary"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F36-9",
+                "display": "9 — Extreme problem, treatment absolutely necessary"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "family.F37",
+          "type": "coding",
+          "text": "F37. Is the above information significantly distorted by the client's misrepresentation?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F37-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F37-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "family.F38",
+          "type": "coding",
+          "text": "F38. Is the above information significantly distorted by the client's inability to understand?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F38-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F38-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "family.F39",
+          "type": "coding",
+          "text": "F39. Is the above information significantly distorted by the patient's resistance to treatment?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F39-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "F39-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "family.comments",
+          "type": "text",
+          "text": "Further information and comments (quote the question number)",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "psychiatric",
+      "type": "group",
+      "text": "Psychiatric status",
+      "item": [
+        {
+          "linkId": "psychiatric.P1",
+          "type": "integer",
+          "text": "P1. How many times have you been treated for psychological or emotional problems in a hospital or inpatient setting?"
+        },
+        {
+          "linkId": "psychiatric.P2",
+          "type": "integer",
+          "text": "P2. How many times have you been treated for psychological or emotional problems as an outpatient or private patient?"
+        },
+        {
+          "linkId": "psychiatric.P3",
+          "type": "display",
+          "text": "P3. In the past 30 days, have you had a significant period of time — not a direct result of drug or alcohol use — in which you have:"
+        },
+        {
+          "linkId": "psychiatric.P4",
+          "type": "coding",
+          "text": "P4. Experienced serious depression — sadness, hopelessness, loss of interest, difficulty with daily functioning",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P4-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P4-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "psychiatric.P5",
+          "type": "coding",
+          "text": "P5. Experienced serious anxiety or tension — uptight, unreasonably worried, unable to feel relaxed",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P5-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P5-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "psychiatric.P6",
+          "type": "coding",
+          "text": "P6. Experienced hallucinations — saw things or heard voices that others did not",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P6-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P6-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "psychiatric.P7",
+          "type": "coding",
+          "text": "P7. Experienced trouble understanding, concentrating or remembering",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P7-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P7-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "psychiatric.P8",
+          "type": "coding",
+          "text": "P8. Experienced trouble controlling violent behaviour, including episodes of rage or violence",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P8-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P8-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "psychiatric.P9",
+          "type": "coding",
+          "text": "P9. Experienced serious thoughts of suicide",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P9-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P9-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "psychiatric.P10",
+          "type": "coding",
+          "text": "P10. Attempted suicide",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P10-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P10-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "psychiatric.P11",
+          "type": "coding",
+          "text": "P11. Been prescribed medication for any psychological or emotional problem",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P11-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P11-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "psychiatric.P12",
+          "type": "integer",
+          "text": "P12. How many days in the past 30 have you experienced these psychological or emotional problems?"
+        },
+        {
+          "linkId": "psychiatric.P13",
+          "type": "coding",
+          "text": "P13. How much have you been troubled or bothered by these psychological or emotional problems in the past 30 days?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P13-0",
+                "display": "0 — Not at all"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P13-1",
+                "display": "1 — Slightly"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P13-2",
+                "display": "2 — Moderately"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P13-3",
+                "display": "3 — Considerably"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P13-4",
+                "display": "4 — Extremely"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "psychiatric.P14",
+          "type": "coding",
+          "text": "P14. How important to you now is treatment for these psychological problems?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P14-0",
+                "display": "0 — Not at all"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P14-1",
+                "display": "1 — Slightly"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P14-2",
+                "display": "2 — Moderately"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P14-3",
+                "display": "3 — Considerably"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P14-4",
+                "display": "4 — Extremely"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "psychiatric.observedNote",
+          "type": "display",
+          "text": "At the time of the interview, the patient was:"
+        },
+        {
+          "linkId": "psychiatric.P15",
+          "type": "coding",
+          "text": "P15. Obviously depressed or withdrawn",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P15-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P15-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "psychiatric.P16",
+          "type": "coding",
+          "text": "P16. Obviously hostile",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P16-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P16-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "psychiatric.P17",
+          "type": "coding",
+          "text": "P17. Obviously anxious or nervous",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P17-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P17-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "psychiatric.P18",
+          "type": "coding",
+          "text": "P18. Having trouble with reality testing, thought disorders or paranoid thinking",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P18-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P18-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "psychiatric.P19",
+          "type": "coding",
+          "text": "P19. Having trouble comprehending, concentrating or remembering",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P19-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P19-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "psychiatric.P20",
+          "type": "coding",
+          "text": "P20. Having suicidal thoughts",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P20-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P20-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "psychiatric.P21",
+          "type": "coding",
+          "text": "P21. Interviewer severity rating: the patient's need for psychiatric or psychological treatment",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P21-0",
+                "display": "0 — No real problem, treatment not indicated"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P21-1",
+                "display": "1 — No real problem, treatment not indicated"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P21-2",
+                "display": "2 — Slight problem, treatment probably not necessary"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P21-3",
+                "display": "3 — Slight problem, treatment probably not necessary"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P21-4",
+                "display": "4 — Moderate problem, some treatment indicated"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P21-5",
+                "display": "5 — Moderate problem, some treatment indicated"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P21-6",
+                "display": "6 — Considerable problem, treatment necessary"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P21-7",
+                "display": "7 — Considerable problem, treatment necessary"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P21-8",
+                "display": "8 — Extreme problem, treatment absolutely necessary"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P21-9",
+                "display": "9 — Extreme problem, treatment absolutely necessary"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "psychiatric.P22",
+          "type": "coding",
+          "text": "P22. Is the above information significantly distorted by the client's misrepresentation?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P22-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P22-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "psychiatric.P23",
+          "type": "coding",
+          "text": "P23. Is the above information significantly distorted by the client's inability to understand?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P23-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P23-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "psychiatric.P24",
+          "type": "coding",
+          "text": "P24. Is the above information significantly distorted by the patient's resistance to treatment?",
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P24-0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+                "code": "P24-1",
+                "display": "Yes"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "psychiatric.comments",
+          "type": "text",
+          "text": "Further information and comments (quote the question number)",
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "34109-9",
+              "display": "Note"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "publisher": "Savannah Global Health Institute (SGHI)",
+  "contact": [
+    {
+      "telecom": [
+        {
+          "system": "url",
+          "value": "https://fhir.slade360.co.ke"
+        }
+      ]
+    }
+  ],
+  "jurisdiction": [
+    {
+      "coding": [
+        {
+          "system": "urn:iso:std:iso:3166",
+          "code": "KE",
+          "display": "Kenya"
+        }
+      ]
+    }
+  ],
+  "useContext": [
+    {
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+        "code": "workflow",
+        "display": "Workflow Setting"
+      },
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/clinical-form-category-codesystem",
+            "code": "scored-instrument",
+            "display": "Scored instrument"
+          }
+        ]
+      }
+    }
+  ],
+  "code": [
+    {
+      "system": "https://fhir.slade360.co.ke/fhir/CodeSystem/mental-wellness-codesystem",
+      "code": "asi",
+      "display": "Addiction Severity Index"
+    }
+  ]
+}
