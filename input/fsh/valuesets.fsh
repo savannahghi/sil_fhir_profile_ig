@@ -628,6 +628,9 @@ Description: "A ValueSet defining the possible units of measurement for medicati
 * include SGHIDosageUnitCodeSystem#dr "Drops"
 * include SGHIDosageUnitCodeSystem#puff "Puffs"
 * include SGHIDosageUnitCodeSystem#tab "Tablets"
+* include $ucum#ug "mcg"
+* include $ucum#[iU] "international units"
+* include $ucum#meq "mEq"
 * include codes from system http://unitsofmeasure.org
 
 ValueSet: SGHIDosageFrequency
