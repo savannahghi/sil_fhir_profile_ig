@@ -1063,3 +1063,320 @@ Description: "The kinds of systemic anti-cancer therapy the cancer centre inform
 * include SGHIAnswerCodeSystem#anti-cancer-chemotherapy "Chemotherapy"
 * include SGHIAnswerCodeSystem#anti-cancer-hormonal-therapy "Hormonal therapy"
 * include SGHIAnswerCodeSystem#anti-cancer-targeted-therapy "Targeted therapy"
+
+// ── ValueSets added for the South B Hospital forms (2026-10-29) ──────────────
+
+ValueSet: SGHISerologyResult
+Id: serology-result
+Title: "SGHI Serology Result"
+Description: "Whether a serological screen (Khan or RPR for syphilis on the maternity record) was reactive or non-reactive."
+* ^status = #active
+* ^experimental = false
+* include SGHIAnswerCodeSystem#serology-non-reactive
+* include SGHIAnswerCodeSystem#serology-reactive
+
+ValueSet: SGHIPerineumCondition
+Id: perineum-condition
+Title: "SGHI Perineum Condition"
+Description: "The state of the perineum after delivery: intact, torn, or an episiotomy."
+* ^status = #active
+* ^experimental = false
+* include SGHIAnswerCodeSystem#perineum-intact
+* include SGHIAnswerCodeSystem#perineum-tear
+* include SGHIAnswerCodeSystem#perineum-episiotomy
+
+ValueSet: SGHIPatientPositionCharted
+Id: patient-position-charted
+Title: "SGHI Patient Position Charted"
+Description: "The position a patient was nursed in on the ward observation chart: prone, supine, right lateral or left lateral."
+* ^status = #active
+* ^experimental = false
+* include SGHIAnswerCodeSystem#position-prone
+* include SGHIAnswerCodeSystem#position-supine
+* include SGHIAnswerCodeSystem#position-right-lateral
+* include SGHIAnswerCodeSystem#position-left-lateral
+
+ValueSet: SGHIBornAliveOrStillborn
+Id: born-alive-or-stillborn
+Title: "SGHI Born Alive or Stillborn"
+Description: "Whether a baby was born alive or stillborn."
+* ^status = #active
+* ^experimental = false
+* include SGHIAnswerCodeSystem#born-alive
+* include SGHIAnswerCodeSystem#born-stillbirth
+
+ValueSet: SGHISkinState
+Id: skin-state
+Title: "SGHI Skin State"
+Description: "The state of the skin on the ward observation chart: intact or broken."
+* ^status = #active
+* ^experimental = false
+* include SGHIAnswerCodeSystem#skin-intact
+* include SGHIAnswerCodeSystem#skin-broken
+
+ValueSet: SGHIAnaesthesiaProposed
+Id: anaesthesia-proposed
+Title: "SGHI Anaesthesia Proposed"
+Description: "The kind of anaesthesia a consent form says was proposed to the patient: general, regional or sedation."
+* ^status = #active
+* ^experimental = false
+* include SGHIAnswerCodeSystem#anaesthesia-general
+* include SGHIAnswerCodeSystem#anaesthesia-regional-block
+* include SGHIAnswerCodeSystem#anaesthesia-sedation
+
+ValueSet: SGHIConsentSigner
+Id: consent-signer
+Title: "SGHI Consent Signer"
+Description: "Who signs a consent: the patient, or a parent, guardian, next of kin, spouse or other relative on the patient's behalf."
+* ^status = #active
+* ^experimental = false
+* include SGHIAnswerCodeSystem#consenter-patient
+* include SGHIAnswerCodeSystem#consenter-parent
+* include SGHIAnswerCodeSystem#consenter-guardian
+* include SGHIAnswerCodeSystem#consenter-next-of-kin
+* include SGHIAnswerCodeSystem#consenter-spouse
+* include SGHIAnswerCodeSystem#consenter-relative
+
+ValueSet: SGHIHighRiskConsentSubject
+Id: high-risk-consent-subject
+Title: "SGHI High Risk Consent Subject"
+Description: "What the high-risk consent form is being signed for: a blood transfusion, a procedure, or chemotherapy."
+* ^status = #active
+* ^experimental = false
+* include SGHIAnswerCodeSystem#consent-for-blood-transfusion
+* include SGHIAnswerCodeSystem#consent-for-procedure
+* include SGHIAnswerCodeSystem#consent-for-chemotherapy
+
+ValueSet: SGHIPeriOperativeCheckStage
+Id: peri-operative-check-stage
+Title: "SGHI Peri-operative Check Stage"
+Description: "Where the nursing column of the peri-operative checklist was completed: on the ward before the patient leaves, or in theatre on arrival."
+* ^status = #active
+* ^experimental = false
+* include SGHIAnswerCodeSystem#check-stage-ward
+* include SGHIAnswerCodeSystem#check-stage-theatre
+
+ValueSet: SGHISwabCountResult
+Id: swab-count-result
+Title: "SGHI Swab Count Result"
+Description: "Whether the swab, instrument and needle count at the end of an operation was correct."
+* ^status = #active
+* ^experimental = false
+* include SGHIAnswerCodeSystem#count-correct
+* include SGHIAnswerCodeSystem#count-incorrect
+
+ValueSet: SGHITreatmentSheetSection
+Id: treatment-sheet-section
+Title: "SGHI Treatment Sheet Section"
+Description: "Which section of the in-patient treatment sheet a medication order sits in: stat or once-only, fluids and parenteral nutrition, antimicrobial, narcotic, general medicines, or PRN."
+* ^status = #active
+* ^experimental = false
+* include SGHIAnswerCodeSystem#order-section-stat
+* include SGHIAnswerCodeSystem#order-section-fluid
+* include SGHIAnswerCodeSystem#order-section-antimicrobial
+* include SGHIAnswerCodeSystem#order-section-narcotic
+* include SGHIAnswerCodeSystem#order-section-general
+* include SGHIAnswerCodeSystem#order-section-prn
+
+ValueSet: SGHIAntimicrobialIndication
+Id: antimicrobial-indication
+Title: "SGHI Antimicrobial Indication"
+Description: "Why an antimicrobial was ordered: prophylaxis, empiric treatment, or therapeutic treatment of a known organism. The indication sets when the order lapses."
+* ^status = #active
+* ^experimental = false
+* include SGHIAnswerCodeSystem#antimicrobial-prophylaxis
+* include SGHIAnswerCodeSystem#antimicrobial-empiric
+* include SGHIAnswerCodeSystem#antimicrobial-therapeutic
+
+ValueSet: SGHIDoseNotGivenReason
+Id: dose-not-given-reason
+Title: "SGHI Dose Not Given Reason"
+Description: "Why a scheduled dose was not administered, as the numbered key on the treatment sheet lists it."
+* ^status = #active
+* ^experimental = false
+* include SGHIAnswerCodeSystem#not-given-patient-away
+* include SGHIAnswerCodeSystem#not-given-could-not-receive
+* include SGHIAnswerCodeSystem#not-given-refused
+* include SGHIAnswerCodeSystem#not-given-not-availed
+* include SGHIAnswerCodeSystem#not-given-doctor-instruction
+* include SGHIAnswerCodeSystem#not-given-iv-access
+* include SGHIAnswerCodeSystem#not-given-see-infusion-chart
+* include SGHIAnswerCodeSystem#not-given-other
+
+ValueSet: SGHIAdministrationRoute
+Id: administration-route
+Title: "SGHI Administration Route"
+Description: "The route a medicine is given by, as written on the treatment sheet."
+* ^status = #active
+* ^experimental = false
+* include SGHIAnswerCodeSystem#route-oral
+* include SGHIAnswerCodeSystem#route-sublingual
+* include SGHIAnswerCodeSystem#route-intravenous
+* include SGHIAnswerCodeSystem#route-intramuscular
+* include SGHIAnswerCodeSystem#route-subcutaneous
+* include SGHIAnswerCodeSystem#route-rectal
+* include SGHIAnswerCodeSystem#route-vaginal
+* include SGHIAnswerCodeSystem#route-topical
+* include SGHIAnswerCodeSystem#route-inhalation
+* include SGHIAnswerCodeSystem#route-ngt
+
+ValueSet: SGHIBillingClearanceStatus
+Id: billing-clearance-status
+Title: "SGHI Billing Clearance Status"
+Description: "The status of a procedure on the billing clearance form: paid, or approved by the payer."
+* ^status = #active
+* ^experimental = false
+* include SGHIAnswerCodeSystem#billing-paid
+* include SGHIAnswerCodeSystem#billing-approved
+
+ValueSet: SGHIDeclaredValuable
+Id: declared-valuable
+Title: "SGHI Declared Valuable"
+Description: "The kinds of personal item a patient declares on admission."
+* ^status = #active
+* ^experimental = false
+* include SGHIAnswerCodeSystem#valuable-jewellery
+* include SGHIAnswerCodeSystem#valuable-cash
+* include SGHIAnswerCodeSystem#valuable-cell-phone
+* include SGHIAnswerCodeSystem#valuable-electronics
+* include SGHIAnswerCodeSystem#valuable-weapons
+* include SGHIAnswerCodeSystem#valuable-clothing
+* include SGHIAnswerCodeSystem#valuable-watch
+* include SGHIAnswerCodeSystem#valuable-personal-documents
+* include SGHIAnswerCodeSystem#valuable-own-medicines
+* include SGHIAnswerCodeSystem#valuable-feeding-bottle
+* include SGHIAnswerCodeSystem#valuable-breast-pump
+* include SGHIAnswerCodeSystem#valuable-other
+
+ValueSet: SGHIYesNoDeclined
+Id: yes-no-declined
+Title: "SGHI Yes No Declined"
+Description: "The three-way answer the WHO labour care guide uses for supportive care: yes, no, or the woman declined."
+* ^status = #active
+* ^experimental = false
+* include SGHIAnswerCodeSystem#yes
+* include SGHIAnswerCodeSystem#no
+* include SGHIAnswerCodeSystem#declined
+
+ValueSet: SGHILabourPosture
+Id: labour-posture
+Title: "SGHI Labour Posture"
+Description: "The woman's posture in labour on the WHO labour care guide: supine or mobile."
+* ^status = #active
+* ^experimental = false
+* include SGHIAnswerCodeSystem#posture-supine
+* include SGHIAnswerCodeSystem#posture-mobile
+
+ValueSet: SGHIFetalHeartRateDeceleration
+Id: fetal-heart-rate-deceleration
+Title: "SGHI Fetal Heart Rate Deceleration"
+Description: "The pattern of fetal heart rate decelerations on the WHO labour care guide: none, early, late or variable."
+* ^status = #active
+* ^experimental = false
+* include SGHIAnswerCodeSystem#fhr-decel-none
+* include SGHIAnswerCodeSystem#fhr-decel-early
+* include SGHIAnswerCodeSystem#fhr-decel-late
+* include SGHIAnswerCodeSystem#fhr-decel-variable
+
+ValueSet: SGHIAmnioticFluid
+Id: amniotic-fluid
+Title: "SGHI Amniotic Fluid"
+Description: "The amniotic fluid as charted on the WHO labour care guide: membranes intact, clear, meconium-stained, thick meconium, or blood-stained."
+* ^status = #active
+* ^experimental = false
+* include SGHIAnswerCodeSystem#amniotic-intact
+* include SGHIAnswerCodeSystem#amniotic-clear
+* include SGHIAnswerCodeSystem#amniotic-meconium
+* include SGHIAnswerCodeSystem#amniotic-meconium-thick
+* include SGHIAnswerCodeSystem#amniotic-blood
+
+ValueSet: SGHIFetalPosition
+Id: fetal-position
+Title: "SGHI Fetal Position"
+Description: "The fetal position on the WHO labour care guide: anterior, posterior or transverse."
+* ^status = #active
+* ^experimental = false
+* include SGHIAnswerCodeSystem#fetal-position-anterior
+* include SGHIAnswerCodeSystem#fetal-position-posterior
+* include SGHIAnswerCodeSystem#fetal-position-transverse
+
+ValueSet: SGHIPlusGrade
+Id: plus-grade
+Title: "SGHI Plus Grade"
+Description: "A none-to-three-plus grade, used for caput, moulding, urine protein and urine acetone on the WHO labour care guide."
+* ^status = #active
+* ^experimental = false
+* include SGHIAnswerCodeSystem#plus-none
+* include SGHIAnswerCodeSystem#plus-1
+* include SGHIAnswerCodeSystem#plus-2
+* include SGHIAnswerCodeSystem#plus-3
+
+ValueSet: SGHILabourCareGuideStage
+Id: labour-care-guide-stage
+Title: "SGHI Labour Care Guide Stage"
+Description: "Which stage a WHO labour care guide column belongs to: the active first stage or the second stage."
+* ^status = #active
+* ^experimental = false
+* include SGHIAnswerCodeSystem#labour-stage-active-first
+* include SGHIAnswerCodeSystem#labour-stage-second
+
+ValueSet: SGHIUterotonic
+Id: uterotonic
+Title: "SGHI Uterotonic"
+Description: "The uterotonic given in the third stage of labour: oxytocin or another drug."
+* ^status = #active
+* ^experimental = false
+* include SGHIAnswerCodeSystem#uterotonic-oxytocin
+* include SGHIAnswerCodeSystem#uterotonic-other
+
+ValueSet: SGHIPostnatalBreastExamination
+Id: postnatal-breast-examination
+Title: "SGHI Postnatal Breast Examination"
+Description: "The postnatal breast examination result: normal, or a finding to describe."
+* ^status = #active
+* ^experimental = false
+* include SGHIAnswerCodeSystem#breast-normal
+* include SGHIAnswerCodeSystem#breast-abnormal
+
+ValueSet: SGHIPostnatalNewbornColour
+Id: postnatal-newborn-colour
+Title: "SGHI Postnatal Newborn Colour"
+Description: "The colour of a newborn on the daily postnatal examination: pink, blue, jaundiced or pale."
+* ^status = #active
+* ^experimental = false
+* include SGHIAnswerCodeSystem#colour-pink
+* include SGHIAnswerCodeSystem#colour-blue
+* include SGHIAnswerCodeSystem#colour-jaundiced
+* include SGHIAnswerCodeSystem#colour-pale
+
+ValueSet: SGHINewbornBreathing
+Id: newborn-breathing
+Title: "SGHI Newborn Breathing"
+Description: "A newborn's breathing on the daily postnatal examination: normal or subnormal."
+* ^status = #active
+* ^experimental = false
+* include SGHIAnswerCodeSystem#breathing-normal
+* include SGHIAnswerCodeSystem#breathing-subnormal
+
+ValueSet: SGHIUmbilicalCordState
+Id: umbilical-cord-state
+Title: "SGHI Umbilical Cord State"
+Description: "The state of the umbilical cord stump on the daily postnatal examination."
+* ^status = #active
+* ^experimental = false
+* include SGHIAnswerCodeSystem#cord-state-bleeding
+* include SGHIAnswerCodeSystem#cord-state-septic
+* include SGHIAnswerCodeSystem#cord-state-ligated
+* include SGHIAnswerCodeSystem#cord-state-dry-and-clean
+
+ValueSet: SGHIChronicIllnessHistory
+Id: chronic-illness-history
+Title: "SGHI Chronic Illness History"
+Description: "The chronic illnesses the admission form asks about: hypertension, diabetes, asthma, TB, or another."
+* ^status = #active
+* ^experimental = false
+* include SGHIAnswerCodeSystem#chronic-hypertension
+* include SGHIAnswerCodeSystem#chronic-diabetes
+* include SGHIAnswerCodeSystem#chronic-asthma
+* include SGHIAnswerCodeSystem#chronic-tb
+* include SGHIAnswerCodeSystem#chronic-other
