@@ -1,0 +1,520 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractNurseKardex"
+/// name = "ExtractNurseKardex"
+/// title = "Nurse Kardex Extraction"
+/// status = "active"
+/// description = "The nurse's admission history (Kardex) as the resources it is made of: each history section's text as an Observation under its LOINC section code; occupation, education, smoking, alcohol, pregnancies, parity and LMP as coded Observations; each illness the patient reports as an unconfirmed Condition; each past operation as a reported Procedure; each relative's illness as a FamilyMemberHistory. Admission details, what the form shows from the record, and the sign-off are not extracted."
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Observation as target
+uses "http://hl7.org/fhir/StructureDefinition/Condition" alias Condition as target
+uses "http://hl7.org/fhir/StructureDefinition/Procedure" alias Procedure as target
+uses "http://hl7.org/fhir/StructureDefinition/FamilyMemberHistory" alias FamilyMemberHistory as target
+
+group ExtractNurseKardex(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  qr.item as g where (linkId = 'personal-history') then {
+    g.item as it where (linkId = 'personal-history/occupation' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSocialHistoryCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '11341-5' "cd";
+          it -> cg.display = 'History of Occupation' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as v -> obs.value = create('CodeableConcept') as vcc, vcc.text = v "conceptText";
+      } "answer";
+    } "personal_history_occupation";
+    g.item as it where (linkId = 'personal-history/education' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSocialHistoryCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '82589-3' "cd";
+          it -> cg.display = 'Highest level of education' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as cv -> obs.value = create('CodeableConcept') as vcc then {
+            cv -> vcc.coding = cv "valueCoding";
+            cv.display as d -> vcc.text = d "valueText";
+          } "coded";
+      } "answer";
+    } "personal_history_education";
+    g.item as it where (linkId = 'personal-history/notes' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '11329-0' "cd";
+          it -> cg.display = 'History general Narrative - Reported' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as txt -> obs.note as n, n.text = txt "text";
+      } "answer";
+    } "personal_history_notes";
+  } "personal_history_observations";
+
+  qr.item as g where (linkId = 'present-illness') then {
+    g.item as it where (linkId = 'present-illness/notes' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '10164-2' "cd";
+          it -> cg.display = 'History of Present illness Narrative' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as txt -> obs.note as n, n.text = txt "text";
+      } "answer";
+    } "present_illness_notes";
+  } "present_illness_observations";
+
+  qr.item as g where (linkId = 'past-medical-history') then {
+    g.item as it where (linkId = 'past-medical-history/notes' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '11348-0' "cd";
+          it -> cg.display = 'History of Past illness note' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as txt -> obs.note as n, n.text = txt "text";
+      } "answer";
+    } "past_medical_history_notes";
+  } "past_medical_history_observations";
+
+  qr.item as g where (linkId = 'past-surgical-history') then {
+    g.item as it where (linkId = 'past-surgical-history/notes' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '10167-5' "cd";
+          it -> cg.display = 'History of Surgical procedures Narrative' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as txt -> obs.note as n, n.text = txt "text";
+      } "answer";
+    } "past_surgical_history_notes";
+  } "past_surgical_history_observations";
+
+  qr.item as g where (linkId = 'obstetric-history') then {
+    g.item as it where (linkId = 'obstetric-history/gravida' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '11996-6' "cd";
+          it -> cg.display = '[#] Pregnancies' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as v -> obs.value = v "set";
+      } "answer";
+    } "obstetric_history_gravida";
+    g.item as it where (linkId = 'obstetric-history/parity' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '11977-6' "cd";
+          it -> cg.display = '[#] Parity' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as v -> obs.value = v "set";
+      } "answer";
+    } "obstetric_history_parity";
+    g.item as it where (linkId = 'obstetric-history/lmp' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '8665-2' "cd";
+          it -> cg.display = 'Last menstrual period start date' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as v -> obs.value = cast(v, 'dateTime') "set";
+      } "answer";
+    } "obstetric_history_lmp";
+    g.item as it where (linkId = 'obstetric-history/notes' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '10162-6' "cd";
+          it -> cg.display = 'History of pregnancies Narrative' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as txt -> obs.note as n, n.text = txt "text";
+      } "answer";
+    } "obstetric_history_notes";
+  } "obstetric_history_observations";
+
+  qr.item as g where (linkId = 'family-history') then {
+    g.item as it where (linkId = 'family-history/notes' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '10157-6' "cd";
+          it -> cg.display = 'History of family member diseases note' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as txt -> obs.note as n, n.text = txt "text";
+      } "answer";
+    } "family_history_notes";
+  } "family_history_observations";
+
+  qr.item as g where (linkId = 'social-economic-history') then {
+    g.item as it where (linkId = 'social-economic-history/smoking' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSocialHistoryCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '72166-2' "cd";
+          it -> cg.display = 'Tobacco smoking status' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as cv -> obs.value = create('CodeableConcept') as vcc then {
+            cv -> vcc.coding = cv "valueCoding";
+            cv.display as d -> vcc.text = d "valueText";
+          } "coded";
+      } "answer";
+    } "social_economic_history_smoking";
+    g.item as it where (linkId = 'social-economic-history/alcohol' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSocialHistoryCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '11331-6' "cd";
+          it -> cg.display = 'History of Alcohol use' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as cv -> obs.value = create('CodeableConcept') as vcc then {
+            cv -> vcc.coding = cv "valueCoding";
+            cv.display as d -> vcc.text = d "valueText";
+          } "coded";
+      } "answer";
+    } "social_economic_history_alcohol";
+    g.item as it where (linkId = 'social-economic-history/notes' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSocialHistoryCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '29762-2' "cd";
+          it -> cg.display = 'Social history note' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as txt -> obs.note as n, n.text = txt "text";
+      } "answer";
+    } "social_economic_history_notes";
+  } "social_economic_history_observations";
+
+  qr.item as g where (linkId = 'physical-examination') then {
+    g.item as it where (linkId = 'physical-examination/notes' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetExamCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '29545-1' "cd";
+          it -> cg.display = 'Physical findings note' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value as txt -> obs.note as n, n.text = txt "text";
+      } "answer";
+    } "physical_examination_notes";
+  } "physical_examination_observations";
+
+  // ── Illnesses reported on admission ─────────────────────────────────────
+  // A Condition per row the nurse adds. They are 'unconfirmed': a nurse taking a
+  // history records what the patient reports, not a diagnosis. Conditions already
+  // on the record are shown on the form and are not written again.
+  qr.item as g where (linkId = 'past-medical-history') then {
+    g.item as row where (linkId = 'past-medical-history/condition' and item.where(linkId = 'past-medical-history/condition/name').answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Condition') as cond then {
+      qr -> cond, entry then BuildConditionBase(qr, cond, entry) "base";
+      row -> cond.clinicalStatus as cs, cs.coding as cg then {
+        row -> cg.system = 'http://terminology.hl7.org/CodeSystem/condition-clinical' "sys";
+        row -> cg.code = 'active' "cd";
+        row -> cg.display = 'Active' "dsp";
+      } "coding";
+      row -> cond.verificationStatus as vs, vs.coding as cg then {
+        row -> cg.system = 'http://terminology.hl7.org/CodeSystem/condition-ver-status' "sys";
+        row -> cg.code = 'unconfirmed' "cd";
+        row -> cg.display = 'Unconfirmed' "dsp";
+      } "coding";
+      row -> cond.category as cat, cat.coding as cg then {
+        row -> cg.system = 'http://terminology.hl7.org/CodeSystem/condition-category' "sys";
+        row -> cg.code = 'problem-list-item' "cd";
+        row -> cg.display = 'Problem List Item' "dsp";
+      } "coding";
+      row.item as it where (linkId = 'past-medical-history/condition/name') then {
+        it.answer first as a then {
+          a.value as txt -> cond.code as cc, cc.text = txt "codeText";
+        } "answer";
+      } "name";
+      row.item as it where (linkId = 'past-medical-history/condition/since' and answer.value.exists()) then {
+        it.answer first as a then {
+          a.value as txt -> cond.onset = txt "onset";
+        } "answer";
+      } "since";
+      row -> cond.note as n, n.text = 'Reported on the nurse admission history' "reportedNote";
+    } "reportedCondition";
+  } "pastMedicalHistory";
+
+  // ── Operations reported on admission ────────────────────────────────────
+  // A Procedure per row, marked as reported. No encounter: the operation did not
+  // happen during this admission.
+  qr.item as g where (linkId = 'past-surgical-history') then {
+    g.item as row where (linkId = 'past-surgical-history/operation' and item.where(linkId = 'past-surgical-history/operation/name').answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Procedure') as proc then {
+      qr -> proc, entry then BuildProcedureBase(qr, proc, entry) "base";
+      row -> proc.status = 'completed' "status";
+      row -> proc.reported = true "reported";
+      row.item as it where (linkId = 'past-surgical-history/operation/name') then {
+        it.answer first as a then {
+          a.value as txt -> proc.code as cc, cc.text = txt "codeText";
+        } "answer";
+      } "name";
+      row.item as it where (linkId = 'past-surgical-history/operation/when' and answer.value.exists()) then {
+        it.answer first as a then {
+          a.value as txt -> proc.occurrence = txt "occurrence";
+        } "answer";
+      } "when";
+      row -> proc.note as n, n.text = 'Reported on the nurse admission history' "reportedNote";
+    } "reportedOperation";
+  } "pastSurgicalHistory";
+
+  // ── Illness in the family ───────────────────────────────────────────────
+  // A FamilyMemberHistory per relative. The relationship is required by FHIR, so
+  // a row without one is left on the form rather than failing the whole save.
+  qr.item as g where (linkId = 'family-history') then {
+    g.item as row where (linkId = 'family-history/member' and item.where(linkId = 'family-history/member/relationship').answer.value.exists()) -> bundle.entry as entry, entry.resource = create('FamilyMemberHistory') as fmh then {
+      qr -> fmh, entry then BuildFamilyMemberBase(qr, fmh, entry) "base";
+      row -> fmh.status = 'completed' "status";
+      row.item as it where (linkId = 'family-history/member/relationship') then {
+        it.answer first as a then {
+          a.value as cv -> fmh.relationship as rel then {
+            cv -> rel.coding = cv "relCoding";
+            cv.display as d -> rel.text = d "relText";
+          } "relationship";
+        } "answer";
+      } "relationshipItem";
+      row.item as it where (linkId = 'family-history/member/condition' and answer.value.exists()) then {
+        it.answer first as a then {
+          a.value as txt -> fmh.condition as c, c.code = create('CodeableConcept') as code, code.text = txt "conditionText";
+        } "answer";
+      } "conditionItem";
+    } "familyMember";
+  } "familyHistory";
+}
+
+group BuildObsBase(source qr : QR, target r : Observation, target entry) {
+  qr -> r then SetResponseProvenance(qr, r) "responseProvenance";
+  qr -> r.id = uuid() then SetObsFullUrl(r, entry) "idAndFullUrl";
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Observation' "requestUrl";
+  } "entryRequest";
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> r.subject = s "subject";
+  qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> r.encounter = e "encounter";
+  qr -> r.status = 'final' "status";
+  qr.id as qid where ($this.hasValue()) -> r.derivedFrom = create('Reference') as ref, ref.reference = qid "linkQuestionnaireResponse";
+  qr -> r then ConformObs(qr, r) "profileConformance";
+}
+
+group SetObsFullUrl(source r : Observation, target entry) {
+  r.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/Observation/', id) "assignFullUrl";
+}
+
+group BuildConditionBase(source qr : QR, target r : Condition, target entry) {
+  qr -> r then SetResponseProvenance(qr, r) "responseProvenance";
+  qr -> r.id = uuid() then SetConditionFullUrl(r, entry) "idAndFullUrl";
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Condition' "requestUrl";
+  } "entryRequest";
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> r.subject = s "subject";
+  qr -> r then ConformCondition(qr, r) "profileConformance";
+}
+
+group SetConditionFullUrl(source r : Condition, target entry) {
+  r.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/Condition/', id) "assignFullUrl";
+}
+
+group BuildProcedureBase(source qr : QR, target r : Procedure, target entry) {
+  qr -> r then SetResponseProvenance(qr, r) "responseProvenance";
+  qr -> r.id = uuid() then SetProcedureFullUrl(r, entry) "idAndFullUrl";
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Procedure' "requestUrl";
+  } "entryRequest";
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> r.subject = s "subject";
+  qr -> r then ConformProcedure(qr, r) "profileConformance";
+}
+
+group SetProcedureFullUrl(source r : Procedure, target entry) {
+  r.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/Procedure/', id) "assignFullUrl";
+}
+
+group BuildFamilyMemberBase(source qr : QR, target r : FamilyMemberHistory, target entry) {
+  qr -> r then SetResponseProvenance(qr, r) "responseProvenance";
+  qr -> r.id = uuid() then SetFamilyMemberFullUrl(r, entry) "idAndFullUrl";
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'FamilyMemberHistory' "requestUrl";
+  } "entryRequest";
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> r.patient = s "patient";
+  qr -> r then ConformFamilyMember(qr, r) "profileConformance";
+}
+
+group SetFamilyMemberFullUrl(source r : FamilyMemberHistory, target entry) {
+  r.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/FamilyMemberHistory/', id) "assignFullUrl";
+}
+
+group SetSurveyCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as cg then {
+      qr -> cg.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "sys";
+      qr -> cg.code = 'survey' "cd";
+      qr -> cg.display = 'Survey' "dsp";
+    } "coding";
+  } "category";
+}
+
+group SetSocialHistoryCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as cg then {
+      qr -> cg.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "sys";
+      qr -> cg.code = 'social-history' "cd";
+      qr -> cg.display = 'Social History' "dsp";
+    } "coding";
+  } "category";
+}
+
+group SetExamCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as cg then {
+      qr -> cg.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "sys";
+      qr -> cg.code = 'exam' "cd";
+      qr -> cg.display = 'Exam' "dsp";
+    } "coding";
+  } "category";
+}
+
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+// The form's own tag, so its entries can be told apart from other forms', and
+// every tag the response carries (the tenant tags), as the other maps do.
+group SetResponseProvenance(source qr : QR, target r) {
+  qr -> r.meta as m then {
+    qr -> m.tag as t then {
+      qr -> t.system = 'http://slade360edi.com/questionnaire-provenance' "provenanceSystem";
+      qr -> t.code = 'nurse-kardex' "provenanceCode";
+      qr -> t.display = 'Nurse Kardex' "provenanceDisplay";
+    } "provenanceTag";
+  } "provenanceMeta";
+  qr.meta as qm then {
+    qm.tag as qt -> r.meta as m, m.tag = qt "copyTag";
+  } "tenantTags";
+  qr.identifier as qid where (assigner.empty() or assigner.where(((reference.exists() and (reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization'))))).exists()) -> r.identifier = qid "identifier";
+}
+
+// ── Who and when ────────────────────────────────────────────────────────────
+// The time is the nurse's own Date/Time when given, else when the form was saved.
+group ConformObs(source qr : QR, target r) {
+  qr where (item.where(linkId = 'recorded-by').item.where(linkId = 'recorded-by/date-time').answer.value.exists().not()) then {
+    qr.authored as t -> r.effective = t "effectiveAuthored";
+  } "effectiveFallback";
+  qr.item as g where (linkId = 'recorded-by') then {
+    g.item as it where (linkId = 'recorded-by/date-time') then {
+      it.answer first as a then {
+        a.value as v -> r.effective = v "effectiveRecorded";
+      } "answer";
+    } "dateTime";
+  } "recordedAt";
+  qr.authored as t where ($this.toString().length() >= 20) -> r.issued = cast(t, 'instant') "issued";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = au "performerFromAuthor";
+  qr where (author.exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = src "performerFromSource";
+  } "performerFallback";
+  qr where (author.exists().not() and source.exists().not()) then {
+    qr.item as g where (linkId = 'recorded-by') then {
+      g.item as it where (linkId = 'recorded-by/nurse-name') then {
+        it.answer first as a then {
+          a.value as nm -> r.performer = create('Reference') as who, who.display = nm "byName";
+        } "answer";
+      } "nurse";
+    } "recordedBy";
+  } "nurseByName";
+}
+
+group ConformCondition(source qr : QR, target r) {
+  qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> r.encounter = e "encounter";
+  qr.authored as t -> r.recordedDate = t "recordedDate";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.participant as p then AuthorParticipant(au, p) "participantFromAuthor";
+  qr where (author.exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.participant as p then AuthorParticipant(src, p) "participantFromSource";
+  } "participantFallback";
+}
+
+group ConformProcedure(source qr : QR, target r) {
+  qr.authored as t -> r.recorded = t "recorded";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.recorder = au "recorderFromAuthor";
+  qr where (author.exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.recorder = src "recorderFromSource";
+  } "recorderFallback";
+  qr where (author.exists().not() and source.exists().not()) then {
+    qr.item as g where (linkId = 'recorded-by') then {
+      g.item as it where (linkId = 'recorded-by/nurse-name') then {
+        it.answer first as a then {
+          a.value as nm -> r.recorder = create('Reference') as who, who.display = nm "byName";
+        } "answer";
+      } "nurse";
+    } "recordedBy";
+  } "nurseByName";
+}
+
+group ConformFamilyMember(source qr : QR, target r) {
+  qr.authored as t -> r.date = t "date";
+}
+
+group AuthorParticipant(source who, target p) {
+  who as w -> p.actor = w "actor";
+  who -> p.function as fn then {
+    who -> fn.coding as cg then {
+      who -> cg.system = 'http://terminology.hl7.org/CodeSystem/provenance-participant-type' "sys";
+      who -> cg.code = 'author' "cd";
+      who -> cg.display = 'Author' "dsp";
+    } "coding";
+  } "function";
+}
