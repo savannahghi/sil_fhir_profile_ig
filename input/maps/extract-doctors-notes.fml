@@ -2,7 +2,7 @@
 /// name = "ExtractDoctorsNotes"
 /// title = "Doctors Notes Extraction"
 /// status = "active"
-/// description = "One Observation per entry, under LOINC 11506-3, each carrying its own timestamp and the doctor who wrote it. A ward round note is evidence of when a decision was made and by whom, and merging the continuation sheet into a single narrative destroys both."
+/// description = "One Observation per entry, under LOINC 11506-3, each carrying its own timestamp and the doctor who wrote it. A ward round note is evidence of when a decision was made and by whom, and merging the sheet into a single narrative destroys both."
 
 uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
 uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
@@ -139,7 +139,7 @@ group SetResponseProvenance(source qr : QR, target r) {
     qr -> m.tag as t then {
       qr -> t.system = 'http://slade360edi.com/questionnaire-provenance' "provenanceSystem";
       qr -> t.code = 'doctors-notes' "provenanceCode";
-      qr -> t.display = 'Doctors notes continuation sheet' "provenanceDisplay";
+      qr -> t.display = 'Doctors notes' "provenanceDisplay";
     } "provenanceTag";
   } "provenanceMeta";
 
