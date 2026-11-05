@@ -2,7 +2,7 @@
 /// name = "ExtractNursesNotes"
 /// title = "Nurses Notes Extraction"
 /// status = "active"
-/// description = "One Observation per entry, under LOINC 34746-8, each carrying its own timestamp and the nurse who signed it. A nursing note is evidence of when something was seen and by whom, and merging the continuation sheet into a single narrative destroys both. The sheet is written several entries at a sitting and reopened through the admission, so the map writes only the rows the nurse keyed this time -- the recall group it reads them back into is never extracted. The header diagnosis is picked from the ICD-11 search and becomes a Condition on the problem list."
+/// description = "One Observation per entry, under LOINC 34746-8, each carrying its own timestamp and the nurse who signed it. A nursing note is evidence of when something was seen and by whom, and merging the sheet into a single narrative destroys both. The sheet is written several entries at a sitting and reopened through the admission, so the map writes only the rows the nurse keyed this time -- the recall group it reads them back into is never extracted. The header diagnosis is picked from the ICD-11 search and becomes a Condition on the problem list."
 
 uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
 uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
@@ -177,7 +177,7 @@ group SetResponseProvenance(source qr : QR, target r) {
     qr -> m.tag as t then {
       qr -> t.system = 'http://slade360edi.com/questionnaire-provenance' "provenanceSystem";
       qr -> t.code = 'nurses-notes' "provenanceCode";
-      qr -> t.display = 'Nurses notes continuation sheet' "provenanceDisplay";
+      qr -> t.display = 'Nurses notes' "provenanceDisplay";
     } "provenanceTag";
   } "provenanceMeta";
 
