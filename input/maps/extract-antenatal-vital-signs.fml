@@ -64,7 +64,10 @@ group ExtractAntenatalVitalSigns(source qr : QR, target bundle : Bundle) {
 
   } "admissionGroup";
 
-  qr.item as row where (linkId = 'round') then {
+  // A round the form replayed out of the record carries the id it was replayed
+  // from; one the midwife has just keyed does not. Extract only the second
+  // kind, or every reopened sheet writes itself out again.
+  qr.item as row where (linkId = 'round' and item.where(linkId = 'round/source').answer.value.exists().not()) then {
     row.item as it where (linkId = 'round/temperature' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
       qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
       qr -> obs then SetVitalSignsCategory(qr, obs) "category";
