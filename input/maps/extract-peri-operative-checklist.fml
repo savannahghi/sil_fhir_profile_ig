@@ -1,0 +1,914 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractPeriOperativeChecklist"
+/// name = "ExtractPeriOperativeChecklist"
+/// title = "Peri-operative Checklist Extraction"
+/// status = "active"
+/// description = "The peri-operative checklist out as: each investigation reviewed before theatre as its own laboratory Observation under its LOINC code; the pre-theatre examination as vital signs with the blood pressure paired; the preparation steps as one Observation with a component per step; the surgeon\'s and the anaesthetist\'s fitness-for-theatre judgements as single Observations at the time of each check, written only when that clinician has signed; and each nursing check -- on the ward and again in theatre -- as one Observation with a component per item and the vital signs taken with it as their own Observations at the check\'s time, written only when the nurse has signed. An unsigned check produces nothing, so a check that never happened is a missing resource rather than a resource full of blanks."
+//
+// GATE: (item.where(linkId = 'surgeonCheck').item.where(linkId = 'surgeonCheck.signed').answer.value = true) or (item.where(linkId = 'anaesthetistCheck').item.where(linkId = 'anaesthetistCheck.signed').answer.value = true) or (item.where(linkId = 'nurseCheck').where(item.where(linkId = 'nurseCheck.signed').answer.value = true).exists())
+//
+// The extraction gate: a FHIRPath over the QuestionnaireResponse that is
+// true exactly when this map will produce at least one resource. Tooling
+// evaluates it to predict extraction without running the transform; keep it
+// in step with the creation guards below.
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Observation as target
+
+group ExtractPeriOperativeChecklist(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  // ── Investigations reviewed before theatre ────────────────────────────────
+  // Written once any of the three checks has been signed: a results panel on an
+  // unsigned checklist is a draft. Each result is its own laboratory Observation
+  // under its LOINC code; the ones the sheet takes as free text (electrolytes,
+  // urea and creatinine, ECG and echo) are narrative Observations.
+  qr where ((item.where(linkId = 'surgeonCheck').item.where(linkId = 'surgeonCheck.signed').answer.value = true) or (item.where(linkId = 'anaesthetistCheck').item.where(linkId = 'anaesthetistCheck.signed').answer.value = true) or (item.where(linkId = 'nurseCheck').where(item.where(linkId = 'nurseCheck.signed').answer.value = true).exists())) then {
+    qr.item as g where (linkId = 'results') then {
+      g.item as it where (linkId = 'results.haemoglobin' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+        qr -> obs then SetLaboratoryCategory(qr, obs) "category";
+        it -> obs.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '718-7' "cd";
+            it -> cg.display = 'Hemoglobin [Mass/volume] in Blood' "dsp";
+          } "coding";
+        } "code";
+        it.answer first as a then {
+          a.value : Quantity as v -> obs.value = v "value";
+        } "answer";
+      } "obs_718_7_1";
+      g.item as it where (linkId = 'results.haematocrit' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+        qr -> obs then SetLaboratoryCategory(qr, obs) "category";
+        it -> obs.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '4544-3' "cd";
+            it -> cg.display = 'Hematocrit [Volume Fraction] of Blood by Automated count' "dsp";
+          } "coding";
+        } "code";
+        it.answer first as a then {
+          a.value : Quantity as v -> obs.value = v "value";
+        } "answer";
+      } "obs_4544_3_2";
+      g.item as it where (linkId = 'results.platelets' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+        qr -> obs then SetLaboratoryCategory(qr, obs) "category";
+        it -> obs.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '777-3' "cd";
+            it -> cg.display = 'Platelets [#/volume] in Blood by Automated count' "dsp";
+          } "coding";
+        } "code";
+        it.answer first as a then {
+          a.value : Quantity as v -> obs.value = v "value";
+        } "answer";
+      } "obs_777_3_3";
+      g.item as it where (linkId = 'results.inr' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+        qr -> obs then SetLaboratoryCategory(qr, obs) "category";
+        it -> obs.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '6301-6' "cd";
+            it -> cg.display = 'INR in Platelet poor plasma by Coagulation assay' "dsp";
+          } "coding";
+        } "code";
+        it.answer first as a then {
+          a.value : decimal as v -> obs.value = create('Quantity') as qty then {
+            v -> qty.value = v "qtyValue";
+            v -> qty.unit = '{{INR}}' "qtyUnit";
+            v -> qty.system = 'http://unitsofmeasure.org' "qtySystem";
+            v -> qty.code = '{{INR}}' "qtyCode";
+          } "quantity";
+        } "answer";
+      } "obs_6301_6_4";
+      g.item as it where (linkId = 'results.wbc' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+        qr -> obs then SetLaboratoryCategory(qr, obs) "category";
+        it -> obs.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '6690-2' "cd";
+            it -> cg.display = 'Leukocytes [#/volume] in Blood by Automated count' "dsp";
+          } "coding";
+        } "code";
+        it.answer first as a then {
+          a.value : Quantity as v -> obs.value = v "value";
+        } "answer";
+      } "obs_6690_2_5";
+      g.item as it where (linkId = 'results.rbs' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+        qr -> obs then SetLaboratoryCategory(qr, obs) "category";
+        it -> obs.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '15074-8' "cd";
+            it -> cg.display = 'Glucose [Moles/volume] in Blood' "dsp";
+          } "coding";
+        } "code";
+        it.answer first as a then {
+          a.value : Quantity as v -> obs.value = v "value";
+        } "answer";
+      } "obs_15074_8_6";
+      g.item as it where (linkId = 'results.electrolytes' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+        qr -> obs then SetLaboratoryCategory(qr, obs) "category";
+        it -> obs.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'preop-electrolytes' "cd";
+            it -> cg.display = 'Electrolytes reviewed before theatre' "dsp";
+          } "coding";
+        } "code";
+        it.answer first as a then {
+          a.value : string as v -> obs.value = v "value";
+        } "answer";
+      } "obs_preop_electrolytes_7";
+      g.item as it where (linkId = 'results.ureaCreatinine' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+        qr -> obs then SetLaboratoryCategory(qr, obs) "category";
+        it -> obs.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'preop-urea-and-creatinine' "cd";
+            it -> cg.display = 'Urea and creatinine reviewed before theatre' "dsp";
+          } "coding";
+        } "code";
+        it.answer first as a then {
+          a.value : string as v -> obs.value = v "value";
+        } "answer";
+      } "obs_preop_urea_and_creatinine_8";
+      g.item as it where (linkId = 'results.ecgEcho' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+        qr -> obs then SetExamCategory(qr, obs) "category";
+        it -> obs.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'preop-ecg-and-echo' "cd";
+            it -> cg.display = 'ECG and echocardiogram reviewed before theatre' "dsp";
+          } "coding";
+        } "code";
+        it.answer first as a then {
+          a.value : string as v -> obs.value = v "value";
+        } "answer";
+      } "obs_preop_ecg_and_echo_9";
+      g.item as it where (linkId = 'results.imagingAvailable' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+        qr -> obs then SetSurveyCategory(qr, obs) "category";
+        it -> obs.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'preop-imaging-available' "cd";
+            it -> cg.display = 'Imaging available before theatre' "dsp";
+          } "coding";
+        } "code";
+        it.answer first as a then {
+          a.value : Coding as cv -> obs.value = create('CodeableConcept') as vc then {
+            cv -> vc.coding = cv "valueCoding";
+            cv.display as d -> vc.text = d "valueText";
+          } "codedValue";
+        } "answer";
+      } "obs_preop_imaging_available_10";
+    } "resultsGroup";
+
+    // ── The examination ───────────────────────────────────────────────────
+    qr.item as g where (linkId = 'examination') then {
+      g.item as bp where (linkId = 'examination.bloodPressure') then {
+        bp where ((item.where(linkId = 'examination.bloodPressure.systolic').answer.value.ofType(Quantity).exists() or item.where(linkId = 'examination.bloodPressure.diastolic').answer.value.ofType(Quantity).exists())) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+          bp -> obs.code as cc then {
+            bp -> cc.coding as cg then {
+              bp -> cg.system = 'http://loinc.org' "sys";
+              bp -> cg.code = '85354-9' "cd";
+              bp -> cg.display = 'Blood pressure panel with all children optional' "dsp";
+            } "coding";
+          } "code";
+          bp.item as ci where (linkId = 'examination.bloodPressure.systolic' and answer.value.ofType(Quantity).exists()) -> obs.component as comp then {
+            ci -> comp.code as cc then {
+              ci -> cc.coding as cg then {
+                ci -> cg.system = 'http://loinc.org' "sys";
+                ci -> cg.code = '8480-6' "cd";
+                ci -> cg.display = 'Systolic blood pressure' "dsp";
+              } "coding";
+            } "code";
+            ci.answer first as a then {
+              a.value : Quantity as v -> comp.value = v "value";
+            } "answer";
+          } "comp_8480_6_11";
+          bp.item as ci where (linkId = 'examination.bloodPressure.diastolic' and answer.value.ofType(Quantity).exists()) -> obs.component as comp then {
+            ci -> comp.code as cc then {
+              ci -> cc.coding as cg then {
+                ci -> cg.system = 'http://loinc.org' "sys";
+                ci -> cg.code = '8462-4' "cd";
+                ci -> cg.display = 'Diastolic blood pressure' "dsp";
+              } "coding";
+            } "code";
+            ci.answer first as a then {
+              a.value : Quantity as v -> comp.value = v "value";
+            } "answer";
+          } "comp_8462_4_12";
+        } "panel_85354_9_13";
+      } "bloodPressureGroup";
+      g.item as it where (linkId = 'examination.pulse' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+        qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+        it -> obs.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '8867-4' "cd";
+            it -> cg.display = 'Heart rate' "dsp";
+          } "coding";
+        } "code";
+        it.answer first as a then {
+          a.value : Quantity as v -> obs.value = v "value";
+        } "answer";
+      } "obs_8867_4_14";
+      g.item as it where (linkId = 'examination.respiratoryRate' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+        qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+        it -> obs.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '9279-1' "cd";
+            it -> cg.display = 'Respiratory rate' "dsp";
+          } "coding";
+        } "code";
+        it.answer first as a then {
+          a.value : Quantity as v -> obs.value = v "value";
+        } "answer";
+      } "obs_9279_1_15";
+      g.item as it where (linkId = 'examination.temperature' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+        qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+        it -> obs.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '8310-5' "cd";
+            it -> cg.display = 'Body temperature' "dsp";
+          } "coding";
+        } "code";
+        it.answer first as a then {
+          a.value : Quantity as v -> obs.value = v "value";
+        } "answer";
+      } "obs_8310_5_16";
+      g.item as it where (linkId = 'examination.breathSounds' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+        qr -> obs then SetExamCategory(qr, obs) "category";
+        it -> obs.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'preop-breath-sounds' "cd";
+            it -> cg.display = 'Breath sounds before theatre' "dsp";
+          } "coding";
+        } "code";
+        it.answer first as a then {
+          a.value : string as v -> obs.value = v "value";
+        } "answer";
+      } "obs_preop_breath_sounds_17";
+      g.item as it where (linkId = 'examination.lmp' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+        qr -> obs then SetSurveyCategory(qr, obs) "category";
+        it -> obs.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '8665-2' "cd";
+            it -> cg.display = 'Last menstrual period start date' "dsp";
+          } "coding";
+        } "code";
+        it.answer first as a then {
+          a.value : date as v -> obs.value = cast(v, 'dateTime') "value";
+        } "answer";
+      } "obs_8665_2_18";
+      g.item as it where (linkId = 'examination.denturesLooseTeeth' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+        qr -> obs then SetExamCategory(qr, obs) "category";
+        it -> obs.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'anaes-dentition' "cd";
+            it -> cg.display = 'Dentition' "dsp";
+          } "coding";
+          it -> cc.text = 'Dentures or loose teeth' "codeText";
+        } "code";
+        it.answer first as a then {
+          a.value : string as v -> obs.value = v "value";
+        } "answer";
+      } "obs_anaes_dentition_19";
+    } "examinationGroup";
+
+    // ── Preparation ───────────────────────────────────────────────────────
+    // One Observation with a component per preparation step, under the code the
+    // surgical safety checklist already uses for the ward's preparation.
+    qr.item as pg where (linkId = 'preparation' and item.answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      pg -> obs.code as cc then {
+        pg -> cc.coding as cg then {
+          pg -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          pg -> cg.code = 'preoperative-preparation' "cd";
+          pg -> cg.display = 'Pre-operative preparation completed' "dsp";
+        } "coding";
+      } "code";
+      pg.item as ci where (linkId = 'preparation.siteMarked' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'who-check-site-marked' "cd";
+            ci -> cg.display = 'Site marked' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_who_check_site_marked_20";
+      pg.item as ci where (linkId = 'preparation.implantsAvailable' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'preop-implants-available' "cd";
+            ci -> cg.display = 'Implants available before theatre' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_preop_implants_available_21";
+      pg.item as ci where (linkId = 'preparation.bloodAvailable' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'preop-blood-requested-and-available-before-theatre' "cd";
+            ci -> cg.display = 'Blood requested and available before theatre' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_preop_blood_requested_and_available_before_theatre_22";
+      pg.item as ci where (linkId = 'preparation.preoperativeTeaching' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'preop-teaching-done' "cd";
+            ci -> cg.display = 'Pre-operative teaching done' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_preop_teaching_done_23";
+      pg.item as ci where (linkId = 'preparation.informedConsent' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'preop-informed-consent-given' "cd";
+            ci -> cg.display = 'Informed consent given before theatre' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_preop_informed_consent_given_24";
+    } "preparationPanel";
+  } "sharedSections";
+
+  // ── The surgeon's and anaesthetist's checks ───────────────────────────────
+  // Each a single Observation of fitness for theatre, at the time of the check,
+  // written only when that clinician has signed it.
+  qr.item as g where (linkId = 'surgeonCheck' and item.where(linkId = 'surgeonCheck.signed').answer.value = true) then {
+    g.item as it where (linkId = 'surgeonCheck.fitForTheatre' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'preop-fit-for-theatre-surgeon' "cd";
+          it -> cg.display = 'Fit for theatre (surgeon or medical practitioner)' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value : boolean as v -> obs.value = v "value";
+      } "answer";
+      g -> obs then SetSurgeonCheckTime(g, obs) "rowTime";
+    } "obs_preop_fit_for_theatre_surgeon_25";
+  } "surgeonCheckGroup";
+  qr.item as g where (linkId = 'anaesthetistCheck' and item.where(linkId = 'anaesthetistCheck.signed').answer.value = true) then {
+    g.item as it where (linkId = 'anaesthetistCheck.fitForTheatre' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'preop-fit-for-theatre-anaesthetist' "cd";
+          it -> cg.display = 'Fit for theatre (anaesthetist)' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value : boolean as v -> obs.value = v "value";
+      } "answer";
+      g -> obs then SetAnaesthetistCheckTime(g, obs) "rowTime";
+    } "obs_preop_fit_for_theatre_anaesthetist_26";
+  } "anaesthetistCheckGroup";
+
+  // ── The nurse's checks, on the ward and in theatre ────────────────────────
+  // One Observation per signed check with a component per item, the stage (ward
+  // or theatre) as its first component, plus the vital signs taken with it as
+  // their own Observations at the check's time.
+  qr.item as row where (linkId = 'nurseCheck' and item.where(linkId = 'nurseCheck.signed').answer.value = true) then {
+    row -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      row -> obs.code as cc then {
+        row -> cc.coding as cg then {
+          row -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          row -> cg.code = 'preop-nurse-check' "cd";
+          row -> cg.display = 'Peri-operative nursing check' "dsp";
+        } "coding";
+      } "code";
+      row.item as ci where (linkId = 'nurseCheck.stage' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'preop-check-stage' "cd";
+            ci -> cg.display = 'Peri-operative check stage' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_preop_check_stage_27";
+      row.item as ci where (linkId = 'nurseCheck.identificationAccurate' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'preop-identification-accurate' "cd";
+            ci -> cg.display = 'Patient identification accurate' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_preop_identification_accurate_28";
+      row.item as ci where (linkId = 'nurseCheck.siteMarked' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'who-check-site-marked' "cd";
+            ci -> cg.display = 'Site marked' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_who_check_site_marked_29";
+      row.item as ci where (linkId = 'nurseCheck.bathShower' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'preop-bath' "cd";
+            ci -> cg.display = 'Bath' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_preop_bath_30";
+      row.item as ci where (linkId = 'nurseCheck.personalItemsRemoved' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'preop-personal-items-removed' "cd";
+            ci -> cg.display = 'Personal items removed' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_preop_personal_items_removed_31";
+      row.item as ci where (linkId = 'nurseCheck.gowned' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'preop-theatre-gown' "cd";
+            ci -> cg.display = 'Theatre gown' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_preop_theatre_gown_32";
+      row.item as ci where (linkId = 'nurseCheck.bowelPrepped' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'preop-bowel-preparation' "cd";
+            ci -> cg.display = 'Bowel preparation done' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_preop_bowel_preparation_33";
+      row.item as ci where (linkId = 'nurseCheck.ngInserted' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'preop-nasogastric-tube' "cd";
+            ci -> cg.display = 'Nasogastric tube' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_preop_nasogastric_tube_34";
+      row.item as ci where (linkId = 'nurseCheck.ivChecked' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'preop-intravenous-infusion' "cd";
+            ci -> cg.display = 'Intravenous infusion' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_preop_intravenous_infusion_35";
+      row.item as ci where (linkId = 'nurseCheck.ivPlacedAt' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'preop-iv-placed-at' "cd";
+            ci -> cg.display = 'Time the IV line was placed' "dsp";
+          } "coding";
+        } "code";
+        ci.answer first as a then {
+          a.value : dateTime as v -> comp.value = cast(v, 'dateTime') "value";
+        } "answer";
+      } "comp_preop_iv_placed_at_36";
+      row.item as ci where (linkId = 'nurseCheck.bloodProductsPresent' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'preop-blood-requested' "cd";
+            ci -> cg.display = 'Blood requested' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_preop_blood_requested_37";
+      row.item as ci where (linkId = 'nurseCheck.bloodProductsNumber' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'preop-pints-available' "cd";
+            ci -> cg.display = 'Pints available' "dsp";
+          } "coding";
+        } "code";
+        ci.answer first as a then {
+          a.value : integer as v -> comp.value = v "value";
+        } "answer";
+      } "comp_preop_pints_available_38";
+      row.item as ci where (linkId = 'nurseCheck.urocatheterLastChanged' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'preop-urocatheter-last-changed' "cd";
+            ci -> cg.display = 'Urinary catheter last changed' "dsp";
+          } "coding";
+        } "code";
+        ci.answer first as a then {
+          a.value : dateTime as v -> comp.value = cast(v, 'dateTime') "value";
+        } "answer";
+      } "comp_preop_urocatheter_last_changed_39";
+      row.item as ci where (linkId = 'nurseCheck.tedStockings' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'preop-ted-stockings' "cd";
+            ci -> cg.display = 'TED stockings present' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_preop_ted_stockings_40";
+      row.item as ci where (linkId = 'nurseCheck.icuAvailable' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'preop-icu-available' "cd";
+            ci -> cg.display = 'ICU bed available' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_preop_icu_available_41";
+      row.item as ci where (linkId = 'nurseCheck.lastMeal' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'anaes-last-solids' "cd";
+            ci -> cg.display = 'Last solids' "dsp";
+          } "coding";
+        } "code";
+        ci.answer first as a then {
+          a.value : dateTime as v -> comp.value = cast(v, 'dateTime') "value";
+        } "answer";
+      } "comp_anaes_last_solids_42";
+      row.item as ci where (linkId = 'nurseCheck.lastClearDrink' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'anaes-last-clear-fluids' "cd";
+            ci -> cg.display = 'Last clear fluids' "dsp";
+          } "coding";
+        } "code";
+        ci.answer first as a then {
+          a.value : dateTime as v -> comp.value = cast(v, 'dateTime') "value";
+        } "answer";
+      } "comp_anaes_last_clear_fluids_43";
+      row.item as ci where (linkId = 'nurseCheck.imagingAvailable' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'preop-imaging-available' "cd";
+            ci -> cg.display = 'Imaging available before theatre' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_preop_imaging_available_44";
+      row.item as ci where (linkId = 'nurseCheck.consentGiven' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'preop-informed-consent-given' "cd";
+            ci -> cg.display = 'Informed consent given before theatre' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_preop_informed_consent_given_45";
+      row.item as ci where (linkId = 'nurseCheck.implantsAvailable' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'preop-implants-available' "cd";
+            ci -> cg.display = 'Implants available before theatre' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_preop_implants_available_46";
+      row -> obs then SetNurseCheckTime(row, obs) "rowTime";
+    } "nurseCheckPanel";
+    row.item as it where (linkId = 'nurseCheck.respiratoryRate' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '9279-1' "cd";
+          it -> cg.display = 'Respiratory rate' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value : Quantity as v -> obs.value = v "value";
+      } "answer";
+      row -> obs then SetNurseCheckTime(row, obs) "rowTime";
+    } "obs_9279_1_47";
+    row.item as it where (linkId = 'nurseCheck.spo2' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '59408-5' "cd";
+          it -> cg.display = 'Oxygen saturation in Arterial blood by Pulse oximetry' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value : Quantity as v -> obs.value = v "value";
+      } "answer";
+      row -> obs then SetNurseCheckTime(row, obs) "rowTime";
+    } "obs_59408_5_48";
+    row.item as it where (linkId = 'nurseCheck.pulse' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '8867-4' "cd";
+          it -> cg.display = 'Heart rate' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value : Quantity as v -> obs.value = v "value";
+      } "answer";
+      row -> obs then SetNurseCheckTime(row, obs) "rowTime";
+    } "obs_8867_4_49";
+    row.item as bp where (linkId = 'nurseCheck.bloodPressure') then {
+      bp where ((item.where(linkId = 'nurseCheck.bloodPressure.systolic').answer.value.ofType(Quantity).exists() or item.where(linkId = 'nurseCheck.bloodPressure.diastolic').answer.value.ofType(Quantity).exists())) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+        qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+        bp -> obs.code as cc then {
+          bp -> cc.coding as cg then {
+            bp -> cg.system = 'http://loinc.org' "sys";
+            bp -> cg.code = '85354-9' "cd";
+            bp -> cg.display = 'Blood pressure panel with all children optional' "dsp";
+          } "coding";
+        } "code";
+        bp.item as ci where (linkId = 'nurseCheck.bloodPressure.systolic' and answer.value.ofType(Quantity).exists()) -> obs.component as comp then {
+          ci -> comp.code as cc then {
+            ci -> cc.coding as cg then {
+              ci -> cg.system = 'http://loinc.org' "sys";
+              ci -> cg.code = '8480-6' "cd";
+              ci -> cg.display = 'Systolic blood pressure' "dsp";
+            } "coding";
+          } "code";
+          ci.answer first as a then {
+            a.value : Quantity as v -> comp.value = v "value";
+          } "answer";
+        } "comp_8480_6_50";
+        bp.item as ci where (linkId = 'nurseCheck.bloodPressure.diastolic' and answer.value.ofType(Quantity).exists()) -> obs.component as comp then {
+          ci -> comp.code as cc then {
+            ci -> cc.coding as cg then {
+              ci -> cg.system = 'http://loinc.org' "sys";
+              ci -> cg.code = '8462-4' "cd";
+              ci -> cg.display = 'Diastolic blood pressure' "dsp";
+            } "coding";
+          } "code";
+          ci.answer first as a then {
+            a.value : Quantity as v -> comp.value = v "value";
+          } "answer";
+        } "comp_8462_4_51";
+        row -> obs then SetNurseCheckTime(row, obs) "rowTime";
+      } "panel_85354_9_52";
+    } "bloodPressureGroup";
+    row.item as it where (linkId = 'nurseCheck.temperature' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '8310-5' "cd";
+          it -> cg.display = 'Body temperature' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value : Quantity as v -> obs.value = v "value";
+      } "answer";
+      row -> obs then SetNurseCheckTime(row, obs) "rowTime";
+    } "obs_8310_5_53";
+  } "nurseCheckGroup";
+}
+
+group SetSurgeonCheckTime(source row, target obs : Observation) {
+  row.item as it where (linkId = 'surgeonCheck.dateTime' and answer.value.exists()) then {
+    it.answer first as a then {
+      a.value : dateTime as v where ($this.toString().length() >= 20) -> obs.effective = v "effective";
+    } "answer";
+  } "timeRule";
+}
+group SetAnaesthetistCheckTime(source row, target obs : Observation) {
+  row.item as it where (linkId = 'anaesthetistCheck.dateTime' and answer.value.exists()) then {
+    it.answer first as a then {
+      a.value : dateTime as v where ($this.toString().length() >= 20) -> obs.effective = v "effective";
+    } "answer";
+  } "timeRule";
+}
+group SetNurseCheckTime(source row, target obs : Observation) {
+  row.item as it where (linkId = 'nurseCheck.dateTime' and answer.value.exists()) then {
+    it.answer first as a then {
+      a.value : dateTime as v where ($this.toString().length() >= 20) -> obs.effective = v "effective";
+    } "answer";
+  } "timeRule";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared scaffolding. Repeated in each map rather than imported: the transform
+// engine resolves `imports` against whatever StructureMaps happen to be on the
+// server, and a form that stops extracting because a shared map was not
+// uploaded is a worse failure than a duplicated group.
+//
+// Source parameters below are left untyped on purpose. Writing `: Element` makes
+// the validator compare QuestionnaireResponse.item against the literal 'Element'
+// and report them as incompatible with each other, which is noise, not a finding.
+//
+// `evaluate(context, expression)` is flagged as "takes 1 parameter but 2 were
+// found". Leave it. The FML parser in the same jar refuses the one-argument form
+// outright -- it wants a parameter, a comma, then the FHIRPath -- so the
+// publisher is objecting to what its own compiler emits. Two arguments is the
+// only form that compiles, and it is what the R5 transform engine executes.
+// ─────────────────────────────────────────────────────────────────────────────
+
+group BuildObsBase(source qr : QR, target obs : Observation, target entry) {
+  qr -> obs then SetResponseProvenance(qr, obs) "responseProvenance";
+  qr -> obs.id = uuid() then SetObservationFullUrl(obs, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Observation' "requestUrl";
+  } "entryRequest";
+
+  qr -> obs.status = 'final' "status";
+  // The response's subject is Reference(Any); the guard keeps Patients and the
+  // copy, field by field, is what satisfies a type checker that cannot see the
+  // guard. Same for the encounter.
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> obs.subject = create('Reference') as ref then {
+    s.reference as v -> ref.reference = v "reference";
+    s.type as v -> ref.type = v "type";
+    s.identifier as v -> ref.identifier = v "identifier";
+    s.display as v -> ref.display = v "display";
+  } "subject";
+  qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> obs.encounter = create('Reference') as ref then {
+    e.reference as v -> ref.reference = v "reference";
+    e.type as v -> ref.type = v "type";
+    e.identifier as v -> ref.identifier = v "identifier";
+    e.display as v -> ref.display = v "display";
+  } "encounter";
+
+  // A stored response's id already reads "QuestionnaireResponse/<id>", so it is
+  // a relative reference as it stands. The length guard is what stops an
+  // unsaved response -- one posted straight to $extract rather than saved first
+  // -- from writing "QuestionnaireResponse/null" into the record.
+  qr.id as qid where ($this.toString().length() > 0) -> obs.derivedFrom = create('Reference') as ref, ref.reference = qid "linkQuestionnaireResponse";
+  qr -> obs then ConformObservation(qr, obs) "profileConformance";
+}
+
+group SetObservationFullUrl(source obs : Observation, target entry) {
+  obs.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/Observation/', id) "assignFullUrl";
+}
+
+// The two answer shapes a component can carry. Both read the answer through the
+// untyped `.value` accessor: reading `valueCoding` or `valueQuantity` by its
+// typed property name fails at transform time on HAPI R5 with "Attempt to read
+// invalid property ... on QuestionnaireResponse.item.answer".
+group SetComponentCodedValue(source it, target comp) {
+  it.answer first as a then {
+    a.value : Coding as cv -> comp.value = create('CodeableConcept') as cc then {
+      cv -> cc.coding = cv "valueCoding";
+      cv.display as d -> cc.text = d "valueText";
+    } "codedValue";
+  } "componentAnswer";
+}
+
+group ConformObservation(source qr : QR, target r) {
+  qr.authored as t where ($this.toString().length() >= 20) -> r.issued = cast(t, 'instant') "issued";
+  qr.authored as t -> r.effective = t "effective";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = create('Reference') as ref then {
+    au.reference as v -> ref.reference = v "reference";
+    au.type as v -> ref.type = v "type";
+    au.identifier as v -> ref.identifier = v "identifier";
+    au.display as v -> ref.display = v "display";
+  } "performerFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = create('Reference') as ref then {
+      src.reference as v -> ref.reference = v "reference";
+      src.type as v -> ref.type = v "type";
+      src.identifier as v -> ref.identifier = v "identifier";
+      src.display as v -> ref.display = v "display";
+    } "performerFromSource";
+  } "performerFallback";
+}
+
+group SetSurveyCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'survey' "categoryCode";
+      qr -> coding.display = 'Survey' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+group SetVitalSignsCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'vital-signs' "categoryCode";
+      qr -> coding.display = 'Vital Signs' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+group SetLaboratoryCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'laboratory' "categoryCode";
+      qr -> coding.display = 'Laboratory' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+group SetExamCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'exam' "categoryCode";
+      qr -> coding.display = 'Exam' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+//
+// Two tags on everything this map creates. The first says which questionnaire
+// produced it, so a form that reopens mid-admission recalls its own earlier
+// entries and not another form's. The second copies the tenant tags off the
+// response, because nothing else on the path puts them there. The response's
+// identifier is copied the same way.
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+
+group SetResponseProvenance(source qr : QR, target r) {
+  qr -> r.meta as m then {
+    qr -> m.tag as t then {
+      qr -> t.system = 'http://slade360edi.com/questionnaire-provenance' "provenanceSystem";
+      qr -> t.code = 'peri-operative-checklist' "provenanceCode";
+      qr -> t.display = 'Peri-operative checklist' "provenanceDisplay";
+    } "provenanceTag";
+  } "provenanceMeta";
+
+  // Every tag the response carries, onto the resource. `meta` is 0..1, so this
+  // lands on the same meta the rule above created rather than a second one.
+  qr.meta as qm then {
+    qm.tag as qt -> r.meta as m, m.tag = qt "copyTag";
+  } "tenantTags";
+
+  // The response's identifiers, as they are. Every profile wants one, and it is
+  // the response's to give: nothing here mints one, so a response without an
+  // identifier extracts resources without one. One whose assigner is not of a
+  // type the profiles allow there is left behind whole, not altered.
+  qr.identifier as qid where (assigner.empty() or assigner.where(((reference.exists() and (reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization'))))).exists()) -> r.identifier = qid "identifier";
+}

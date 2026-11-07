@@ -1,0 +1,1488 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractWhoLabourCareGuide"
+/// name = "ExtractWhoLabourCareGuide"
+/// title = "WHO Labour Care Guide Extraction"
+/// status = "active"
+/// description = "One Observation per answer, coded like the labour-care-guide row it is charted on: the labour details once, and every hourly value at its own time -- supportive care, the baby (the fetal heart rate with the guide\'s alert as its interpretation and reference range, decelerations, liquor, position, caput and moulding each flagged abnormal at the guide\'s alert value), the woman (pulse and temperature with their alert ranges, the blood pressure paired, urine protein and acetone), contractions, cervical dilatation and descent, the medication columns and the assessment and plan. The summary of labour, once recorded, adds the stage facts, the mother\'s observations, the baby\'s facts (on the mother\'s record, with a note saying so; no Patient is minted for the newborn) and the delivery as an obstetric Procedure coded by its mode."
+//
+// GATE: (item.where(linkId = 'labour').item.answer.value.exists()) or (item.where(linkId = 'hour').descendants().where(linkId != 'hour.time' and linkId != 'hour.stage' and linkId != 'hour.hourNumber').answer.value.exists()) or (item.where(linkId = 'summary').item.where(linkId = 'summary.record').answer.value = true)
+//
+// The extraction gate: a FHIRPath over the QuestionnaireResponse that is
+// true exactly when this map will produce at least one resource. Tooling
+// evaluates it to predict extraction without running the transform; keep it
+// in step with the creation guards below.
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Observation as target
+uses "http://hl7.org/fhir/StructureDefinition/Procedure" alias Procedure as target
+
+group ExtractWhoLabourCareGuide(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  // ── Labour details, once ──────────────────────────────────────────────
+  qr.item as g where (linkId = 'labour') then {
+    g.item as it where (linkId = 'labour.parity' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '11977-6' "cd";
+          it -> cg.display = 'Parity' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value : integer as v -> obs.value = v "value";
+      } "answer";
+    } "obs_11977_6_1";
+    g.item as it where (linkId = 'labour.gravida' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '11996-6' "cd";
+          it -> cg.display = 'Pregnancies' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value : integer as v -> obs.value = v "value";
+      } "answer";
+    } "obs_11996_6_2";
+    g.item as it where (linkId = 'labour.onset' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'labour-began' "cd";
+          it -> cg.display = 'Labour began' "dsp";
+        } "coding";
+      } "code";
+      it -> obs.value = true "happened";
+      it.answer first as a then {
+        a.value : dateTime as v where ($this.toString().length() >= 20) -> obs.effective = v "when";
+      } "answer";
+    } "obs_labour_began_3";
+    g.item as it where (linkId = 'labour.activeLabourDiagnosis' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'lcg-active-labour' "cd";
+          it -> cg.display = 'Active first stage of labour diagnosed' "dsp";
+        } "coding";
+      } "code";
+      it -> obs.value = true "happened";
+      it.answer first as a then {
+        a.value : dateTime as v where ($this.toString().length() >= 20) -> obs.effective = v "when";
+      } "answer";
+    } "obs_lcg_active_labour_4";
+    g.item as it where (linkId = 'labour.rupturedMembranes' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'http://loinc.org' "sys";
+          it -> cg.code = '56829-5' "cd";
+          it -> cg.display = 'Ruptured membranes' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value : date as v -> obs.value = cast(v, 'dateTime') "value";
+      } "answer";
+    } "obs_56829_5_5";
+    g.item as it where (linkId = 'labour.riskFactors' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+      qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+      qr -> obs then SetSurveyCategory(qr, obs) "category";
+      it -> obs.code as cc then {
+        it -> cc.coding as cg then {
+          it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+          it -> cg.code = 'lcg-risk-factors' "cd";
+          it -> cg.display = 'Risk factors in labour' "dsp";
+        } "coding";
+      } "code";
+      it.answer first as a then {
+        a.value : string as v -> obs.value = v "value";
+      } "answer";
+    } "obs_lcg_risk_factors_6";
+  } "labourGroup";
+
+  // ── Each hour, charted at its own time ────────────────────────────────
+  // One Observation per charted value, coded like the labour-care-guide row it
+  // is charted on, at the hour's time. The stage and hour number ride on each
+  // as notes are not needed: the time orders them. Empty cells produce nothing.
+  qr.item as row where (linkId = 'hour') then {
+    row.item as g where (linkId = 'hour.supportiveCare') then {
+      g.item as it where (linkId = 'hour.supportiveCare.companion' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+        qr -> obs then SetSurveyCategory(qr, obs) "category";
+        it -> obs.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'lcg-companion' "cd";
+            it -> cg.display = 'Companion present' "dsp";
+          } "coding";
+        } "code";
+        it.answer first as a then {
+          a.value : Coding as cv -> obs.value = create('CodeableConcept') as vc then {
+            cv -> vc.coding = cv "valueCoding";
+            cv.display as d -> vc.text = d "valueText";
+          } "codedValue";
+        } "answer";
+        row -> obs then SetHourTime(row, obs) "rowTime";
+      } "obs_lcg_companion_7";
+      g.item as it where (linkId = 'hour.supportiveCare.painRelief' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+        qr -> obs then SetSurveyCategory(qr, obs) "category";
+        it -> obs.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'lcg-pain-relief' "cd";
+            it -> cg.display = 'Pain relief' "dsp";
+          } "coding";
+        } "code";
+        it.answer first as a then {
+          a.value : Coding as cv -> obs.value = create('CodeableConcept') as vc then {
+            cv -> vc.coding = cv "valueCoding";
+            cv.display as d -> vc.text = d "valueText";
+          } "codedValue";
+        } "answer";
+        row -> obs then SetHourTime(row, obs) "rowTime";
+      } "obs_lcg_pain_relief_8";
+      g.item as it where (linkId = 'hour.supportiveCare.oralFluid' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+        qr -> obs then SetSurveyCategory(qr, obs) "category";
+        it -> obs.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'lcg-oral-fluid' "cd";
+            it -> cg.display = 'Oral fluid' "dsp";
+          } "coding";
+        } "code";
+        it.answer first as a then {
+          a.value : Coding as cv -> obs.value = create('CodeableConcept') as vc then {
+            cv -> vc.coding = cv "valueCoding";
+            cv.display as d -> vc.text = d "valueText";
+          } "codedValue";
+        } "answer";
+        row -> obs then SetHourTime(row, obs) "rowTime";
+      } "obs_lcg_oral_fluid_9";
+      g.item as it where (linkId = 'hour.supportiveCare.posture' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+        qr -> obs then SetSurveyCategory(qr, obs) "category";
+        it -> obs.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'lcg-posture' "cd";
+            it -> cg.display = 'Posture' "dsp";
+          } "coding";
+        } "code";
+        it.answer first as a then {
+          a.value : Coding as cv -> obs.value = create('CodeableConcept') as vc then {
+            cv -> vc.coding = cv "valueCoding";
+            cv.display as d -> vc.text = d "valueText";
+          } "codedValue";
+        } "answer";
+        row -> obs then SetHourTime(row, obs) "rowTime";
+      } "obs_lcg_posture_10";
+    } "supportiveCareGroup";
+
+    row.item as g where (linkId = 'hour.baby') then {
+      // The fetal heart rate carries the guide's alert as its interpretation.
+      g.item as it where (linkId = 'hour.baby.baselineFhr' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+        qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+        it -> obs.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '55283-6' "cd";
+            it -> cg.display = 'Fetal Heart rate' "dsp";
+          } "coding";
+        } "code";
+        it.answer first as a then {
+          a.value : Quantity as v -> obs.value = v "value";
+        } "answer";
+        it -> obs.referenceRange as rr then {
+          it -> rr.low = create('Quantity') as lo then {
+            it -> lo.value = '110' "loValue";
+            it -> lo.unit = 'beats/min' "loUnit";
+            it -> lo.system = 'http://unitsofmeasure.org' "loSystem";
+            it -> lo.code = '/min' "loCode";
+          } "low";
+          it -> rr.high = create('Quantity') as hi then {
+            it -> hi.value = '159' "hiValue";
+            it -> hi.unit = 'beats/min' "hiUnit";
+            it -> hi.system = 'http://unitsofmeasure.org' "hiSystem";
+            it -> hi.code = '/min' "hiCode";
+          } "high";
+          it -> rr.text = 'WHO Labour Care Guide: alert below 110 or at 160 and above' "rrText";
+        } "referenceRange";
+        it.answer first as a then {
+          a.value : Quantity as v where ($this.value < 110) -> obs.interpretation as interp then {
+            v -> interp.coding as icg then {
+              v -> icg.system = 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation' "sys";
+              v -> icg.code = 'L' "cd";
+              v -> icg.display = 'Low' "dsp";
+            } "coding";
+          } "interp_11";
+        } "interpAnswer_12";
+        it.answer first as a then {
+          a.value : Quantity as v where ($this.value >= 160) -> obs.interpretation as interp then {
+            v -> interp.coding as icg then {
+              v -> icg.system = 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation' "sys";
+              v -> icg.code = 'H' "cd";
+              v -> icg.display = 'High' "dsp";
+            } "coding";
+          } "interp_13";
+        } "interpAnswer_14";
+        row -> obs then SetHourTime(row, obs) "rowTime";
+      } "obs_55283_6_15";
+      g.item as it where (linkId = 'hour.baby.fhrDeceleration' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+        qr -> obs then SetExamCategory(qr, obs) "category";
+        it -> obs.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'lcg-fhr-deceleration' "cd";
+            it -> cg.display = 'Fetal heart rate deceleration' "dsp";
+          } "coding";
+        } "code";
+        it.answer first as a then {
+          a.value : Coding as cv -> obs.value = create('CodeableConcept') as vc then {
+            cv -> vc.coding = cv "valueCoding";
+            cv.display as d -> vc.text = d "valueText";
+          } "codedValue";
+        } "answer";
+        it.answer first as a then {
+          a.value : Coding as v where (code = 'fhr-decel-late') -> obs.interpretation as interp then {
+            v -> interp.coding as icg then {
+              v -> icg.system = 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation' "sys";
+              v -> icg.code = 'A' "cd";
+              v -> icg.display = 'Abnormal' "dsp";
+            } "coding";
+          } "interp_16";
+        } "interpAnswer_17";
+        row -> obs then SetHourTime(row, obs) "rowTime";
+      } "obs_lcg_fhr_deceleration_18";
+      g.item as it where (linkId = 'hour.baby.amnioticFluid' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+        qr -> obs then SetExamCategory(qr, obs) "category";
+        it -> obs.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'lcg-amniotic-fluid' "cd";
+            it -> cg.display = 'Amniotic fluid' "dsp";
+          } "coding";
+        } "code";
+        it.answer first as a then {
+          a.value : Coding as cv -> obs.value = create('CodeableConcept') as vc then {
+            cv -> vc.coding = cv "valueCoding";
+            cv.display as d -> vc.text = d "valueText";
+          } "codedValue";
+        } "answer";
+        it.answer first as a then {
+          a.value : Coding as v where (code = 'amniotic-meconium-thick' or code = 'amniotic-blood') -> obs.interpretation as interp then {
+            v -> interp.coding as icg then {
+              v -> icg.system = 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation' "sys";
+              v -> icg.code = 'A' "cd";
+              v -> icg.display = 'Abnormal' "dsp";
+            } "coding";
+          } "interp_19";
+        } "interpAnswer_20";
+        row -> obs then SetHourTime(row, obs) "rowTime";
+      } "obs_lcg_amniotic_fluid_21";
+      g.item as it where (linkId = 'hour.baby.fetalPosition' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+        qr -> obs then SetExamCategory(qr, obs) "category";
+        it -> obs.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'lcg-fetal-position' "cd";
+            it -> cg.display = 'Fetal position' "dsp";
+          } "coding";
+        } "code";
+        it.answer first as a then {
+          a.value : Coding as cv -> obs.value = create('CodeableConcept') as vc then {
+            cv -> vc.coding = cv "valueCoding";
+            cv.display as d -> vc.text = d "valueText";
+          } "codedValue";
+        } "answer";
+        it.answer first as a then {
+          a.value : Coding as v where (code = 'fetal-position-posterior' or code = 'fetal-position-transverse') -> obs.interpretation as interp then {
+            v -> interp.coding as icg then {
+              v -> icg.system = 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation' "sys";
+              v -> icg.code = 'A' "cd";
+              v -> icg.display = 'Abnormal' "dsp";
+            } "coding";
+          } "interp_22";
+        } "interpAnswer_23";
+        row -> obs then SetHourTime(row, obs) "rowTime";
+      } "obs_lcg_fetal_position_24";
+      g.item as it where (linkId = 'hour.baby.caput' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+        qr -> obs then SetExamCategory(qr, obs) "category";
+        it -> obs.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'lcg-caput' "cd";
+            it -> cg.display = 'Caput' "dsp";
+          } "coding";
+        } "code";
+        it.answer first as a then {
+          a.value : Coding as cv -> obs.value = create('CodeableConcept') as vc then {
+            cv -> vc.coding = cv "valueCoding";
+            cv.display as d -> vc.text = d "valueText";
+          } "codedValue";
+        } "answer";
+        it.answer first as a then {
+          a.value : Coding as v where (code = 'plus-3') -> obs.interpretation as interp then {
+            v -> interp.coding as icg then {
+              v -> icg.system = 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation' "sys";
+              v -> icg.code = 'A' "cd";
+              v -> icg.display = 'Abnormal' "dsp";
+            } "coding";
+          } "interp_25";
+        } "interpAnswer_26";
+        row -> obs then SetHourTime(row, obs) "rowTime";
+      } "obs_lcg_caput_27";
+      g.item as it where (linkId = 'hour.baby.moulding' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+        qr -> obs then SetExamCategory(qr, obs) "category";
+        it -> obs.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'lcg-moulding' "cd";
+            it -> cg.display = 'Moulding' "dsp";
+          } "coding";
+        } "code";
+        it.answer first as a then {
+          a.value : Coding as cv -> obs.value = create('CodeableConcept') as vc then {
+            cv -> vc.coding = cv "valueCoding";
+            cv.display as d -> vc.text = d "valueText";
+          } "codedValue";
+        } "answer";
+        it.answer first as a then {
+          a.value : Coding as v where (code = 'plus-3') -> obs.interpretation as interp then {
+            v -> interp.coding as icg then {
+              v -> icg.system = 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation' "sys";
+              v -> icg.code = 'A' "cd";
+              v -> icg.display = 'Abnormal' "dsp";
+            } "coding";
+          } "interp_28";
+        } "interpAnswer_29";
+        row -> obs then SetHourTime(row, obs) "rowTime";
+      } "obs_lcg_moulding_30";
+    } "babyGroup";
+
+    row.item as g where (linkId = 'hour.woman') then {
+      g.item as it where (linkId = 'hour.woman.pulse' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+        qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+        it -> obs.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '8867-4' "cd";
+            it -> cg.display = 'Heart rate' "dsp";
+          } "coding";
+        } "code";
+        it.answer first as a then {
+          a.value : Quantity as v -> obs.value = v "value";
+        } "answer";
+        it -> obs.referenceRange as rr then {
+          it -> rr.low = create('Quantity') as lo then {
+            it -> lo.value = '60' "loValue";
+            it -> lo.unit = 'beats/min' "loUnit";
+            it -> lo.system = 'http://unitsofmeasure.org' "loSystem";
+            it -> lo.code = '/min' "loCode";
+          } "low";
+          it -> rr.high = create('Quantity') as hi then {
+            it -> hi.value = '119' "hiValue";
+            it -> hi.unit = 'beats/min' "hiUnit";
+            it -> hi.system = 'http://unitsofmeasure.org' "hiSystem";
+            it -> hi.code = '/min' "hiCode";
+          } "high";
+          it -> rr.text = 'WHO Labour Care Guide: alert below 60 or at 120 and above' "rrText";
+        } "referenceRange";
+        it.answer first as a then {
+          a.value : Quantity as v where ($this.value < 60) -> obs.interpretation as interp then {
+            v -> interp.coding as icg then {
+              v -> icg.system = 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation' "sys";
+              v -> icg.code = 'L' "cd";
+              v -> icg.display = 'Low' "dsp";
+            } "coding";
+          } "interp_31";
+        } "interpAnswer_32";
+        it.answer first as a then {
+          a.value : Quantity as v where ($this.value >= 120) -> obs.interpretation as interp then {
+            v -> interp.coding as icg then {
+              v -> icg.system = 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation' "sys";
+              v -> icg.code = 'H' "cd";
+              v -> icg.display = 'High' "dsp";
+            } "coding";
+          } "interp_33";
+        } "interpAnswer_34";
+        row -> obs then SetHourTime(row, obs) "rowTime";
+      } "obs_8867_4_35";
+      g where ((item.where(linkId = 'hour.woman.systolic').answer.value.ofType(Quantity).exists() or item.where(linkId = 'hour.woman.diastolic').answer.value.ofType(Quantity).exists())) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+        qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+        g -> obs.code as cc then {
+          g -> cc.coding as cg then {
+            g -> cg.system = 'http://loinc.org' "sys";
+            g -> cg.code = '85354-9' "cd";
+            g -> cg.display = 'Blood pressure panel with all children optional' "dsp";
+          } "coding";
+        } "code";
+        g.item as ci where (linkId = 'hour.woman.systolic' and answer.value.ofType(Quantity).exists()) -> obs.component as comp then {
+          ci -> comp.code as cc then {
+            ci -> cc.coding as cg then {
+              ci -> cg.system = 'http://loinc.org' "sys";
+              ci -> cg.code = '8480-6' "cd";
+              ci -> cg.display = 'Systolic blood pressure' "dsp";
+            } "coding";
+          } "code";
+          ci.answer first as a then {
+            a.value : Quantity as v -> comp.value = v "value";
+          } "answer";
+        } "comp_8480_6_36";
+        g.item as ci where (linkId = 'hour.woman.diastolic' and answer.value.ofType(Quantity).exists()) -> obs.component as comp then {
+          ci -> comp.code as cc then {
+            ci -> cc.coding as cg then {
+              ci -> cg.system = 'http://loinc.org' "sys";
+              ci -> cg.code = '8462-4' "cd";
+              ci -> cg.display = 'Diastolic blood pressure' "dsp";
+            } "coding";
+          } "code";
+          ci.answer first as a then {
+            a.value : Quantity as v -> comp.value = v "value";
+          } "answer";
+        } "comp_8462_4_37";
+        row -> obs then SetHourTime(row, obs) "rowTime";
+      } "panel_85354_9_38";
+      g.item as it where (linkId = 'hour.woman.temperature' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+        qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+        it -> obs.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '8310-5' "cd";
+            it -> cg.display = 'Body temperature' "dsp";
+          } "coding";
+        } "code";
+        it.answer first as a then {
+          a.value : Quantity as v -> obs.value = v "value";
+        } "answer";
+        it -> obs.referenceRange as rr then {
+          it -> rr.low = create('Quantity') as lo then {
+            it -> lo.value = '35.0' "loValue";
+            it -> lo.unit = 'degrees Celsius' "loUnit";
+            it -> lo.system = 'http://unitsofmeasure.org' "loSystem";
+            it -> lo.code = 'Cel' "loCode";
+          } "low";
+          it -> rr.high = create('Quantity') as hi then {
+            it -> hi.value = '37.4' "hiValue";
+            it -> hi.unit = 'degrees Celsius' "hiUnit";
+            it -> hi.system = 'http://unitsofmeasure.org' "hiSystem";
+            it -> hi.code = 'Cel' "hiCode";
+          } "high";
+          it -> rr.text = 'WHO Labour Care Guide: alert below 35.0 or at 37.5 and above' "rrText";
+        } "referenceRange";
+        it.answer first as a then {
+          a.value : Quantity as v where ($this.value < 35.0) -> obs.interpretation as interp then {
+            v -> interp.coding as icg then {
+              v -> icg.system = 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation' "sys";
+              v -> icg.code = 'L' "cd";
+              v -> icg.display = 'Low' "dsp";
+            } "coding";
+          } "interp_39";
+        } "interpAnswer_40";
+        it.answer first as a then {
+          a.value : Quantity as v where ($this.value >= 37.5) -> obs.interpretation as interp then {
+            v -> interp.coding as icg then {
+              v -> icg.system = 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation' "sys";
+              v -> icg.code = 'H' "cd";
+              v -> icg.display = 'High' "dsp";
+            } "coding";
+          } "interp_41";
+        } "interpAnswer_42";
+        row -> obs then SetHourTime(row, obs) "rowTime";
+      } "obs_8310_5_43";
+      g.item as it where (linkId = 'hour.woman.urineProtein' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+        qr -> obs then SetLaboratoryCategory(qr, obs) "category";
+        it -> obs.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'lcg-urine-protein' "cd";
+            it -> cg.display = 'Urine protein' "dsp";
+          } "coding";
+        } "code";
+        it.answer first as a then {
+          a.value : Coding as cv -> obs.value = create('CodeableConcept') as vc then {
+            cv -> vc.coding = cv "valueCoding";
+            cv.display as d -> vc.text = d "valueText";
+          } "codedValue";
+        } "answer";
+        it.answer first as a then {
+          a.value : Coding as v where (code = 'plus-2' or code = 'plus-3') -> obs.interpretation as interp then {
+            v -> interp.coding as icg then {
+              v -> icg.system = 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation' "sys";
+              v -> icg.code = 'A' "cd";
+              v -> icg.display = 'Abnormal' "dsp";
+            } "coding";
+          } "interp_44";
+        } "interpAnswer_45";
+        row -> obs then SetHourTime(row, obs) "rowTime";
+      } "obs_lcg_urine_protein_46";
+      g.item as it where (linkId = 'hour.woman.urineAcetone' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+        qr -> obs then SetLaboratoryCategory(qr, obs) "category";
+        it -> obs.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'lcg-urine-acetone' "cd";
+            it -> cg.display = 'Urine acetone' "dsp";
+          } "coding";
+        } "code";
+        it.answer first as a then {
+          a.value : Coding as cv -> obs.value = create('CodeableConcept') as vc then {
+            cv -> vc.coding = cv "valueCoding";
+            cv.display as d -> vc.text = d "valueText";
+          } "codedValue";
+        } "answer";
+        it.answer first as a then {
+          a.value : Coding as v where (code = 'plus-2' or code = 'plus-3') -> obs.interpretation as interp then {
+            v -> interp.coding as icg then {
+              v -> icg.system = 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation' "sys";
+              v -> icg.code = 'A' "cd";
+              v -> icg.display = 'Abnormal' "dsp";
+            } "coding";
+          } "interp_47";
+        } "interpAnswer_48";
+        row -> obs then SetHourTime(row, obs) "rowTime";
+      } "obs_lcg_urine_acetone_49";
+    } "womanGroup";
+
+    row.item as g where (linkId = 'hour.contractions') then {
+      g.item as it where (linkId = 'hour.contractions.perTenMinutes' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+        qr -> obs then SetExamCategory(qr, obs) "category";
+        it -> obs.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'lcg-contractions-per-10-min' "cd";
+            it -> cg.display = 'Contractions per 10 minutes' "dsp";
+          } "coding";
+        } "code";
+        it.answer first as a then {
+          a.value : integer as v -> obs.value = v "value";
+        } "answer";
+        it.answer first as a then {
+          a.value : integer as v where ($this <= 2 or $this > 5) -> obs.interpretation as interp then {
+            v -> interp.coding as icg then {
+              v -> icg.system = 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation' "sys";
+              v -> icg.code = 'A' "cd";
+              v -> icg.display = 'Abnormal' "dsp";
+            } "coding";
+          } "interp_50";
+        } "interpAnswer_51";
+        row -> obs then SetHourTime(row, obs) "rowTime";
+      } "obs_lcg_contractions_per_10_min_52";
+      g.item as it where (linkId = 'hour.contractions.duration' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+        qr -> obs then SetExamCategory(qr, obs) "category";
+        it -> obs.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'lcg-contraction-duration' "cd";
+            it -> cg.display = 'Duration of contractions' "dsp";
+          } "coding";
+        } "code";
+        it.answer first as a then {
+          a.value : Quantity as v -> obs.value = v "value";
+        } "answer";
+        it.answer first as a then {
+          a.value : Quantity as v where ($this.value < 20 or $this.value > 60) -> obs.interpretation as interp then {
+            v -> interp.coding as icg then {
+              v -> icg.system = 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation' "sys";
+              v -> icg.code = 'A' "cd";
+              v -> icg.display = 'Abnormal' "dsp";
+            } "coding";
+          } "interp_53";
+        } "interpAnswer_54";
+        row -> obs then SetHourTime(row, obs) "rowTime";
+      } "obs_lcg_contraction_duration_55";
+    } "contractionsGroup";
+
+    row.item as g where (linkId = 'hour.progress') then {
+      g.item as it where (linkId = 'hour.progress.cervix' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+        qr -> obs then SetExamCategory(qr, obs) "category";
+        it -> obs.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'http://loinc.org' "sys";
+            it -> cg.code = '11784-6' "cd";
+            it -> cg.display = 'Cervical dilation' "dsp";
+          } "coding";
+        } "code";
+        it.answer first as a then {
+          a.value : integer as v -> obs.value = create('Quantity') as qty then {
+            v -> qty.value = v "qtyValue";
+            v -> qty.unit = 'cm' "qtyUnit";
+            v -> qty.system = 'http://unitsofmeasure.org' "qtySystem";
+            v -> qty.code = 'cm' "qtyCode";
+          } "quantity";
+        } "answer";
+        row -> obs then SetHourTime(row, obs) "rowTime";
+      } "obs_11784_6_56";
+      g.item as it where (linkId = 'hour.progress.descent' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+        qr -> obs then SetExamCategory(qr, obs) "category";
+        it -> obs.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'lcg-descent-fifths' "cd";
+            it -> cg.display = 'Descent of the head' "dsp";
+          } "coding";
+        } "code";
+        it.answer first as a then {
+          a.value : integer as v -> obs.value = v "value";
+        } "answer";
+        row -> obs then SetHourTime(row, obs) "rowTime";
+      } "obs_lcg_descent_fifths_57";
+      g.item as it where (linkId = 'hour.progress.pushing' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+        qr -> obs then SetExamCategory(qr, obs) "category";
+        it -> obs.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'lcg-pushing' "cd";
+            it -> cg.display = 'Pushing' "dsp";
+          } "coding";
+        } "code";
+        it.answer first as a then {
+          a.value : boolean as v -> obs.value = v "value";
+        } "answer";
+        row -> obs then SetHourTime(row, obs) "rowTime";
+      } "obs_lcg_pushing_58";
+    } "progressGroup";
+
+    row.item as g where (linkId = 'hour.medication') then {
+      g.item as it where (linkId = 'hour.medication.oxytocin' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+        qr -> obs then SetSurveyCategory(qr, obs) "category";
+        it -> obs.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'lcg-oxytocin' "cd";
+            it -> cg.display = 'Oxytocin in labour' "dsp";
+          } "coding";
+        } "code";
+        it.answer first as a then {
+          a.value : string as v -> obs.value = v "value";
+        } "answer";
+        row -> obs then SetHourTime(row, obs) "rowTime";
+      } "obs_lcg_oxytocin_59";
+      g.item as it where (linkId = 'hour.medication.medicine' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+        qr -> obs then SetSurveyCategory(qr, obs) "category";
+        it -> obs.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'lcg-medicine' "cd";
+            it -> cg.display = 'Medicine given in labour' "dsp";
+          } "coding";
+        } "code";
+        it.answer first as a then {
+          a.value : string as v -> obs.value = v "value";
+        } "answer";
+        row -> obs then SetHourTime(row, obs) "rowTime";
+      } "obs_lcg_medicine_60";
+      g.item as it where (linkId = 'hour.medication.ivFluids' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+        qr -> obs then SetSurveyCategory(qr, obs) "category";
+        it -> obs.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'lcg-iv-fluids' "cd";
+            it -> cg.display = 'IV fluids in labour' "dsp";
+          } "coding";
+        } "code";
+        it.answer first as a then {
+          a.value : string as v -> obs.value = v "value";
+        } "answer";
+        row -> obs then SetHourTime(row, obs) "rowTime";
+      } "obs_lcg_iv_fluids_61";
+    } "medicationGroup";
+
+    row.item as g where (linkId = 'hour.decision') then {
+      g.item as it where (linkId = 'hour.decision.assessment' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+        qr -> obs then SetSurveyCategory(qr, obs) "category";
+        it -> obs.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'lcg-assessment' "cd";
+            it -> cg.display = 'Assessment in labour' "dsp";
+          } "coding";
+        } "code";
+        it.answer first as a then {
+          a.value : string as txt -> obs.note as n, n.text = txt "text";
+        } "answer";
+        row -> obs then SetHourTime(row, obs) "rowTime";
+      } "obs_lcg_assessment_62";
+      g.item as it where (linkId = 'hour.decision.plan' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+        qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+        qr -> obs then SetSurveyCategory(qr, obs) "category";
+        it -> obs.code as cc then {
+          it -> cc.coding as cg then {
+            it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            it -> cg.code = 'lcg-plan' "cd";
+            it -> cg.display = 'Plan in labour' "dsp";
+          } "coding";
+        } "code";
+        it.answer first as a then {
+          a.value : string as txt -> obs.note as n, n.text = txt "text";
+        } "answer";
+        row -> obs then SetHourTime(row, obs) "rowTime";
+      } "obs_lcg_plan_63";
+    } "decisionGroup";
+  } "hourRow";
+
+  // ── Summary of labour ─────────────────────────────────────────────────
+  qr where (item.where(linkId = 'summary').item.where(linkId = 'summary.record').answer.value = true) then {
+    qr.item as sg where (linkId = 'summary') then {
+      sg.item as g where (linkId = 'summary.firstStage') then {
+        g.item as it where (linkId = 'summary.firstStage.induced' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then SetSurveyCategory(qr, obs) "category";
+          it -> obs.code as cc then {
+            it -> cc.coding as cg then {
+              it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+              it -> cg.code = 'obs-induction-of-labour' "cd";
+              it -> cg.display = 'Induction of labour' "dsp";
+            } "coding";
+          } "code";
+          it.answer first as a then {
+            a.value : boolean as v -> obs.value = v "value";
+          } "answer";
+        } "obs_obs_induction_of_labour_64";
+        g.item as it where (linkId = 'summary.firstStage.duration' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then SetSurveyCategory(qr, obs) "category";
+          it -> obs.code as cc then {
+            it -> cc.coding as cg then {
+              it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+              it -> cg.code = 'obs-duration-of-the-first-stage-of-labour' "cd";
+              it -> cg.display = 'Duration of the first stage of labour' "dsp";
+            } "coding";
+          } "code";
+          it.answer first as a then {
+            a.value : Quantity as v -> obs.value = v "value";
+          } "answer";
+        } "obs_obs_duration_of_the_first_stage_of_labour_65";
+        g.item as it where (linkId = 'summary.firstStage.vaginalExaminations' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then SetSurveyCategory(qr, obs) "category";
+          it -> obs.code as cc then {
+            it -> cc.coding as cg then {
+              it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+              it -> cg.code = 'obs-number-of-vaginal-examinations' "cd";
+              it -> cg.display = 'Number of vaginal examinations' "dsp";
+            } "coding";
+          } "code";
+          it.answer first as a then {
+            a.value : integer as v -> obs.value = v "value";
+          } "answer";
+        } "obs_obs_number_of_vaginal_examinations_66";
+      } "firstStageGroup";
+      sg.item as g where (linkId = 'summary.secondStage') then {
+        g.item as it where (linkId = 'summary.secondStage.duration' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then SetSurveyCategory(qr, obs) "category";
+          it -> obs.code as cc then {
+            it -> cc.coding as cg then {
+              it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+              it -> cg.code = 'obs-duration-of-the-second-stage-of-labour' "cd";
+              it -> cg.display = 'Duration of the second stage of labour' "dsp";
+            } "coding";
+          } "code";
+          it.answer first as a then {
+            a.value : Quantity as v -> obs.value = v "value";
+          } "answer";
+        } "obs_obs_duration_of_the_second_stage_of_labour_67";
+      } "secondStageGroup";
+      sg.item as g where (linkId = 'summary.thirdStage') then {
+        g.item as it where (linkId = 'summary.thirdStage.amtsl' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then SetSurveyCategory(qr, obs) "category";
+          it -> obs.code as cc then {
+            it -> cc.coding as cg then {
+              it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+              it -> cg.code = 'amtsl-given' "cd";
+              it -> cg.display = 'Active management of the third stage of labour' "dsp";
+            } "coding";
+          } "code";
+          it.answer first as a then {
+            a.value : boolean as v -> obs.value = v "value";
+          } "answer";
+        } "obs_amtsl_given_68";
+        g.item as it where (linkId = 'summary.thirdStage.uterotonic' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then SetSurveyCategory(qr, obs) "category";
+          it -> obs.code as cc then {
+            it -> cc.coding as cg then {
+              it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+              it -> cg.code = 'uterotonic-given' "cd";
+              it -> cg.display = 'Uterotonic given' "dsp";
+            } "coding";
+          } "code";
+          it.answer first as a then {
+            a.value : Coding as cv -> obs.value = create('CodeableConcept') as vc then {
+              cv -> vc.coding = cv "valueCoding";
+              cv.display as d -> vc.text = d "valueText";
+            } "codedValue";
+          } "answer";
+          g.item as nt where (linkId = 'summary.thirdStage.uterotonicOther' and answer.value.exists()) then {
+            nt.answer first as na then {
+              na.value : string as txt -> obs.note as n, n.text = append('Other uterotonic: ', txt) "noteText";
+            } "noteAnswer";
+          } "note_69";
+        } "obs_uterotonic_given_70";
+        g.item as it where (linkId = 'summary.thirdStage.placenta' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then SetExamCategory(qr, obs) "category";
+          it -> obs.code as cc then {
+            it -> cc.coding as cg then {
+              it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+              it -> cg.code = 'placenta-completeness' "cd";
+              it -> cg.display = 'Placenta and membrane completeness' "dsp";
+            } "coding";
+          } "code";
+          it.answer first as a then {
+            a.value : Coding as cv -> obs.value = create('CodeableConcept') as vc then {
+              cv -> vc.coding = cv "valueCoding";
+              cv.display as d -> vc.text = d "valueText";
+            } "codedValue";
+          } "answer";
+        } "obs_placenta_completeness_71";
+        g.item as it where (linkId = 'summary.thirdStage.placentaWeight' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then SetExamCategory(qr, obs) "category";
+          it -> obs.code as cc then {
+            it -> cc.coding as cg then {
+              it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+              it -> cg.code = 'obstetric-placenta-weight' "cd";
+              it -> cg.display = 'Placenta weight' "dsp";
+            } "coding";
+          } "code";
+          it.answer first as a then {
+            a.value : Quantity as v -> obs.value = v "value";
+          } "answer";
+        } "obs_obstetric_placenta_weight_72";
+        g.item as it where (linkId = 'summary.thirdStage.bloodLoss' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then SetExamCategory(qr, obs) "category";
+          it -> obs.code as cc then {
+            it -> cc.coding as cg then {
+              it -> cg.system = 'http://loinc.org' "sys";
+              it -> cg.code = '8717-1' "cd";
+              it -> cg.display = 'Surgical operation note estimated blood loss [Volume]' "dsp";
+            } "coding";
+            it -> cc.text = 'Blood loss' "codeText";
+          } "code";
+          it.answer first as a then {
+            a.value : Quantity as v -> obs.value = v "value";
+          } "answer";
+        } "obs_8717_1_73";
+        g.item as it where (linkId = 'summary.thirdStage.perineum' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then SetExamCategory(qr, obs) "category";
+          it -> obs.code as cc then {
+            it -> cc.coding as cg then {
+              it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+              it -> cg.code = 'perineal-outcome' "cd";
+              it -> cg.display = 'Perineal outcome' "dsp";
+            } "coding";
+          } "code";
+          it.answer first as a then {
+            a.value : Coding as cv -> obs.value = create('CodeableConcept') as vc then {
+              cv -> vc.coding = cv "valueCoding";
+              cv.display as d -> vc.text = d "valueText";
+            } "codedValue";
+          } "answer";
+        } "obs_perineal_outcome_74";
+        g.item as it where (linkId = 'summary.thirdStage.repaired' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then SetSurveyCategory(qr, obs) "category";
+          it -> obs.code as cc then {
+            it -> cc.coding as cg then {
+              it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+              it -> cg.code = 'perineum-repaired' "cd";
+              it -> cg.display = 'Perineal tear or episiotomy repaired' "dsp";
+            } "coding";
+          } "code";
+          it.answer first as a then {
+            a.value : boolean as v -> obs.value = v "value";
+          } "answer";
+        } "obs_perineum_repaired_75";
+      } "thirdStageGroup";
+      sg.item as g where (linkId = 'summary.mother') then {
+        g.item as bp where (linkId = 'summary.mother.bloodPressure') then {
+          bp where ((item.where(linkId = 'summary.mother.bloodPressure.systolic').answer.value.ofType(Quantity).exists() or item.where(linkId = 'summary.mother.bloodPressure.diastolic').answer.value.ofType(Quantity).exists())) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+            qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+            qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+            bp -> obs.code as cc then {
+              bp -> cc.coding as cg then {
+                bp -> cg.system = 'http://loinc.org' "sys";
+                bp -> cg.code = '85354-9' "cd";
+                bp -> cg.display = 'Blood pressure panel with all children optional' "dsp";
+              } "coding";
+            } "code";
+            bp.item as ci where (linkId = 'summary.mother.bloodPressure.systolic' and answer.value.ofType(Quantity).exists()) -> obs.component as comp then {
+              ci -> comp.code as cc then {
+                ci -> cc.coding as cg then {
+                  ci -> cg.system = 'http://loinc.org' "sys";
+                  ci -> cg.code = '8480-6' "cd";
+                  ci -> cg.display = 'Systolic blood pressure' "dsp";
+                } "coding";
+              } "code";
+              ci.answer first as a then {
+                a.value : Quantity as v -> comp.value = v "value";
+              } "answer";
+            } "comp_8480_6_76";
+            bp.item as ci where (linkId = 'summary.mother.bloodPressure.diastolic' and answer.value.ofType(Quantity).exists()) -> obs.component as comp then {
+              ci -> comp.code as cc then {
+                ci -> cc.coding as cg then {
+                  ci -> cg.system = 'http://loinc.org' "sys";
+                  ci -> cg.code = '8462-4' "cd";
+                  ci -> cg.display = 'Diastolic blood pressure' "dsp";
+                } "coding";
+              } "code";
+              ci.answer first as a then {
+                a.value : Quantity as v -> comp.value = v "value";
+              } "answer";
+            } "comp_8462_4_77";
+          } "panel_85354_9_78";
+        } "bloodPressureGroup";
+        g.item as it where (linkId = 'summary.mother.pulse' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+          it -> obs.code as cc then {
+            it -> cc.coding as cg then {
+              it -> cg.system = 'http://loinc.org' "sys";
+              it -> cg.code = '8867-4' "cd";
+              it -> cg.display = 'Heart rate' "dsp";
+            } "coding";
+          } "code";
+          it.answer first as a then {
+            a.value : Quantity as v -> obs.value = v "value";
+          } "answer";
+        } "obs_8867_4_79";
+        g.item as it where (linkId = 'summary.mother.temperature' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+          it -> obs.code as cc then {
+            it -> cc.coding as cg then {
+              it -> cg.system = 'http://loinc.org' "sys";
+              it -> cg.code = '8310-5' "cd";
+              it -> cg.display = 'Body temperature' "dsp";
+            } "coding";
+          } "code";
+          it.answer first as a then {
+            a.value : Quantity as v -> obs.value = v "value";
+          } "answer";
+        } "obs_8310_5_80";
+        g.item as it where (linkId = 'summary.mother.respiratoryRate' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+          it -> obs.code as cc then {
+            it -> cc.coding as cg then {
+              it -> cg.system = 'http://loinc.org' "sys";
+              it -> cg.code = '9279-1' "cd";
+              it -> cg.display = 'Respiratory rate' "dsp";
+            } "coding";
+          } "code";
+          it.answer first as a then {
+            a.value : Quantity as v -> obs.value = v "value";
+          } "answer";
+        } "obs_9279_1_81";
+      } "motherGroup";
+
+      // The baby's facts go onto the mother's record with a note saying so; no
+      // Patient is minted for the newborn and its own chart is authoritative.
+      sg.item as g where (linkId = 'summary.baby') then {
+        g.item as it where (linkId = 'summary.baby.outcome' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then SetSurveyCategory(qr, obs) "category";
+          it -> obs.code as cc then {
+            it -> cc.coding as cg then {
+              it -> cg.system = 'http://loinc.org' "sys";
+              it -> cg.code = '73757-7' "cd";
+              it -> cg.display = 'Infant living at time of report [US Standard Certificate of Live Birth]' "dsp";
+            } "coding";
+            it -> cc.text = 'Alive or stillbirth' "codeText";
+          } "code";
+          it.answer first as a then {
+            a.value : Coding as cv -> obs.value = create('CodeableConcept') as vc then {
+              cv -> vc.coding = cv "valueCoding";
+              cv.display as d -> vc.text = d "valueText";
+            } "codedValue";
+          } "answer";
+          it -> obs.note as sn, sn.text = 'Recorded on the mother\'s record. This is a fact about the baby; the newborn\'s own chart is the authoritative record for it.' "subjectNote";
+        } "obs_73757_7_82";
+        g.item as it where (linkId = 'summary.baby.sex' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then SetSurveyCategory(qr, obs) "category";
+          it -> obs.code as cc then {
+            it -> cc.coding as cg then {
+              it -> cg.system = 'http://loinc.org' "sys";
+              it -> cg.code = '76689-9' "cd";
+              it -> cg.display = 'Sex assigned at birth' "dsp";
+            } "coding";
+          } "code";
+          it.answer first as a then {
+            a.value : Coding as cv -> obs.value = create('CodeableConcept') as vc then {
+              cv -> vc.coding = cv "valueCoding";
+              cv.display as d -> vc.text = d "valueText";
+            } "codedValue";
+          } "answer";
+          it -> obs.note as sn, sn.text = 'Recorded on the mother\'s record. This is a fact about the baby; the newborn\'s own chart is the authoritative record for it.' "subjectNote";
+        } "obs_76689_9_83";
+        g.item as it where (linkId = 'summary.baby.apgar1' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then SetSurveyCategory(qr, obs) "category";
+          it -> obs.code as cc then {
+            it -> cc.coding as cg then {
+              it -> cg.system = 'http://loinc.org' "sys";
+              it -> cg.code = '9272-6' "cd";
+              it -> cg.display = '1 minute Apgar Score' "dsp";
+            } "coding";
+          } "code";
+          it.answer first as a then {
+            a.value : integer as v -> obs.value = v "value";
+          } "answer";
+          it -> obs.note as sn, sn.text = 'Recorded on the mother\'s record. This is a fact about the baby; the newborn\'s own chart is the authoritative record for it.' "subjectNote";
+        } "obs_9272_6_84";
+        g.item as it where (linkId = 'summary.baby.apgar5' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then SetSurveyCategory(qr, obs) "category";
+          it -> obs.code as cc then {
+            it -> cc.coding as cg then {
+              it -> cg.system = 'http://loinc.org' "sys";
+              it -> cg.code = '9274-2' "cd";
+              it -> cg.display = '5 minute Apgar Score' "dsp";
+            } "coding";
+          } "code";
+          it.answer first as a then {
+            a.value : integer as v -> obs.value = v "value";
+          } "answer";
+          it -> obs.note as sn, sn.text = 'Recorded on the mother\'s record. This is a fact about the baby; the newborn\'s own chart is the authoritative record for it.' "subjectNote";
+        } "obs_9274_2_85";
+        g.item as it where (linkId = 'summary.baby.birthWeight' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+          it -> obs.code as cc then {
+            it -> cc.coding as cg then {
+              it -> cg.system = 'http://loinc.org' "sys";
+              it -> cg.code = '8339-4' "cd";
+              it -> cg.display = 'Birth weight Measured' "dsp";
+            } "coding";
+          } "code";
+          it.answer first as a then {
+            a.value : Quantity as v -> obs.value = v "value";
+          } "answer";
+          it -> obs.note as sn, sn.text = 'Recorded on the mother\'s record. This is a fact about the baby; the newborn\'s own chart is the authoritative record for it.' "subjectNote";
+        } "obs_8339_4_86";
+        g.item as it where (linkId = 'summary.baby.length' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+          it -> obs.code as cc then {
+            it -> cc.coding as cg then {
+              it -> cg.system = 'http://loinc.org' "sys";
+              it -> cg.code = '8306-3' "cd";
+              it -> cg.display = 'Body height --lying' "dsp";
+            } "coding";
+          } "code";
+          it.answer first as a then {
+            a.value : Quantity as v -> obs.value = v "value";
+          } "answer";
+          it -> obs.note as sn, sn.text = 'Recorded on the mother\'s record. This is a fact about the baby; the newborn\'s own chart is the authoritative record for it.' "subjectNote";
+        } "obs_8306_3_87";
+        g.item as it where (linkId = 'summary.baby.headCircumference' and answer.value.ofType(Quantity).exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then SetVitalSignsCategory(qr, obs) "category";
+          it -> obs.code as cc then {
+            it -> cc.coding as cg then {
+              it -> cg.system = 'http://loinc.org' "sys";
+              it -> cg.code = '9843-4' "cd";
+              it -> cg.display = 'Head Occipital-frontal circumference' "dsp";
+            } "coding";
+          } "code";
+          it.answer first as a then {
+            a.value : Quantity as v -> obs.value = v "value";
+          } "answer";
+          it -> obs.note as sn, sn.text = 'Recorded on the mother\'s record. This is a fact about the baby; the newborn\'s own chart is the authoritative record for it.' "subjectNote";
+        } "obs_9843_4_88";
+        g.item as it where (linkId = 'summary.baby.resuscitated' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then SetProcedureCategory(qr, obs) "category";
+          it -> obs.code as cc then {
+            it -> cc.coding as cg then {
+              it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+              it -> cg.code = 'newborn-resuscitated-at-birth' "cd";
+              it -> cg.display = 'Resuscitated at birth' "dsp";
+            } "coding";
+          } "code";
+          it.answer first as a then {
+            a.value : boolean as v -> obs.value = v "value";
+          } "answer";
+          it -> obs.note as sn, sn.text = 'Recorded on the mother\'s record. This is a fact about the baby; the newborn\'s own chart is the authoritative record for it.' "subjectNote";
+        } "obs_newborn_resuscitated_at_birth_89";
+        g.item as it where (linkId = 'summary.baby.vitaminK' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then SetProcedureCategory(qr, obs) "category";
+          it -> obs.code as cc then {
+            it -> cc.coding as cg then {
+              it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+              it -> cg.code = 'newborn-care-vitamin-k-given' "cd";
+              it -> cg.display = 'Vitamin K given' "dsp";
+            } "coding";
+          } "code";
+          it.answer first as a then {
+            a.value : boolean as v -> obs.value = v "value";
+          } "answer";
+          it -> obs.note as sn, sn.text = 'Recorded on the mother\'s record. This is a fact about the baby; the newborn\'s own chart is the authoritative record for it.' "subjectNote";
+        } "obs_newborn_care_vitamin_k_given_90";
+        g.item as it where (linkId = 'summary.baby.otherDrugs' and answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+          qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+          qr -> obs then SetSurveyCategory(qr, obs) "category";
+          it -> obs.code as cc then {
+            it -> cc.coding as cg then {
+              it -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+              it -> cg.code = 'newborn-other-drugs-given-at-birth' "cd";
+              it -> cg.display = 'Other drugs given to the newborn at birth' "dsp";
+            } "coding";
+          } "code";
+          it.answer first as a then {
+            a.value : string as v -> obs.value = v "value";
+          } "answer";
+          it -> obs.note as sn, sn.text = 'Recorded on the mother\'s record. This is a fact about the baby; the newborn\'s own chart is the authoritative record for it.' "subjectNote";
+        } "obs_newborn_other_drugs_given_at_birth_91";
+      } "babyGroup";
+
+      // The delivery itself, as an obstetric Procedure coded by the mode in the
+      // second stage, at the time and by the person in the delivery section.
+      sg.item as dg where (linkId = 'summary.delivery') then {
+        sg.item as ss where (linkId = 'summary.secondStage') then {
+          // ── The delivery, as a Procedure ────────────────────────────────────────
+          // An obstetric procedure coded by its mode, one rule per mode, mutually
+          // exclusive on the answer; every code checked on tx.fhir.org. Breech has no
+          // SNOMED concept that does not also say which breech or how it was delivered,
+          // so it gets the parent 236973005 Delivery procedure with the mode as text.
+          ss where (item.where(linkId = 'summary.secondStage.modeOfDelivery').answer.value.exists() or item.where(linkId = 'summary.delivery.dateTime').answer.value.exists()) -> bundle.entry as entry, entry.resource = create('Procedure') as proc then {
+            qr -> proc, entry then BuildProcedureBase(qr, proc, entry) "base";
+            ss -> proc.status = 'completed' "status";
+            ss -> proc.category as pcat then {
+              ss -> pcat.coding as cg then {
+                ss -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/identifier-codesystem' "sys";
+                ss -> cg.code = '386637004' "cd";
+                ss -> cg.display = 'Obstetric procedure' "dsp";
+              } "coding";
+            } "category";
+            dg.item as dt where (linkId = 'summary.delivery.dateTime' and answer.value.exists()) then {
+              dt.answer first as a then {
+                a.value : dateTime as t -> proc.occurrence = t "occurrence";
+              } "answer";
+            } "deliveryTimeRule";
+            ss.item as md where (linkId = 'summary.secondStage.modeOfDelivery' and answer.value.ofType(Coding).code = 'delivery-caesarean') -> proc.code as cc then {
+              md -> cc.coding as cg then {
+                md -> cg.system = 'http://snomed.info/sct' "sys";
+                md -> cg.code = '11466000' "cd";
+                md -> cg.display = 'Cesarean section' "dsp";
+              } "coding";
+              md -> cc.text = 'Caesarean section' "modeText";
+            } "caesareanCode";
+            ss.item as md where (linkId = 'summary.secondStage.modeOfDelivery' and answer.value.ofType(Coding).code != 'delivery-caesarean') -> proc.code as cc then {
+              md where (answer.value.ofType(Coding).code = 'delivery-svd') -> cc.coding as cg then {
+                md -> cg.system = 'http://snomed.info/sct' "sys";
+                md -> cg.code = '177184002' "cd";
+                md -> cg.display = 'Normal delivery procedure' "dsp";
+              } "svdCoding";
+              md where (answer.value.ofType(Coding).code = 'delivery-assisted-vacuum') -> cc.coding as cg then {
+                md -> cg.system = 'http://snomed.info/sct' "sys";
+                md -> cg.code = '61586001' "cd";
+                md -> cg.display = 'Delivery by vacuum extraction' "dsp";
+              } "vacuumCoding";
+              md where (answer.value.ofType(Coding).code = 'delivery-assisted-forceps') -> cc.coding as cg then {
+                md -> cg.system = 'http://snomed.info/sct' "sys";
+                md -> cg.code = '302383004' "cd";
+                md -> cg.display = 'Forceps delivery' "dsp";
+              } "forcepsCoding";
+              md where (answer.value.ofType(Coding).where(code = 'delivery-svd' or code = 'delivery-assisted-vacuum' or code = 'delivery-assisted-forceps').empty()) -> cc.coding as cg then {
+                md -> cg.system = 'http://snomed.info/sct' "sys";
+                md -> cg.code = '236973005' "cd";
+                md -> cg.display = 'Delivery procedure' "dsp";
+              } "otherModeCoding";
+              md.answer first as a then {
+                a.value : Coding as cv then {
+                  cv.display as d -> cc.text = d "modeText";
+                } "display";
+              } "modeDisplay";
+            } "vaginalCode";
+            ss where (item.where(linkId = 'summary.secondStage.modeOfDelivery').answer.value.exists().not()) -> proc.code as cc then {
+              ss -> cc.coding as cg then {
+                ss -> cg.system = 'http://snomed.info/sct' "sys";
+                ss -> cg.code = '236973005' "cd";
+                ss -> cg.display = 'Delivery procedure' "dsp";
+              } "coding";
+            } "unspecifiedModeCode";
+
+
+            dg.item as pf where (linkId = 'summary.delivery.deliveredBy' and answer.value.exists()) then {
+              pf.answer first as pa then {
+                pa.value : Reference as ref where (((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> proc.performer as p then {
+                  ref -> p.actor = create('Reference') as actor then {
+                    ref.reference as v -> actor.reference = v "reference";
+                    ref.type as v -> actor.type = v "type";
+                    ref.identifier as v -> actor.identifier = v "identifier";
+                    ref.display as v -> actor.display = v "display";
+                  } "actor";
+                  ref -> p.function as fn, fn.text = 'Delivered by' "function";
+                } "performer";
+              } "performerAnswer";
+            } "performer_92";
+          } "deliveryProcedure";
+        } "secondStageForDelivery";
+      } "deliveryGroup";
+    } "summaryGroup";
+  } "summaryRecorded";
+}
+
+group SetHourTime(source row, target obs : Observation) {
+  row.item as it where (linkId = 'hour.time' and answer.value.exists()) then {
+    it.answer first as a then {
+      a.value : dateTime as v where ($this.toString().length() >= 20) -> obs.effective = v "effective";
+    } "answer";
+  } "timeRule";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared scaffolding. Repeated in each map rather than imported: the transform
+// engine resolves `imports` against whatever StructureMaps happen to be on the
+// server, and a form that stops extracting because a shared map was not
+// uploaded is a worse failure than a duplicated group.
+//
+// Source parameters below are left untyped on purpose. Writing `: Element` makes
+// the validator compare QuestionnaireResponse.item against the literal 'Element'
+// and report them as incompatible with each other, which is noise, not a finding.
+//
+// `evaluate(context, expression)` is flagged as "takes 1 parameter but 2 were
+// found". Leave it. The FML parser in the same jar refuses the one-argument form
+// outright -- it wants a parameter, a comma, then the FHIRPath -- so the
+// publisher is objecting to what its own compiler emits. Two arguments is the
+// only form that compiles, and it is what the R5 transform engine executes.
+// ─────────────────────────────────────────────────────────────────────────────
+
+group BuildObsBase(source qr : QR, target obs : Observation, target entry) {
+  qr -> obs then SetResponseProvenance(qr, obs) "responseProvenance";
+  qr -> obs.id = uuid() then SetObservationFullUrl(obs, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Observation' "requestUrl";
+  } "entryRequest";
+
+  qr -> obs.status = 'final' "status";
+  // The response's subject is Reference(Any); the guard keeps Patients and the
+  // copy, field by field, is what satisfies a type checker that cannot see the
+  // guard. Same for the encounter.
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> obs.subject = create('Reference') as ref then {
+    s.reference as v -> ref.reference = v "reference";
+    s.type as v -> ref.type = v "type";
+    s.identifier as v -> ref.identifier = v "identifier";
+    s.display as v -> ref.display = v "display";
+  } "subject";
+  qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> obs.encounter = create('Reference') as ref then {
+    e.reference as v -> ref.reference = v "reference";
+    e.type as v -> ref.type = v "type";
+    e.identifier as v -> ref.identifier = v "identifier";
+    e.display as v -> ref.display = v "display";
+  } "encounter";
+
+  // A stored response's id already reads "QuestionnaireResponse/<id>", so it is
+  // a relative reference as it stands. The length guard is what stops an
+  // unsaved response -- one posted straight to $extract rather than saved first
+  // -- from writing "QuestionnaireResponse/null" into the record.
+  qr.id as qid where ($this.toString().length() > 0) -> obs.derivedFrom = create('Reference') as ref, ref.reference = qid "linkQuestionnaireResponse";
+  qr -> obs then ConformObservation(qr, obs) "profileConformance";
+}
+
+group SetObservationFullUrl(source obs : Observation, target entry) {
+  obs.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/Observation/', id) "assignFullUrl";
+}
+
+// The two answer shapes a component can carry. Both read the answer through the
+// untyped `.value` accessor: reading `valueCoding` or `valueQuantity` by its
+// typed property name fails at transform time on HAPI R5 with "Attempt to read
+// invalid property ... on QuestionnaireResponse.item.answer".
+group SetComponentCodedValue(source it, target comp) {
+  it.answer first as a then {
+    a.value : Coding as cv -> comp.value = create('CodeableConcept') as cc then {
+      cv -> cc.coding = cv "valueCoding";
+      cv.display as d -> cc.text = d "valueText";
+    } "codedValue";
+  } "componentAnswer";
+}
+
+group ConformObservation(source qr : QR, target r) {
+  qr.authored as t where ($this.toString().length() >= 20) -> r.issued = cast(t, 'instant') "issued";
+  qr.authored as t -> r.effective = t "effective";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = create('Reference') as ref then {
+    au.reference as v -> ref.reference = v "reference";
+    au.type as v -> ref.type = v "type";
+    au.identifier as v -> ref.identifier = v "identifier";
+    au.display as v -> ref.display = v "display";
+  } "performerFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = create('Reference') as ref then {
+      src.reference as v -> ref.reference = v "reference";
+      src.type as v -> ref.type = v "type";
+      src.identifier as v -> ref.identifier = v "identifier";
+      src.display as v -> ref.display = v "display";
+    } "performerFromSource";
+  } "performerFallback";
+}
+
+group BuildProcedureBase(source qr : QR, target r : Procedure, target entry) {
+  qr -> r then SetResponseProvenance(qr, r) "responseProvenance";
+  qr -> r.id = uuid() then SetProcedureFullUrl(r, entry) "idAndFullUrl";
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Procedure' "requestUrl";
+  } "entryRequest";
+
+  // The response's own time, as a floor, the way BuildObsBase does it. A rule
+  // that reads a time off the form overwrites this; without it a procedure whose
+  // date column was taken off on review has no time at all, and a procedure with
+  // no time cannot be ordered against the rest of the admission.
+  qr.authored as t -> r.occurrence = t "occurrenceFallback";
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Practitioner/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner'))))) -> r.subject = create('Reference') as ref then {
+    s.reference as v -> ref.reference = v "reference";
+    s.type as v -> ref.type = v "type";
+    s.identifier as v -> ref.identifier = v "identifier";
+    s.display as v -> ref.display = v "display";
+  } "subject";
+  qr -> r then ConformProcedure(qr, r) "profileConformance";
+}
+
+group SetProcedureFullUrl(source r : Procedure, target entry) {
+  r.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/Procedure/', id) "assignFullUrl";
+}
+
+group ConformProcedure(source qr : QR, target r) {
+  qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> r.encounter = create('Reference') as ref then {
+    e.reference as v -> ref.reference = v "reference";
+    e.type as v -> ref.type = v "type";
+    e.identifier as v -> ref.identifier = v "identifier";
+    e.display as v -> ref.display = v "display";
+  } "encounter";
+  qr.authored as t -> r.recorded = t "recorded";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.recorder = create('Reference') as ref then {
+    au.reference as v -> ref.reference = v "reference";
+    au.type as v -> ref.type = v "type";
+    au.identifier as v -> ref.identifier = v "identifier";
+    au.display as v -> ref.display = v "display";
+  } "recorderFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.recorder = create('Reference') as ref then {
+      src.reference as v -> ref.reference = v "reference";
+      src.type as v -> ref.type = v "type";
+      src.identifier as v -> ref.identifier = v "identifier";
+      src.display as v -> ref.display = v "display";
+    } "recorderFromSource";
+  } "recorderFallback";
+}
+
+group SetSurveyCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'survey' "categoryCode";
+      qr -> coding.display = 'Survey' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+group SetVitalSignsCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'vital-signs' "categoryCode";
+      qr -> coding.display = 'Vital Signs' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+group SetExamCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'exam' "categoryCode";
+      qr -> coding.display = 'Exam' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+group SetLaboratoryCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'laboratory' "categoryCode";
+      qr -> coding.display = 'Laboratory' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+group SetProcedureCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'procedure' "categoryCode";
+      qr -> coding.display = 'Procedure' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+//
+// Two tags on everything this map creates. The first says which questionnaire
+// produced it, so a form that reopens mid-admission recalls its own earlier
+// entries and not another form's. The second copies the tenant tags off the
+// response, because nothing else on the path puts them there. The response's
+// identifier is copied the same way.
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+
+group SetResponseProvenance(source qr : QR, target r) {
+  qr -> r.meta as m then {
+    qr -> m.tag as t then {
+      qr -> t.system = 'http://slade360edi.com/questionnaire-provenance' "provenanceSystem";
+      qr -> t.code = 'who-labour-care-guide' "provenanceCode";
+      qr -> t.display = 'WHO labour care guide' "provenanceDisplay";
+    } "provenanceTag";
+  } "provenanceMeta";
+
+  // Every tag the response carries, onto the resource. `meta` is 0..1, so this
+  // lands on the same meta the rule above created rather than a second one.
+  qr.meta as qm then {
+    qm.tag as qt -> r.meta as m, m.tag = qt "copyTag";
+  } "tenantTags";
+
+  // The response's identifiers, as they are. Every profile wants one, and it is
+  // the response's to give: nothing here mints one, so a response without an
+  // identifier extracts resources without one. One whose assigner is not of a
+  // type the profiles allow there is left behind whole, not altered.
+  qr.identifier as qid where (assigner.empty() or assigner.where(((reference.exists() and (reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization'))))).exists()) -> r.identifier = qid "identifier";
+}
