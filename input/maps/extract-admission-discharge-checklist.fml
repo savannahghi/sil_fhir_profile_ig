@@ -1,0 +1,657 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractAdmissionDischargeChecklist"
+/// name = "ExtractAdmissionDischargeChecklist"
+/// title = "Admission and Discharge Checklist Extraction"
+/// status = "active"
+/// description = "The checklist out as one Observation per phase, admission and discharge, each with a component per check, so a discharge checklist that was never done is a missing resource rather than a resource full of blanks -- which is the only shape that lets an audit tell an unperformed phase from an unticked one. Each phase is written only once its nurse has confirmed it, dated to the confirmation, and the comments against individual checks ride along as notes."
+//
+// GATE: (item.where(linkId = 'admission').item.where(linkId = 'admission.signoff').item.where(linkId = 'admission.signoff.signed').answer.value = true) or (item.where(linkId = 'discharge').item.where(linkId = 'discharge.signoff').item.where(linkId = 'discharge.signoff.signed').answer.value = true)
+//
+// The extraction gate: a FHIRPath over the QuestionnaireResponse that is
+// true exactly when this map will produce at least one resource. Tooling
+// evaluates it to predict extraction without running the transform; keep it
+// in step with the creation guards below.
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Observation as target
+
+group ExtractAdmissionDischargeChecklist(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  // ── The admission checklist, as one Observation ───────────────────────────
+  // One Observation for the admission phase with a component per check, so a
+  // checklist that was never done is a missing resource rather than a resource
+  // full of blanks. Written only once the admitting nurse has confirmed it.
+  qr.item as g where (linkId = 'admission' and item.where(linkId = 'admission.signoff').item.where(linkId = 'admission.signoff.signed').answer.value = true) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+    qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+    qr -> obs then SetSurveyCategory(qr, obs) "category";
+    g -> obs.code as cc then {
+      g -> cc.coding as cg then {
+        g -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+        g -> cg.code = 'admission-nursing-checklist' "cd";
+        g -> cg.display = 'Admission nursing checklist' "dsp";
+      } "coding";
+      g -> cc.text = 'Admission checklist' "codeText";
+    } "code";
+    g.item as sg where (linkId = 'admission.desk') then {
+      sg.item as ci where (linkId = 'admission.desk.registered' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'adm-check-registered' "cd";
+            ci -> cg.display = 'Registered at the admission desk' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_adm_check_registered_1";
+      sg.item as nt where (linkId = 'admission.desk.registeredComment' and answer.value.exists()) then {
+        nt.answer first as na then {
+          na.value : string as txt -> obs.note as n, n.text = append('Registered at the admission desk: ', txt) "noteText";
+        } "noteAnswer";
+      } "comment_2";
+    } "sub_registered_3";
+    g.item as sg where (linkId = 'admission.desk') then {
+      sg.item as ci where (linkId = 'admission.desk.formCompleted' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'adm-check-admission-form-completed' "cd";
+            ci -> cg.display = 'Admission form completed' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_adm_check_admission_form_completed_4";
+      sg.item as nt where (linkId = 'admission.desk.formCompletedComment' and answer.value.exists()) then {
+        nt.answer first as na then {
+          na.value : string as txt -> obs.note as n, n.text = append('Admission form completed: ', txt) "noteText";
+        } "noteAnswer";
+      } "comment_5";
+    } "sub_formCompleted_6";
+    g.item as sg where (linkId = 'admission.desk') then {
+      sg.item as ci where (linkId = 'admission.desk.sha' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'adm-check-sha' "cd";
+            ci -> cg.display = 'SHA details taken' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_adm_check_sha_7";
+      sg.item as nt where (linkId = 'admission.desk.shaComment' and answer.value.exists()) then {
+        nt.answer first as na then {
+          na.value : string as txt -> obs.note as n, n.text = append('SHA details taken: ', txt) "noteText";
+        } "noteAnswer";
+      } "comment_8";
+    } "sub_sha_9";
+    g.item as sg where (linkId = 'admission.desk') then {
+      sg.item as ci where (linkId = 'admission.desk.preAuthorization' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'adm-check-deposit-or-pre-authorization' "cd";
+            ci -> cg.display = 'Deposit or company pre-authorization' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_adm_check_deposit_or_pre_authorization_10";
+      sg.item as nt where (linkId = 'admission.desk.preAuthorizationComment' and answer.value.exists()) then {
+        nt.answer first as na then {
+          na.value : string as txt -> obs.note as n, n.text = append('Deposit or company pre-authorization: ', txt) "noteText";
+        } "noteAnswer";
+      } "comment_11";
+    } "sub_preAuthorization_12";
+    g.item as sg where (linkId = 'admission.nursing') then {
+      sg.item as ci where (linkId = 'admission.nursing.doctorInformed' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'adm-check-doctor-informed' "cd";
+            ci -> cg.display = 'Doctor informed' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_adm_check_doctor_informed_13";
+      sg.item as nt where (linkId = 'admission.nursing.doctorInformedComment' and answer.value.exists()) then {
+        nt.answer first as na then {
+          na.value : string as txt -> obs.note as n, n.text = append('Doctor informed: ', txt) "noteText";
+        } "noteAnswer";
+      } "comment_14";
+    } "sub_doctorInformed_15";
+    g.item as sg where (linkId = 'admission.nursing') then {
+      sg.item as ci where (linkId = 'admission.nursing.imaging' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'adm-check-imaging' "cd";
+            ci -> cg.display = 'X-ray or scans' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_adm_check_imaging_16";
+      sg.item as nt where (linkId = 'admission.nursing.imagingComment' and answer.value.exists()) then {
+        nt.answer first as na then {
+          na.value : string as txt -> obs.note as n, n.text = append('X-ray or scans: ', txt) "noteText";
+        } "noteAnswer";
+      } "comment_17";
+    } "sub_imaging_18";
+    g.item as sg where (linkId = 'admission.nursing') then {
+      sg.item as ci where (linkId = 'admission.nursing.anaesthetistInformed' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'adm-check-anaesthetist-informed' "cd";
+            ci -> cg.display = 'Anaesthetist informed' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_adm_check_anaesthetist_informed_19";
+      sg.item as nt where (linkId = 'admission.nursing.anaesthetistInformedComment' and answer.value.exists()) then {
+        nt.answer first as na then {
+          na.value : string as txt -> obs.note as n, n.text = append('Anaesthetist informed: ', txt) "noteText";
+        } "noteAnswer";
+      } "comment_20";
+    } "sub_anaesthetistInformed_21";
+    g.item as sg where (linkId = 'admission.nursing') then {
+      sg.item as ci where (linkId = 'admission.nursing.investigationOrdered' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'adm-check-investigation-ordered' "cd";
+            ci -> cg.display = 'Investigation ordered' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_adm_check_investigation_ordered_22";
+      sg.item as nt where (linkId = 'admission.nursing.investigationOrderedComment' and answer.value.exists()) then {
+        nt.answer first as na then {
+          na.value : string as txt -> obs.note as n, n.text = append('Investigation ordered: ', txt) "noteText";
+        } "noteAnswer";
+      } "comment_23";
+    } "sub_investigationOrdered_24";
+    g.item as sg where (linkId = 'admission.nursing') then {
+      sg.item as ci where (linkId = 'admission.nursing.medicationOrdered' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'adm-check-medication-ordered' "cd";
+            ci -> cg.display = 'Medication ordered' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_adm_check_medication_ordered_25";
+      sg.item as nt where (linkId = 'admission.nursing.medicationOrderedComment' and answer.value.exists()) then {
+        nt.answer first as na then {
+          na.value : string as txt -> obs.note as n, n.text = append('Medication ordered: ', txt) "noteText";
+        } "noteAnswer";
+      } "comment_26";
+    } "sub_medicationOrdered_27";
+    g.item as sg where (linkId = 'admission.nursing') then {
+      sg.item as ci where (linkId = 'admission.nursing.wardOrientation' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'adm-check-ward-orientation' "cd";
+            ci -> cg.display = 'Ward orientation done for the patient' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_adm_check_ward_orientation_28";
+      sg.item as nt where (linkId = 'admission.nursing.wardOrientationComment' and answer.value.exists()) then {
+        nt.answer first as na then {
+          na.value : string as txt -> obs.note as n, n.text = append('Ward orientation done for the patient: ', txt) "noteText";
+        } "noteAnswer";
+      } "comment_29";
+    } "sub_wardOrientation_30";
+    g.item as sg where (linkId = 'admission.nursing') then {
+      sg.item as ci where (linkId = 'admission.nursing.kitchenInformed' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'adm-check-kitchen-informed' "cd";
+            ci -> cg.display = 'Kitchen informed' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_adm_check_kitchen_informed_31";
+      sg.item as nt where (linkId = 'admission.nursing.kitchenInformedComment' and answer.value.exists()) then {
+        nt.answer first as na then {
+          na.value : string as txt -> obs.note as n, n.text = append('Kitchen informed: ', txt) "noteText";
+        } "noteAnswer";
+      } "comment_32";
+    } "sub_kitchenInformed_33";
+    g.item as sg where (linkId = 'admission.nursing') then {
+      sg.item as ci where (linkId = 'admission.nursing.valuablesDeclared' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'adm-check-valuables-declared' "cd";
+            ci -> cg.display = 'Valuables declared' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_adm_check_valuables_declared_34";
+      sg.item as nt where (linkId = 'admission.nursing.valuablesDeclaredComment' and answer.value.exists()) then {
+        nt.answer first as na then {
+          na.value : string as txt -> obs.note as n, n.text = append('Valuables declared: ', txt) "noteText";
+        } "noteAnswer";
+      } "comment_35";
+    } "sub_valuablesDeclared_36";
+    g.item as sg where (linkId = 'admission.nursing') then {
+      sg.item as ci where (linkId = 'admission.nursing.others' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'adm-check-other-steps' "cd";
+            ci -> cg.display = 'Other admission steps' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_adm_check_other_steps_37";
+      sg.item as nt where (linkId = 'admission.nursing.othersComment' and answer.value.exists()) then {
+        nt.answer first as na then {
+          na.value : string as txt -> obs.note as n, n.text = append('Other admission steps: ', txt) "noteText";
+        } "noteAnswer";
+      } "comment_38";
+    } "sub_others_39";
+    g.item as sg where (linkId = 'admission.nursing') then {
+      sg.item as nt where (linkId = 'admission.nursing.othersDetail' and answer.value.exists()) then {
+        nt.answer first as na then {
+          na.value : string as txt -> obs.note as n, n.text = append('Other steps taken: ', txt) "noteText";
+        } "noteAnswer";
+      } "othersDetail";
+    } "othersDetailGroup";
+    g.item as nt where (linkId = 'admission.generalCondition' and answer.value.exists()) then {
+      nt.answer first as na then {
+        na.value : string as txt -> obs.note as n, n.text = append('General condition of the patient on admission: ', txt) "noteText";
+      } "noteAnswer";
+    } "generalCondition";
+    g.item as sg where (linkId = 'admission.signoff') then {
+      sg.item as it where (linkId = 'admission.signoff.dateTime' and answer.value.exists()) then {
+        it.answer first as a then {
+          a.value : dateTime as v where ($this.toString().length() >= 20) -> obs.effective = v "effective";
+        } "answer";
+      } "signoffTime";
+    } "signoffGroup";
+  } "admissionChecklist";
+
+  // ── The discharge checklist, as one Observation ───────────────────────────
+  // Same shape for the discharge phase, written only once the discharging nurse
+  // has confirmed it. The two phases are separate resources because they happen
+  // days apart and a discharge that never happened must not read as a half-done
+  // admission.
+  qr.item as g where (linkId = 'discharge' and item.where(linkId = 'discharge.signoff').item.where(linkId = 'discharge.signoff.signed').answer.value = true) -> bundle.entry as entry, entry.resource = create('Observation') as obs then {
+    qr -> obs, entry then BuildObsBase(qr, obs, entry) "base";
+    qr -> obs then SetSurveyCategory(qr, obs) "category";
+    g -> obs.code as cc then {
+      g -> cc.coding as cg then {
+        g -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+        g -> cg.code = 'discharge-nursing-checklist' "cd";
+        g -> cg.display = 'Discharge nursing checklist' "dsp";
+      } "coding";
+      g -> cc.text = 'Discharge checklist' "codeText";
+    } "code";
+    g.item as sg where (linkId = 'discharge.steps') then {
+      sg.item as ci where (linkId = 'discharge.steps.notesWritten' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'dis-check-discharge-notes-written' "cd";
+            ci -> cg.display = 'Discharge notes written' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_dis_check_discharge_notes_written_40";
+      sg.item as nt where (linkId = 'discharge.steps.notesWrittenComment' and answer.value.exists()) then {
+        nt.answer first as na then {
+          na.value : string as txt -> obs.note as n, n.text = append('Discharge notes written: ', txt) "noteText";
+        } "noteAnswer";
+      } "comment_41";
+      sg.item as ci where (linkId = 'discharge.steps.summaryGiven' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'dis-check-discharge-summary-given' "cd";
+            ci -> cg.display = 'Discharge summary given' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_dis_check_discharge_summary_given_42";
+      sg.item as nt where (linkId = 'discharge.steps.summaryGivenComment' and answer.value.exists()) then {
+        nt.answer first as na then {
+          na.value : string as txt -> obs.note as n, n.text = append('Discharge summary given: ', txt) "noteText";
+        } "noteAnswer";
+      } "comment_43";
+      sg.item as ci where (linkId = 'discharge.steps.returnDateExplained' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'dis-check-return-date-explained' "cd";
+            ci -> cg.display = 'Return date explained' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_dis_check_return_date_explained_44";
+      sg.item as nt where (linkId = 'discharge.steps.returnDateExplainedComment' and answer.value.exists()) then {
+        nt.answer first as na then {
+          na.value : string as txt -> obs.note as n, n.text = append('Return date explained: ', txt) "noteText";
+        } "noteAnswer";
+      } "comment_45";
+      sg.item as ci where (linkId = 'discharge.steps.devicesRemoved' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'dis-check-invasive-devices-removed' "cd";
+            ci -> cg.display = 'Invasive devices removed' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_dis_check_invasive_devices_removed_46";
+      sg.item as nt where (linkId = 'discharge.steps.devicesRemovedComment' and answer.value.exists()) then {
+        nt.answer first as na then {
+          na.value : string as txt -> obs.note as n, n.text = append('Invasive devices removed: ', txt) "noteText";
+        } "noteAnswer";
+      } "comment_47";
+      sg.item as ci where (linkId = 'discharge.steps.dressing' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'dis-check-dressing-removed-or-sprayed' "cd";
+            ci -> cg.display = 'Dressing removed or sprayed' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_dis_check_dressing_removed_or_sprayed_48";
+      sg.item as nt where (linkId = 'discharge.steps.dressingComment' and answer.value.exists()) then {
+        nt.answer first as na then {
+          na.value : string as txt -> obs.note as n, n.text = append('Dressing removed or sprayed: ', txt) "noteText";
+        } "noteAnswer";
+      } "comment_49";
+      sg.item as ci where (linkId = 'discharge.steps.medicationGiven' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'dis-check-discharge-medication-given' "cd";
+            ci -> cg.display = 'Discharge medication given' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_dis_check_discharge_medication_given_50";
+      sg.item as nt where (linkId = 'discharge.steps.medicationGivenComment' and answer.value.exists()) then {
+        nt.answer first as na then {
+          na.value : string as txt -> obs.note as n, n.text = append('Discharge medication given: ', txt) "noteText";
+        } "noteAnswer";
+      } "comment_51";
+      sg.item as ci where (linkId = 'discharge.steps.imagingReturned' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'dis-check-imaging-returned' "cd";
+            ci -> cg.display = 'X-rays, MRI and other imaging returned' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_dis_check_imaging_returned_52";
+      sg.item as nt where (linkId = 'discharge.steps.imagingReturnedComment' and answer.value.exists()) then {
+        nt.answer first as na then {
+          na.value : string as txt -> obs.note as n, n.text = append('X-rays, MRI and other imaging returned: ', txt) "noteText";
+        } "noteAnswer";
+      } "comment_53";
+      sg.item as ci where (linkId = 'discharge.steps.babyImmunized' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'dis-check-baby-immunized-and-birth-notified' "cd";
+            ci -> cg.display = 'Baby immunized and birth notified' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_dis_check_baby_immunized_and_birth_notified_54";
+      sg.item as nt where (linkId = 'discharge.steps.babyImmunizedComment' and answer.value.exists()) then {
+        nt.answer first as na then {
+          na.value : string as txt -> obs.note as n, n.text = append('Baby immunized and birth notified: ', txt) "noteText";
+        } "noteAnswer";
+      } "comment_55";
+      sg.item as ci where (linkId = 'discharge.steps.valuablesReturned' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'dis-check-valuables-returned' "cd";
+            ci -> cg.display = 'Valuables returned' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_dis_check_valuables_returned_56";
+      sg.item as nt where (linkId = 'discharge.steps.valuablesReturnedComment' and answer.value.exists()) then {
+        nt.answer first as na then {
+          na.value : string as txt -> obs.note as n, n.text = append('Valuables returned: ', txt) "noteText";
+        } "noteAnswer";
+      } "comment_57";
+      sg.item as ci where (linkId = 'discharge.steps.gatePass' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'dis-check-gate-pass-issued' "cd";
+            ci -> cg.display = 'Gate pass issued' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_dis_check_gate_pass_issued_58";
+      sg.item as nt where (linkId = 'discharge.steps.gatePassComment' and answer.value.exists()) then {
+        nt.answer first as na then {
+          na.value : string as txt -> obs.note as n, n.text = append('Gate pass issued: ', txt) "noteText";
+        } "noteAnswer";
+      } "comment_59";
+      sg.item as ci where (linkId = 'discharge.steps.bedCleared' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'dis-check-bed-cleared' "cd";
+            ci -> cg.display = 'Bed completely cleared' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_dis_check_bed_cleared_60";
+      sg.item as nt where (linkId = 'discharge.steps.bedClearedComment' and answer.value.exists()) then {
+        nt.answer first as na then {
+          na.value : string as txt -> obs.note as n, n.text = append('Bed completely cleared: ', txt) "noteText";
+        } "noteAnswer";
+      } "comment_61";
+      sg.item as ci where (linkId = 'discharge.steps.bedCarbonized' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'dis-check-bed-carbonized' "cd";
+            ci -> cg.display = 'Bed carbonized' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_dis_check_bed_carbonized_62";
+      sg.item as nt where (linkId = 'discharge.steps.bedCarbonizedComment' and answer.value.exists()) then {
+        nt.answer first as na then {
+          na.value : string as txt -> obs.note as n, n.text = append('Bed carbonized: ', txt) "noteText";
+        } "noteAnswer";
+      } "comment_63";
+      sg.item as ci where (linkId = 'discharge.steps.sickSheetCopy' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'dis-check-sick-sheet-file-copy' "cd";
+            ci -> cg.display = 'Sick sheet file copy' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_dis_check_sick_sheet_file_copy_64";
+      sg.item as nt where (linkId = 'discharge.steps.sickSheetCopyComment' and answer.value.exists()) then {
+        nt.answer first as na then {
+          na.value : string as txt -> obs.note as n, n.text = append('Sick sheet file copy: ', txt) "noteText";
+        } "noteAnswer";
+      } "comment_65";
+      sg.item as ci where (linkId = 'discharge.steps.others' and answer.value.exists()) -> obs.component as comp then {
+        ci -> comp.code as cc then {
+          ci -> cc.coding as cg then {
+            ci -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/concept-codesystem' "sys";
+            ci -> cg.code = 'dis-check-other-steps' "cd";
+            ci -> cg.display = 'Other discharge steps' "dsp";
+          } "coding";
+        } "code";
+        ci -> comp then SetComponentCodedValue(ci, comp) "value";
+      } "comp_dis_check_other_steps_66";
+      sg.item as nt where (linkId = 'discharge.steps.othersComment' and answer.value.exists()) then {
+        nt.answer first as na then {
+          na.value : string as txt -> obs.note as n, n.text = append('Other discharge steps: ', txt) "noteText";
+        } "noteAnswer";
+      } "comment_67";
+      sg.item as nt where (linkId = 'discharge.steps.othersDetail' and answer.value.exists()) then {
+        nt.answer first as na then {
+          na.value : string as txt -> obs.note as n, n.text = append('Other steps taken: ', txt) "noteText";
+        } "noteAnswer";
+      } "othersDetail";
+    } "stepsGroup";
+    g.item as nt where (linkId = 'discharge.generalCondition' and answer.value.exists()) then {
+      nt.answer first as na then {
+        na.value : string as txt -> obs.note as n, n.text = append('General condition on discharge: ', txt) "noteText";
+      } "noteAnswer";
+    } "generalCondition";
+    g.item as nt where (linkId = 'discharge.accompaniedBy' and answer.value.exists()) then {
+      nt.answer first as na then {
+        na.value : string as txt -> obs.note as n, n.text = append('Patient last accompanied by: ', txt) "noteText";
+      } "noteAnswer";
+    } "accompaniedBy";
+    g.item as sg where (linkId = 'discharge.signoff') then {
+      sg.item as it where (linkId = 'discharge.signoff.dateTime' and answer.value.exists()) then {
+        it.answer first as a then {
+          a.value : dateTime as v where ($this.toString().length() >= 20) -> obs.effective = v "effective";
+        } "answer";
+      } "signoffTime";
+    } "signoffGroup";
+  } "dischargeChecklist";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared scaffolding. Repeated in each map rather than imported: the transform
+// engine resolves `imports` against whatever StructureMaps happen to be on the
+// server, and a form that stops extracting because a shared map was not
+// uploaded is a worse failure than a duplicated group.
+//
+// Source parameters below are left untyped on purpose. Writing `: Element` makes
+// the validator compare QuestionnaireResponse.item against the literal 'Element'
+// and report them as incompatible with each other, which is noise, not a finding.
+//
+// `evaluate(context, expression)` is flagged as "takes 1 parameter but 2 were
+// found". Leave it. The FML parser in the same jar refuses the one-argument form
+// outright -- it wants a parameter, a comma, then the FHIRPath -- so the
+// publisher is objecting to what its own compiler emits. Two arguments is the
+// only form that compiles, and it is what the R5 transform engine executes.
+// ─────────────────────────────────────────────────────────────────────────────
+
+group BuildObsBase(source qr : QR, target obs : Observation, target entry) {
+  qr -> obs then SetResponseProvenance(qr, obs) "responseProvenance";
+  qr -> obs.id = uuid() then SetObservationFullUrl(obs, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'Observation' "requestUrl";
+  } "entryRequest";
+
+  qr -> obs.status = 'final' "status";
+  // The response's subject is Reference(Any); the guard keeps Patients and the
+  // copy, field by field, is what satisfies a type checker that cannot see the
+  // guard. Same for the encounter.
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> obs.subject = create('Reference') as ref then {
+    s.reference as v -> ref.reference = v "reference";
+    s.type as v -> ref.type = v "type";
+    s.identifier as v -> ref.identifier = v "identifier";
+    s.display as v -> ref.display = v "display";
+  } "subject";
+  qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> obs.encounter = create('Reference') as ref then {
+    e.reference as v -> ref.reference = v "reference";
+    e.type as v -> ref.type = v "type";
+    e.identifier as v -> ref.identifier = v "identifier";
+    e.display as v -> ref.display = v "display";
+  } "encounter";
+
+  // A stored response's id already reads "QuestionnaireResponse/<id>", so it is
+  // a relative reference as it stands. The length guard is what stops an
+  // unsaved response -- one posted straight to $extract rather than saved first
+  // -- from writing "QuestionnaireResponse/null" into the record.
+  qr.id as qid where ($this.toString().length() > 0) -> obs.derivedFrom = create('Reference') as ref, ref.reference = qid "linkQuestionnaireResponse";
+  qr -> obs then ConformObservation(qr, obs) "profileConformance";
+}
+
+group SetObservationFullUrl(source obs : Observation, target entry) {
+  obs.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/Observation/', id) "assignFullUrl";
+}
+
+// The two answer shapes a component can carry. Both read the answer through the
+// untyped `.value` accessor: reading `valueCoding` or `valueQuantity` by its
+// typed property name fails at transform time on HAPI R5 with "Attempt to read
+// invalid property ... on QuestionnaireResponse.item.answer".
+group SetComponentCodedValue(source it, target comp) {
+  it.answer first as a then {
+    a.value : Coding as cv -> comp.value = create('CodeableConcept') as cc then {
+      cv -> cc.coding = cv "valueCoding";
+      cv.display as d -> cc.text = d "valueText";
+    } "codedValue";
+  } "componentAnswer";
+}
+
+group ConformObservation(source qr : QR, target r) {
+  qr.authored as t where ($this.toString().length() >= 20) -> r.issued = cast(t, 'instant') "issued";
+  qr.authored as t -> r.effective = t "effective";
+  qr.author as au where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = create('Reference') as ref then {
+    au.reference as v -> ref.reference = v "reference";
+    au.type as v -> ref.type = v "type";
+    au.identifier as v -> ref.identifier = v "identifier";
+    au.display as v -> ref.display = v "display";
+  } "performerFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Organization/') or reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization') or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> r.performer = create('Reference') as ref then {
+      src.reference as v -> ref.reference = v "reference";
+      src.type as v -> ref.type = v "type";
+      src.identifier as v -> ref.identifier = v "identifier";
+      src.display as v -> ref.display = v "display";
+    } "performerFromSource";
+  } "performerFallback";
+}
+
+group SetSurveyCategory(source qr : QR, target obs : Observation) {
+  qr -> obs.category as cat then {
+    qr -> cat.coding as coding then {
+      qr -> coding.system = 'http://terminology.hl7.org/CodeSystem/observation-category' "categorySystem";
+      qr -> coding.code = 'survey' "categoryCode";
+      qr -> coding.display = 'Survey' "categoryDisplay";
+    } "categoryCoding";
+  } "category";
+}
+
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+//
+// Two tags on everything this map creates. The first says which questionnaire
+// produced it, so a form that reopens mid-admission recalls its own earlier
+// entries and not another form's. The second copies the tenant tags off the
+// response, because nothing else on the path puts them there. The response's
+// identifier is copied the same way.
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+
+group SetResponseProvenance(source qr : QR, target r) {
+  qr -> r.meta as m then {
+    qr -> m.tag as t then {
+      qr -> t.system = 'http://slade360edi.com/questionnaire-provenance' "provenanceSystem";
+      qr -> t.code = 'admission-discharge-checklist' "provenanceCode";
+      qr -> t.display = 'Admission and discharge checklist' "provenanceDisplay";
+    } "provenanceTag";
+  } "provenanceMeta";
+
+  // Every tag the response carries, onto the resource. `meta` is 0..1, so this
+  // lands on the same meta the rule above created rather than a second one.
+  qr.meta as qm then {
+    qm.tag as qt -> r.meta as m, m.tag = qt "copyTag";
+  } "tenantTags";
+
+  // The response's identifiers, as they are. Every profile wants one, and it is
+  // the response's to give: nothing here mints one, so a response without an
+  // identifier extracts resources without one. One whose assigner is not of a
+  // type the profiles allow there is left behind whole, not altered.
+  qr.identifier as qid where (assigner.empty() or assigner.where(((reference.exists() and (reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization'))))).exists()) -> r.identifier = qid "identifier";
+}
