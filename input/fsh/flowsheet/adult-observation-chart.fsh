@@ -2,7 +2,7 @@ Instance: adult-observation-chart
 InstanceOf: ObservationDefinition
 Usage: #definition
 Title: "Adult observation chart"
-Description: "The flowsheet template for adult ward observations."
+Description: "The flowsheet template for adult observations, on the ward and at an outpatient visit."
 * status = #active
 * name = "adult-observation-chart"
 * title = "Adult observations"
@@ -10,6 +10,8 @@ Description: "The flowsheet template for adult ward observations."
 * code = SGHIDocumentTypeCodeSystem#adult-observation-chart "Adult observation chart"
 * useContext[+].code = $usage-context-type#workflow
 * useContext[=].valueCodeableConcept = SGHIFlowsheetContextCodeSystem#inpatient
+* useContext[+].code = $usage-context-type#workflow
+* useContext[=].valueCodeableConcept = SGHIFlowsheetContextCodeSystem#outpatient
 * extension[FlowsheetGrouping].valueCode = #1min
 * extension[FlowsheetScope].valueCode = #encounter
 * extension[FlowsheetDefaultWindow].valueQuantity = 24 'h'
