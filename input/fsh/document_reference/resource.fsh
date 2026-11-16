@@ -16,7 +16,7 @@ Description: "A reference to a document of any kind for any purpose."
 
 * type only SGHICodeableConcept
 * type 1..1
-* type from http://hl7.org/fhir/ValueSet/doc-typecodes (required)
+* type from http://hl7.org/fhir/ValueSet/doc-typecodes (extensible)
 
 * category only SGHICodeableConcept
 
