@@ -1702,8 +1702,10 @@ Description: "Non-vaccine preventive medicines recorded alongside immunisation o
 // SGHIMedicationOmittedReason share no codes: their membership is what makes the
 // distinction machine-readable.
 //
-// Three of the twelve reasons are HL7's own and are bound rather than recoded —
-// see SGHIMedicationOmittedReason. Only the concepts with no HL7 home are here.
+// Every reason is coded here. The omitted set used to bind three of HL7's
+// reason-medication-not-given concepts (#a None, #b Away, #c Asleep); they were
+// replaced by local codes, both to carry the ward's own wording and because HL7
+// has no concept for the rest of what the drug round actually records.
 // ─────────────────────────────────────────────────────────────────────────────
 CodeSystem: SGHIMedicationAdministrationCodeSystem
 Id: medication-administration-codesystem
@@ -1740,11 +1742,17 @@ Description: "A code system enumerating what happened to a medication dose at th
 * #unable-to-swallow "Unable to swallow" "The patient could not swallow the dose."
 * #adverse-effect-reported "Adverse effect reported by patient" "The patient declined the dose, reporting an adverse effect from it."
 
-// Omitted — the dose passed without being given. Asleep, off the ward and no
-// reason recorded are HL7 concepts and are not repeated here.
-* #drug-not-available "Drug not available" "The drug was not available to give. A supply failure rather than a clinical decision: escalated to pharmacy and counted as a stock-out."
+// Omitted — the dose passed without being given. Held and refused reasons are
+// not repeated here: which set a reason belongs to is what tells those two
+// outcomes apart from this one.
+* #patient-away "Patient away from the ward" "The patient was off the ward when the dose was due — at theatre, at imaging, or on pass — so there was nobody to give it to."
+* #drug-not-available "Drug not available in the ward" "The drug was not available to give. A supply failure rather than a clinical decision: escalated to pharmacy and counted as a stock-out."
   * ^property[0].code = #supply-failure
   * ^property[0].valueBoolean = true
+* #no-iv-access "No IV access" "The dose had to go intravenously and no working line was in place when it was due."
+* #equipment-unavailable "Equipment unavailable" "Equipment the dose depends on — a pump, a nebuliser, a giving set — was not to hand when it was due. Not a drug stock-out, so it does not carry supply-failure."
+* #patient-asleep "Patient asleep" "The patient was asleep when the dose was due and was not woken for it."
+* #other "Other" "The dose passed for a reason none of the other codes covers. What that reason was belongs in the note recorded alongside, not in this code."
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Specimen collection
