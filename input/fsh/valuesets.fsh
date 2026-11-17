@@ -2025,8 +2025,7 @@ Description: "Non-vaccine preventive medicines recorded alongside immunisation o
 // What happened to a dose at the drug round, and if it was not given, why.
 // Where a concept already had a home it is bound there rather than recoded:
 //   dose status          -> HL7 medication-admin-status, a required binding
-//   asleep / away / none -> HL7 reason-medication-not-given
-//   everything else      -> SGHIMedicationAdministrationCodeSystem
+//   every reason         -> SGHIMedicationAdministrationCodeSystem
 //
 // SGHIMedicationAdministrationOutcome is a screen concept, not a status. It
 // cannot bind MedicationAdministration.status, whose binding is required, and it
@@ -2069,19 +2068,20 @@ Description: "Why a patient did not take a dose. The patient's own decision, as 
 * include SGHIMedicationAdministrationCodeSystem#unable-to-swallow "Unable to swallow"
 * include SGHIMedicationAdministrationCodeSystem#adverse-effect-reported "Adverse effect reported by patient"
 
-// Three of the four are HL7's own. #a is 'No reason known', which is exactly a
-// dose missed with nothing recorded at the time — an absence worth recording as
-// itself rather than left blank.
+// All six are local. Held and refused reasons are not repeated here, so which
+// set a code belongs to still tells the three outcomes apart.
 ValueSet: SGHIMedicationOmittedReason
 Id: medication-omitted-reason
 Title: "SGHI Medication Omitted Reason"
 Description: "Why a dose passed without being given. A reason carrying supply-failure = true is a stock-out rather than a clinical decision, and is escalated to pharmacy."
 * ^status = #active
 * ^experimental = false
-* include $reason-medication-not-given#c "Asleep"
-* include $reason-medication-not-given#b "Patient off the ward"
-* include SGHIMedicationAdministrationCodeSystem#drug-not-available "Drug not available"
-* include $reason-medication-not-given#a "Dose missed, no reason recorded at the time"
+* include SGHIMedicationAdministrationCodeSystem#patient-away "Patient away from the ward"
+* include SGHIMedicationAdministrationCodeSystem#drug-not-available "Drug not available in the ward"
+* include SGHIMedicationAdministrationCodeSystem#no-iv-access "No IV access"
+* include SGHIMedicationAdministrationCodeSystem#equipment-unavailable "Equipment unavailable"
+* include SGHIMedicationAdministrationCodeSystem#patient-asleep "Patient asleep"
+* include SGHIMedicationAdministrationCodeSystem#other "Other"
 
 // The union of the three reason sets, for binding statusReason in one place. The
 // three narrower sets stay authoritative for which outcome a reason belongs to;
