@@ -2367,6 +2367,25 @@ Description: "Why an ordered item was stopped before it was done, as offered to 
 * include SGHIOrderCancellationCodeSystem#patient-declined "Patient declined"
 * include SGHIOrderCancellationCodeSystem#ordered-in-error "Ordered in error"
 
+// Why the pharmacy rejected a prescription: the eight local reasons, plus HL7's
+// medicationrequest-status-reason by reference, so the set follows HL7's list
+// rather than a copy of it. All four deployed servers hold that HL7 value set.
+ValueSet: SGHIMedicationRejectionReason
+Id: medication-rejection-reason
+Title: "SGHI Medication Rejection Reason"
+Description: "Why the pharmacy rejected a prescription instead of dispensing it: the SGHI supply, formulary, payment and prescription reasons, plus every code in HL7's medicationrequest-status-reason, such as allergy, drug interaction, duplicate therapy and a prescription needing clarification."
+* ^status = #active
+* ^experimental = false
+* include SGHIMedicationRejectionCodeSystem#out-of-stock "Out of stock"
+* include SGHIMedicationRejectionCodeSystem#wrong-dose-or-frequency "Wrong dose or frequency"
+* include SGHIMedicationRejectionCodeSystem#wrong-drug-or-formulation "Wrong drug or formulation"
+* include SGHIMedicationRejectionCodeSystem#not-on-formulary "Not on the formulary"
+* include SGHIMedicationRejectionCodeSystem#not-covered-or-authorization-declined "Not covered by the scheme, or the authorization was declined"
+* include SGHIMedicationRejectionCodeSystem#patient-cannot-pay-or-declined "Patient cannot pay, or the patient declined"
+* include SGHIMedicationRejectionCodeSystem#quantity-exceeds-scheme-limit "Quantity exceeds the scheme limit"
+* include SGHIMedicationRejectionCodeSystem#prescription-expired-or-incomplete "Prescription expired or incomplete"
+* include codes from valueset http://terminology.hl7.org/ValueSet/medicationrequest-status-reason
+
 
 ValueSet: SGHITransferType
 Id: transfer-type
