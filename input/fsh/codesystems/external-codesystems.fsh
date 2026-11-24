@@ -110,6 +110,11 @@ Description: "The hospital paper forms that have been modelled as Questionnaires
 * #neuro-observation-chart "Neurological observation chart" "The ICU neurological chart: the Glasgow Coma Scale and its parts, each pupil by its side, limb power and the vital signs taken with them, by the hour."
 * #antenatal-ward-chart "Antenatal ward chart" "An antenatal admission: the admission facts above, then each round's vitals, the fetal heart rate with its flag, and the obstetric findings of the round."
 * #blood-glucose-chart "Blood glucose chart" "Capillary blood glucose as the vital signs form records it, one column per reading across encounters, with the insulin given against each reading."
+// ── Document types added for the South B Hospital forms (2026-10-29) ─────────
+* #patient-valuables-declaration "Patient valuables declaration" "The checklist of personal items a patient declares on admission, where each is kept, and the undertaking for what the patient keeps."
+* #admission-discharge-checklist "Admission and discharge checklist" "The nursing checklist completed on admission (desk and ward steps) and again on discharge."
+* #inpatient-guidelines-agreement "Inpatient guidelines and bill payment agreement" "The patient's or guardian's acknowledgement of the hospital's inpatient guidelines, and the undertaking to pay the balance of the estimated bill not covered by SHA or insurance."
+* #postnatal-examination-mother "Daily postnatal examination of the mother" "The mother's daily postnatal observations, breast examination, uterine involution, lochia, bowels and bladder."
 
 
 CodeSystem: SGHIConceptCodeSystem
@@ -1168,6 +1173,44 @@ Description: "What the forms record where no code system this IG can resolve say
 * #acvpu-conscious-level "ACVPU conscious level" "The patient's level of consciousness on the ACVPU scale, as NEWS2 scores it."
 * #news2-total "NEWS2 total score" "The National Early Warning Score 2 total, as the observation chart records it."
 
+// ── Concepts for the South B Hospital extraction maps (2026-10-30) ────────────
+// Checklist items and admission history the maps code as Observations where
+// LOINC has no term.
+* #adm-check-admission-form-completed "Admission form completed" "Admission form completed"
+* #adm-check-anaesthetist-informed "Anaesthetist informed" "Anaesthetist informed"
+* #adm-check-deposit-or-pre-authorization "Deposit or company pre-authorization" "Deposit or company pre-authorization"
+* #adm-check-doctor-informed "Doctor informed" "Doctor informed"
+* #adm-check-imaging "X-ray or scans" "X-ray or scans"
+* #adm-check-investigation-ordered "Investigation ordered" "Investigation ordered"
+* #adm-check-kitchen-informed "Kitchen informed" "Kitchen informed"
+* #adm-check-medication-ordered "Medication ordered" "Medication ordered"
+* #adm-check-other-steps "Other admission steps" "Other admission steps"
+* #adm-check-registered "Registered at the admission desk" "Registered at the admission desk"
+* #adm-check-sha "SHA details taken" "SHA details taken"
+* #adm-check-valuables-declared "Valuables declared" "Valuables declared"
+* #adm-check-ward-orientation "Ward orientation done for the patient" "Ward orientation done for the patient"
+* #admission-nursing-checklist "Admission nursing checklist" "The nursing checklist completed on admission: the admission desk steps and the ward steps, each yes, no or not applicable."
+* #dis-check-baby-immunized-and-birth-notified "Baby immunized and birth notified" "Baby immunized and birth notified"
+* #dis-check-bed-carbonized "Bed carbonized" "Bed carbonized"
+* #dis-check-bed-cleared "Bed completely cleared" "Bed completely cleared"
+* #dis-check-discharge-medication-given "Discharge medication given" "Discharge medication given"
+* #dis-check-discharge-notes-written "Discharge notes written" "Discharge notes written"
+* #dis-check-discharge-summary-given "Discharge summary given" "Discharge summary given"
+* #dis-check-dressing-removed-or-sprayed "Dressing removed or sprayed" "Dressing removed or sprayed"
+* #dis-check-gate-pass-issued "Gate pass issued" "Gate pass issued"
+* #dis-check-imaging-returned "X-rays, MRI and other imaging returned" "X-rays, MRI and other imaging returned"
+* #dis-check-invasive-devices-removed "Invasive devices removed" "Invasive devices removed"
+* #dis-check-other-steps "Other discharge steps" "Other discharge steps"
+* #dis-check-return-date-explained "Return date explained" "Return date explained"
+* #dis-check-sick-sheet-file-copy "Sick sheet file copy" "Sick sheet file copy"
+* #dis-check-valuables-returned "Valuables returned" "Valuables returned"
+* #discharge-nursing-checklist "Discharge nursing checklist" "The nursing checklist completed on discharge: notes and summary, devices and dressings, medication, imaging, valuables, gate pass and the bed, each yes, no or not applicable."
+* #history-corticosteroid-treatment "Previous corticosteroid treatment" "Whether the patient has received treatment with a corticosteroid, e.g. cortisone or prednisone, as asked on admission."
+* #history-of-chronic-illness "History of chronic illness" "The chronic illnesses the patient reports on admission: hypertension, diabetes, asthma, TB or another."
+* #postnatal-breast-examination "Postnatal breast examination" "The breasts on the daily postnatal examination: normal or abnormal, with the finding as a note."
+* #postnatal-lochia "Lochia" "The lochia on the daily postnatal examination: normal, foul smelling or excessive, with the finding as a note."
+* #postnatal-uterine-involution "Uterine involution" "Whether the uterus is involuting as expected on the daily postnatal examination."
+
 CodeSystem: SGHIAnswerCodeSystem
 Id: answer-codesystem
 Title: "SGHI Answer Code System"
@@ -1602,6 +1645,28 @@ Description: "The answers the pick lists offer, where the list is local to these
 * #disposition-discharge-today "Discharge today" "The patient goes home today."
 * #labour-onset-spontaneous "Spontaneous" "Labour began on its own."
 * #labour-onset-induced "Induced" "Labour was induced."
+
+// ── Answers added for the South B Hospital forms (2026-10-29) ────────────────
+* #consenter-parent "Parent" "A parent signing for a child."
+* #consenter-guardian "Guardian" "A legal guardian signing for the patient."
+* #consenter-spouse "Spouse" "The patient's spouse signing on their behalf."
+* #consenter-relative "Relative" "Another relative signing on the patient's behalf."
+* #valuable-jewellery "Jewellery" "Rings, chains, earrings and the like."
+* #valuable-cash "Cash" "Money."
+* #valuable-cell-phone "Cell phone" "A mobile phone."
+* #valuable-electronics "Electronics" "Laptops, tablets, chargers and other electronics."
+* #valuable-weapons "Weapons" "Any weapon; none is accepted on the ward."
+* #valuable-clothing "Clothing" "Clothes and shoes."
+* #valuable-watch "Watch" "A wristwatch."
+* #valuable-personal-documents "Personal documents" "Identity cards, insurance cards and papers."
+* #valuable-own-medicines "Patient's own medicines" "Medicines the patient brought from home."
+* #valuable-feeding-bottle "Feeding bottle" "A baby's feeding bottle; the type is written in the comment."
+* #valuable-breast-pump "Breast pump" "A breast pump."
+* #valuable-other "Other item" "Any other item, named in the comment."
+* #breast-normal "Normal" "Breasts soft, no engorgement, cracked nipples or mastitis."
+* #breast-abnormal "Abnormal" "A finding: engorgement, cracked nipples, mastitis or another problem, described in the note."
+* #chronic-asthma "Asthma" "A history of asthma."
+* #chronic-other "Other" "Another chronic illness, named in the note."
 
 CodeSystem: SGHIScoreCodeSystem
 Id: score-codesystem

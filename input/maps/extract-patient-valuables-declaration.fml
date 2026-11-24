@@ -1,0 +1,223 @@
+/// url = "https://fhir.slade360.co.ke/fhir/StructureMap/ExtractPatientValuablesDeclaration"
+/// name = "ExtractPatientValuablesDeclaration"
+/// title = "Patient Valuables Declaration Extraction"
+/// status = "active"
+/// description = "The valuables declaration as a DocumentReference indexing the signed form: the response itself is the declaration, kept verbatim, and the DocumentReference is how the rest of the system finds it against the patient\'s record. The itemised list and where each item is kept stay on the form, because a declaration separated from the conditions it was made under stops being evidence of anything. A signed declaration with no items still produces the DocumentReference, saying nothing was declared, since that is itself the record. The responsible party and the witnessing staff member are attesters dated to the declaration; the DocumentReference is final once the responsible party has signed and preliminary until then."
+//
+// GATE: (item.where(linkId = 'valuable').item.where(linkId = 'valuable.item').answer.value.exists()) or (item.where(linkId = 'declaration').item.where(linkId = 'declaration.signed').answer.value = true)
+//
+// The extraction gate: a FHIRPath over the QuestionnaireResponse that is
+// true exactly when this map will produce at least one resource. Tooling
+// evaluates it to predict extraction without running the transform; keep it
+// in step with the creation guards below.
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/DocumentReference" alias DocumentReference as target
+
+group ExtractPatientValuablesDeclaration(source qr : QR, target bundle : Bundle) {
+  qr -> bundle.type = 'transaction' "setBundleType";
+
+  // Built once something has been declared, or once the responsible party has
+  // signed: a signed declaration of nothing records that nothing was handed in,
+  // while an unsigned form with no items is just a blank form. The itemised list
+  // and where each item is kept stay on the form response the DocumentReference
+  // points at, because a declaration is read whole.
+  qr where ((item.where(linkId = 'valuable').item.where(linkId = 'valuable.item').answer.value.exists()) or (item.where(linkId = 'declaration').item.where(linkId = 'declaration.signed').answer.value = true)) -> bundle.entry as entry, entry.resource = create('DocumentReference') as doc then {
+    qr -> doc, entry then BuildDocRefBase(qr, doc, entry) "base";
+    qr -> doc.type as cc then {
+      qr -> cc.coding as cg then {
+        qr -> cg.system = 'https://fhir.slade360.co.ke/fhir/CodeSystem/document-type-codesystem' "sys";
+        qr -> cg.code = 'patient-valuables-declaration' "cd";
+        qr -> cg.display = 'Patient valuables declaration' "dsp";
+      } "coding";
+      qr -> cc.text = 'Declaration of personal valuables on admission' "codeText";
+    } "code";
+    qr where (item.where(linkId = 'valuable').item.where(linkId = 'valuable.item').answer.value.exists()) -> doc.description = 'Declaration of the personal valuables the patient brought in, where each is kept (with the patient, handed to the hospital or returned home), and the responsible party\'s undertaking for what stays with the patient. The itemised list and the signatures are on the referenced form response, which is the declaration itself.' "description";
+    qr where ((item.where(linkId = 'valuable').item.where(linkId = 'valuable.item').answer.value.exists()).not()) -> doc.description = 'Declaration that the patient brought in no personal valuables: no item was declared, kept with the patient, handed to the hospital or returned home. The signed undertaking is on the referenced form response.' "descriptionNoneDeclared";
+
+    // Final once the responsible party has signed, preliminary until then.
+    qr where (item.where(linkId = 'declaration').item.where(linkId = 'declaration.signed').answer.value = true) -> doc.docStatus = 'final' "docStatusFinal";
+    qr where (item.where(linkId = 'declaration').item.where(linkId = 'declaration.signed' and answer.value = true).exists().not()) -> doc.docStatus = 'preliminary' "docStatusPreliminary";
+
+    // The staff member who witnessed the declaration, as a second author: the
+    // form asks for them by name and they are the hospital's party to it.
+    qr.item as dg where (linkId = 'declaration') then {
+      dg.item as pf where (linkId = 'declaration.witness' and answer.value.exists()) then {
+        pf.answer first as pa then {
+          pa.value : Reference as ref where (((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> doc.author = create('Reference') as actor then {
+            ref.reference as v -> actor.reference = v "reference";
+            ref.type as v -> actor.type = v "type";
+            ref.identifier as v -> actor.identifier = v "identifier";
+            ref.display as v -> actor.display = v "display";
+          } "performer";
+        } "performerAnswer";
+      } "performer_1";
+
+      // Once signed, the responsible party attests personally and the witness
+      // professionally, both at the declaration date. The patient signing for
+      // themselves is the response's subject; anyone else is named as written,
+      // since the form does not record them as a resource.
+      dg where (item.where(linkId = 'declaration.signed').answer.value = true) then {
+        dg -> doc.attester as att then {
+          dg -> att.mode as md then {
+            dg -> md.coding as cg then {
+              dg -> cg.system = 'http://hl7.org/fhir/composition-attestation-mode' "sys";
+              dg -> cg.code = 'personal' "cd";
+              dg -> cg.display = 'Personal' "dsp";
+            } "coding";
+          } "mode";
+          dg -> att then SetAttesterTime(dg, att) "time";
+          dg where (item.where(linkId = 'declaration.signer').answer.value.ofType(Coding).where(code = 'consenter-patient').exists()) then {
+            qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> att.party = create('Reference') as ref then {
+              s.reference as v -> ref.reference = v "reference";
+              s.type as v -> ref.type = v "type";
+              s.identifier as v -> ref.identifier = v "identifier";
+              s.display as v -> ref.display = v "display";
+            } "patientParty";
+          } "patientSigner";
+          dg where (item.where(linkId = 'declaration.signer').answer.value.ofType(Coding).where(code = 'consenter-patient').exists().not()) then {
+            dg.item as sn where (linkId = 'declaration.signerName' and answer.value.exists()) then {
+              sn.answer first as sa then {
+                sa.value : string as nm -> att.party = create('Reference') as ref, ref.display = nm "namedParty";
+              } "signerNameAnswer";
+            } "signerName";
+          } "otherSigner";
+        } "responsibleParty";
+        dg.item as pf where (linkId = 'declaration.witness' and answer.value.exists()) then {
+          pf.answer first as pa then {
+            pa.value : Reference as ref where (((reference.exists() and (reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole'))))) -> doc.attester as att then {
+              ref -> att.mode as md then {
+                ref -> md.coding as cg then {
+                  ref -> cg.system = 'http://hl7.org/fhir/composition-attestation-mode' "sys";
+                  ref -> cg.code = 'professional' "cd";
+                  ref -> cg.display = 'Professional' "dsp";
+                } "coding";
+              } "mode";
+              dg -> att then SetAttesterTime(dg, att) "time";
+              ref -> att.party = create('Reference') as party then {
+                ref.reference as v -> party.reference = v "reference";
+                ref.type as v -> party.type = v "type";
+                ref.identifier as v -> party.identifier = v "identifier";
+                ref.display as v -> party.display = v "display";
+              } "party";
+            } "witnessAttester";
+          } "witnessAnswer";
+        } "witness";
+      } "attesters";
+    } "declarationGroup";
+  } "documentEntry";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared scaffolding. Repeated in each map rather than imported: the transform
+// engine resolves `imports` against whatever StructureMaps happen to be on the
+// server, and a form that stops extracting because a shared map was not
+// uploaded is a worse failure than a duplicated group.
+//
+// Source parameters below are left untyped on purpose. Writing `: Element` makes
+// the validator compare QuestionnaireResponse.item against the literal 'Element'
+// and report them as incompatible with each other, which is noise, not a finding.
+//
+// `evaluate(context, expression)` is flagged as "takes 1 parameter but 2 were
+// found". Leave it. The FML parser in the same jar refuses the one-argument form
+// outright -- it wants a parameter, a comma, then the FHIRPath -- so the
+// publisher is objecting to what its own compiler emits. Two arguments is the
+// only form that compiles, and it is what the R5 transform engine executes.
+// ─────────────────────────────────────────────────────────────────────────────
+
+group BuildDocRefBase(source qr : QR, target r : DocumentReference, target entry) {
+  qr -> r then SetResponseProvenance(qr, r) "responseProvenance";
+  qr -> r.id = uuid() then SetDocRefFullUrl(r, entry) "idAndFullUrl";
+
+  qr -> entry.request as request then {
+    qr -> request.method = 'POST' "requestMethod";
+    qr -> request.url = 'DocumentReference' "requestUrl";
+  } "entryRequest";
+
+  qr -> r.status = 'current' "status";
+  // DocumentReference.date is an instant, so only a full timestamp can stand
+  // in it; a response authored to the day leaves it unset.
+  qr.authored as t where ($this.toString().length() >= 20) -> r.date = cast(t, 'instant') "date";
+  qr.subject as s where (((reference.exists() and (reference.startsWith('Patient/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient'))))) -> r.subject = create('Reference') as ref then {
+    s.reference as v -> ref.reference = v "reference";
+    s.type as v -> ref.type = v "type";
+    s.identifier as v -> ref.identifier = v "identifier";
+    s.display as v -> ref.display = v "display";
+  } "subject";
+  qr.encounter as e where (((reference.exists() and (reference.startsWith('Encounter/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Encounter'))))) -> r.context = create('Reference') as ref then {
+    e.reference as v -> ref.reference = v "reference";
+    e.type as v -> ref.type = v "type";
+    e.identifier as v -> ref.identifier = v "identifier";
+    e.display as v -> ref.display = v "display";
+  } "context";
+
+  qr.author as a where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole') or ('/' + type).endsWith('/Organization'))))) -> r.author = create('Reference') as ref then {
+    a.reference as v -> ref.reference = v "reference";
+    a.type as v -> ref.type = v "type";
+    a.identifier as v -> ref.identifier = v "identifier";
+    a.display as v -> ref.display = v "display";
+  } "authorFromAuthor";
+  qr where (author.where(((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole') or ('/' + type).endsWith('/Organization'))))).exists().not()) then {
+    qr.source as src where (((reference.exists() and (reference.startsWith('Patient/') or reference.startsWith('Practitioner/') or reference.startsWith('PractitionerRole/') or reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Patient') or ('/' + type).endsWith('/Practitioner') or ('/' + type).endsWith('/PractitionerRole') or ('/' + type).endsWith('/Organization'))))) -> r.author = create('Reference') as ref then {
+      src.reference as v -> ref.reference = v "reference";
+      src.type as v -> ref.type = v "type";
+      src.identifier as v -> ref.identifier = v "identifier";
+      src.display as v -> ref.display = v "display";
+    } "authorFromSource";
+  } "authorFallback";
+
+  // The content IS the stored response: the attachment points at it rather
+  // than copying it. A stored response's id already reads
+  // "QuestionnaireResponse/<id>", so it is a relative URL as it stands; the
+  // length guard stops an unsaved response from writing a null link.
+  qr.id as qid where ($this.toString().length() > 0) -> r.content as content, content.attachment as att then {
+    qid -> att.url = qid "attachmentUrl";
+    qid -> att.contentType = 'application/fhir+json' "attachmentContentType";
+    qr.authored as t -> att.creation = t "attachmentCreation";
+  } "content";
+}
+
+// The declaration date as the attestation time.
+group SetAttesterTime(source dg, target att) {
+  dg.item as di where (linkId = 'declaration.date' and answer.value.exists()) then {
+    di.answer first as a then {
+      a.value : date as v -> att.time = v "time";
+    } "dateAnswer";
+  } "date";
+}
+
+group SetDocRefFullUrl(source r : DocumentReference, target entry) {
+  r.id as id -> entry.fullUrl = append('https://fhir.slade360.co.ke/fhir/DocumentReference/', id) "assignFullUrl";
+}
+
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+//
+// Two tags on everything this map creates. The first says which questionnaire
+// produced it, so a form that reopens mid-admission recalls its own earlier
+// entries and not another form's. The second copies the tenant tags off the
+// response, because nothing else on the path puts them there. The response's
+// identifier is copied the same way.
+// ── Provenance and tenancy ───────────────────────────────────────────────────
+
+group SetResponseProvenance(source qr : QR, target r) {
+  qr -> r.meta as m then {
+    qr -> m.tag as t then {
+      qr -> t.system = 'http://slade360edi.com/questionnaire-provenance' "provenanceSystem";
+      qr -> t.code = 'patient-valuables-declaration' "provenanceCode";
+      qr -> t.display = 'Patient valuables declaration' "provenanceDisplay";
+    } "provenanceTag";
+  } "provenanceMeta";
+
+  // Every tag the response carries, onto the resource. `meta` is 0..1, so this
+  // lands on the same meta the rule above created rather than a second one.
+  qr.meta as qm then {
+    qm.tag as qt -> r.meta as m, m.tag = qt "copyTag";
+  } "tenantTags";
+
+  // The response's identifiers, as they are. Every profile wants one, and it is
+  // the response's to give: nothing here mints one, so a response without an
+  // identifier extracts resources without one. One whose assigner is not of a
+  // type the profiles allow there is left behind whole, not altered.
+  qr.identifier as qid where (assigner.empty() or assigner.where(((reference.exists() and (reference.startsWith('Organization/'))) or (reference.empty() and (type.empty() or ('/' + type).endsWith('/Organization'))))).exists()) -> r.identifier = qid "identifier";
+}
