@@ -2070,6 +2070,37 @@ Description: "Why an ordered item was stopped before it was done. Recorded again
 // that nobody made.
 * #parent-order-cancelled "Parent order was cancelled" "The item was stopped because the order it belonged to was cancelled, not on a decision about the item itself."
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Medication rejection
+//
+// Why the pharmacy rejected a prescription instead of dispensing it. Only the
+// reasons HL7 has no code for are coded here: stock, the formulary, the
+// patient's scheme, the patient's means, and a prescription that cannot be
+// dispensed as written. The clinical reasons (an allergy, an interaction,
+// duplicate therapy, a prescription needing clarification) are HL7's
+// medicationrequest-status-reason, which SGHIMedicationRejectionReason includes
+// by reference rather than recoding. Those are the contraindications a
+// pharmacist checks for, so they fit a rejection even though, as the note on
+// order cancellation says, they do not fit a cancellation.
+// ─────────────────────────────────────────────────────────────────────────────
+
+CodeSystem: SGHIMedicationRejectionCodeSystem
+Id: medication-rejection-codesystem
+Title: "SGHI Medication Rejection Code System"
+Description: "Why the pharmacy rejected a prescription instead of dispensing it, for the reasons HL7's medicationrequest-status-reason has no code for: supply, the formulary, the patient's scheme or means, and a prescription that cannot be dispensed as written."
+* ^status = #active
+* ^experimental = false
+* ^content = #complete
+* ^caseSensitive = true
+* #out-of-stock "Out of stock" "The pharmacy has none of the drug to dispense."
+* #wrong-dose-or-frequency "Wrong dose or frequency" "The dose, or how often it is to be taken, is wrong for the drug or for the patient."
+* #wrong-drug-or-formulation "Wrong drug or formulation" "The drug, or the form it is prescribed in, is not the right one for the patient."
+* #not-on-formulary "Not on the formulary" "The drug is not on the facility's formulary, so the pharmacy does not supply it."
+* #not-covered-or-authorization-declined "Not covered by the scheme, or the authorization was declined" "The patient's scheme does not cover the drug, or the payer declined the authorization requested for it."
+* #patient-cannot-pay-or-declined "Patient cannot pay, or the patient declined" "The patient cannot pay for the drug, or chose not to take it."
+* #quantity-exceeds-scheme-limit "Quantity exceeds the scheme limit" "The quantity prescribed is more than the patient's scheme allows."
+* #prescription-expired-or-incomplete "Prescription expired or incomplete" "The prescription is no longer valid to dispense from, or is missing details the pharmacy needs to dispense it."
+
 CodeSystem: SGHITransferCodeSystem
 Id: transfer-codesystem
 Title: "SGHI Transfer Code System"
