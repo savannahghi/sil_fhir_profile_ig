@@ -100,12 +100,13 @@ group BuildMedicationRequest(source qr : QR, source prescriptionGroup, target me
 group BuildDosage(source prescriptionGroup, target dosage : Dosage) {
   prescriptionGroup -> dosage.timing as timing then {
     prescriptionGroup -> timing.repeat as repeat then {
-      // Frequency (OD, BD, TID, QID). A positiveInt, which an integer is not converted
-      // to, so each is cast.
+      // Frequency, from the dosage-frequency codes (OD, TW, TID, QID). Twice daily is
+      // TW in that code system; BD is read as well. A positiveInt, which an integer is
+      // not converted to, so each is cast.
       prescriptionGroup.item as freqItem where (linkId = 'frequency') then {
         freqItem.answer first as freqAns then {
           freqAns.value as freqCoding where ($this is Coding and code = 'OD') -> repeat.frequency = cast('1', 'positiveInt') "setFreqOD";
-          freqAns.value as freqCoding where ($this is Coding and code = 'BD') -> repeat.frequency = cast('2', 'positiveInt') "setFreqBD";
+          freqAns.value as freqCoding where ($this is Coding and (code = 'TW' or code = 'BD')) -> repeat.frequency = cast('2', 'positiveInt') "setFreqTW";
           freqAns.value as freqCoding where ($this is Coding and code = 'TID') -> repeat.frequency = cast('3', 'positiveInt') "setFreqTID";
           freqAns.value as freqCoding where ($this is Coding and code = 'QID') -> repeat.frequency = cast('4', 'positiveInt') "setFreqQID";
         } "extractFreq";
