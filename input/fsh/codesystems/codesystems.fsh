@@ -430,6 +430,17 @@ Description: "A code system enumerating the different visit types used across SG
 * #community-health-services "Community Health Services" "A visit for community-based health services delivered at or through the community health unit level."
 * #palliative-care-hospice "Palliative Care and Hospice Services" "A visit for palliative or hospice care focused on symptom relief, comfort, and quality of life for patients with serious or life-limiting illness."
 * #dental-oral-health "Dental and Oral Health Services" "A visit for the diagnosis, prevention, and treatment of dental and oral health conditions."
+* #couple-therapy "Couple Therapy" "A mental health visit for therapy sessions with a couple to address relationship difficulties and their effect on mental wellbeing."
+* #family-therapy "Family Therapy" "A mental health visit for therapy sessions with a family to address family dynamics, communication and their effect on mental wellbeing."
+* #art-therapy "Art Therapy" "A mental health visit for therapy that uses creative expression, such as drawing, painting or modelling, to support emotional and psychological wellbeing."
+* #psychotherapy "Psychotherapy" "A mental health visit for talk-based psychological therapy, delivered individually or in a group, to treat mental health conditions."
+* #outpatient-rehabilitation "Outpatient Rehabilitation" "A mental health visit for rehabilitation services delivered on an outpatient basis, including substance use and psychosocial rehabilitation."
+* #electroconvulsive-therapy "Electro-Convulsive Therapy (ECT)" "A mental health visit for the administration of electro-convulsive therapy (ECT)."
+* #relapse-prevention "Relapse Prevention" "A mental health visit for relapse prevention support for patients recovering from mental health or substance use conditions."
+* #nursing-care "Nursing Care" "A mental health visit for nursing care, such as medication administration, monitoring and psychosocial support."
+* #assessment-screening-treatment "Assessment, screening & treatment" "A mental health visit for assessment, screening and treatment of mental health conditions."
+* #mental-health-promotion-talks "Mental health promotion talks & shows" "A visit for mental health promotion talks and shows that raise awareness and promote mental wellbeing."
+* #mental-health-prevention-talks "Prevention of mental health problems talks" "A visit for talks aimed at preventing mental health problems in individuals and communities."
 
 
 
@@ -1403,12 +1414,12 @@ Description: "A code system enumerating the concepts used to request, triage, pl
 // Unidentified patient
 * #identified "Identified" "The patient can be named and matched to a record."
 * #unidentified "Not identified" "The patient cannot yet be named. A patient with no name is still admissible."
-* #age-infant "Infant" "Apparent age band: infant."
-* #age-child "Child" "Apparent age band: child."
-* #age-teenager "Teenager" "Apparent age band: teenager."
-* #age-young-adult "Young adult" "Apparent age band: young adult."
-* #age-middle-aged "Middle aged" "Apparent age band: middle aged."
-* #age-elderly "Elderly" "Apparent age band: elderly."
+* #age-infant "Infant (0 - 12 months)" "Apparent age band: infant, 0 - 12 months."
+* #age-child "Child (1 to 12 years)" "Apparent age band: child, 1 to 12 years."
+* #age-teenager "Teenager (13 to 17 years)" "Apparent age band: teenager, 13 to 17 years."
+* #age-young-adult "Young adult (18 to 39 years)" "Apparent age band: young adult, 18 to 39 years."
+* #age-middle-aged "Middle aged (40 to 59 years)" "Apparent age band: middle aged, 40 to 59 years."
+* #age-elderly "Elderly (60 years +)" "Apparent age band: elderly, 60 years +."
 
 // How the patient arrived
 * #arrived-ambulance "By ambulance" "Brought in by ambulance."

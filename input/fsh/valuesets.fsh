@@ -1298,6 +1298,17 @@ Description: "A ValueSet defining the possible visit types in SGHI's systems."
 * include SGHIVisitTypeCodeSystem#community-health-services "Community Health Services"
 * include SGHIVisitTypeCodeSystem#palliative-care-hospice "Palliative Care and Hospice Services"
 * include SGHIVisitTypeCodeSystem#dental-oral-health "Dental and Oral Health Services"
+* include SGHIVisitTypeCodeSystem#couple-therapy "Couple Therapy"
+* include SGHIVisitTypeCodeSystem#family-therapy "Family Therapy"
+* include SGHIVisitTypeCodeSystem#art-therapy "Art Therapy"
+* include SGHIVisitTypeCodeSystem#psychotherapy "Psychotherapy"
+* include SGHIVisitTypeCodeSystem#outpatient-rehabilitation "Outpatient Rehabilitation"
+* include SGHIVisitTypeCodeSystem#electroconvulsive-therapy "Electro-Convulsive Therapy (ECT)"
+* include SGHIVisitTypeCodeSystem#relapse-prevention "Relapse Prevention"
+* include SGHIVisitTypeCodeSystem#nursing-care "Nursing Care"
+* include SGHIVisitTypeCodeSystem#assessment-screening-treatment "Assessment, screening & treatment"
+* include SGHIVisitTypeCodeSystem#mental-health-promotion-talks "Mental health promotion talks & shows"
+* include SGHIVisitTypeCodeSystem#mental-health-prevention-talks "Prevention of mental health problems talks"
 
 ValueSet: SGHIGeneralResult
 Id: general-result
@@ -1696,12 +1707,12 @@ Title: "SGHI Apparent Age Band"
 Description: "Estimated age band of a patient who cannot identify themselves."
 * ^status = #active
 * ^experimental = false
-* include SGHIAdmissionCodeSystem#age-infant "Infant"
-* include SGHIAdmissionCodeSystem#age-child "Child"
-* include SGHIAdmissionCodeSystem#age-teenager "Teenager"
-* include SGHIAdmissionCodeSystem#age-young-adult "Young adult"
-* include SGHIAdmissionCodeSystem#age-middle-aged "Middle aged"
-* include SGHIAdmissionCodeSystem#age-elderly "Elderly"
+* include SGHIAdmissionCodeSystem#age-infant "Infant (0 - 12 months)"
+* include SGHIAdmissionCodeSystem#age-child "Child (1 to 12 years)"
+* include SGHIAdmissionCodeSystem#age-teenager "Teenager (13 to 17 years)"
+* include SGHIAdmissionCodeSystem#age-young-adult "Young adult (18 to 39 years)"
+* include SGHIAdmissionCodeSystem#age-middle-aged "Middle aged (40 to 59 years)"
+* include SGHIAdmissionCodeSystem#age-elderly "Elderly (60 years +)"
 
 ValueSet: SGHIArrivalMode
 Id: arrival-mode
